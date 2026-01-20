@@ -2,114 +2,156 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>CHỌN BỘ ĐỀ THI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chọn bộ đề | Select Exam</title>
 
 <style>
 body{
- margin:0;font-family:Arial,Helvetica,sans-serif;
- background:#eef2f6;
+ margin:0;
+ font-family:Arial,Helvetica,sans-serif;
+ background:linear-gradient(135deg,#eef3ff,#f9fbff);
 }
 header{
- background:#1d3557;color:white;
- padding:22px;text-align:center;
- font-size:22px;font-weight:bold;
+ background:#1d3557;
+ color:white;
+ padding:18px 30px;
+ text-align:center;
+ box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
-.container{
- max-width:1200px;margin:35px auto;
+header h1{
+ margin:0;
+ font-size:22px;
+}
+header h2{
+ margin:6px 0 0;
+ font-size:15px;
+ font-weight:normal;
+ opacity:.9;
+}
+
+#container{
+ max-width:1100px;
+ margin:35px auto;
  padding:0 20px;
 }
-.section{
- margin-bottom:40px;
-}
-.section h2{
- color:#1d3557;margin-bottom:15px;
-}
+
 .grid{
  display:grid;
- grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
- gap:25px;
-}
-.card{
- background:white;padding:22px;border-radius:14px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
- cursor:pointer;transition:.2s;
-}
-.card:hover{
- transform:translateY(-4px);
- box-shadow:0 6px 20px rgba(0,0,0,.18);
-}
-.card h3{margin-top:0;color:#1d3557;}
-.card p{margin:6px 0;color:#555;font-size:15px;}
-
-.detail{
- display:none;
- max-width:800px;margin:40px auto;
- background:white;padding:25px;border-radius:16px;
- box-shadow:0 6px 22px rgba(0,0,0,.18);
-}
-.detail h2{color:#1d3557;margin-top:0;}
-.infoGrid{
- display:grid;
  grid-template-columns:1fr 1fr;
- gap:15px;margin-top:15px;
+ gap:30px;
 }
-.infoBox{
- background:#f1f4fb;padding:14px;
+@media(max-width:900px){
+ .grid{grid-template-columns:1fr;}
+}
+
+.box{
+ background:white;
+ padding:25px;
+ border-radius:18px;
+ box-shadow:0 8px 25px rgba(0,0,0,.12);
+}
+.box h3{
+ margin-top:0;
+ color:#1d3557;
+}
+.box h4{
+ margin:6px 0 12px;
+ font-weight:normal;
+ color:#555;
+}
+
+.exam{
+ border:1px solid #eee;
+ border-radius:14px;
+ padding:18px;
+ margin-bottom:15px;
+ transition:.2s;
+}
+.exam:hover{
+ box-shadow:0 6px 18px rgba(0,0,0,.12);
+ transform:translateY(-2px);
+}
+
+.exam b{
+ font-size:16px;
+ color:#1d3557;
+}
+.exam p{
+ margin:6px 0;
+ font-size:14px;
+ color:#555;
+}
+.exam button{
+ margin-top:10px;
+ background:#2a9d8f;
+ color:white;
+ border:none;
  border-radius:10px;
+ padding:10px 16px;
+ cursor:pointer;
+ font-size:14px;
 }
-.actions{
+.exam button:hover{opacity:.9;}
+
+.back{
  margin-top:25px;
- display:flex;justify-content:center;gap:18px;
+ text-align:center;
 }
-.btn{
- border:none;border-radius:12px;
- padding:15px 26px;font-size:16px;
- cursor:pointer;color:white;min-width:240px;
+.back button{
+ background:#457b9d;
+ color:white;
+ border:none;
+ border-radius:10px;
+ padding:12px 22px;
+ cursor:pointer;
+ font-size:15px;
 }
-.btnStart{background:#2a9d8f;}
-.btnBack{background:#457b9d;}
 </style>
 </head>
 
 <body>
 
-<header>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</header>
+<header>
+ <h1>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</h1>
+ <h2>Traffic Law Examination System</h2>
+</header>
 
-<div class="container" id="mainBox">
+<div id="container">
 
- <!-- ===== KHỐI 1: A1 ===== -->
- <div class="section">
-  <h2>🏍️ Sát hạch lái xe mô tô quân sự</h2>
-  <div class="grid" id="a1Box"></div>
+ <div class="grid">
+
+  <!-- ===== KHỐI 1: MÔ TÔ ===== -->
+  <div class="box">
+   <h3>🚲 SÁT HẠCH MÔ TÔ QUÂN SỰ</h3>
+   <h4>Military Motorcycle Driving Test</h4>
+
+   <div class="exam">
+    <b>Bộ đề A1</b>
+    <p>Motorcycle License Test A1</p>
+    <p>• Số câu: 25</p>
+    <p>• Thời gian: 19 phút</p>
+    <p>• Điều kiện đạt: ≥ 21/25</p>
+    <button onclick="startExam('A1')">▶ Bắt đầu | Start</button>
+   </div>
+  </div>
+
+  <!-- ===== KHỐI 2: Ô TÔ ===== -->
+  <div class="box">
+   <h3>🚗 KIỂM TRA LÁI XE Ô TÔ QUÂN SỰ</h3>
+   <h4>Military Car Driver Examination</h4>
+
+   <div id="carExams">Đang tải bộ đề...</div>
+  </div>
+
  </div>
 
- <!-- ===== KHỐI 2: Ô TÔ ===== -->
- <div class="section">
-  <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
-  <div class="grid" id="carBox"></div>
+ <div class="back">
+  <button onclick="back()">⬅ Quay lại | Back</button>
  </div>
 
 </div>
 
-<!-- ===== CHI TIẾT BỘ ĐỀ ===== -->
-<div class="detail" id="detailBox">
- <h2 id="dName"></h2>
- <p id="dDesc"></p>
-
- <div class="infoGrid">
-  <div class="infoBox">📘 <b>Số câu hỏi:</b> <span id="dCount"></span></div>
-  <div class="infoBox">⏱️ <b>Thời gian:</b> <span id="dTime"></span> phút</div>
-  <div class="infoBox">✅ <b>Kết quả đạt:</b> <span id="dPass"></span> câu đúng</div>
-  <div class="infoBox">🆔 <b>Mã bộ đề:</b> <span id="dCode"></span></div>
- </div>
-
- <div class="actions">
-  <button class="btn btnStart" onclick="startExam()">▶ Bắt đầu làm bài</button>
-  <button class="btn btnBack" onclick="back()">↩ Quay lại</button>
- </div>
-</div>
-
-<!-- Firebase -->
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -119,74 +161,46 @@ firebase.initializeApp({
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-let currentSet=null;
-
-/* ===== LOAD A1 ===== */
+/* ===== LOAD CAR QUESTION SETS ===== */
 db.collection("question_sets")
- .where("code","==","A1")
  .where("active","==",true)
  .get()
  .then(snap=>{
-  snap.forEach(doc=>{
-   const d=doc.data();
-   a1Box.innerHTML+=`
-    <div class="card" onclick="showDetail('${doc.id}')">
-     <h3>${d.name}</h3>
-     <p>${d.description}</p>
-     <p><b>Số câu:</b> ${d.questionCount}</p>
-     <p><b>Thời gian:</b> ${d.time} phút</p>
-     <p><b>Đạt:</b> ${d.passScore} câu đúng</p>
-    </div>
-   `;
+  if(snap.empty){
+   carExams.innerHTML="<i>Không có bộ đề</i>";
+   return;
+  }
+
+  carExams.innerHTML="";
+  snap.forEach(d=>{
+   const s=d.data();
+   carExams.innerHTML+=`
+    <div class="exam">
+     <b>${s.name}</b>
+     <p>${s.description||""}</p>
+     <p>• Mã bộ đề: ${s.code}</p>
+     <button onclick="startExam('${s.code}')">
+      ▶ Bắt đầu | Start
+     </button>
+    </div>`;
   });
  });
 
-/* ===== LOAD Ô TÔ ===== */
-db.collection("question_sets")
- .where("code","in",["CAR_150","CAR_450","CAR_600"])
- .where("active","==",true)
- .get()
- .then(snap=>{
-  snap.forEach(doc=>{
-   const d=doc.data();
-   carBox.innerHTML+=`
-    <div class="card" onclick="showDetail('${doc.id}')">
-     <h3>${d.name}</h3>
-     <p>${d.description}</p>
-     <p><b>Số câu:</b> ${d.questionCount}</p>
-     <p><b>Thời gian:</b> ${d.time} phút</p>
-     <p><b>Đạt:</b> ${d.passScore} câu đúng</p>
-    </div>
-   `;
-  });
- });
-
-function showDetail(id){
- db.collection("question_sets").doc(id).get().then(doc=>{
-  currentSet={id,...doc.data()};
-  mainBox.style.display="none";
-  detailBox.style.display="block";
-
-  dName.innerText=currentSet.name;
-  dDesc.innerText=currentSet.description;
-  dCount.innerText=currentSet.questionCount;
-  dTime.innerText=currentSet.time;
-  dPass.innerText=currentSet.passScore;
-  dCode.innerText=currentSet.code;
- });
+/* ===== START EXAM ===== */
+function startExam(code){
+ localStorage.setItem("examSet",code);
+ location.href="exam_do.html"; // giữ nguyên liên kết cũ
 }
 
+/* ===== BACK ===== */
 function back(){
- detailBox.style.display="none";
- mainBox.style.display="block";
-}
-
-function startExam(){
- localStorage.setItem("questionSetId",currentSet.id);
- localStorage.setItem("questionSetCode",currentSet.code);
- location.href="exam.html";
+ if(localStorage.getItem("userType")==="student"){
+  location.href="exam.html";
+ }else{
+  location.href="index.html";
+ }
 }
 </script>
 
