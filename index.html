@@ -20,12 +20,37 @@ body{
 }
 .box{
  background:white;
- width:380px;
+ width:390px;
  padding:30px;
  border-radius:14px;
  box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
-h2{text-align:center;color:#1d3557;margin-bottom:20px;}
+
+/* ===== TÊN WEB ===== */
+.webname{
+ text-align:center;
+ margin-bottom:14px;
+}
+.webname .vi{
+ font-size:20px;
+ font-weight:bold;
+ color:#1d3557;
+}
+.webname .en{
+ font-size:13px;
+ color:#666;
+ margin-top:4px;
+}
+
+/* ===== LOGIN TITLE ===== */
+h2{
+ text-align:center;
+ font-size:17px;
+ color:#333;
+ margin:12px 0 20px;
+ font-weight:600;
+}
+
 input{
  width:100%;
  padding:12px;
@@ -35,16 +60,23 @@ input{
  font-size:15px;
  box-sizing:border-box;
 }
+
+/* CHECKBOX */
 .showpass{
- font-size:13px;
- color:#333;
- margin-bottom:14px;
  display:flex;
  align-items:center;
- gap:6px;
- cursor:pointer;
- user-select:none;
+ gap:8px;
+ font-size:14px;
+ color:#333;
+ margin-bottom:16px;
 }
+.showpass input{
+ width:16px;
+ height:16px;
+ margin:0;
+ cursor:pointer;
+}
+
 button{
  width:100%;
  padding:13px;
@@ -56,15 +88,29 @@ button{
  cursor:pointer;
 }
 button:hover{opacity:.9;}
+
 .try{
  margin-top:12px;
  background:#2a9d8f;
 }
+
+/* NOTE */
 .note{
  font-size:13px;
  color:#555;
- margin-top:12px;
+ margin-top:14px;
  line-height:1.45;
+}
+
+/* ZALO */
+.zalo{
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+}
+.zalo img{
+ width:16px;
+ height:16px;
 }
 </style>
 </head>
@@ -72,16 +118,22 @@ button:hover{opacity:.9;}
 <body>
 <div class="overlay">
  <div class="box">
+
+  <!-- TÊN WEB SONG NGỮ -->
+  <div class="webname">
+   <div class="vi">HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</div>
+   <div class="en">Traffic Law Examination System</div>
+  </div>
+
   <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
 
   <input id="loginInput" placeholder="Nhập mã hoặc tên học viên">
   <input id="password" type="password" placeholder="Mật khẩu (chỉ dành cho admin)">
 
-  <!-- HIỆN / ẨN MẬT KHẨU -->
-  <label class="showpass">
+  <div class="showpass">
    <input type="checkbox" id="togglePass">
-   Hiện mật khẩu
-  </label>
+   <label for="togglePass">Hiện mật khẩu</label>
+  </div>
 
   <button id="loginBtn">Đăng nhập</button>
   <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
@@ -90,8 +142,13 @@ button:hover{opacity:.9;}
    • Học viên chỉ cần nhập mã hoặc tên<br>
    • Admin nhập thêm mật khẩu<br>
    • Chưa có mã học viên có thể Thi thử<br>
-   • 📞 <b>0973.306.802</b>
+   • 
+   <span class="zalo">
+    📞 <strong>0973.306.802</strong>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+   </span>
   </div>
+
  </div>
 </div>
 
@@ -99,7 +156,6 @@ button:hover{opacity:.9;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -107,68 +163,47 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ===== ADMIN HASH ===== */
 const ADMIN_HASH =
  "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
 
-/* ===== SHOW / HIDE PASSWORD ===== */
-togglePass.onchange = () => {
- password.type = togglePass.checked ? "text" : "password";
-};
+/* SHOW/HIDE PASSWORD */
+togglePass.onchange=()=>password.type=togglePass.checked?"text":"password";
 
-/* ===== EVENTS ===== */
+/* EVENTS */
 loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
-loginBtn.onclick = login;
+loginBtn.onclick=login;
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 function login(){
- const raw = loginInput.value.trim();
- const pass = password.value.trim();
+ const raw=loginInput.value.trim();
+ const pass=password.value.trim();
+ if(!raw){alert("Vui lòng nhập mã hoặc tên học viên");return;}
 
- if(!raw){
-  alert("Vui lòng nhập mã hoặc tên học viên");
-  return;
- }
-
- /* ===== ADMIN LOGIN ===== */
  if(pass){
   hashPassword(pass).then(hash=>{
-   if(hash === ADMIN_HASH){
+   if(hash===ADMIN_HASH){
     localStorage.setItem("userType","admin");
     location.href="admin.html";
-   }else{
-    alert("Sai mật khẩu admin");
-   }
+   }else alert("Sai mật khẩu admin");
   });
   return;
  }
 
- /* ===== STUDENT LOGIN ===== */
- const digits = raw.replace(/\D/g,"");
-
- if(digits){
-  const code = digits.padStart(3,"0");
-  findStudentByCode(code);
-  return;
- }
-
+ const digits=raw.replace(/\D/g,"");
+ if(digits){findStudentByCode(digits.padStart(3,"0"));return;}
  findStudentByName(raw);
 }
 
-/* ===== HASH ===== */
 function hashPassword(str){
- return crypto.subtle.digest(
-  "SHA-256",
-  new TextEncoder().encode(str)
- ).then(buf=>{
-  return Array.from(new Uint8Array(buf))
-   .map(b=>b.toString(16).padStart(2,"0"))
-   .join("");
- });
+ return crypto.subtle.digest("SHA-256",new TextEncoder().encode(str))
+ .then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join(""));
 }
 
-/* ===== FIND STUDENT ===== */
+function normalize(s){
+ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
 function findStudentByCode(code){
  db.collection("students").where("code","==",code).limit(1).get()
  .then(snap=>{
@@ -177,12 +212,8 @@ function findStudentByCode(code){
  });
 }
 
-function normalize(s){
- return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
-
 function findStudentByName(input){
- const key = normalize(input);
+ const key=normalize(input);
  db.collection("students").get().then(snap=>{
   let found=null;
   snap.forEach(d=>{
@@ -193,7 +224,6 @@ function findStudentByName(input){
  });
 }
 
-/* ===== LOGIN SUCCESS ===== */
 function loginStudent(s){
  localStorage.setItem("userType","student");
  localStorage.setItem("studentCode",s.code);
@@ -201,7 +231,6 @@ function loginStudent(s){
  location.href="exam.html";
 }
 
-/* ===== TRY EXAM ===== */
 function tryExam(){
  localStorage.setItem("userType","guest");
  location.href="test.html";
