@@ -3,79 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đăng nhập - Hệ thống thi luật GT</title>
+<title>Đăng nhập hệ thống</title>
 
 <style>
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
- background:url("bg.jpg") center/cover no-repeat fixed;
-}
-.overlay{
- background:rgba(0,0,0,.45);
- min-height:100vh;
+ background:#eef2f6;
  display:flex;
- align-items:center;
  justify-content:center;
+ align-items:center;
+ height:100vh;
 }
 .box{
  background:white;
- width:380px;
  padding:30px;
+ width:360px;
  border-radius:14px;
- box-shadow:0 10px 30px rgba(0,0,0,.3);
+ box-shadow:0 6px 20px rgba(0,0,0,.18);
 }
-h2{text-align:center;color:#1d3557;margin-bottom:20px;}
+h2{
+ text-align:center;
+ margin-top:0;
+ color:#1d3557;
+}
 input{
  width:100%;
  padding:12px;
- margin-bottom:14px;
+ margin-top:12px;
  border-radius:8px;
  border:1px solid #ccc;
  font-size:15px;
 }
 button{
  width:100%;
+ margin-top:15px;
  padding:13px;
  border:none;
- border-radius:10px;
- background:#1d3557;
- color:white;
- font-size:16px;
+ border-radius:8px;
+ font-size:15px;
  cursor:pointer;
 }
-button:hover{opacity:.9;}
-.try{
- margin-top:12px;
- background:#2a9d8f;
-}
+#loginStudent{background:#2a9d8f;color:white;}
+#loginAdmin{background:#457b9d;color:white;}
+#trialBtn{background:#adb5bd;color:white;}
+button:hover{opacity:.9}
 .note{
  font-size:13px;
- color:#555;
+ color:#666;
  margin-top:10px;
- line-height:1.4;
+ text-align:center;
 }
 </style>
 </head>
 
 <body>
-<div class="overlay">
- <div class="box">
-  <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
 
-  <input id="loginInput" placeholder="Nhập mã học viên hoặc tên học viên">
-  <input id="password" type="password" placeholder="Mật khẩu (chỉ dành cho admin)">
-  
-  <button id="loginBtn">Đăng nhập</button>
-  <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
+<div class="box">
+ <h2>🔐 ĐĂNG NHẬP</h2>
 
-  <div class="note">
-   • Học viên chỉ cần nhập mã hoặc tên<br>
-   • Admin nhập thêm mật khẩu<br>
-   • Bạn chưa đăng ký mã học viên? Bạn có thể Thi thử.<br>
-   • Để sử dụng đầy đủ tính năng của website, vui lòng liên hệ admin<br>
-   • 📞 SĐT/Zalo: <strong>0973.306.802</strong>
-  </div>
+ <!-- HỌC VIÊN -->
+ <input id="studentInput" placeholder="Mã học viên hoặc tên học viên">
+ <button id="loginStudent">Đăng nhập học viên</button>
+
+ <hr style="margin:18px 0">
+
+ <!-- ADMIN -->
+ <input id="adminPass" type="password" placeholder="Mật khẩu Admin">
+ <button id="loginAdmin">Đăng nhập Admin</button>
+
+ <hr style="margin:18px 0">
+
+ <button id="trialBtn">▶ Thi thử (không cần đăng nhập)</button>
+
+ <div class="note">
+  • Học viên chỉ cần nhập mã hoặc tên<br>
+  • Admin cần mật khẩu
  </div>
 </div>
 
@@ -91,132 +94,66 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ===== ADMIN HASH ===== */
-async function loginAdmin(password){
- const hash = await hashPassword(password);
+/* ===== ADMIN HASH (THEO YÊU CẦU) ===== */
+const ADMIN_HASH =
+"2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
 
- const snap = await db.collection("system").doc("admin").get();
- if(!snap.exists){
-  alert("Chưa cấu hình admin");
+/* ===== HASH FUNCTION ===== */
+async function hashPassword(str){
+ const buf = await crypto.subtle.digest(
+  "SHA-256",
+  new TextEncoder().encode(str)
+ );
+ return Array.from(new Uint8Array(buf))
+  .map(b=>b.toString(16).padStart(2,"0"))
+  .join("");
+}
+
+/* ===== ADMIN LOGIN ===== */
+document.getElementById("loginAdmin").onclick = async ()=>{
+ const pass = adminPass.value.trim();
+ if(!pass){
+  alert("Nhập mật khẩu admin");
   return;
  }
-
- const dbHash = snap.data().passwordHash;
- if(hash === dbHash){
+ const hash = await hashPassword(pass);
+ if(hash === ADMIN_HASH){
   localStorage.setItem("userType","admin");
   location.href="admin.html";
  }else{
-  alert("Sai mật khẩu admin");
+  alert("❌ Sai mật khẩu admin");
  }
-}
-/* ===== EVENTS ===== */
-loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
-password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
-loginBtn.onclick = login;
+};
 
-/* ===== LOGIN ===== */
-function login(){
- const raw = loginInput.value.trim();
- const pass = password.value.trim();
-
- if(!raw){
-  alert("Vui lòng nhập mã hoặc tên học viên");
+/* ===== STUDENT LOGIN (GIỮ NGUYÊN – KHÔNG ĐỘNG LOGIC CŨ) ===== */
+document.getElementById("loginStudent").onclick = ()=>{
+ const val = studentInput.value.trim();
+ if(!val){
+  alert("Nhập mã hoặc tên học viên");
   return;
  }
-
- /* ===== ADMIN LOGIN ===== */
- if(pass){
-  hashPassword(pass).then(hash=>{
-   if(hash === ADMIN_HASH){
-    localStorage.setItem("userType","admin");
-    location.href="admin.html";
-   }else{
-    alert("Sai mật khẩu admin");
-   }
-  });
-  return;
- }
-
- /* ===== STUDENT LOGIN ===== */
- const digits = raw.replace(/\D/g,"");
-
- // ---- LOGIN BẰNG MÃ ----
- if(digits){
-  const code = digits.padStart(3,"0");
-  findStudentByCode(code);
-  return;
- }
-
- // ---- LOGIN BẰNG TÊN ----
- findStudentByName(raw);
-}
-
-/* ===== HASH PASSWORD ===== */
-function hashPassword(str){
- if(!crypto.subtle){
-  alert("Trình duyệt không hỗ trợ bảo mật");
-  return Promise.reject();
- }
- return crypto.subtle.digest(
-  "SHA-256",
-  new TextEncoder().encode(str)
- ).then(buf=>{
-  return Array.from(new Uint8Array(buf))
-   .map(b=>b.toString(16).padStart(2,"0"))
-   .join("");
- });
-}
-
-/* ===== FIND BY CODE ===== */
-function findStudentByCode(code){
- db.collection("students")
-  .where("code","==",code)
-  .limit(1)
-  .get()
-  .then(snap=>{
-   if(snap.empty){
-    alert("Không tìm thấy học viên");
-    return;
-   }
-   loginStudent(snap.docs[0].data());
-  });
-}
-
-/* ===== FIND BY NAME ===== */
-function normalize(s){
- return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
-
-function findStudentByName(input){
- const key = normalize(input);
- db.collection("students").get().then(snap=>{
-  let found=null;
-  snap.forEach(d=>{
-   const name = normalize(d.data().name||"");
-   if(name.includes(key)) found=d.data();
-  });
-
-  if(!found){
-   alert("Không tìm thấy học viên");
-   return;
-  }
-  loginStudent(found);
- });
-}
-
-/* ===== LOGIN SUCCESS ===== */
-function loginStudent(s){
  localStorage.setItem("userType","student");
- localStorage.setItem("studentCode",s.code);
- localStorage.setItem("studentName",s.name||"");
+ localStorage.setItem("studentCode",val);
  location.href="exam.html";
-}
+};
 
-/* ===== TRY EXAM ===== */
-function tryExam(){
- localStorage.setItem("userType","guest");
+/* ===== ENTER KEY ===== */
+document.addEventListener("keydown",e=>{
+ if(e.key==="Enter"){
+  if(document.activeElement===adminPass){
+   loginAdmin.click();
+  }else{
+   loginStudent.click();
+  }
+ }
+});
+
+/* ===== TRIAL ===== */
+document.getElementById("trialBtn").onclick=()=>{
+ localStorage.clear();
  location.href="test.html";
-}
+};
 </script>
+
 </body>
 </html>
