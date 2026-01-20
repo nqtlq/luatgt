@@ -4,14 +4,8 @@
 <meta charset="UTF-8">
 <title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
 
-<!-- ===== CHART JS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-<script>
-/* ===== REGISTER PLUGIN (BẮT BUỘC CHART.JS 4) ===== */
-Chart.register(ChartDataLabels);
-</script>
 
 <style>
 body{
@@ -26,16 +20,7 @@ header{
  display:flex;
  justify-content:space-between;
  align-items:center;
- box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
-button{
- border:none;
- border-radius:10px;
- padding:10px 18px;
- font-size:14px;
- cursor:pointer;
-}
-#backBtn{background:#457b9d;color:white;}
 #container{
  max-width:1100px;
  margin:30px auto;
@@ -47,30 +32,20 @@ h2{color:#1d3557;margin-bottom:25px;}
  grid-template-columns:1fr 1fr;
  gap:30px;
 }
-@media(max-width:768px){
- .grid{grid-template-columns:1fr;}
-}
+@media(max-width:768px){.grid{grid-template-columns:1fr;}}
 .box{
  background:white;
  padding:25px;
  border-radius:18px;
  box-shadow:0 8px 25px rgba(0,0,0,.12);
 }
-.box h3{
- margin-top:0;
- margin-bottom:15px;
- color:#1d3557;
- text-align:center;
-}
-canvas{
- width:100% !important;
- height:320px !important;
-}
-#empty{
- text-align:center;
- color:#666;
- font-style:italic;
- margin-top:40px;
+.box h3{text-align:center;color:#1d3557;}
+canvas{height:320px !important;}
+#empty{text-align:center;color:#777;font-style:italic;}
+button{
+ background:#457b9d;color:white;
+ border:none;border-radius:10px;
+ padding:10px 18px;cursor:pointer;
 }
 </style>
 </head>
@@ -78,8 +53,8 @@ canvas{
 <body>
 
 <header>
- <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ KIỂM TRA</b>
- <button id="backBtn" onclick="back()">⬅ Quay lại</button>
+ <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ</b>
+ <button onclick="back()">⬅ Quay lại</button>
 </header>
 
 <div id="container">
@@ -87,9 +62,9 @@ canvas{
 
  <div id="empty" style="display:none;">📭 Chưa có dữ liệu thống kê</div>
 
- <div class="grid" id="chartGrid">
+ <div class="grid" id="grid">
   <div class="box">
-   <h3>📊 Số lượt kiểm tra</h3>
+   <h3>📊 Số lượt kiểm tra (%)</h3>
    <canvas id="barChart"></canvas>
   </div>
   <div class="box">
@@ -99,146 +74,107 @@ canvas{
  </div>
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== FIREBASE CONFIG ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-/* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType") !== "student"){
- alert("Bạn chưa đăng nhập");
+if(localStorage.getItem("userType")!=="student"){
  location.href="index.html";
 }
 
-/* ===== USER INFO ===== */
-const code = localStorage.getItem("studentCode");
-const name = localStorage.getItem("studentName") || "";
-document.getElementById("studentTitle").innerText =
- "Học viên: " + name + " (" + code + ")";
+const code=localStorage.getItem("studentCode");
+const name=localStorage.getItem("studentName")||"";
+studentTitle.innerText=`Học viên: ${name} (${code})`;
 
-/* ===== BACK ===== */
-function back(){
- location.href="exam.html";
-}
+function back(){location.href="exam.html";}
 
-let barChart=null, pieChart=null;
-
-/* ===== LOAD DATA ===== */
-db.collection("exam_logs")
- .where("code","==",code)
- .get()
- .then(snapshot=>{
-  let total=0, pass=0, fail=0;
-
-  snapshot.forEach(doc=>{
-   total++;
-   doc.data().pass ? pass++ : fail++;
-  });
-
-  if(!total){
-   chartGrid.style.display="none";
-   empty.style.display="block";
-   return;
-  }
-
-  drawCharts(total, pass, fail);
+db.collection("exam_logs").where("code","==",code).get().then(snap=>{
+ let total=0,pass=0,fail=0;
+ snap.forEach(d=>{
+  total++;
+  d.data().pass?pass++:fail++;
  });
+ if(!total){
+  grid.style.display="none";
+  empty.style.display="block";
+  return;
+ }
+ drawCharts(total,pass,fail);
+});
 
-/* ===== DRAW CHARTS ===== */
-function drawCharts(total, pass, fail){
-
- if(barChart) barChart.destroy();
- if(pieChart) pieChart.destroy();
+function drawCharts(total,pass,fail){
 
  /* ===== BAR ===== */
- barChart = new Chart(barChartCanvas(),{
+ new Chart(barChart,{
   type:"bar",
   data:{
-   labels:["Tổng lượt","Đạt","Không đạt"],
+   labels:["Đạt","Không đạt"],
    datasets:[{
-    data:[total,pass,fail],
-    backgroundColor:["#457b9d","#2a9d8f","#e63946"],
-    borderRadius:10
+    data:[pass,fail],
+    backgroundColor:["#2a9d8f","#e63946"],
+    borderRadius:12
    }]
   },
   options:{
-   responsive:true,
-   maintainAspectRatio:false,
    plugins:{
     legend:{display:false},
     datalabels:{
-     color:"#1d3557",
-     anchor:"end",
-     align:"top",
-     font:{weight:"bold"},
-     formatter:(value,ctx)=>{
-      if(ctx.dataIndex===0) return value;
-      return value+" ("+Math.round(value/total*100)+"%)";
+     color:"#fff",
+     font:{size:16,weight:"bold"},
+     anchor:"center",
+     align:"center",
+     formatter:(v)=>{
+      return v+" ("+Math.round(v/total*100)+"%)";
      }
     },
     tooltip:{
      callbacks:{
-      label:(ctx)=>{
-       if(ctx.dataIndex===0) return " "+ctx.raw;
-       return " "+ctx.raw+" ("+Math.round(ctx.raw/total*100)+"%)";
-      }
+      label:(c)=>`${c.raw} (${Math.round(c.raw/total*100)}%)`
      }
     }
    },
    scales:{y:{beginAtZero:true}}
-  }
+  },
+  plugins:[ChartDataLabels]
  });
 
  /* ===== PIE ===== */
- pieChart = new Chart(pieChartCanvas(),{
+ new Chart(pieChart,{
   type:"pie",
   data:{
-   labels:["Đạt","Không đạt"],
+   labels:[
+    `Đạt (${Math.round(pass/total*100)}%)`,
+    `Không đạt (${Math.round(fail/total*100)}%)`
+   ],
    datasets:[{
     data:[pass,fail],
     backgroundColor:["#2a9d8f","#e63946"]
    }]
   },
   options:{
-   responsive:true,
-   maintainAspectRatio:false,
    plugins:{
+    legend:{
+     position:"bottom",
+     labels:{font:{size:14,weight:"bold"}}
+    },
     datalabels:{
      color:"#fff",
-     font:{weight:"bold",size:14},
-     formatter:(value)=>{
-      const sum = pass+fail;
-      return Math.round(value/sum*100)+"%";
-     }
-    },
-    tooltip:{
-     callbacks:{
-      label:(ctx)=>{
-       const sum = pass+fail;
-       return " "+ctx.label+": "+ctx.raw+
-        " ("+Math.round(ctx.raw/sum*100)+"%)";
-      }
+     font:{size:18,weight:"bold"},
+     formatter:(v)=>{
+      return Math.round(v/total*100)+"%";
      }
     }
    }
-  }
+  },
+  plugins:[ChartDataLabels]
  });
-
-}
-
-function barChartCanvas(){
- return document.getElementById("barChart").getContext("2d");
-}
-function pieChartCanvas(){
- return document.getElementById("pieChart").getContext("2d");
 }
 </script>
 
