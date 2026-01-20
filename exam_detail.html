@@ -4,10 +4,14 @@
 <meta charset="UTF-8">
 <title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
 
-<!-- ChartJS -->
+<!-- ===== CHART JS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Plugin hiển thị % -->
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+/* ===== REGISTER PLUGIN (BẮT BUỘC CHART.JS 4) ===== */
+Chart.register(ChartDataLabels);
+</script>
 
 <style>
 body{
@@ -15,8 +19,6 @@ body{
  font-family:Arial,Helvetica,sans-serif;
  background:linear-gradient(135deg,#eef3ff,#f9fbff);
 }
-
-/* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
@@ -33,23 +35,13 @@ button{
  font-size:14px;
  cursor:pointer;
 }
-#backBtn{
- background:#457b9d;
- color:white;
-}
-
-/* ===== MAIN ===== */
+#backBtn{background:#457b9d;color:white;}
 #container{
  max-width:1100px;
  margin:30px auto;
  padding:0 20px;
 }
-h2{
- color:#1d3557;
- margin-bottom:25px;
-}
-
-/* ===== GRID ===== */
+h2{color:#1d3557;margin-bottom:25px;}
 .grid{
  display:grid;
  grid-template-columns:1fr 1fr;
@@ -70,14 +62,10 @@ h2{
  color:#1d3557;
  text-align:center;
 }
-
-/* ===== FIX CANVAS ===== */
 canvas{
  width:100% !important;
  height:320px !important;
 }
-
-/* ===== EMPTY ===== */
 #empty{
  text-align:center;
  color:#666;
@@ -89,30 +77,25 @@ canvas{
 
 <body>
 
-<!-- ===== HEADER ===== -->
 <header>
  <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ KIỂM TRA</b>
  <button id="backBtn" onclick="back()">⬅ Quay lại</button>
 </header>
 
-<!-- ===== CONTENT ===== -->
 <div id="container">
  <h2 id="studentTitle"></h2>
 
  <div id="empty" style="display:none;">📭 Chưa có dữ liệu thống kê</div>
 
  <div class="grid" id="chartGrid">
-
   <div class="box">
    <h3>📊 Số lượt kiểm tra</h3>
    <canvas id="barChart"></canvas>
   </div>
-
   <div class="box">
    <h3>🥧 Tỷ lệ đạt / không đạt</h3>
    <canvas id="pieChart"></canvas>
   </div>
-
  </div>
 </div>
 
@@ -123,16 +106,16 @@ canvas{
 <script>
 /* ===== FIREBASE CONFIG ===== */
 firebase.initializeApp({
- apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain: "thi-luat-giao-thong.firebaseapp.com",
- projectId: "thi-luat-giao-thong"
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
 });
 const db = firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
 if(localStorage.getItem("userType") !== "student"){
  alert("Bạn chưa đăng nhập");
- location.href = "index.html";
+ location.href="index.html";
 }
 
 /* ===== USER INFO ===== */
@@ -143,7 +126,7 @@ document.getElementById("studentTitle").innerText =
 
 /* ===== BACK ===== */
 function back(){
- location.href = "exam.html";
+ location.href="exam.html";
 }
 
 let barChart=null, pieChart=null;
@@ -161,8 +144,8 @@ db.collection("exam_logs")
   });
 
   if(!total){
-   document.getElementById("chartGrid").style.display="none";
-   document.getElementById("empty").style.display="block";
+   chartGrid.style.display="none";
+   empty.style.display="block";
    return;
   }
 
@@ -175,8 +158,8 @@ function drawCharts(total, pass, fail){
  if(barChart) barChart.destroy();
  if(pieChart) pieChart.destroy();
 
- /* ===== BAR CHART ===== */
- barChart = new Chart(document.getElementById("barChart"),{
+ /* ===== BAR ===== */
+ barChart = new Chart(barChartCanvas(),{
   type:"bar",
   data:{
    labels:["Tổng lượt","Đạt","Không đạt"],
@@ -191,14 +174,6 @@ function drawCharts(total, pass, fail){
    maintainAspectRatio:false,
    plugins:{
     legend:{display:false},
-    tooltip:{
-     callbacks:{
-      label:(ctx)=>{
-       if(ctx.dataIndex===0) return " " + ctx.raw;
-       return " " + ctx.raw + " (" + Math.round(ctx.raw/total*100) + "%)";
-      }
-     }
-    },
     datalabels:{
      color:"#1d3557",
      anchor:"end",
@@ -206,17 +181,24 @@ function drawCharts(total, pass, fail){
      font:{weight:"bold"},
      formatter:(value,ctx)=>{
       if(ctx.dataIndex===0) return value;
-      return value + " (" + Math.round(value/total*100) + "%)";
+      return value+" ("+Math.round(value/total*100)+"%)";
+     }
+    },
+    tooltip:{
+     callbacks:{
+      label:(ctx)=>{
+       if(ctx.dataIndex===0) return " "+ctx.raw;
+       return " "+ctx.raw+" ("+Math.round(ctx.raw/total*100)+"%)";
+      }
      }
     }
    },
    scales:{y:{beginAtZero:true}}
-  },
-  plugins:[ChartDataLabels]
+  }
  });
 
- /* ===== PIE CHART ===== */
- pieChart = new Chart(document.getElementById("pieChart"),{
+ /* ===== PIE ===== */
+ pieChart = new Chart(pieChartCanvas(),{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
@@ -229,28 +211,34 @@ function drawCharts(total, pass, fail){
    responsive:true,
    maintainAspectRatio:false,
    plugins:{
-    tooltip:{
-     callbacks:{
-      label:(ctx)=>{
-       const sum = pass + fail;
-       return " " + ctx.label + ": " + ctx.raw +
-        " (" + Math.round(ctx.raw/sum*100) + "%)";
-      }
-     }
-    },
     datalabels:{
      color:"#fff",
      font:{weight:"bold",size:14},
      formatter:(value)=>{
-      const sum = pass + fail;
-      return Math.round(value/sum*100) + "%";
+      const sum = pass+fail;
+      return Math.round(value/sum*100)+"%";
+     }
+    },
+    tooltip:{
+     callbacks:{
+      label:(ctx)=>{
+       const sum = pass+fail;
+       return " "+ctx.label+": "+ctx.raw+
+        " ("+Math.round(ctx.raw/sum*100)+"%)";
+      }
      }
     }
    }
-  },
-  plugins:[ChartDataLabels]
+  }
  });
 
+}
+
+function barChartCanvas(){
+ return document.getElementById("barChart").getContext("2d");
+}
+function pieChartCanvas(){
+ return document.getElementById("pieChart").getContext("2d");
 }
 </script>
 
