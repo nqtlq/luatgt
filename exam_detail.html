@@ -2,14 +2,21 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Thống kê chi tiết - Kiểm tra luật giao thông</title>
+<title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
+
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Plugin hiển thị % -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
 <style>
 body{
  margin:0;
- font-family:Arial;
+ font-family:Arial,Helvetica,sans-serif;
  background:linear-gradient(135deg,#eef3ff,#f9fbff);
 }
+
+/* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
@@ -17,6 +24,7 @@ header{
  display:flex;
  justify-content:space-between;
  align-items:center;
+ box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
 button{
  border:none;
@@ -29,6 +37,8 @@ button{
  background:#457b9d;
  color:white;
 }
+
+/* ===== MAIN ===== */
 #container{
  max-width:1100px;
  margin:30px auto;
@@ -36,152 +46,212 @@ button{
 }
 h2{
  color:#1d3557;
-}
-.filter{
- background:white;
- padding:18px;
- border-radius:14px;
- box-shadow:0 6px 20px rgba(0,0,0,.12);
  margin-bottom:25px;
- display:flex;
- gap:15px;
- align-items:center;
 }
-.filter input{
- padding:8px 10px;
- border-radius:8px;
- border:1px solid #ccc;
+
+/* ===== GRID ===== */
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:30px;
 }
-.filter button{
- background:#2a9d8f;
- color:white;
+@media(max-width:768px){
+ .grid{grid-template-columns:1fr;}
 }
-table{
- width:100%;
- border-collapse:collapse;
+.box{
  background:white;
- border-radius:16px;
- overflow:hidden;
+ padding:25px;
+ border-radius:18px;
  box-shadow:0 8px 25px rgba(0,0,0,.12);
 }
-th,td{
- padding:14px;
- text-align:center;
- border-bottom:1px solid #eee;
-}
-th{
- background:#f1f4fb;
+.box h3{
+ margin-top:0;
+ margin-bottom:15px;
  color:#1d3557;
+ text-align:center;
 }
-.pass{
- color:#2a9d8f;
- font-weight:bold;
+
+/* ===== FIX CANVAS ===== */
+canvas{
+ width:100% !important;
+ height:320px !important;
 }
-.fail{
- color:#e63946;
- font-weight:bold;
+
+/* ===== EMPTY ===== */
+#empty{
+ text-align:center;
+ color:#666;
+ font-style:italic;
+ margin-top:40px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- ===== HEADER ===== -->
 <header>
- <b>📊 THỐNG KÊ CHI TIẾT BÀI KIỂM TRA</b>
+ <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ KIỂM TRA</b>
  <button id="backBtn" onclick="back()">⬅ Quay lại</button>
 </header>
 
+<!-- ===== CONTENT ===== -->
 <div id="container">
-
  <h2 id="studentTitle"></h2>
 
- <div class="filter">
-  <b>Lọc theo ngày:</b>
-  <input type="date" id="filterDate">
-  <button onclick="loadLogs()">Lọc</button>
-  <button onclick="resetFilter()" style="background:#e76f51;">Xem tất cả</button>
+ <div id="empty" style="display:none;">📭 Chưa có dữ liệu thống kê</div>
+
+ <div class="grid" id="chartGrid">
+
+  <div class="box">
+   <h3>📊 Số lượt kiểm tra</h3>
+   <canvas id="barChart"></canvas>
+  </div>
+
+  <div class="box">
+   <h3>🥧 Tỷ lệ đạt / không đạt</h3>
+   <canvas id="pieChart"></canvas>
+  </div>
+
  </div>
-
- <table>
-  <thead>
-   <tr>
-    <th>#</th>
-    <th>Thời gian</th>
-    <th>Số câu đúng</th>
-    <th>Kết quả</th>
-   </tr>
-  </thead>
-  <tbody id="logTable"></tbody>
- </table>
-
 </div>
 
-<!-- Firebase -->
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== FIREBASE CONFIG ===== */
 firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
+ apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain: "thi-luat-giao-thong.firebaseapp.com",
+ projectId: "thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="student"){
+if(localStorage.getItem("userType") !== "student"){
  alert("Bạn chưa đăng nhập");
- window.location.href="index.html";
+ location.href = "index.html";
 }
 
-const code=localStorage.getItem("studentCode");
-const name=localStorage.getItem("studentName");
-studentTitle.innerText="Học viên: "+name+" ("+code+")";
+/* ===== USER INFO ===== */
+const code = localStorage.getItem("studentCode");
+const name = localStorage.getItem("studentName") || "";
+document.getElementById("studentTitle").innerText =
+ "Học viên: " + name + " (" + code + ")";
 
+/* ===== BACK ===== */
 function back(){
- window.location.href="exam.html";
+ location.href = "exam.html";
 }
 
-/* ===== LOAD LOGS ===== */
-function loadLogs(){
- logTable.innerHTML="";
- let query=db.collection("exam_logs").where("code","==",code);
+let barChart=null, pieChart=null;
 
- const d=filterDate.value;
- if(d){
-  query=query.where("date","==",d);
- }
+/* ===== LOAD DATA ===== */
+db.collection("exam_logs")
+ .where("code","==",code)
+ .get()
+ .then(snapshot=>{
+  let total=0, pass=0, fail=0;
 
- query.orderBy("timestamp","desc").get().then(s=>{
-  if(s.empty){
-   logTable.innerHTML="<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+  snapshot.forEach(doc=>{
+   total++;
+   doc.data().pass ? pass++ : fail++;
+  });
+
+  if(!total){
+   document.getElementById("chartGrid").style.display="none";
+   document.getElementById("empty").style.display="block";
    return;
   }
-  let i=1;
-  s.forEach(doc=>{
-   const x=doc.data();
-   const time=x.timestamp
-    ? new Date(x.timestamp.seconds*1000).toLocaleString("vi-VN")
-    : "";
-   logTable.innerHTML+=`
-    <tr>
-     <td>${i++}</td>
-     <td>${time}</td>
-     <td>${x.score}/30</td>
-     <td class="${x.pass?'pass':'fail'}">
-      ${x.pass?'ĐẠT':'KHÔNG ĐẠT'}
-     </td>
-    </tr>`;
-  });
+
+  drawCharts(total, pass, fail);
  });
-}
 
-function resetFilter(){
- filterDate.value="";
- loadLogs();
-}
+/* ===== DRAW CHARTS ===== */
+function drawCharts(total, pass, fail){
 
-loadLogs();
+ if(barChart) barChart.destroy();
+ if(pieChart) pieChart.destroy();
+
+ /* ===== BAR CHART ===== */
+ barChart = new Chart(document.getElementById("barChart"),{
+  type:"bar",
+  data:{
+   labels:["Tổng lượt","Đạt","Không đạt"],
+   datasets:[{
+    data:[total,pass,fail],
+    backgroundColor:["#457b9d","#2a9d8f","#e63946"],
+    borderRadius:10
+   }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{
+    legend:{display:false},
+    tooltip:{
+     callbacks:{
+      label:(ctx)=>{
+       if(ctx.dataIndex===0) return " " + ctx.raw;
+       return " " + ctx.raw + " (" + Math.round(ctx.raw/total*100) + "%)";
+      }
+     }
+    },
+    datalabels:{
+     color:"#1d3557",
+     anchor:"end",
+     align:"top",
+     font:{weight:"bold"},
+     formatter:(value,ctx)=>{
+      if(ctx.dataIndex===0) return value;
+      return value + " (" + Math.round(value/total*100) + "%)";
+     }
+    }
+   },
+   scales:{y:{beginAtZero:true}}
+  },
+  plugins:[ChartDataLabels]
+ });
+
+ /* ===== PIE CHART ===== */
+ pieChart = new Chart(document.getElementById("pieChart"),{
+  type:"pie",
+  data:{
+   labels:["Đạt","Không đạt"],
+   datasets:[{
+    data:[pass,fail],
+    backgroundColor:["#2a9d8f","#e63946"]
+   }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{
+    tooltip:{
+     callbacks:{
+      label:(ctx)=>{
+       const sum = pass + fail;
+       return " " + ctx.label + ": " + ctx.raw +
+        " (" + Math.round(ctx.raw/sum*100) + "%)";
+      }
+     }
+    },
+    datalabels:{
+     color:"#fff",
+     font:{weight:"bold",size:14},
+     formatter:(value)=>{
+      const sum = pass + fail;
+      return Math.round(value/sum*100) + "%";
+     }
+    }
+   }
+  },
+  plugins:[ChartDataLabels]
+ });
+
+}
 </script>
 
 </body>
