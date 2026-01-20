@@ -25,19 +25,25 @@ body{
  border-radius:14px;
  box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
-h2{
- text-align:center;
- color:#1d3557;
- margin-bottom:20px;
-}
+h2{text-align:center;color:#1d3557;margin-bottom:20px;}
 input{
  width:100%;
  padding:12px;
- margin-bottom:14px;
+ margin-bottom:12px;
  border-radius:8px;
  border:1px solid #ccc;
  font-size:15px;
  box-sizing:border-box;
+}
+.showpass{
+ font-size:13px;
+ color:#333;
+ margin-bottom:14px;
+ display:flex;
+ align-items:center;
+ gap:6px;
+ cursor:pointer;
+ user-select:none;
 }
 button{
  width:100%;
@@ -71,6 +77,12 @@ button:hover{opacity:.9;}
   <input id="loginInput" placeholder="Nhập mã hoặc tên học viên">
   <input id="password" type="password" placeholder="Mật khẩu (chỉ dành cho admin)">
 
+  <!-- HIỆN / ẨN MẬT KHẨU -->
+  <label class="showpass">
+   <input type="checkbox" id="togglePass">
+   Hiện mật khẩu
+  </label>
+
   <button id="loginBtn">Đăng nhập</button>
   <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
 
@@ -78,7 +90,6 @@ button:hover{opacity:.9;}
    • Học viên chỉ cần nhập mã hoặc tên<br>
    • Admin nhập thêm mật khẩu<br>
    • Chưa có mã học viên có thể Thi thử<br>
-   • Liên hệ admin để sử dụng đầy đủ chức năng<br>
    • 📞 <b>0973.306.802</b>
   </div>
  </div>
@@ -99,6 +110,11 @@ const db = firebase.firestore();
 /* ===== ADMIN HASH ===== */
 const ADMIN_HASH =
  "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
+
+/* ===== SHOW / HIDE PASSWORD ===== */
+togglePass.onchange = () => {
+ password.type = togglePass.checked ? "text" : "password";
+};
 
 /* ===== EVENTS ===== */
 loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
@@ -131,23 +147,17 @@ function login(){
  /* ===== STUDENT LOGIN ===== */
  const digits = raw.replace(/\D/g,"");
 
- // --- LOGIN BẰNG MÃ ---
  if(digits){
   const code = digits.padStart(3,"0");
   findStudentByCode(code);
   return;
  }
 
- // --- LOGIN BẰNG TÊN ---
  findStudentByName(raw);
 }
 
 /* ===== HASH ===== */
 function hashPassword(str){
- if(!crypto.subtle){
-  alert("Trình duyệt không hỗ trợ bảo mật");
-  return Promise.reject();
- }
  return crypto.subtle.digest(
   "SHA-256",
   new TextEncoder().encode(str)
@@ -158,26 +168,17 @@ function hashPassword(str){
  });
 }
 
-/* ===== FIND STUDENT BY CODE ===== */
+/* ===== FIND STUDENT ===== */
 function findStudentByCode(code){
- db.collection("students")
-  .where("code","==",code)
-  .limit(1)
-  .get()
-  .then(snap=>{
-   if(snap.empty){
-    alert("Không tìm thấy học viên");
-    return;
-   }
-   loginStudent(snap.docs[0].data());
-  });
+ db.collection("students").where("code","==",code).limit(1).get()
+ .then(snap=>{
+  if(snap.empty){alert("Không tìm thấy học viên");return;}
+  loginStudent(snap.docs[0].data());
+ });
 }
 
-/* ===== FIND STUDENT BY NAME ===== */
-function normalize(str){
- return str.toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g,"");
+function normalize(s){
+ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
 function findStudentByName(input){
@@ -185,13 +186,9 @@ function findStudentByName(input){
  db.collection("students").get().then(snap=>{
   let found=null;
   snap.forEach(d=>{
-   const name = normalize(d.data().name||"");
-   if(name.includes(key)) found=d.data();
+   if(normalize(d.data().name||"").includes(key)) found=d.data();
   });
-  if(!found){
-   alert("Không tìm thấy học viên");
-   return;
-  }
+  if(!found){alert("Không tìm thấy học viên");return;}
   loginStudent(found);
  });
 }
