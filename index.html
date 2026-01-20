@@ -70,29 +70,32 @@ button:hover{opacity:.9;}
   <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
 
   <div class="note">
- • Học viên chỉ cần nhập mã hoặc tên<br>
- • Admin nhập thêm mật khẩu<br>
- • Bạn chưa đăng ký mã học viên? Bạn có thể Thi thử.<br>
- • Để sử dụng đầy đủ tính năng của website, vui lòng liên hệ admin<br>
- • 📞 SĐT/Zalo: <strong>0973.306.802</strong>
-</div>
-</div>
+   • Học viên chỉ cần nhập mã hoặc tên<br>
+   • Admin nhập thêm mật khẩu<br>
+   • Bạn chưa đăng ký mã học viên? Bạn có thể Thi thử.<br>
+   • Để sử dụng đầy đủ tính năng của website, vui lòng liên hệ admin<br>
+   • 📞 SĐT/Zalo: <strong>0973.306.802</strong>
+  </div>
+ </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
 const db = firebase.firestore();
+
+/* ===== ADMIN HASH ===== */
 const ADMIN_HASH =
  "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
 
-/* ===== ENTER TO LOGIN ===== */
+/* ===== EVENTS ===== */
 loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 loginBtn.onclick = login;
@@ -107,21 +110,20 @@ function login(){
   return;
  }
 
- /* ===== ADMIN ===== */
+ /* ===== ADMIN LOGIN ===== */
  if(pass){
- hashPassword(pass).then(hash=>{
-  if(hash === ADMIN_HASH){
-   localStorage.setItem("userType","admin");
-   location.href="admin.html";
-  }else{
-   alert("Sai mật khẩu admin");
-  }
- });
- return;
-}
-}
+  hashPassword(pass).then(hash=>{
+   if(hash === ADMIN_HASH){
+    localStorage.setItem("userType","admin");
+    location.href="admin.html";
+   }else{
+    alert("Sai mật khẩu admin");
+   }
+  });
+  return;
+ }
 
- /* ===== STUDENT ===== */
+ /* ===== STUDENT LOGIN ===== */
  const digits = raw.replace(/\D/g,"");
 
  // ---- LOGIN BẰNG MÃ ----
@@ -133,6 +135,22 @@ function login(){
 
  // ---- LOGIN BẰNG TÊN ----
  findStudentByName(raw);
+}
+
+/* ===== HASH PASSWORD ===== */
+function hashPassword(str){
+ if(!crypto.subtle){
+  alert("Trình duyệt không hỗ trợ bảo mật");
+  return Promise.reject();
+ }
+ return crypto.subtle.digest(
+  "SHA-256",
+  new TextEncoder().encode(str)
+ ).then(buf=>{
+  return Array.from(new Uint8Array(buf))
+   .map(b=>b.toString(16).padStart(2,"0"))
+   .join("");
+ });
 }
 
 /* ===== FIND BY CODE ===== */
@@ -150,7 +168,7 @@ function findStudentByCode(code){
   });
 }
 
-/* ===== FIND BY NAME (CONTAINS) ===== */
+/* ===== FIND BY NAME ===== */
 function normalize(s){
  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
@@ -176,6 +194,7 @@ function findStudentByName(input){
 function loginStudent(s){
  localStorage.setItem("userType","student");
  localStorage.setItem("studentCode",s.code);
+ localStorage.setItem("studentName",s.name||"");
  location.href="exam.html";
 }
 
@@ -187,13 +206,3 @@ function tryExam(){
 </script>
 </body>
 </html>
-function hashPassword(str){
- return crypto.subtle.digest(
-  "SHA-256",
-  new TextEncoder().encode(str)
- ).then(buf=>{
-  return Array.from(new Uint8Array(buf))
-   .map(b=>b.toString(16).padStart(2,"0"))
-   .join("");
- });
-}
