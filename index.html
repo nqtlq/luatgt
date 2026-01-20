@@ -20,63 +20,48 @@ body{
 }
 .box{
  background:white;
- width:390px;
+ width:400px;
  padding:30px;
  border-radius:14px;
  box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
-
-/* ===== TÊN WEB ===== */
-.webname{
+.system-name{
  text-align:center;
- margin-bottom:14px;
+ margin-bottom:12px;
 }
-.webname .vi{
+.system-name .vi{
  font-size:20px;
- font-weight:bold;
+ font-weight:700;
  color:#1d3557;
 }
-.webname .en{
- font-size:13px;
- color:#666;
- margin-top:4px;
+.system-name .en{
+ font-size:16px;
+ font-weight:600;
+ color:#457b9d;
+ margin-top:2px;
 }
-
-/* ===== LOGIN TITLE ===== */
 h2{
  text-align:center;
- font-size:17px;
- color:#333;
- margin:12px 0 20px;
- font-weight:600;
+ font-size:18px;
+ color:#1d3557;
+ margin:16px 0 18px;
 }
-
 input{
  width:100%;
  padding:12px;
- margin-bottom:12px;
+ margin-bottom:14px;
  border-radius:8px;
  border:1px solid #ccc;
  font-size:15px;
- box-sizing:border-box;
 }
-
-/* CHECKBOX */
-.showpass{
+.checkbox{
  display:flex;
  align-items:center;
  gap:8px;
  font-size:14px;
+ margin-bottom:14px;
  color:#333;
- margin-bottom:16px;
 }
-.showpass input{
- width:16px;
- height:16px;
- margin:0;
- cursor:pointer;
-}
-
 button{
  width:100%;
  padding:13px;
@@ -88,29 +73,26 @@ button{
  cursor:pointer;
 }
 button:hover{opacity:.9;}
-
 .try{
  margin-top:12px;
  background:#2a9d8f;
 }
-
-/* NOTE */
 .note{
  font-size:13px;
  color:#555;
- margin-top:14px;
+ margin-top:12px;
  line-height:1.45;
 }
-
-/* ZALO */
 .zalo{
  display:inline-flex;
  align-items:center;
  gap:6px;
+ margin-top:6px;
 }
 .zalo img{
- width:16px;
- height:16px;
+ width:26px;
+ height:26px;
+ cursor:pointer;
 }
 </style>
 </head>
@@ -119,20 +101,19 @@ button:hover{opacity:.9;}
 <div class="overlay">
  <div class="box">
 
-  <!-- TÊN WEB SONG NGỮ -->
-  <div class="webname">
-   <div class="vi">HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</div>
-   <div class="en">Traffic Law Examination System</div>
+  <div class="system-name">
+   <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG</div>
+   <div class="en">TRAFFIC LAW EXAMINATION SYSTEM</div>
   </div>
 
   <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
 
   <input id="loginInput" placeholder="Nhập mã hoặc tên học viên">
-  <input id="password" type="password" placeholder="Mật khẩu (chỉ dành cho admin)">
+  <input id="password" type="password" placeholder="Mật khẩu (Admin)">
 
-  <div class="showpass">
-   <input type="checkbox" id="togglePass">
-   <label for="togglePass">Hiện mật khẩu</label>
+  <div class="checkbox">
+   <input type="checkbox" id="showPass">
+   <label for="showPass">Hiện mật khẩu</label>
   </div>
 
   <button id="loginBtn">Đăng nhập</button>
@@ -141,12 +122,15 @@ button:hover{opacity:.9;}
   <div class="note">
    • Học viên chỉ cần nhập mã hoặc tên<br>
    • Admin nhập thêm mật khẩu<br>
-   • Chưa có mã học viên có thể Thi thử<br>
-   • 
-   <span class="zalo">
-    📞 <strong>0973.306.802</strong>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
-   </span>
+   • Chưa có mã học viên vẫn có thể Thi thử<br>
+   • Liên hệ hỗ trợ:
+   <div class="zalo">
+    📞
+    <a href="https://zalo.me/0973306802" target="_blank" title="Chat Zalo">
+     <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+    </a>
+    <strong>0973.306.802</strong>
+   </div>
   </div>
 
  </div>
@@ -164,21 +148,24 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 const ADMIN_HASH =
- "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
+"2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
 
-/* SHOW/HIDE PASSWORD */
-togglePass.onchange=()=>password.type=togglePass.checked?"text":"password";
-
-/* EVENTS */
 loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
-loginBtn.onclick=login;
+loginBtn.onclick = login;
 
-/* LOGIN */
+showPass.onchange = ()=> {
+ password.type = showPass.checked ? "text" : "password";
+};
+
 function login(){
- const raw=loginInput.value.trim();
- const pass=password.value.trim();
- if(!raw){alert("Vui lòng nhập mã hoặc tên học viên");return;}
+ const raw = loginInput.value.trim();
+ const pass = password.value.trim();
+
+ if(!raw && !pass){
+  alert("Vui lòng nhập thông tin đăng nhập");
+  return;
+ }
 
  if(pass){
   hashPassword(pass).then(hash=>{
@@ -190,36 +177,40 @@ function login(){
   return;
  }
 
- const digits=raw.replace(/\D/g,"");
- if(digits){findStudentByCode(digits.padStart(3,"0"));return;}
- findStudentByName(raw);
+ const digits = raw.replace(/\D/g,"");
+ if(digits){
+  const code = digits.padStart(3,"0");
+  findStudentByCode(code);
+ }else{
+  findStudentByName(raw);
+ }
 }
 
 function hashPassword(str){
  return crypto.subtle.digest("SHA-256",new TextEncoder().encode(str))
- .then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join(""));
+ .then(buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join(""));
+}
+
+function findStudentByCode(code){
+ db.collection("students").where("code","==",code).limit(1).get()
+ .then(snap=>{
+  if(snap.empty) return alert("Không tìm thấy học viên");
+  loginStudent(snap.docs[0].data());
+ });
 }
 
 function normalize(s){
  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
-function findStudentByCode(code){
- db.collection("students").where("code","==",code).limit(1).get()
- .then(snap=>{
-  if(snap.empty){alert("Không tìm thấy học viên");return;}
-  loginStudent(snap.docs[0].data());
- });
-}
-
 function findStudentByName(input){
- const key=normalize(input);
+ const key = normalize(input);
  db.collection("students").get().then(snap=>{
   let found=null;
   snap.forEach(d=>{
    if(normalize(d.data().name||"").includes(key)) found=d.data();
   });
-  if(!found){alert("Không tìm thấy học viên");return;}
+  if(!found) return alert("Không tìm thấy học viên");
   loginStudent(found);
  });
 }
