@@ -92,9 +92,23 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 /* ===== ADMIN HASH ===== */
-const ADMIN_HASH =
- "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291824c";
+async function loginAdmin(password){
+ const hash = await hashPassword(password);
 
+ const snap = await db.collection("system").doc("admin").get();
+ if(!snap.exists){
+  alert("Chưa cấu hình admin");
+  return;
+ }
+
+ const dbHash = snap.data().passwordHash;
+ if(hash === dbHash){
+  localStorage.setItem("userType","admin");
+  location.href="admin.html";
+ }else{
+  alert("Sai mật khẩu admin");
+ }
+}
 /* ===== EVENTS ===== */
 loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
