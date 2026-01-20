@@ -54,14 +54,28 @@ input{
  border:1px solid #ccc;
  font-size:15px;
 }
-.checkbox{
+
+/* ===== CHECKBOX ===== */
+.checkbox-row{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ width:100%;
+ margin:-6px 0 14px;
+}
+.checkbox-left{
  display:flex;
  align-items:center;
  gap:8px;
  font-size:14px;
- margin-bottom:14px;
  color:#333;
 }
+.checkbox-left input{
+ width:16px;
+ height:16px;
+ margin:0;
+}
+
 button{
  width:100%;
  padding:13px;
@@ -111,9 +125,12 @@ button:hover{opacity:.9;}
   <input id="loginInput" placeholder="Nhập mã hoặc tên học viên">
   <input id="password" type="password" placeholder="Mật khẩu (Admin)">
 
-  <div class="checkbox">
-   <input type="checkbox" id="showPass">
-   <label for="showPass">Hiện mật khẩu</label>
+  <!-- CHECKBOX -->
+  <div class="checkbox-row">
+   <div class="checkbox-left">
+    <input type="checkbox" id="showPass">
+    <label for="showPass">Hiện mật khẩu</label>
+   </div>
   </div>
 
   <button id="loginBtn">Đăng nhập</button>
@@ -154,7 +171,7 @@ loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
 loginBtn.onclick = login;
 
-showPass.onchange = ()=> {
+showPass.onchange = ()=>{
  password.type = showPass.checked ? "text" : "password";
 };
 
@@ -179,8 +196,7 @@ function login(){
 
  const digits = raw.replace(/\D/g,"");
  if(digits){
-  const code = digits.padStart(3,"0");
-  findStudentByCode(code);
+  findStudentByCode(digits.padStart(3,"0"));
  }else{
   findStudentByName(raw);
  }
