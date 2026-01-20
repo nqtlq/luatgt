@@ -3,73 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</title>
+<title>Đăng nhập - Hệ thống thi luật GT</title>
 
 <style>
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
- background:url("background.jpg") center/cover no-repeat fixed;
+ background:url("bg.jpg") center/cover no-repeat fixed;
+}
+.overlay{
+ background:rgba(0,0,0,.45);
  min-height:100vh;
  display:flex;
- justify-content:center;
  align-items:center;
+ justify-content:center;
 }
-.loginBox{
- background:rgba(255,255,255,0.95);
- padding:35px 40px;
- border-radius:16px;
- width:360px;
- box-shadow:0 10px 30px rgba(0,0,0,.25);
+.box{
+ background:white;
+ width:380px;
+ padding:30px;
+ border-radius:14px;
+ box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
-.loginBox h2{
- text-align:center;
- margin-bottom:25px;
- color:#1d3557;
-}
-.loginBox input{
+h2{text-align:center;color:#1d3557;margin-bottom:20px;}
+input{
  width:100%;
- padding:14px;
- font-size:15px;
- border-radius:10px;
+ padding:12px;
+ margin-bottom:14px;
+ border-radius:8px;
  border:1px solid #ccc;
- margin-bottom:18px;
+ font-size:15px;
 }
-.loginBox button{
+button{
  width:100%;
- padding:14px;
- font-size:16px;
+ padding:13px;
  border:none;
  border-radius:10px;
- background:#2a9d8f;
+ background:#1d3557;
  color:white;
+ font-size:16px;
  cursor:pointer;
 }
-.loginBox button:hover{background:#21867a;}
-.note{
+button:hover{opacity:.9;}
+.try{
  margin-top:12px;
+ background:#2a9d8f;
+}
+.note{
  font-size:13px;
  color:#555;
- text-align:center;
+ margin-top:10px;
+ line-height:1.4;
 }
 </style>
 </head>
 
 <body>
+<div class="overlay">
+ <div class="box">
+  <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
 
-<div class="loginBox">
- <h2>Đăng nhập học viên</h2>
+  <input id="loginInput" placeholder="Mã học viên hoặc tên học viên">
+  <input id="password" type="password" placeholder="Mật khẩu (chỉ dành cho admin)">
+  
+  <button id="loginBtn">Đăng nhập</button>
+  <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
 
- <input
-  id="studentInput"
-  placeholder="Nhập mã hoặc tên học viên (VD: HV001, 001, Nguyễn Văn A)"
-  onkeydown="if(event.key==='Enter') studentLogin()"
- >
-
- <button onclick="studentLogin()">Đăng nhập hệ thống</button>
-
- <div class="note">
-  Có thể nhập <b>mã</b> hoặc <b>tên</b> học viên
+  <div class="note">
+   • Học viên chỉ cần nhập mã hoặc tên<br>
+   • Admin nhập thêm mật khẩu
+  </div>
  </div>
 </div>
 
@@ -84,48 +87,98 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ===== LOGIN FUNCTION ===== */
-function studentLogin(){
- const input = document.getElementById("studentInput").value.trim();
- if(!input){
+const ADMIN_PASSWORD = "admin123"; // ← đổi nếu cần
+
+/* ===== ENTER TO LOGIN ===== */
+loginInput.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
+password.addEventListener("keydown",e=>{if(e.key==="Enter")login();});
+loginBtn.onclick = login;
+
+/* ===== LOGIN ===== */
+function login(){
+ const raw = loginInput.value.trim();
+ const pass = password.value.trim();
+
+ if(!raw){
   alert("Vui lòng nhập mã hoặc tên học viên");
   return;
  }
 
- let query = db.collection("students");
-
- /* ==== NHẬP MÃ ==== */
- if(/\d/.test(input)){
-  const digits = input.replace(/\D/g,"");
-  if(digits){
-   const code = digits.padStart(3,"0");
-   query = query.where("code","==",code);
-  }
- }
-
- /* ==== NHẬP TÊN ==== */
- else{
-  const nameLower = input.toLowerCase();
-  query = query.where("name_lower","==",nameLower);
- }
-
- query.limit(1).get().then(snap=>{
-  if(snap.empty){
-   alert("❌ Không tìm thấy học viên");
+ /* ===== ADMIN ===== */
+ if(pass){
+  if(pass === ADMIN_PASSWORD){
+   localStorage.setItem("userType","admin");
+   location.href="admin.html";
+   return;
+  }else{
+   alert("Sai mật khẩu admin");
    return;
   }
+ }
 
-  const student = snap.docs[0].data();
+ /* ===== STUDENT ===== */
+ const digits = raw.replace(/\D/g,"");
 
-  /* ===== LƯU ĐÚNG – DUY NHẤT ===== */
-  localStorage.clear();
-  localStorage.setItem("userType","student");
-  localStorage.setItem("studentCode", student.code); // <<< CHỈ LƯU CODE
+ // ---- LOGIN BẰNG MÃ ----
+ if(digits){
+  const code = digits.padStart(3,"0");
+  findStudentByCode(code);
+  return;
+ }
 
-  location.href="exam.html";
+ // ---- LOGIN BẰNG TÊN ----
+ findStudentByName(raw);
+}
+
+/* ===== FIND BY CODE ===== */
+function findStudentByCode(code){
+ db.collection("students")
+  .where("code","==",code)
+  .limit(1)
+  .get()
+  .then(snap=>{
+   if(snap.empty){
+    alert("Không tìm thấy học viên");
+    return;
+   }
+   loginStudent(snap.docs[0].data());
+  });
+}
+
+/* ===== FIND BY NAME (CONTAINS) ===== */
+function normalize(s){
+ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function findStudentByName(input){
+ const key = normalize(input);
+ db.collection("students").get().then(snap=>{
+  let found=null;
+  snap.forEach(d=>{
+   const name = normalize(d.data().name||"");
+   if(name.includes(key)) found=d.data();
+  });
+
+  if(!found){
+   alert("Không tìm thấy học viên");
+   return;
+  }
+  loginStudent(found);
  });
 }
-</script>
 
+/* ===== LOGIN SUCCESS ===== */
+function loginStudent(s){
+ localStorage.setItem("userType","student");
+ localStorage.setItem("studentCode",s.code);
+ location.href="exam.html";
+}
+
+/* ===== TRY EXAM ===== */
+function tryExam(){
+ localStorage.setItem("userType","guest");
+ location.href="test.html";
+}
+</script>
 </body>
 </html>
