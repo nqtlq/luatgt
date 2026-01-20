@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
 
+<!-- ===== CHART ===== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+/* ===== BẮT BUỘC VỚI CHART.JS 4 ===== */
+Chart.register(ChartDataLabels);
+</script>
 
 <style>
 body{
@@ -78,6 +84,7 @@ button{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -85,6 +92,7 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
+/* ===== LOGIN ===== */
 if(localStorage.getItem("userType")!=="student"){
  location.href="index.html";
 }
@@ -95,6 +103,7 @@ studentTitle.innerText=`Học viên: ${name} (${code})`;
 
 function back(){location.href="exam.html";}
 
+/* ===== LOAD DATA ===== */
 db.collection("exam_logs").where("code","==",code).get().then(snap=>{
  let total=0,pass=0,fail=0;
  snap.forEach(d=>{
@@ -109,9 +118,10 @@ db.collection("exam_logs").where("code","==",code).get().then(snap=>{
  drawCharts(total,pass,fail);
 });
 
+/* ===== DRAW ===== */
 function drawCharts(total,pass,fail){
 
- /* ===== BAR ===== */
+ /* BAR */
  new Chart(barChart,{
   type:"bar",
   data:{
@@ -130,22 +140,19 @@ function drawCharts(total,pass,fail){
      font:{size:16,weight:"bold"},
      anchor:"center",
      align:"center",
-     formatter:(v)=>{
-      return v+" ("+Math.round(v/total*100)+"%)";
-     }
+     formatter:v=>`${v} (${Math.round(v/total*100)}%)`
     },
     tooltip:{
      callbacks:{
-      label:(c)=>`${c.raw} (${Math.round(c.raw/total*100)}%)`
+      label:c=>`${c.raw} (${Math.round(c.raw/total*100)}%)`
      }
     }
    },
    scales:{y:{beginAtZero:true}}
-  },
-  plugins:[ChartDataLabels]
+  }
  });
 
- /* ===== PIE ===== */
+ /* PIE */
  new Chart(pieChart,{
   type:"pie",
   data:{
@@ -167,14 +174,12 @@ function drawCharts(total,pass,fail){
     datalabels:{
      color:"#fff",
      font:{size:18,weight:"bold"},
-     formatter:(v)=>{
-      return Math.round(v/total*100)+"%";
-     }
+     formatter:v=>`${Math.round(v/total*100)}%`
     }
    }
-  },
-  plugins:[ChartDataLabels]
+  }
  });
+
 }
 </script>
 
