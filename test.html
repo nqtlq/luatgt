@@ -2,8 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chọn bộ đề</title>
+<title>Thi kiểm tra | Driving Test System</title>
 
 <style>
 body{
@@ -11,89 +10,109 @@ body{
  font-family:Arial,Helvetica,sans-serif;
  background:linear-gradient(135deg,#eef3ff,#f9fbff);
 }
+
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
- padding:18px;
- text-align:center;
+ padding:18px 30px;
+ box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
+header h1{margin:0;font-size:22px;}
+header small{font-size:14px;opacity:.85;}
+
 #container{
  max-width:1100px;
  margin:30px auto;
- padding:0 16px;
+ padding:0 20px;
 }
+
+.section{
+ margin-bottom:40px;
+}
+.section h2{
+ color:#1d3557;
+ margin-bottom:20px;
+}
+
 .grid{
  display:grid;
- grid-template-columns:1fr 1fr;
- gap:28px;
+ grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+ gap:25px;
 }
-@media(max-width:900px){
- .grid{grid-template-columns:1fr;}
-}
-.box{
+
+.card{
  background:white;
- padding:24px;
- border-radius:20px;
- box-shadow:0 10px 28px rgba(0,0,0,.12);
+ border-radius:16px;
+ padding:22px;
+ box-shadow:0 8px 25px rgba(0,0,0,.12);
+ transition:.2s;
 }
-.box.motor{border-top:6px solid #457b9d;}
-.box.car{border-top:6px solid #e76f51;}
-.box h3{margin:0;color:#1d3557;}
-.box h4{margin:6px 0 16px;color:#555;font-weight:normal;}
+.card:hover{
+ transform:translateY(-4px);
+ box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
 
-.exam{
- background:#f9fbff;
- border-radius:14px;
- padding:18px 20px;
- margin-bottom:16px;
- box-shadow:0 6px 18px rgba(0,0,0,.1);
- position:relative;
-}
-.exam::before{
- content:"";
- position:absolute;
- left:0;top:0;bottom:0;
- width:6px;
- border-radius:14px 0 0 14px;
- background:#e76f51;
-}
-.exam b{font-size:16px;color:#1d3557;}
-.exam p{margin:6px 0;font-size:14px;color:#555;}
-
-.stats{
- display:flex;
- gap:16px;
- margin-top:8px;
- font-size:14px;
-}
-.stat{
- background:#eef3ff;
- padding:6px 12px;
- border-radius:10px;
- font-weight:bold;
+.card h3{
+ margin:0 0 8px;
  color:#1d3557;
 }
+.card p{
+ margin:4px 0;
+ font-size:14px;
+ color:#333;
+}
 
-.exam button{
- margin-top:12px;
+.card button{
+ margin-top:14px;
  width:100%;
- background:#e76f51;
- color:white;
- border:none;
- border-radius:12px;
  padding:12px;
+ border:none;
+ border-radius:10px;
+ background:#1d3557;
+ color:white;
  font-size:15px;
  cursor:pointer;
 }
+.card button:hover{opacity:.9}
 
-.back{text-align:center;margin:30px 0;}
-.back button{
- background:#457b9d;
- color:white;
+/* ===== MODAL ===== */
+#modal{
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.5);
+ display:none;
+ align-items:center;
+ justify-content:center;
+ z-index:10;
+}
+#modalBox{
+ background:white;
+ width:420px;
+ max-width:90%;
+ border-radius:16px;
+ padding:25px;
+}
+#modalBox h3{margin-top:0;color:#1d3557}
+.modal-btns{
+ display:flex;
+ gap:12px;
+ margin-top:20px;
+}
+.modal-btns button{
+ flex:1;
+ padding:12px;
  border:none;
- border-radius:14px;
- padding:14px 26px;
- font-size:16px;
+ border-radius:10px;
+ cursor:pointer;
+ font-size:14px;
+}
+.start{
+ background:#2a9d8f;
+ color:white;
+}
+.back{
+ background:#aaa;
+ color:white;
 }
 </style>
 </head>
@@ -101,39 +120,40 @@ header{
 <body>
 
 <header>
- <h1>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</h1>
- <h2>Traffic Law Examination System</h2>
+ <h1>📝 HỆ THỐNG THI KIỂM TRA LÁI XE</h1>
+ <small>Driving Test Examination System</small>
 </header>
 
 <div id="container">
 
- <div class="grid">
-
-  <!-- ===== MÔ TÔ ===== -->
-  <div class="box motor">
-   <h3>🚲 SÁT HẠCH MÔ TÔ</h3>
-   <h4>Motorcycle Test</h4>
-
-   <div class="exam">
-    <b>Bộ đề A1</b>
-    <p>25 câu • 19 phút • ≥21 đạt</p>
-    <button onclick="startExam('A1')">▶ Bắt đầu thi</button>
-   </div>
-  </div>
-
-  <!-- ===== Ô TÔ ===== -->
-  <div class="box car">
-   <h3>🚗 SÁT HẠCH Ô TÔ</h3>
-   <h4>Car Driving Test</h4>
-   <div id="carExams">⏳ Đang tải...</div>
-  </div>
-
+ <!-- ===== MOTO ===== -->
+ <div class="section">
+  <h2>🏍️ Thi sát hạch lái xe mô tô quân sự<br><small>Military Motorcycle Test</small></h2>
+  <div class="grid" id="motoBox"></div>
  </div>
 
- <div class="back">
-  <button onclick="back()">⬅ Quay lại</button>
+ <!-- ===== CAR ===== -->
+ <div class="section">
+  <h2>🚛 Kiểm tra lái xe ô tô quân sự<br><small>Military Car Driving Test</small></h2>
+  <div class="grid" id="carBox"></div>
  </div>
 
+</div>
+
+<!-- ===== MODAL ===== -->
+<div id="modal">
+ <div id="modalBox">
+  <h3 id="mName"></h3>
+  <p id="mDesc"></p>
+  <p id="mTotal"></p>
+  <p id="mTime"></p>
+  <p id="mPass"></p>
+
+  <div class="modal-btns">
+   <button class="start" onclick="startExam()">▶ Bắt đầu</button>
+   <button class="back" onclick="closeModal()">⬅ Quay lại</button>
+  </div>
+ </div>
 </div>
 
 <!-- ===== FIREBASE ===== -->
@@ -146,57 +166,58 @@ firebase.initializeApp({
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-/* ===== LOAD CAR EXAMS + STATS ===== */
-async function loadCarExams(){
- const setSnap = await db.collection("question_sets")
-  .where("active","==",true).get();
+let selectedSet=null;
 
- if(setSnap.empty){
-  carExams.innerHTML="<i>Không có bộ đề</i>";
-  return;
- }
+/* ===== LOAD DATA ===== */
+db.collection("question_sets")
+ .where("active","==",true)
+ .get()
+ .then(snap=>{
+  snap.forEach(doc=>{
+   const s = doc.data();
 
- carExams.innerHTML="";
-
- for(const d of setSnap.docs){
-  const s=d.data();
-
-  const logSnap = await db.collection("exam_logs")
-   .where("code","==",s.code).get();
-
-  let total=logSnap.size, pass=0;
-  logSnap.forEach(l=>{ if(l.data().pass) pass++; });
-
-  const rate = total ? Math.round(pass/total*100) : 0;
-
-  carExams.innerHTML+=`
-   <div class="exam">
-    <b>${s.name}</b>
-    <p>${s.description||""}</p>
-    <div class="stats">
-     <div class="stat">📊 ${total} lượt</div>
-     <div class="stat">✅ ${rate}% đậu</div>
+   const html = `
+    <div class="card">
+     <h3>${s.name}</h3>
+     <p>${s.description||""}</p>
+     <p>• Số câu: ${s.totalQuestions}</p>
+     <p>• Thời gian: ${s.time} phút</p>
+     <p>• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}</p>
+     <button onclick='openModal(${JSON.stringify(s)})'>Xem chi tiết</button>
     </div>
-    <button onclick="startExam('${s.code}')">▶ Bắt đầu thi</button>
-   </div>`;
- }
+   `;
+
+   // ---- PHÂN LOẠI ----
+   if(s.type === "moto"){
+    document.getElementById("motoBox").innerHTML += html;
+   }
+   if(s.type === "car" && s.code !== "XMT"){
+    document.getElementById("carBox").innerHTML += html;
+   }
+  });
+ });
+
+/* ===== MODAL ===== */
+function openModal(s){
+ selectedSet=s;
+ document.getElementById("mName").innerText=s.name;
+ document.getElementById("mDesc").innerText=s.description||"";
+ document.getElementById("mTotal").innerText="• Số câu: "+s.totalQuestions;
+ document.getElementById("mTime").innerText="• Thời gian: "+s.time+" phút";
+ document.getElementById("mPass").innerText=
+  "• Điều kiện đạt: ≥ "+s.passQuestions+"/"+s.totalQuestions;
+ document.getElementById("modal").style.display="flex";
 }
 
-loadCarExams();
-
-/* ===== START ===== */
-function startExam(code){
- localStorage.setItem("examSet",code);
- location.href="exam_do.html";
+function closeModal(){
+ document.getElementById("modal").style.display="none";
 }
 
-/* ===== BACK ===== */
-function back(){
- location.href = localStorage.getItem("userType")==="student"
-  ? "exam.html"
-  : "index.html";
+function startExam(){
+ localStorage.setItem("examSet",JSON.stringify(selectedSet));
+ location.href="exam.html";
 }
 </script>
 
