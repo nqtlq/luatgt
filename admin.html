@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Admin | Hệ thống thi luật GT</title>
+<title>ADMIN | Hệ thống thi luật giao thông</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -12,67 +12,64 @@ body{
  background:#eef2f6;
 }
 
-/* ===== LAYOUT ===== */
-.admin{
- display:grid;
- grid-template-columns:240px 1fr;
- height:100vh;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar{
- background:linear-gradient(180deg,#1d3557,#264a8a);
- color:white;
- padding:20px;
-}
-.sidebar h2{
- margin:0 0 25px;
- font-size:18px;
- text-align:center;
-}
-.menu a{
- display:block;
- padding:12px 14px;
- margin-bottom:8px;
- border-radius:8px;
- color:white;
- text-decoration:none;
- font-size:14px;
-}
-.menu a:hover,
-.menu a.active{
- background:rgba(255,255,255,.18);
-}
-
-/* ===== MAIN ===== */
-.main{
- display:flex;
- flex-direction:column;
-}
-
 /* ===== HEADER ===== */
-.topbar{
- background:white;
- padding:14px 22px;
+header{
+ background:linear-gradient(90deg,#1d3557,#264a8a);
+ color:white;
+ padding:18px 28px;
  display:flex;
  justify-content:space-between;
  align-items:center;
- box-shadow:0 2px 10px rgba(0,0,0,.12);
+ box-shadow:0 4px 14px rgba(0,0,0,.25);
 }
-.topbar b{font-size:16px}
-.logout{
+header b{font-size:18px}
+header button{
  background:#e63946;
- color:white;
  border:none;
- padding:8px 14px;
  border-radius:8px;
+ padding:8px 14px;
+ color:white;
  cursor:pointer;
 }
 
-/* ===== CONTENT ===== */
-.content{
- padding:25px;
- overflow:auto;
+/* ===== LAYOUT ===== */
+#layout{
+ display:flex;
+ min-height:calc(100vh - 70px);
+}
+
+/* ===== SIDEBAR ===== */
+aside{
+ width:260px;
+ background:#ffffff;
+ box-shadow:4px 0 15px rgba(0,0,0,.08);
+ padding:22px;
+}
+aside h3{
+ margin-top:0;
+ margin-bottom:14px;
+ color:#1d3557;
+}
+.menu button{
+ width:100%;
+ margin-bottom:10px;
+ padding:12px 14px;
+ border:none;
+ border-radius:10px;
+ background:#f1f4fb;
+ cursor:pointer;
+ text-align:left;
+ font-size:14px;
+}
+.menu button:hover,
+.menu button.active{
+ background:#dbe6ff;
+}
+
+/* ===== MAIN ===== */
+main{
+ flex:1;
+ padding:28px;
 }
 
 /* ===== BOX ===== */
@@ -80,124 +77,240 @@ body{
  background:white;
  padding:20px;
  border-radius:14px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
- margin-bottom:20px;
+ box-shadow:0 4px 14px rgba(0,0,0,.12);
 }
 .box h3{
  margin-top:0;
  color:#1d3557;
 }
+
+/* ===== TOOLBAR ===== */
+.toolbar{
+ display:flex;
+ gap:12px;
+ margin-bottom:16px;
+ flex-wrap:wrap;
+}
+.toolbar input{
+ flex:1;
+ min-width:200px;
+ padding:10px;
+ border-radius:8px;
+ border:1px solid #ccc;
+}
+.toolbar button{
+ padding:10px 16px;
+ border:none;
+ border-radius:8px;
+ background:#198754;
+ color:white;
+ cursor:pointer;
+}
+
+/* ===== TABLE ===== */
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:14px;
+}
+th,td{
+ padding:10px;
+ border-bottom:1px solid #eee;
+}
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+ text-align:left;
+}
+
+/* ===== ACTION BUTTON ===== */
+.action-btn{
+ border:none;
+ padding:6px 10px;
+ border-radius:6px;
+ cursor:pointer;
+ font-size:13px;
+}
+.edit{background:#457b9d;color:white}
+.del{background:#e63946;color:white}
+
+/* ===== PAGE ===== */
+.page{display:none}
+.page.active{display:block}
 </style>
 </head>
 
 <body>
 
-<div class="admin">
+<header>
+ <b>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</b>
+ <button onclick="logout()">Đăng xuất</button>
+</header>
+
+<div id="layout">
 
  <!-- ===== SIDEBAR ===== -->
- <aside class="sidebar">
-  <h2>🔐 ADMIN PANEL</h2>
-
+ <aside>
+  <h3>📂 Quản trị</h3>
   <div class="menu">
-   <a href="#" class="active" onclick="showPage('dashboard')">📊 Tổng quan</a>
-   <a href="#" onclick="showPage('students')">👤 Học viên</a>
-   <a href="#" onclick="showPage('sets')">📝 Bộ đề thi</a>
-   <a href="#" onclick="showPage('questions')">❓ Câu hỏi</a>
-   <a href="#" onclick="showPage('logs')">📄 Kết quả thi</a>
-   <a href="#" onclick="showPage('stats')">📈 Thống kê</a>
-   <a href="#" onclick="showPage('settings')">⚙️ Cài đặt</a>
+   <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
+   <button onclick="showPage('students',this)">👤 Quản lý học viên</button>
+   <button onclick="showPage('sets',this)">📘 Quản lý bộ đề</button>
+   <button onclick="showPage('logs',this)">🧾 Lịch sử thi</button>
+   <button onclick="showPage('settings',this)">⚙️ Cài đặt</button>
   </div>
  </aside>
 
  <!-- ===== MAIN ===== -->
- <div class="main">
+ <main>
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-   <b>Hệ thống thi luật giao thông đường bộ</b>
-   <button class="logout" onclick="logout()">Đăng xuất</button>
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+   <div class="box">
+    <h3>📊 Tổng quan hệ thống</h3>
+    <p>• Quản lý học viên</p>
+    <p>• Quản lý bộ đề thi</p>
+    <p>• Theo dõi lịch sử & kết quả thi</p>
+   </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <!-- STUDENTS -->
+  <div id="students" class="page">
+   <div class="box">
+    <h3>👤 Quản lý học viên</h3>
 
-   <!-- DASHBOARD -->
-   <div class="page" id="dashboard">
-    <div class="box">
-     <h3>📊 Tổng quan hệ thống</h3>
-     <p>• Tổng số học viên</p>
-     <p>• Tổng lượt thi</p>
-     <p>• Tỷ lệ đạt</p>
+    <div class="toolbar">
+     <input id="searchStudent" placeholder="🔍 Tìm theo mã hoặc tên học viên">
+     <button onclick="openAddStudent()">➕ Thêm học viên</button>
     </div>
-   </div>
 
-   <!-- STUDENTS -->
-   <div class="page" id="students" style="display:none">
-    <div class="box">
-     <h3>👤 Quản lý học viên</h3>
-     <p>Thêm / sửa / xóa / tìm kiếm học viên</p>
-    </div>
+    <table>
+     <thead>
+      <tr>
+       <th width="140">Mã học viên</th>
+       <th>Họ tên</th>
+       <th width="160">Thao tác</th>
+      </tr>
+     </thead>
+     <tbody id="studentTable"></tbody>
+    </table>
    </div>
-
-   <!-- QUESTION SETS -->
-   <div class="page" id="sets" style="display:none">
-    <div class="box">
-     <h3>📝 Quản lý bộ đề thi</h3>
-     <p>Thi mô tô – ô tô quân sự</p>
-    </div>
-   </div>
-
-   <!-- QUESTIONS -->
-   <div class="page" id="questions" style="display:none">
-    <div class="box">
-     <h3>❓ Ngân hàng câu hỏi</h3>
-     <p>Thêm / sửa / import câu hỏi</p>
-    </div>
-   </div>
-
-   <!-- LOGS -->
-   <div class="page" id="logs" style="display:none">
-    <div class="box">
-     <h3>📄 Lịch sử thi</h3>
-     <p>Tra cứu kết quả từng học viên</p>
-    </div>
-   </div>
-
-   <!-- STATS -->
-   <div class="page" id="stats" style="display:none">
-    <div class="box">
-     <h3>📈 Thống kê nâng cao</h3>
-     <p>Biểu đồ – tỷ lệ – lọc theo thời gian</p>
-    </div>
-   </div>
-
-   <!-- SETTINGS -->
-   <div class="page" id="settings" style="display:none">
-    <div class="box">
-     <h3>⚙️ Cài đặt hệ thống</h3>
-     <p>Đổi mật khẩu admin, cấu hình chung</p>
-    </div>
-   </div>
-
   </div>
- </div>
 
+  <!-- PLACEHOLDER -->
+  <div id="sets" class="page"><div class="box"><h3>📘 Quản lý bộ đề</h3></div></div>
+  <div id="logs" class="page"><div class="box"><h3>🧾 Lịch sử thi</h3></div></div>
+  <div id="settings" class="page"><div class="box"><h3>⚙️ Cài đặt</h3></div></div>
+
+ </main>
 </div>
 
-<script>
-/* ===== PAGE SWITCH ===== */
-function showPage(id){
- document.querySelectorAll(".page").forEach(p=>p.style.display="none");
- document.getElementById(id).style.display="block";
+<!-- ===== FIREBASE ===== -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
- document.querySelectorAll(".menu a").forEach(a=>a.classList.remove("active"));
- event.target.classList.add("active");
+<script>
+firebase.initializeApp({
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
+});
+const db = firebase.firestore();
+
+/* ===== ADMIN CHECK ===== */
+if(localStorage.getItem("userType")!=="admin"){
+ location.href="index.html";
+}
+
+/* ===== MENU SWITCH ===== */
+function showPage(id,btn){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+
+ document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
 }
 
 /* ===== LOGOUT ===== */
 function logout(){
  localStorage.clear();
  location.href="index.html";
+}
+
+/* ==============================
+   QUẢN LÝ HỌC VIÊN (CHUẨN)
+   ============================== */
+
+/* LOAD */
+function loadStudents(keyword=""){
+ studentTable.innerHTML="";
+
+ db.collection("students").get().then(snap=>{
+  snap.forEach(doc=>{
+   const s = doc.data();
+   const key = keyword.toLowerCase();
+
+   if(keyword &&
+      !s.code.toLowerCase().includes(key) &&
+      !s.nameSearch?.includes(key)) return;
+
+   studentTable.innerHTML+=`
+    <tr>
+     <td>${s.code}</td>
+     <td>${s.name}</td>
+     <td>
+      <button class="action-btn edit" onclick="editStudent('${doc.id}')">✏️</button>
+      <button class="action-btn del" onclick="deleteStudent('${doc.id}')">🗑️</button>
+     </td>
+    </tr>
+   `;
+  });
+ });
+}
+loadStudents();
+
+/* SEARCH */
+searchStudent.oninput = e=>{
+ loadStudents(e.target.value);
+};
+
+/* ADD */
+function openAddStudent(){
+ const name = prompt("Nhập họ tên học viên:");
+ if(!name) return;
+
+ db.collection("students").get().then(snap=>{
+  const num = snap.size + 1;
+  const code = "HV"+String(num).padStart(3,"0");
+
+  db.collection("students").doc(code).set({
+   code,
+   codeNumber:num,
+   name,
+   nameSearch:name.toLowerCase().replace(/\s+/g,""),
+   createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(loadStudents);
+ });
+}
+
+/* EDIT */
+function editStudent(id){
+ db.collection("students").doc(id).get().then(doc=>{
+  const s = doc.data();
+  const newName = prompt("Sửa tên học viên:", s.name);
+  if(!newName) return;
+
+  db.collection("students").doc(id).update({
+   name:newName,
+   nameSearch:newName.toLowerCase().replace(/\s+/g,"")
+  }).then(loadStudents);
+ });
+}
+
+/* DELETE */
+function deleteStudent(id){
+ if(!confirm("Xóa học viên này?")) return;
+ db.collection("students").doc(id).delete().then(loadStudents);
 }
 </script>
 
