@@ -15,13 +15,36 @@ body{
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
- padding:22px 30px;
+ padding:18px 30px;
  box-shadow:0 4px 15px rgba(0,0,0,.25);
+ display:flex;
+ align-items:center;
+ gap:15px;
+}
+header .title{
+ flex:1;
  text-align:center;
 }
 header h1{margin:0;font-size:24px}
 header .en{font-size:16px;margin-top:6px;opacity:.95}
 header .hint{margin-top:12px;font-size:14px}
+
+/* BACK BUTTON */
+#backPage{
+ background:rgba(255,255,255,.15);
+ border:1px solid rgba(255,255,255,.35);
+ color:white;
+ padding:8px 14px;
+ border-radius:8px;
+ cursor:pointer;
+ font-size:14px;
+ display:flex;
+ align-items:center;
+ gap:6px;
+}
+#backPage:hover{
+ background:rgba(255,255,255,.25);
+}
 
 /* ===== CONTAINER ===== */
 #container{
@@ -155,9 +178,13 @@ header .hint{margin-top:12px;font-size:14px}
 <body>
 
 <header>
- <h1>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
- <div class="en">Road Traffic Law Examination System</div>
- <div class="hint">👉 Vui lòng lựa chọn bộ đề thi phù hợp để bắt đầu làm bài</div>
+ <button id="backPage" onclick="history.back()">⬅ Quay lại</button>
+
+ <div class="title">
+  <h1>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
+  <div class="en">Road Traffic Law Examination System</div>
+  <div class="hint">👉 Vui lòng lựa chọn bộ đề thi phù hợp để bắt đầu làm bài</div>
+ </div>
 </header>
 
 <div id="container">
@@ -214,7 +241,7 @@ header .hint{margin-top:12px;font-size:14px}
  </div>
 </div>
 
-<!-- ===== FIREBASE ===== -->
+<!-- ===== FIREBASE + SCRIPT (GIỮ NGUYÊN) ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -228,83 +255,53 @@ const db = firebase.firestore();
 
 let selectedSet=null;
 
-/* ===== COUNTER EFFECT (CHỈ BỔ SUNG) ===== */
-function animateCounter(el, start, end, duration = 800, suffix = ""){
- const startTime = performance.now();
- function update(time){
-  const progress = Math.min((time - startTime) / duration, 1);
-  el.innerText = Math.floor(start + (end - start) * progress) + suffix;
-  if(progress < 1) requestAnimationFrame(update);
+/* COUNTER */
+function animateCounter(el,start,end,duration=800,suffix=""){
+ const t0=performance.now();
+ function step(t){
+  const p=Math.min((t-t0)/duration,1);
+  el.innerText=Math.floor(start+(end-start)*p)+suffix;
+  if(p<1) requestAnimationFrame(step);
  }
- requestAnimationFrame(update);
+ requestAnimationFrame(step);
 }
 
-/* ===== LOAD QUESTION SETS ===== */
-db.collection("question_sets")
- .where("active","==",true)
- .get()
- .then(snap=>{
-  snap.forEach(doc=>{
-   const s = doc.data();
-   s.id = doc.id;
-
-   if(s.type==="car" && s.code==="XMT") return;
-
-   const html = `
-    <div class="card ${s.type}" onclick='openModal(${JSON.stringify(s)})'>
-     <h3>${s.name}</h3>
-     <p>${s.description||""}</p>
-     <p>• Số câu: ${s.totalQuestions}</p>
-     <p>• Thời gian: ${s.time} phút</p>
-     <p>• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}</p>
-    </div>
-   `;
-
-   if(s.type==="moto") motoBox.innerHTML+=html;
-   if(s.type==="car") carBox.innerHTML+=html;
-  });
+/* LOAD SETS */
+db.collection("question_sets").where("active","==",true).get().then(snap=>{
+ snap.forEach(doc=>{
+  const s=doc.data(); s.id=doc.id;
+  if(s.type==="car" && s.code==="XMT") return;
+  const card=`
+   <div class="card ${s.type}" onclick='openModal(${JSON.stringify(s)})'>
+    <h3>${s.name}</h3>
+    <p>${s.description||""}</p>
+    <p>• Số câu: ${s.totalQuestions}</p>
+    <p>• Thời gian: ${s.time} phút</p>
+    <p>• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}</p>
+   </div>`;
+  s.type==="moto"?motoBox.innerHTML+=card:carBox.innerHTML+=card;
  });
+});
 
-/* ===== MODAL ===== */
 function openModal(s){
- selectedSet = s;
-
- mName.innerText = s.name;
- mDesc.innerText = s.description || "Không có mô tả";
- mBasic.innerText =
-  `• Số câu: ${s.totalQuestions}
+ selectedSet=s;
+ mName.innerText=s.name;
+ mDesc.innerText=s.description||"Không có mô tả";
+ mBasic.innerText=`• Số câu: ${s.totalQuestions}
 • Thời gian: ${s.time} phút
 • Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}`;
-
  modal.style.display="flex";
- loadStats(s.code || s.id);
+ loadStats(s.code||s.id);
 }
-
-function closeModal(){
- modal.style.display="none";
+function closeModal(){modal.style.display="none";}
+function loadStats(code){
+ let t=0,p=0;
+ db.collection("exam_logs").where("setCode","==",code).get().then(snap=>{
+  snap.forEach(d=>{t++; d.data().pass&&p++;});
+  animateCounter(mAttempts,0,t,700);
+  animateCounter(mRate,0,t?Math.round(p/t*100):0,900,"%");
+ });
 }
-
-/* ===== LOAD STATS + COUNTER ===== */
-function loadStats(setCode){
- let total=0, pass=0;
-
- db.collection("exam_logs")
-  .where("setCode","==",setCode)
-  .get()
-  .then(snap=>{
-   snap.forEach(d=>{
-    total++;
-    d.data().pass && pass++;
-   });
-
-   const rate = total ? Math.round(pass/total*100) : 0;
-
-   animateCounter(mAttempts, 0, total, 700);
-   animateCounter(mRate, 0, rate, 900, "%");
-  });
-}
-
-/* ===== START EXAM ===== */
 function startExam(){
  localStorage.setItem("examSet",JSON.stringify(selectedSet));
  location.href="exam.html";
