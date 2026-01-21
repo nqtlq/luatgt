@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Chọn bộ đề thi | Traffic Law Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
@@ -15,13 +16,13 @@ body{
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
- padding:24px 30px;
- box-shadow:0 6px 18px rgba(0,0,0,.25);
+ padding:26px 30px;
  text-align:center;
+ box-shadow:0 6px 18px rgba(0,0,0,.25);
 
- /* ✨ bo tròn header */
- border-bottom-left-radius:26px;
- border-bottom-right-radius:26px;
+ /* bo tròn */
+ border-bottom-left-radius:28px;
+ border-bottom-right-radius:28px;
 }
 
 /* TIÊU ĐỀ CHÍNH */
@@ -31,23 +32,43 @@ header h1{
  letter-spacing:.6px;
 }
 
-/* 🔠 HÀNG 2 – TO HƠN + IN HOA */
+/* DÒNG TIẾNG ANH – NỔI BẬT */
 header .en{
  margin-top:6px;
- font-size:18px;          /* tăng cỡ chữ */
- font-weight:600;
- letter-spacing:1px;
- text-transform:uppercase; /* IN HOA */
- opacity:.95;
+ font-size:18px;
+ font-weight:700;
+ letter-spacing:1.2px;
+ text-transform:uppercase;
+
+ /* màu khác */
+ color:#f1faee;
+
+ /* hiệu ứng ánh sáng */
+ text-shadow:
+  0 2px 6px rgba(0,0,0,.35),
+  0 0 14px rgba(168,218,220,.55);
+
+ animation:fadeGlow 1.6s ease-out;
 }
 
-/* DÒNG GỢI Ý (NẾU CÓ) */
+/* GỢI Ý */
 header .hint{
  margin-top:12px;
  font-size:14px;
  opacity:.95;
 }
 
+/* ANIMATION */
+@keyframes fadeGlow{
+ from{
+  opacity:0;
+  transform:translateY(-8px);
+ }
+ to{
+  opacity:1;
+  transform:translateY(0);
+ }
+}
 
 /* ===== CONTAINER ===== */
 #container{
@@ -85,7 +106,7 @@ header .hint{
  content:"";
  position:absolute;
  inset:0;
- background:rgba(255,255,255,.05);
+ background:rgba(255,255,255,.08);
  opacity:0;
  transition:.25s;
 }
@@ -98,13 +119,15 @@ header .hint{
 .card h3{
  margin:0 0 10px;
  font-size:18px;
+ color:#1d3557;
 }
 .card p{
  margin:6px 0;
  font-size:14px;
+ color:#333;
 }
 
-/* ===== COLOR THEMES ===== */
+/* ===== THEME ===== */
 .moto{
  background:linear-gradient(135deg,#e8f7f3,#cfeee7);
  border-left:6px solid #2a9d8f;
@@ -170,6 +193,12 @@ header .hint{
  background:#999;
  color:white;
 }
+
+/* MOBILE */
+@media(max-width:600px){
+ header h1{font-size:20px;}
+ header .en{font-size:16px;}
+}
 </style>
 </head>
 
@@ -184,13 +213,11 @@ header .hint{
 
 <div id="container">
 
- <!-- ===== MOTO ===== -->
  <div class="section">
   <h2>🏍️ Thi sát hạch lái xe mô tô quân sự</h2>
   <div class="grid" id="motoBox"></div>
  </div>
 
- <!-- ===== CAR ===== -->
  <div class="section">
   <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
   <div class="grid" id="carBox"></div>
@@ -228,7 +255,6 @@ const db = firebase.firestore();
 
 let selectedSet=null;
 
-/* ===== LOAD QUESTION SETS ===== */
 db.collection("question_sets")
  .where("active","==",true)
  .get()
@@ -248,16 +274,14 @@ db.collection("question_sets")
    `;
 
    if(s.type==="moto"){
-    document.getElementById("motoBox").innerHTML+=card;
+    motoBox.innerHTML+=card;
    }
-
    if(s.type==="car" && s.code!=="XMT"){
-    document.getElementById("carBox").innerHTML+=card;
+    carBox.innerHTML+=card;
    }
   });
  });
 
-/* ===== MODAL ===== */
 function openModal(s){
  selectedSet=s;
  mName.innerText=s.name;
@@ -267,11 +291,7 @@ function openModal(s){
  mPass.innerText="• Điều kiện đạt: ≥ "+s.passQuestions+"/"+s.totalQuestions;
  modal.style.display="flex";
 }
-
-function closeModal(){
- modal.style.display="none";
-}
-
+function closeModal(){modal.style.display="none";}
 function startExam(){
  localStorage.setItem("examSet",JSON.stringify(selectedSet));
  location.href="exam.html";
