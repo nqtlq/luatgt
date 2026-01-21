@@ -22,30 +22,39 @@ body{
  background:white;
  width:400px;
  padding:30px;
- border-radius:14px;
- box-shadow:0 10px 30px rgba(0,0,0,.3);
+ border-radius:16px;
+ box-shadow:0 12px 32px rgba(0,0,0,.35);
 }
+
+/* ===== SYSTEM NAME ===== */
 .system-name{
  text-align:center;
- margin-bottom:12px;
+ margin-bottom:14px;
 }
 .system-name .vi{
  font-size:20px;
- font-weight:700;
+ font-weight:800;
  color:#1d3557;
+ letter-spacing:.4px;
+ text-transform:uppercase;
 }
 .system-name .en{
  font-size:16px;
- font-weight:600;
- color:#457b9d;
- margin-top:2px;
+ font-weight:700;
+ color:#2a9d8f;              /* đổi màu */
+ margin-top:4px;
+ letter-spacing:.8px;
+ text-transform:uppercase;
+ text-shadow:0 1px 2px rgba(0,0,0,.15); /* hiệu ứng nhẹ */
 }
+
 h2{
  text-align:center;
  font-size:18px;
  color:#1d3557;
- margin:16px 0 18px;
+ margin:18px 0 20px;
 }
+
 input{
  width:100%;
  padding:12px;
@@ -76,6 +85,7 @@ input{
  margin:0;
 }
 
+/* ===== BUTTON ===== */
 button{
  width:100%;
  padding:13px;
@@ -87,15 +97,17 @@ button{
  cursor:pointer;
 }
 button:hover{opacity:.9;}
+
 .try{
  margin-top:12px;
  background:#2a9d8f;
 }
+
 .note{
  font-size:13px;
  color:#555;
- margin-top:12px;
- line-height:1.45;
+ margin-top:14px;
+ line-height:1.5;
 }
 .zalo{
  display:inline-flex;
@@ -115,9 +127,10 @@ button:hover{opacity:.9;}
 <div class="overlay">
  <div class="box">
 
+  <!-- ===== SYSTEM NAME ===== -->
   <div class="system-name">
-   <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG</div>
-   <div class="en">TRAFFIC LAW EXAMINATION SYSTEM</div>
+   <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+   <div class="en">Road Traffic Law Examination System</div>
   </div>
 
   <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
@@ -139,12 +152,11 @@ button:hover{opacity:.9;}
   <div class="note">
    • Học viên chỉ cần nhập mã hoặc tên<br>
    • Admin nhập thêm mật khẩu<br>
-   • Bạn chưa đăng ký mã học viên? Bạn có thể Thi thử.<br>
-   • Để sử dụng đầy đủ tính năng của website, vui lòng liên hệ admin<br>
+   • Bạn chưa đăng ký mã học viên? Có thể thi thử<br>
    • Liên hệ hỗ trợ:
    <div class="zalo">
     📞
-    <a href="https://zalo.me/0973306802" target="_blank" title="Chat Zalo">
+    <a href="https://zalo.me/0973306802" target="_blank">
      <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
     </a>
     <strong>0973.306.802</strong>
@@ -154,6 +166,7 @@ button:hover{opacity:.9;}
  </div>
 </div>
 
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
