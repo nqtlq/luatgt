@@ -2,8 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thi kiểm tra | Driving Test System</title>
+<title>Chọn bộ đề thi | Traffic Law Test</title>
 
 <style>
 body{
@@ -12,89 +11,114 @@ body{
  background:linear-gradient(135deg,#eef3ff,#f9fbff);
 }
 
+/* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
- padding:18px 30px;
+ padding:22px 30px;
  box-shadow:0 4px 15px rgba(0,0,0,.25);
+ text-align:center;
 }
-header h1{margin:0;font-size:22px;}
-header small{font-size:14px;opacity:.85;}
+header h1{
+ margin:0;
+ font-size:24px;
+ letter-spacing:.5px;
+}
+header .en{
+ font-size:15px;
+ opacity:.9;
+ margin-top:4px;
+}
+header .hint{
+ margin-top:12px;
+ font-size:14px;
+ opacity:.95;
+}
 
+/* ===== CONTAINER ===== */
 #container{
- max-width:1100px;
- margin:30px auto;
+ max-width:1200px;
+ margin:35px auto;
  padding:0 20px;
 }
 
-.section{margin-bottom:40px;}
-.section h2{color:#1d3557;margin-bottom:20px;}
-
-.grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
- gap:22px;
+/* ===== SECTION ===== */
+.section{
+ margin-bottom:45px;
+}
+.section h2{
+ color:#1d3557;
+ margin-bottom:22px;
 }
 
+/* ===== GRID ===== */
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+ gap:28px;
+}
+
+/* ===== CARD ===== */
 .card{
- background:white;
  border-radius:18px;
- padding:22px;
- box-shadow:0 8px 25px rgba(0,0,0,.12);
- transition:.2s;
+ padding:24px;
+ box-shadow:0 10px 28px rgba(0,0,0,.14);
+ transition:.25s;
  position:relative;
  overflow:hidden;
 }
-.card::before{
+.card::after{
  content:"";
  position:absolute;
- top:0;left:0;right:0;
- height:6px;
+ inset:0;
+ background:rgba(255,255,255,.05);
+ opacity:0;
+ transition:.25s;
 }
-.card.moto::before{background:#457b9d;}
-.card.car::before{background:#e76f51;}
-
 .card:hover{
- transform:translateY(-4px);
- box-shadow:0 14px 32px rgba(0,0,0,.18);
+ transform:translateY(-6px);
+ box-shadow:0 16px 38px rgba(0,0,0,.22);
+}
+.card:hover::after{opacity:1;}
+
+.card h3{
+ margin:0 0 10px;
+ font-size:18px;
+}
+.card p{
+ margin:6px 0;
+ font-size:14px;
 }
 
-.card h3{margin:0 0 8px;color:#1d3557;}
-.card p{margin:4px 0;font-size:14px;color:#333;}
-
-.stats{
- display:flex;
- gap:10px;
- margin-top:8px;
+/* ===== COLOR THEMES ===== */
+.moto{
+ background:linear-gradient(135deg,#e8f7f3,#cfeee7);
+ border-left:6px solid #2a9d8f;
 }
-.stat{
- background:#eef3ff;
- padding:6px 10px;
- border-radius:10px;
- font-size:13px;
- font-weight:bold;
- color:#1d3557;
+.car{
+ background:linear-gradient(135deg,#eef4ff,#dbe6ff);
+ border-left:6px solid #457b9d;
 }
 
+/* ===== BUTTON ===== */
 .card button{
- margin-top:14px;
+ margin-top:16px;
  width:100%;
  padding:12px;
  border:none;
- border-radius:12px;
- background:#1d3557;
- color:white;
+ border-radius:10px;
  font-size:15px;
  cursor:pointer;
+ background:#1d3557;
+ color:white;
 }
-.card.car button{background:#e76f51;}
 .card button:hover{opacity:.9}
 
 /* ===== MODAL ===== */
 #modal{
  position:fixed;
  inset:0;
- background:rgba(0,0,0,.5);
+ background:rgba(0,0,0,.55);
  display:none;
  align-items:center;
  justify-content:center;
@@ -102,44 +126,57 @@ header small{font-size:14px;opacity:.85;}
 }
 #modalBox{
  background:white;
- width:420px;
- max-width:90%;
+ width:430px;
+ max-width:92%;
  border-radius:18px;
- padding:25px;
+ padding:26px;
 }
-#modalBox h3{margin-top:0;color:#1d3557}
+#modalBox h3{
+ margin-top:0;
+ color:#1d3557;
+}
 .modal-btns{
  display:flex;
- gap:12px;
- margin-top:20px;
+ gap:14px;
+ margin-top:22px;
 }
 .modal-btns button{
  flex:1;
  padding:12px;
  border:none;
- border-radius:12px;
+ border-radius:10px;
  cursor:pointer;
  font-size:14px;
 }
-.start{background:#2a9d8f;color:white;}
-.back{background:#aaa;color:white;}
+.start{
+ background:#2a9d8f;
+ color:white;
+}
+.back{
+ background:#999;
+ color:white;
+}
 </style>
 </head>
 
 <body>
 
+<!-- ===== HEADER ===== -->
 <header>
- <h1>📝 HỆ THỐNG THI KIỂM TRA LÁI XE</h1>
- <small>Driving Test Examination System</small>
+ <h1>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
+ <div class="en">Road Traffic Law Examination System</div>
+ <div class="hint">👉 Vui lòng lựa chọn bộ đề thi phù hợp để bắt đầu làm bài</div>
 </header>
 
 <div id="container">
 
+ <!-- ===== MOTO ===== -->
  <div class="section">
   <h2>🏍️ Thi sát hạch lái xe mô tô quân sự</h2>
   <div class="grid" id="motoBox"></div>
  </div>
 
+ <!-- ===== CAR ===== -->
  <div class="section">
   <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
   <div class="grid" id="carBox"></div>
@@ -157,7 +194,7 @@ header small{font-size:14px;opacity:.85;}
   <p id="mPass"></p>
 
   <div class="modal-btns">
-   <button class="start" onclick="startExam()">▶ Bắt đầu</button>
+   <button class="start" onclick="startExam()">▶ Bắt đầu làm bài</button>
    <button class="back" onclick="closeModal()">⬅ Quay lại</button>
   </div>
  </div>
@@ -174,44 +211,36 @@ firebase.initializeApp({
  projectId:"thi-luat-giao-thong"
 });
 const db = firebase.firestore();
+
 let selectedSet=null;
 
-/* ===== LOAD DATA + STATS ===== */
+/* ===== LOAD QUESTION SETS ===== */
 db.collection("question_sets")
  .where("active","==",true)
  .get()
- .then(async snap=>{
-  for(const doc of snap.docs){
+ .then(snap=>{
+  snap.forEach(doc=>{
    const s = doc.data();
 
-   // ❌ bỏ bộ đề không cần
-   if(s.type==="car" && s.code==="XMT") continue;
-
-   const logSnap = await db.collection("exam_logs")
-    .where("setCode","==",s.code).get();
-
-   let total=logSnap.size, pass=0;
-   logSnap.forEach(l=>{ if(l.data().pass) pass++; });
-   const rate = total ? Math.round(pass/total*100) : 0;
-
-   const html = `
+   const card = `
     <div class="card ${s.type}">
      <h3>${s.name}</h3>
      <p>${s.description||""}</p>
      <p>• Số câu: ${s.totalQuestions}</p>
      <p>• Thời gian: ${s.time} phút</p>
      <p>• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}</p>
-     <div class="stats">
-      <div class="stat">📊 ${total} lượt</div>
-      <div class="stat">✅ ${rate}% đậu</div>
-     </div>
      <button onclick='openModal(${JSON.stringify(s)})'>Xem chi tiết</button>
     </div>
    `;
 
-   if(s.type==="moto") motoBox.innerHTML+=html;
-   if(s.type==="car") carBox.innerHTML+=html;
-  }
+   if(s.type==="moto"){
+    document.getElementById("motoBox").innerHTML+=card;
+   }
+
+   if(s.type==="car" && s.code!=="XMT"){
+    document.getElementById("carBox").innerHTML+=card;
+   }
+  });
  });
 
 /* ===== MODAL ===== */
@@ -224,7 +253,11 @@ function openModal(s){
  mPass.innerText="• Điều kiện đạt: ≥ "+s.passQuestions+"/"+s.totalQuestions;
  modal.style.display="flex";
 }
-function closeModal(){modal.style.display="none";}
+
+function closeModal(){
+ modal.style.display="none";
+}
+
 function startExam(){
  localStorage.setItem("examSet",JSON.stringify(selectedSet));
  location.href="exam.html";
