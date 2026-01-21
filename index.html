@@ -20,31 +20,32 @@ body{
 }
 .box{
  background:white;
- width:400px;
- padding:30px;
- border-radius:16px;
- box-shadow:0 12px 32px rgba(0,0,0,.35);
+ width:480px;                 /* ✅ MỞ RỘNG KHUNG */
+ max-width:94%;
+ padding:32px;
+ border-radius:18px;
+ box-shadow:0 14px 36px rgba(0,0,0,.35);
 }
 
-/* ===== SYSTEM NAME (DỄ ĐỌC – HIỆN ĐỦ TÊN) ===== */
+/* ===== SYSTEM NAME ===== */
 .system-name{
  text-align:center;
- margin-bottom:16px;
+ margin-bottom:18px;
 }
 .system-name .vi{
- font-size:19px;
- font-weight:700;
+ font-size:18px;              /* giảm nhẹ để vừa 1 dòng */
+ font-weight:800;
  color:#1d3557;
- letter-spacing:.4px;
- line-height:1.35;          /* giúp dễ đọc */
+ letter-spacing:.6px;
  text-transform:uppercase;
+ white-space:nowrap;          /* ✅ ÉP 1 DÒNG */
 }
 .system-name .en{
  font-size:15px;
  font-weight:600;
  color:#2a9d8f;
  margin-top:6px;
- letter-spacing:.6px;
+ letter-spacing:.8px;
  text-transform:uppercase;
  opacity:.95;
 }
@@ -53,14 +54,14 @@ h2{
  text-align:center;
  font-size:18px;
  color:#1d3557;
- margin:18px 0 20px;
+ margin:18px 0 22px;
 }
 
 input{
  width:100%;
- padding:12px;
+ padding:13px;
  margin-bottom:14px;
- border-radius:8px;
+ border-radius:9px;
  border:1px solid #ccc;
  font-size:15px;
 }
@@ -71,7 +72,7 @@ input{
  align-items:center;
  justify-content:space-between;
  width:100%;
- margin:-6px 0 14px;
+ margin:-6px 0 16px;
 }
 .checkbox-left{
  display:flex;
@@ -89,9 +90,9 @@ input{
 /* ===== BUTTON ===== */
 button{
  width:100%;
- padding:13px;
+ padding:14px;
  border:none;
- border-radius:10px;
+ border-radius:11px;
  background:#1d3557;
  color:white;
  font-size:16px;
@@ -108,7 +109,7 @@ button:hover{opacity:.9;}
  font-size:13px;
  color:#555;
  margin-top:14px;
- line-height:1.5;
+ line-height:1.55;
 }
 .zalo{
  display:inline-flex;
@@ -121,6 +122,13 @@ button:hover{opacity:.9;}
  height:26px;
  cursor:pointer;
 }
+
+/* ===== MOBILE ===== */
+@media(max-width:480px){
+ .system-name .vi{
+  font-size:16px;             /* vẫn giữ 1 dòng */
+ }
+}
 </style>
 </head>
 
@@ -128,7 +136,6 @@ button:hover{opacity:.9;}
 <div class="overlay">
  <div class="box">
 
-  <!-- ===== SYSTEM NAME ===== -->
   <div class="system-name">
    <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
    <div class="en">Road Traffic Law Examination System</div>
@@ -166,6 +173,7 @@ button:hover{opacity:.9;}
  </div>
 </div>
 
+<!-- ===== FIREBASE & SCRIPT GIỮ NGUYÊN ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
