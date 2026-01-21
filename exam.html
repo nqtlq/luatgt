@@ -6,15 +6,15 @@
 <title>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
 <style>
-/* ===== GIỮ NGUYÊN CSS ===== */
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
  background:#eef2f6;
 }
+
+/* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
@@ -26,46 +26,122 @@ header{
 }
 header b{font-size:18px}
 #logoutBtn{
- background:#e63946;color:white;border:none;
- border-radius:8px;padding:10px 16px;cursor:pointer;
+ background:#e63946;
+ color:white;
+ border:none;
+ border-radius:8px;
+ padding:10px 16px;
+ cursor:pointer;
 }
-#container{max-width:1200px;margin:30px auto;padding:0 20px}
-#welcome{font-size:22px;margin-bottom:25px;color:#1d3557}
-.grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px}
-@media(max-width:768px){.grid{grid-template-columns:1fr}}
+
+/* ===== MAIN ===== */
+#container{
+ max-width:1200px;
+ margin:30px auto;
+ padding:0 20px;
+}
+#welcome{
+ font-size:22px;
+ margin-bottom:25px;
+ color:#1d3557;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:1fr 2.2fr;
+ gap:25px;
+}
+@media(max-width:768px){
+ .grid{grid-template-columns:1fr;}
+}
+
 .box{
- background:white;padding:20px;border-radius:14px;
+ background:white;
+ padding:20px;
+ border-radius:14px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
-.box h3{margin-top:0;color:#1d3557}
-.info p{margin:8px 0}
-.statRow{display:flex;gap:15px;margin-bottom:15px}
-.statBox{
- flex:1;text-align:center;padding:15px;
- border-radius:10px;color:white;
+.box h3{
+ margin-top:0;
+ color:#1d3557;
 }
-.statBox b{font-size:22px}
+
+/* ===== INFO ===== */
+.info p{margin:8px 0}
+
+/* ===== STATS ===== */
+.statRow{
+ display:flex;
+ gap:15px;
+ margin-bottom:15px;
+}
+.statBox{
+ flex:1;
+ text-align:center;
+ padding:16px;
+ border-radius:12px;
+ color:white;
+}
+.statBox b{
+ font-size:26px;
+ display:block;
+ margin-top:4px;
+}
 .bg1{background:#457b9d}
 .bg2{background:#2a9d8f}
 .bg3{background:#e63946}
-.chartBox{height:240px;margin-top:15px}
+
+/* ===== TABLE ===== */
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:14px;
+ margin-top:15px;
+}
+th,td{
+ padding:10px;
+ text-align:center;
+ border-bottom:1px solid #eee;
+}
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+}
+.pass{color:#2a9d8f;font-weight:bold}
+.fail{color:#e63946;font-weight:bold}
+
+/* ===== CHART ===== */
+.chartBox{
+ height:240px;
+ margin-top:10px;
+}
+
+/* ===== ACTIONS ===== */
 .actions{
- display:flex;justify-content:flex-end;
- gap:14px;margin-top:15px;flex-wrap:wrap;
+ display:flex;
+ justify-content:flex-end;
+ gap:14px;
+ margin-top:15px;
+ flex-wrap:wrap;
 }
 .actionBtn{
- border:none;border-radius:10px;
- padding:14px 20px;font-size:15px;
- cursor:pointer;min-width:200px;color:white;
+ border:none;
+ border-radius:10px;
+ padding:14px 20px;
+ font-size:15px;
+ cursor:pointer;
+ min-width:200px;
+ color:white;
 }
 #detailBtn{background:#457b9d}
 #startBtn{background:#2a9d8f}
-#empty{color:#888;text-align:center;margin-top:15px;font-style:italic}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #eee}
-th{background:#f1f4fb;color:#1d3557}
-.pass{color:#2a9d8f;font-weight:bold}
-.fail{color:#e63946;font-weight:bold}
+
+#empty{
+ color:#888;
+ text-align:center;
+ margin-top:15px;
+ font-style:italic;
+}
 </style>
 </head>
 
@@ -84,6 +160,7 @@ th{background:#f1f4fb;color:#1d3557}
 
  <div class="grid">
 
+  <!-- INFO -->
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -92,13 +169,14 @@ th{background:#f1f4fb;color:#1d3557}
    <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
   </div>
 
+  <!-- STATS -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
    <div class="statRow">
-    <div class="statBox bg1">Tổng số lượt thi<br><b id="totalExam">0</b></div>
-    <div class="statBox bg2">Đạt<br><b id="passExam">0</b></div>
-    <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
+    <div class="statBox bg1">Tổng lượt thi<b id="totalExam">0</b></div>
+    <div class="statBox bg2">Đạt<b id="passExam">0</b></div>
+    <div class="statBox bg3">Không đạt<b id="failExam">0</b></div>
    </div>
 
    <div class="chartBox">
@@ -109,7 +187,11 @@ th{background:#f1f4fb;color:#1d3557}
 
    <table id="resultTable" style="display:none;">
     <thead>
-     <tr><th>#</th><th>Thời gian</th><th>Kết quả</th></tr>
+     <tr>
+      <th>#</th>
+      <th>Thời gian</th>
+      <th>Kết quả</th>
+     </tr>
     </thead>
     <tbody id="logTable"></tbody>
    </table>
@@ -118,10 +200,12 @@ th{background:#f1f4fb;color:#1d3557}
     <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
     <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
    </div>
+
   </div>
  </div>
 </div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -131,75 +215,94 @@ firebase.initializeApp({
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-/* ===== COUNTER ANIMATION ===== */
-function animateCount(el, to){
- let current = 0;
- const step = Math.max(1, Math.floor(to / 30));
- const timer = setInterval(()=>{
-  current += step;
-  if(current >= to){
-   current = to;
-   clearInterval(timer);
-  }
-  el.textContent = current;
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("userType")!=="student"){
+ location.href="index.html";
+}
+
+/* ===== STUDENT CODE ===== */
+const code=(localStorage.getItem("studentCode")||"").replace(/\D/g,"").padStart(3,"0");
+
+/* ===== LOAD STUDENT ===== */
+db.collection("students").where("code","==",code).limit(1).get().then(snap=>{
+ if(snap.empty){
+  alert("Không tìm thấy học viên");
+  location.href="index.html";
+  return;
+ }
+ const s=snap.docs[0].data();
+ studentName.textContent=s.name;
+ infoCode.textContent="HV"+s.code;
+ infoName.textContent=s.name;
+ infoUnit.textContent=s.unit||"";
+ infoStatus.textContent=s.status||"Hoạt động";
+ loadExamLogs(code);
+});
+
+/* ===== COUNTER ===== */
+function animate(el,value){
+ let start=0;
+ const step=Math.max(1,Math.floor(value/40));
+ const t=setInterval(()=>{
+  start+=step;
+  if(start>=value){
+   el.textContent=value;
+   clearInterval(t);
+  }else el.textContent=start;
  },20);
 }
 
 /* ===== LOAD LOGS ===== */
-function loadExamLogs(code){
- db.collection("exam_logs")
-  .where("code","==",code)
-  .get()
-  .then(snap=>{
-   let logs=[];
-   snap.forEach(d=>logs.push(d.data()));
-
-   if(!logs.length){
-    empty.textContent="📭 Chưa có dữ liệu";
-    return;
-   }
-
-   let pass=0,fail=0;
-   logs.forEach(d=>d.pass?pass++:fail++);
-
-   animateCount(totalExam, logs.length);
-   animateCount(passExam, pass);
-   animateCount(failExam, fail);
-
-   drawChart(pass,fail);
-  });
-}
-
-/* ===== PIE CHART + % ===== */
 let chart=null;
-function drawChart(p,f){
- if(chart) chart.destroy();
- chart=new Chart(document.getElementById("chart"),{
-  type:"pie",
-  data:{
-   labels:["Đạt","Không đạt"],
-   datasets:[{
-    data:[p,f],
-    backgroundColor:["#2a9d8f","#e63946"]
-   }]
-  },
-  options:{
-   responsive:true,
-   maintainAspectRatio:false,
-   plugins:{
-    datalabels:{
-     color:"#fff",
-     font:{weight:"bold",size:16},
-     formatter:(value,ctx)=>{
-      const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-      return sum ? Math.round(value/sum*100)+"%" : "0%";
-     }
-    }
-   }
-  },
-  plugins:[ChartDataLabels]
+function loadExamLogs(code){
+ db.collection("exam_logs").where("code","==",code).get().then(snap=>{
+  if(snap.empty){
+   empty.textContent="📭 Chưa có dữ liệu";
+   return;
+  }
+
+  let logs=[];
+  snap.forEach(d=>logs.push(d.data()));
+  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+
+  let pass=0,fail=0;
+  logTable.innerHTML="";
+
+  logs.forEach((d,i)=>{
+   d.pass?pass++:fail++;
+   const time=d.timestamp
+    ?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
+   logTable.innerHTML+=`
+    <tr>
+     <td>${i+1}</td>
+     <td>${time}</td>
+     <td class="${d.pass?'pass':'fail'}">
+      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
+     </td>
+    </tr>`;
+  });
+
+  animate(totalExam,logs.length);
+  animate(passExam,pass);
+  animate(failExam,fail);
+
+  resultTable.style.display="table";
+  empty.textContent="";
+
+  if(chart) chart.destroy();
+  chart=new Chart(chart,{
+   type:"pie",
+   data:{
+    labels:["Đạt","Không đạt"],
+    datasets:[{
+     data:[pass,fail],
+     backgroundColor:["#2a9d8f","#e63946"]
+    }]
+   },
+   options:{responsive:true,maintainAspectRatio:false}
+  });
  });
 }
 
