@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
 <style>
-/* ===== GIỮ NGUYÊN CSS CỦA BẠN ===== */
+/* ===== GIỮ NGUYÊN CSS ===== */
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
@@ -77,9 +77,13 @@ th{background:#f1f4fb;color:#1d3557}
 </header>
 
 <div id="container">
- <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
+
+ <div id="welcome">
+  Xin chào, <b id="studentName"></b> 👋
+ </div>
 
  <div class="grid">
+
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -92,7 +96,7 @@ th{background:#f1f4fb;color:#1d3557}
    <h3>📊 Thống kê kết quả</h3>
 
    <div class="statRow">
-    <div class="statBox bg1">Tổng lượt thi<br><b id="totalExam">0</b></div>
+    <div class="statBox bg1">Tổng số lượt thi<br><b id="totalExam">0</b></div>
     <div class="statBox bg2">Đạt<br><b id="passExam">0</b></div>
     <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
    </div>
@@ -118,7 +122,6 @@ th{background:#f1f4fb;color:#1d3557}
  </div>
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -132,15 +135,15 @@ const db = firebase.firestore();
 
 /* ===== COUNTER ANIMATION ===== */
 function animateCount(el, to){
- let start = 0;
+ let current = 0;
  const step = Math.max(1, Math.floor(to / 30));
  const timer = setInterval(()=>{
-  start += step;
-  if(start >= to){
-   start = to;
+  current += step;
+  if(current >= to){
+   current = to;
    clearInterval(timer);
   }
-  el.textContent = start;
+  el.textContent = current;
  },20);
 }
 
@@ -199,6 +202,14 @@ function drawChart(p,f){
   plugins:[ChartDataLabels]
  });
 }
+
+/* ===== BUTTONS ===== */
+logoutBtn.onclick=()=>{
+ localStorage.clear();
+ location.href="index.html";
+};
+startBtn.onclick=()=>location.href="test.html";
+detailBtn.onclick=()=>location.href="exam_detail.html";
 </script>
 
 </body>
