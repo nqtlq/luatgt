@@ -94,7 +94,7 @@ header .hint{margin-top:12px;font-size:14px}
  font-size:14px;
 }
 
-/* ===== STAT (NEW) ===== */
+/* ===== STAT ===== */
 .stat-row{
  display:flex;
  gap:14px;
@@ -185,7 +185,6 @@ header .hint{margin-top:12px;font-size:14px}
    <p id="mBasic"></p>
   </div>
 
-  <!-- ===== STAT ROW ===== -->
   <div class="stat-row">
    <div class="stat-box">
     <b>📊 Số lần đã thi</b>
@@ -228,6 +227,17 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 let selectedSet=null;
+
+/* ===== COUNTER EFFECT (CHỈ BỔ SUNG) ===== */
+function animateCounter(el, start, end, duration = 800, suffix = ""){
+ const startTime = performance.now();
+ function update(time){
+  const progress = Math.min((time - startTime) / duration, 1);
+  el.innerText = Math.floor(start + (end - start) * progress) + suffix;
+  if(progress < 1) requestAnimationFrame(update);
+ }
+ requestAnimationFrame(update);
+}
 
 /* ===== LOAD QUESTION SETS ===== */
 db.collection("question_sets")
@@ -274,7 +284,7 @@ function closeModal(){
  modal.style.display="none";
 }
 
-/* ===== LOAD STATS ===== */
+/* ===== LOAD STATS + COUNTER ===== */
 function loadStats(setCode){
  let total=0, pass=0;
 
@@ -287,8 +297,10 @@ function loadStats(setCode){
     d.data().pass && pass++;
    });
 
-   mAttempts.innerText = total;
-   mRate.innerText = total ? Math.round(pass/total*100)+"%" : "0%";
+   const rate = total ? Math.round(pass/total*100) : 0;
+
+   animateCounter(mAttempts, 0, total, 700);
+   animateCounter(mRate, 0, rate, 900, "%");
   });
 }
 
