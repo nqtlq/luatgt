@@ -3,52 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</title>
+<title>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
-header{background:#1d3557;color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;}
-#logoutBtn{background:#e63946;color:white;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
-#container{max-width:1200px;margin:30px auto;padding:0 20px;}
-#welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
-.grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
-@media(max-width:768px){.grid{grid-template-columns:1fr;}}
-.box{background:white;padding:20px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,.12);}
-.box h3{margin-top:0;color:#1d3557;}
+body{
+ margin:0;
+ font-family:Arial,Helvetica,sans-serif;
+ background:#eef2f6;
+}
+
+/* ===== HEADER ===== */
+header{
+ background:linear-gradient(90deg,#1d3557,#264a8a);
+ color:white;
+ padding:18px 30px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ box-shadow:0 4px 15px rgba(0,0,0,.25);
+}
+header b{
+ font-size:18px;
+ letter-spacing:.4px;
+}
+#logoutBtn{
+ background:#e63946;
+ color:white;
+ border:none;
+ border-radius:8px;
+ padding:10px 16px;
+ cursor:pointer;
+}
+
+/* ===== MAIN ===== */
+#container{
+ max-width:1200px;
+ margin:30px auto;
+ padding:0 20px;
+}
+#welcome{
+ font-size:22px;
+ margin-bottom:25px;
+ color:#1d3557;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:1fr 2.2fr;
+ gap:25px;
+}
+@media(max-width:768px){
+ .grid{grid-template-columns:1fr;}
+}
+
+.box{
+ background:white;
+ padding:20px;
+ border-radius:14px;
+ box-shadow:0 4px 15px rgba(0,0,0,.12);
+}
+.box h3{
+ margin-top:0;
+ color:#1d3557;
+}
+
+/* ===== INFO ===== */
 .info p{margin:8px 0;}
-.statRow{display:flex;gap:15px;margin-bottom:15px;}
-.statBox{flex:1;text-align:center;padding:15px;border-radius:10px;color:white;}
+
+/* ===== STATS ===== */
+.statRow{
+ display:flex;
+ gap:15px;
+ margin-bottom:15px;
+}
+.statBox{
+ flex:1;
+ text-align:center;
+ padding:15px;
+ border-radius:10px;
+ color:white;
+}
 .statBox b{font-size:22px;}
 .bg1{background:#457b9d;}
 .bg2{background:#2a9d8f;}
 .bg3{background:#e63946;}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px;}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-th{background:#f1f4fb;color:#1d3557;}
+
+/* ===== TABLE ===== */
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:14px;
+ margin-top:15px;
+}
+th,td{
+ padding:10px;
+ text-align:center;
+ border-bottom:1px solid #eee;
+}
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+}
 .pass{color:#2a9d8f;font-weight:bold;}
 .fail{color:#e63946;font-weight:bold;}
-.chartBox{height:240px;margin-top:15px;}
-.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;flex-wrap:wrap;}
-.actionBtn{border:none;border-radius:10px;padding:14px 20px;font-size:15px;cursor:pointer;min-width:200px;color:white;}
+
+/* ===== CHART ===== */
+.chartBox{
+ height:240px;
+ margin-top:15px;
+}
+
+/* ===== ACTIONS ===== */
+.actions{
+ display:flex;
+ justify-content:flex-end;
+ gap:14px;
+ margin-top:15px;
+ flex-wrap:wrap;
+}
+.actionBtn{
+ border:none;
+ border-radius:10px;
+ padding:14px 20px;
+ font-size:15px;
+ cursor:pointer;
+ min-width:200px;
+ color:white;
+}
 #detailBtn{background:#457b9d;}
 #startBtn{background:#2a9d8f;}
-#empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
+
+#empty{
+ color:#888;
+ text-align:center;
+ margin-top:15px;
+ font-style:italic;
+}
 </style>
 </head>
 
 <body>
 
 <header>
- <b>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</b>
+ <b>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</b>
  <button id="logoutBtn">Đăng xuất</button>
 </header>
 
 <div id="container">
- <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
+
+ <div id="welcome">
+  Xin chào, <b id="studentName"></b> 👋
+ </div>
 
  <div class="grid">
+
+  <!-- ===== STUDENT INFO ===== -->
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -57,13 +168,20 @@ th{background:#f1f4fb;color:#1d3557;}
    <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
   </div>
 
+  <!-- ===== STATS ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
    <div class="statRow">
-    <div class="statBox bg1">Tổng số lượt thi<br><b id="totalExam">0</b></div>
-    <div class="statBox bg2">Đạt<br><b id="passExam">0</b></div>
-    <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
+    <div class="statBox bg1">
+     Tổng số lượt thi<br><b id="totalExam">0</b>
+    </div>
+    <div class="statBox bg2">
+     Đạt<br><b id="passExam">0</b>
+    </div>
+    <div class="statBox bg3">
+     Không đạt<br><b id="failExam">0</b>
+    </div>
    </div>
 
    <div class="chartBox">
@@ -87,10 +205,12 @@ th{background:#f1f4fb;color:#1d3557;}
     <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
     <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
    </div>
+
   </div>
  </div>
 </div>
 
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -107,16 +227,14 @@ if(localStorage.getItem("userType") !== "student"){
  location.href="index.html";
 }
 
-/* ===== CHUẨN HÓA MÃ HỌC VIÊN ===== */
+/* ===== NORMALIZE CODE ===== */
 const raw = (localStorage.getItem("studentCode") || "").trim();
 const digits = raw.replace(/\D/g,"");
-
 if(!digits){
  alert("Dữ liệu đăng nhập không hợp lệ");
  location.href="index.html";
 }
-
-const studentCode = digits.padStart(3,"0"); // <<< QUAN TRỌNG
+const studentCode = digits.padStart(3,"0");
 
 /* ===== LOAD STUDENT ===== */
 db.collection("students")
@@ -131,7 +249,6 @@ db.collection("students")
   }
 
   const s = snap.docs[0].data();
-
   studentName.textContent = s.name;
   infoCode.textContent = "HV" + s.code;
   infoName.textContent = s.name;
@@ -141,59 +258,75 @@ db.collection("students")
   loadExamLogs(s.code);
  });
 
-/* ===== LOAD EXAM LOGS ===== */
+/* ===== LOAD LOGS ===== */
 function loadExamLogs(code){
- db.collection("exam_logs").where("code","==",code).get().then(snap=>{
-  let logs=[];
-  snap.forEach(d=>logs.push(d.data()));
+ db.collection("exam_logs")
+  .where("code","==",code)
+  .get()
+  .then(snap=>{
+   let logs=[];
+   snap.forEach(d=>logs.push(d.data()));
 
-  if(!logs.length){
-   empty.textContent="📭 Chưa có dữ liệu";
-   return;
-  }
+   if(!logs.length){
+    empty.textContent="📭 Chưa có dữ liệu";
+    return;
+   }
 
-  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+   logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
 
-  let pass=0,fail=0;
-  logTable.innerHTML="";
+   let pass=0,fail=0;
+   logTable.innerHTML="";
 
-  logs.forEach((d,i)=>{
-   d.pass?pass++:fail++;
-   const time=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
-   logTable.innerHTML+=`
-    <tr>
-     <td>${i+1}</td>
-     <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
-    </tr>`;
+   logs.forEach((d,i)=>{
+    d.pass?pass++:fail++;
+    const time=d.timestamp
+     ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
+     : "-";
+    logTable.innerHTML+=`
+     <tr>
+      <td>${i+1}</td>
+      <td>${time}</td>
+      <td class="${d.pass?'pass':'fail'}">
+       ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
+      </td>
+     </tr>`;
+   });
+
+   totalExam.textContent=logs.length;
+   passExam.textContent=pass;
+   failExam.textContent=fail;
+   resultTable.style.display="table";
+   empty.textContent="";
+
+   drawChart(pass,fail);
   });
-
-  totalExam.textContent=logs.length;
-  passExam.textContent=pass;
-  failExam.textContent=fail;
-  resultTable.style.display="table";
-  empty.textContent="";
-
-  drawChart(pass,fail);
- });
 }
 
 /* ===== CHART ===== */
 let chart=null;
 function drawChart(p,f){
  if(chart) chart.destroy();
- chart=new Chart(document.getElementById("chart"),{
+ chart=new Chart(chart,{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
-   datasets:[{data:[p,f],backgroundColor:["#2a9d8f","#e63946"]}]
+   datasets:[{
+    data:[p,f],
+    backgroundColor:["#2a9d8f","#e63946"]
+   }]
   },
-  options:{responsive:true,maintainAspectRatio:false}
+  options:{
+   responsive:true,
+   maintainAspectRatio:false
+  }
  });
 }
 
 /* ===== BUTTONS ===== */
-logoutBtn.onclick=()=>{localStorage.clear();location.href="index.html";}
+logoutBtn.onclick=()=>{
+ localStorage.clear();
+ location.href="index.html";
+};
 startBtn.onclick=()=>location.href="test.html";
 detailBtn.onclick=()=>location.href="exam_detail.html";
 </script>
