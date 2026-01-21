@@ -164,7 +164,7 @@ th{
  <!-- ===== MAIN ===== -->
  <main>
 
-  <!-- ===== DASHBOARD ===== -->
+  <!-- DASHBOARD -->
   <div id="dashboard" class="page active">
    <div class="box">
     <h3>📊 Tổng quan hệ thống</h3>
@@ -174,13 +174,13 @@ th{
    </div>
   </div>
 
-  <!-- ===== STUDENTS ===== -->
+  <!-- STUDENTS -->
   <div id="students" class="page">
    <div class="box">
     <h3>👤 Quản lý học viên</h3>
 
     <div class="toolbar">
-     <input id="searchStudent" placeholder="🔍 Tìm theo mã hoặc tên">
+     <input id="searchStudent" placeholder="🔍 Tìm theo mã hoặc tên học viên">
      <button onclick="openAddStudent()">➕ Thêm học viên</button>
     </div>
 
@@ -197,7 +197,7 @@ th{
    </div>
   </div>
 
-  <!-- ===== PLACEHOLDER PAGES ===== -->
+  <!-- PLACEHOLDER -->
   <div id="sets" class="page"><div class="box"><h3>📘 Quản lý bộ đề</h3></div></div>
   <div id="logs" class="page"><div class="box"><h3>🧾 Lịch sử thi</h3></div></div>
   <div id="settings" class="page"><div class="box"><h3>⚙️ Cài đặt</h3></div></div>
@@ -217,7 +217,7 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ===== LOGIN CHECK ===== */
+/* ===== ADMIN CHECK ===== */
 if(localStorage.getItem("userType")!=="admin"){
  location.href="index.html";
 }
@@ -237,11 +237,11 @@ function logout(){
  location.href="index.html";
 }
 
-/* =====================================================
-   ===== QUẢN LÝ HỌC VIÊN (ĐÚNG CODE BẠN YÊU CẦU) =====
-   ===================================================== */
+/* ==============================
+   QUẢN LÝ HỌC VIÊN (CHUẨN)
+   ============================== */
 
-/* ===== LOAD STUDENTS ===== */
+/* LOAD */
 function loadStudents(keyword=""){
  studentTable.innerHTML="";
 
@@ -269,12 +269,12 @@ function loadStudents(keyword=""){
 }
 loadStudents();
 
-/* ===== SEARCH ===== */
+/* SEARCH */
 searchStudent.oninput = e=>{
  loadStudents(e.target.value);
 };
 
-/* ===== ADD STUDENT ===== */
+/* ADD */
 function openAddStudent(){
  const name = prompt("Nhập họ tên học viên:");
  if(!name) return;
@@ -293,11 +293,11 @@ function openAddStudent(){
  });
 }
 
-/* ===== EDIT ===== */
+/* EDIT */
 function editStudent(id){
  db.collection("students").doc(id).get().then(doc=>{
   const s = doc.data();
-  const newName = prompt("Sửa tên:", s.name);
+  const newName = prompt("Sửa tên học viên:", s.name);
   if(!newName) return;
 
   db.collection("students").doc(id).update({
@@ -307,7 +307,7 @@ function editStudent(id){
  });
 }
 
-/* ===== DELETE ===== */
+/* DELETE */
 function deleteStudent(id){
  if(!confirm("Xóa học viên này?")) return;
  db.collection("students").doc(id).delete().then(loadStudents);
