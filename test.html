@@ -90,19 +90,34 @@ header .hint{margin-top:12px;font-size:14px}
  background:#f1f4f8;
  padding:14px;
  border-radius:12px;
- margin-bottom:12px;
+ margin-bottom:14px;
  font-size:14px;
 }
 
-/* STAT */
-.stat{
- background:#eaf6ff;
- padding:14px;
- border-radius:12px;
- margin-bottom:14px;
- font-size:15px;
+/* ===== STAT (NEW) ===== */
+.stat-row{
+ display:flex;
+ gap:14px;
+ margin-bottom:16px;
 }
-.stat span{font-weight:bold;color:#1d3557}
+.stat-box{
+ flex:1;
+ background:#eaf6ff;
+ border-radius:14px;
+ padding:14px;
+ text-align:center;
+}
+.stat-box b{
+ display:block;
+ font-size:15px;
+ color:#1d3557;
+ margin-bottom:6px;
+}
+.stat-box span{
+ font-size:22px;
+ font-weight:bold;
+ color:#0d6efd;
+}
 
 /* RULES */
 .rules{
@@ -170,9 +185,16 @@ header .hint{margin-top:12px;font-size:14px}
    <p id="mBasic"></p>
   </div>
 
-  <div class="stat">
-   <p>📊 <b>Số lần đã thi:</b> <span id="mAttempts">0</span></p>
-   <p>📈 <b>Tỷ lệ đạt:</b> <span id="mRate">0%</span></p>
+  <!-- ===== STAT ROW ===== -->
+  <div class="stat-row">
+   <div class="stat-box">
+    <b>📊 Số lần đã thi</b>
+    <span id="mAttempts">0</span>
+   </div>
+   <div class="stat-box">
+    <b>📈 Tỷ lệ đạt</b>
+    <span id="mRate">0%</span>
+   </div>
   </div>
 
   <div class="rules">
@@ -245,7 +267,6 @@ function openModal(s){
 • Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}`;
 
  modal.style.display="flex";
-
  loadStats(s.code || s.id);
 }
 
@@ -253,12 +274,12 @@ function closeModal(){
  modal.style.display="none";
 }
 
-/* ===== LOAD STATS (NO DB CHANGE) ===== */
+/* ===== LOAD STATS ===== */
 function loadStats(setCode){
  let total=0, pass=0;
 
  db.collection("exam_logs")
-  .where("setCode","==",setCode)   // 👉 đổi field nếu DB bạn khác
+  .where("setCode","==",setCode)
   .get()
   .then(snap=>{
    snap.forEach(d=>{
