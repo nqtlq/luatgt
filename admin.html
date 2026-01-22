@@ -5,98 +5,58 @@
 <title>ADMIN | Hệ thống thi luật giao thông</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- CHART -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+/* ===== GIỮ NGUYÊN + BỔ SUNG ===== */
 body{margin:0;font-family:Arial;background:#eef2f6}
+header{background:linear-gradient(90deg,#1d3557,#264a8a);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+header button{background:#e63946;border:none;border-radius:8px;padding:7px 12px;color:#fff;cursor:pointer}
 
-/* HEADER */
-header{
- background:linear-gradient(90deg,#1d3557,#264a8a);
- color:#fff;
- padding:14px 20px;
- display:flex;
- justify-content:space-between;
- align-items:center
-}
-header button{
- background:#e63946;color:#fff;border:none;
- padding:8px 14px;border-radius:8px;cursor:pointer
-}
-
-/* LAYOUT */
 #layout{display:flex;min-height:calc(100vh - 60px)}
-aside{
- width:250px;background:#fff;padding:18px;
- box-shadow:4px 0 12px rgba(0,0,0,.08)
-}
-.menu button{
- width:100%;padding:12px;margin-bottom:10px;
- border:none;border-radius:10px;
- background:#f1f4fb;text-align:left;cursor:pointer
-}
-.menu button.active{background:#dbe6ff}
+aside{width:240px;background:#fff;padding:20px;box-shadow:4px 0 15px rgba(0,0,0,.08)}
+.menu button{width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#f1f4fb;text-align:left;cursor:pointer}
+.menu button.active,.menu button:hover{background:#dbe6ff}
 
-/* MAIN */
-main{flex:1;padding:18px;overflow:auto}
+main{flex:1;padding:20px;overflow:auto}
+.box{background:#fff;padding:18px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.12);margin-bottom:18px}
+.box h3{margin:0 0 12px;color:#1d3557}
 
-/* BOX */
-.box{
- background:#fff;padding:18px;
- border-radius:14px;
- box-shadow:0 4px 12px rgba(0,0,0,.1);
- margin-bottom:20px
-}
+.tableWrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
+th,td{padding:9px;border-bottom:1px solid #eee;text-align:center}
+th{background:#f1f4fb;cursor:pointer}
 
-/* STATS */
-.statGrid{
- display:grid;grid-template-columns:repeat(3,1fr);
- gap:12px;margin-bottom:16px
-}
-.statBox{
- padding:12px;border-radius:12px;
- text-align:center;color:#fff
-}
-.statBox b{font-size:22px;display:block}
+.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.statBox{border-radius:12px;padding:12px;color:#fff;text-align:center;font-size:13px}
+.statBox b{font-size:20px}
 .total{background:#0d6efd}
 .pass{background:#198754}
-.fail{background:#dc3545}
+.fail{background:#e63946}
 
-/* TOOLBAR */
-.toolbar{
- display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px
-}
-select,input,button{
- padding:8px;border-radius:8px;border:1px solid #ccc
-}
-button.apply{background:#198754;color:#fff;border:none}
-
-/* TABLE */
-.tableWrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14px;min-width:850px}
-th,td{padding:10px;border-bottom:1px solid #eee}
-th{background:#f1f4fb;cursor:pointer}
-.arrow{font-size:12px;margin-left:4px}
-
-/* RATE */
-.rate{padding:5px 8px;border-radius:8px;font-weight:bold}
+.rate{padding:5px 8px;border-radius:7px;font-weight:bold}
 .good{background:#d1e7dd;color:#0f5132}
 .mid{background:#fff3cd;color:#664d03}
 .bad{background:#f8d7da;color:#842029}
 
-/* MODAL */
-#studentModal{
- position:fixed;inset:0;background:rgba(0,0,0,.55);
- display:none;z-index:999
-}
-#studentModal .box{
- max-width:900px;margin:30px auto;
- max-height:90vh;overflow:auto
-}
+.page{display:none}
+.page.active{display:block}
 
-/* RESPONSIVE */
+/* ===== STUDENT DETAIL ===== */
+#studentDetail{
+ position:fixed;top:0;right:-100%;width:100%;max-width:420px;
+ height:100%;background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,.3);
+ padding:18px;transition:.3s;overflow:auto;z-index:20
+}
+#studentDetail.active{right:0}
+#studentDetail h3{margin-top:0}
+.closeBtn{float:right;background:#e63946;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer}
+
 @media(max-width:768px){
  #layout{flex-direction:column}
  aside{width:100%}
- .statGrid{grid-template-columns:1fr}
+ table{font-size:12px}
 }
 </style>
 </head>
@@ -109,52 +69,35 @@ th{background:#f1f4fb;cursor:pointer}
 </header>
 
 <div id="layout">
-
 <aside>
  <div class="menu">
-  <button class="active" onclick="showPage('stats',this)">📊 Thống kê</button>
+  <button class="active" onclick="showPage('stats',this)">📈 Thống kê</button>
  </div>
 </aside>
 
 <main>
 
-<div id="stats" class="page">
+<!-- STATS -->
+<div id="stats" class="page active">
 
- <!-- SUMMARY -->
  <div class="statGrid">
-  <div class="statBox total"><b id="tTotal">0</b>Lượt thi</div>
+  <div class="statBox total"><b id="tTotal">0</b>Tổng lượt thi</div>
   <div class="statBox pass"><b id="tPass">0</b>Lượt đạt</div>
   <div class="statBox fail"><b id="tFail">0</b>Không đạt</div>
  </div>
 
- <!-- FILTER -->
  <div class="box">
-  <div class="toolbar">
-   <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
-
-   <select id="filterTime">
-    <option value="">Toàn bộ thời gian</option>
-    <option value="thisWeek">Tuần này</option>
-    <option value="lastWeek">Tuần trước</option>
-    <option value="thisMonth">Tháng này</option>
-    <option value="lastMonth">Tháng trước</option>
-   </select>
-
-   <label>Từ <input type="date" id="fromDate"></label>
-   <label>Đến <input type="date" id="toDate"></label>
-
-   <button class="apply" onclick="applyFilter()">Áp dụng</button>
-  </div>
+  <h3>📊 Danh sách học viên</h3>
 
   <div class="tableWrap">
    <table>
     <thead>
      <tr>
+      <th>#</th>
       <th>Học viên</th>
-      <th onclick="sortBy('attempts')">Lượt thi<span id="a1"></span></th>
-      <th onclick="sortBy('pass')">Lượt đạt<span id="a2"></span></th>
-      <th onclick="sortBy('rate')">% đạt<span id="a3"></span></th>
-      <th>Gần nhất</th>
+      <th>Lượt thi</th>
+      <th>Lượt đạt</th>
+      <th>% đạt</th>
      </tr>
     </thead>
     <tbody id="statTable"></tbody>
@@ -163,32 +106,26 @@ th{background:#f1f4fb;cursor:pointer}
  </div>
 
 </div>
-
 </main>
 </div>
 
-<!-- MODAL -->
-<div id="studentModal">
- <div class="box">
-  <h3 id="smName"></h3>
+<!-- ===== STUDENT DETAIL PANEL ===== -->
+<div id="studentDetail">
+ <button class="closeBtn" onclick="closeDetail()">✖</button>
+ <h3 id="dName"></h3>
+ <p><b>Tổng lượt thi:</b> <span id="dAttempt"></span></p>
+ <p><b>Lượt đạt:</b> <span id="dPass"></span></p>
+ <p><b>% đạt:</b> <span id="dRate"></span></p>
 
-  <div class="statGrid">
-   <div class="statBox total"><b id="smTotal">0</b>Lượt thi</div>
-   <div class="statBox pass"><b id="smPass">0</b>Lượt đạt</div>
-   <div class="statBox fail"><b id="smRate">0%</b>Tỷ lệ đạt</div>
-  </div>
+ <canvas id="chartResult" height="180"></canvas>
 
-  <canvas id="smChart" height="160"></canvas>
-
-  <table>
-   <thead>
-    <tr><th>Thời gian</th><th>Bộ đề</th><th>Điểm</th><th>KQ</th></tr>
-   </thead>
-   <tbody id="smTable"></tbody>
-  </table>
-
-  <button onclick="closeStudentModal()">⬅ Đóng</button>
- </div>
+ <h4>Lịch sử thi</h4>
+ <table>
+  <thead>
+   <tr><th>Bộ đề</th><th>Điểm</th><th>KQ</th><th>Thời gian</th></tr>
+  </thead>
+  <tbody id="historyTable"></tbody>
+ </table>
 </div>
 
 <!-- FIREBASE -->
@@ -203,108 +140,83 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
-/* AUTH */
-if(localStorage.getItem("userType")!=="admin")location.href="index.html";
+/* ===== LOAD STATS ===== */
+let statsMap={};
 
-function logout(){localStorage.clear();location.href="index.html"}
-
-let sortKey="rate",sortDir=-1;
-
-/* APPLY FILTER */
-function applyFilter(){
- db.collection("exam_logs").get().then(s=>{
-  let map={},total=0,pass=0;
-  s.forEach(d=>{
-   const e=d.data();
-   total++; if(e.pass)pass++;
-
-   if(!map[e.studentCode])map[e.studentCode]={a:0,p:0,last:e.time};
-   map[e.studentCode].a++;
-   if(e.pass)map[e.studentCode].p++;
-   if(e.time>map[e.studentCode].last)map[e.studentCode].last=e.time;
-  });
-
-  tTotal.innerText=total;
-  tPass.innerText=pass;
-  tFail.innerText=total-pass;
-
-  renderTable(map);
+db.collection("exam_logs").get().then(s=>{
+ let total=0,pass=0;
+ s.forEach(d=>{
+  const e=d.data();
+  total++; if(e.pass) pass++;
+  if(!statsMap[e.studentCode]) statsMap[e.studentCode]={a:0,p:0,logs:[]};
+  statsMap[e.studentCode].a++;
+  if(e.pass) statsMap[e.studentCode].p++;
+  statsMap[e.studentCode].logs.push(e);
  });
-}
-applyFilter();
 
-/* SORT */
-function sortBy(k){
- sortKey=k;sortDir*=-1;
- ["a1","a2","a3"].forEach(i=>document.getElementById(i).innerText="");
- document.getElementById({attempts:"a1",pass:"a2",rate:"a3"}[k]).innerText=sortDir>0?"▲":"▼";
- applyFilter();
-}
+ tTotal.innerText=total;
+ tPass.innerText=pass;
+ tFail.innerText=total-pass;
 
-/* RENDER */
-function renderTable(map){
- statTable.innerHTML="";
- let arr=[];
- for(let k in map){
-  const r=Math.round(map[k].p/map[k].a*100);
-  arr.push({k,...map[k],r});
- }
- arr.sort((x,y)=>(x[sortKey==="attempts"?"a":sortKey==="pass"?"p":"r"]-y[sortKey==="attempts"?"a":sortKey==="pass"?"p":"r"])*sortDir);
-
- arr.forEach((s,i)=>{
-  const cls=s.r>=80?"good":s.r>=50?"mid":"bad";
-  const medal=i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
+ let i=1;
+ for(const k in statsMap){
+  const v=statsMap[k];
+  const rate=Math.round(v.p/v.a*100);
+  const cls=rate>=80?"good":rate>=50?"mid":"bad";
   statTable.innerHTML+=`
+   <tr onclick="openDetail('${k}')">
+    <td>${i++}</td>
+    <td>${k}</td>
+    <td>${v.a}</td>
+    <td>${v.p}</td>
+    <td><span class="rate ${cls}">${rate}%</span></td>
+   </tr>`;
+ }
+});
+
+/* ===== DETAIL ===== */
+let chart;
+
+function openDetail(code){
+ const d=statsMap[code];
+ dName.innerText="Học viên: "+code;
+ dAttempt.innerText=d.a;
+ dPass.innerText=d.p;
+ dRate.innerText=Math.round(d.p/d.a*100)+"%";
+
+ historyTable.innerHTML="";
+ let byMonth={};
+
+ d.logs.forEach(l=>{
+  const t=l.time.toDate();
+  const m=t.getFullYear()+"-"+(t.getMonth()+1);
+  byMonth[m]=(byMonth[m]||0)+(l.pass?1:0);
+  historyTable.innerHTML+=`
    <tr>
-    <td onclick="openStudent('${s.k}')">${s.k} ${medal}</td>
-    <td>${s.a}</td>
-    <td>${s.p}</td>
-    <td><span class="rate ${cls}">${s.r}%</span></td>
-    <td>${s.last.toDate().toLocaleString()}</td>
+    <td>${l.setId||""}</td>
+    <td>${l.score}/${l.total}</td>
+    <td>${l.pass?"✔":"✖"}</td>
+    <td>${t.toLocaleString()}</td>
    </tr>`;
  });
-}
 
-/* STUDENT DETAIL */
-function openStudent(code){
- studentModal.style.display="block";
- smName.innerText="Học viên "+code;
- smTable.innerHTML="";
- let total=0,pass=0,data={};
-
- db.collection("exam_logs").where("studentCode","==",code).get().then(s=>{
-  s.forEach(d=>{
-   const e=d.data(),t=e.time.toDate();
-   total++;if(e.pass)pass++;
-   const k=t.getFullYear()+"-"+(t.getMonth()+1);
-   if(!data[k])data[k]={a:0,p:0};
-   data[k].a++;if(e.pass)data[k].p++;
-   smTable.innerHTML+=`<tr><td>${t.toLocaleString()}</td><td>${e.setId||""}</td><td>${e.score}/${e.total}</td><td>${e.pass?"Đạt":"Không"}</td></tr>`;
-  });
-  smTotal.innerText=total;
-  smPass.innerText=pass;
-  smRate.innerText=Math.round(pass/total*100)+"%";
-  drawChart(data);
+ if(chart) chart.destroy();
+ chart=new Chart(chartResult,{
+  type:"bar",
+  data:{
+   labels:Object.keys(byMonth),
+   datasets:[{
+    label:"Số lượt đạt",
+    data:Object.values(byMonth),
+    backgroundColor:"#198754"
+   }]
+  }
  });
-}
 
-function closeStudentModal(){studentModal.style.display="none"}
-
-/* CHART */
-function drawChart(data){
- const c=smChart,ctx=c.getContext("2d");
- ctx.clearRect(0,0,c.width,c.height);
- const keys=Object.keys(data);
- const w=c.width/(keys.length*1.5);
- keys.forEach((k,i)=>{
-  const r=Math.round(data[k].p/data[k].a*100);
-  const h=r/100*c.height*0.8;
-  ctx.fillStyle="#198754";
-  ctx.fillRect(20+i*w*1.5,c.height-h-20,w,h);
-  ctx.fillStyle="#000";
-  ctx.fillText(r+"%",20+i*w*1.5,c.height-h-25);
- });
+ studentDetail.classList.add("active");
 }
+function closeDetail(){studentDetail.classList.remove("active")}
+function logout(){localStorage.clear();location.href="index.html"}
 </script>
 
 </body>
