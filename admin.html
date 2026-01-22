@@ -92,12 +92,26 @@ main{
  gap:10px;
  flex-wrap:wrap;
  margin-bottom:14px;
+ align-items:center;
+}
+.toolbar label{
+ font-size:13px;
+ color:#333;
 }
 .toolbar input,
 .toolbar select{
  padding:8px 10px;
  border-radius:8px;
  border:1px solid #ccc;
+ font-size:13px;
+}
+.toolbar button{
+ background:#198754;
+ color:white;
+ border:none;
+ border-radius:8px;
+ padding:8px 14px;
+ cursor:pointer;
  font-size:13px;
 }
 
@@ -122,8 +136,10 @@ th{
  cursor:pointer;
  user-select:none;
 }
-th.sort-asc::after{content:" ▲"}
-th.sort-desc::after{content:" ▼"}
+.sort-icon{
+ font-size:11px;
+ margin-left:4px;
+}
 
 /* ===== STATS SUMMARY ===== */
 .statGrid{
@@ -159,9 +175,6 @@ th.sort-desc::after{content:" ▼"}
 .good{background:#d1e7dd;color:#0f5132}
 .mid{background:#fff3cd;color:#664d03}
 .bad{background:#f8d7da;color:#842029}
-
-/* ===== MEDAL ===== */
-.medal{margin-left:4px}
 
 /* ===== PAGE ===== */
 .page{display:none}
@@ -203,7 +216,7 @@ th.sort-desc::after{content:" ▼"}
   <h3>📊 Tổng quan</h3>
   <p>• Quản lý học viên</p>
   <p>• Thống kê kết quả thi</p>
-  <p>• Xếp hạng theo bộ đề & thời gian</p>
+  <p>• Xếp hạng & đánh giá</p>
  </div>
 </div>
 
@@ -216,9 +229,7 @@ th.sort-desc::after{content:" ▼"}
   </div>
   <div class="tableWrap">
    <table>
-    <thead>
-     <tr><th>Mã</th><th>Họ tên</th></tr>
-    </thead>
+    <thead><tr><th>Mã</th><th>Họ tên</th></tr></thead>
     <tbody id="studentTable"></tbody>
    </table>
   </div>
@@ -247,8 +258,11 @@ th.sort-desc::after{content:" ▼"}
     <option value="lastMonth">Tháng trước</option>
     <option value="custom">Tùy chọn</option>
    </select>
-   <input type="date" id="fromDate">
-   <input type="date" id="toDate">
+
+   <label>Từ</label><input type="date" id="fromDate">
+   <label>Đến</label><input type="date" id="toDate">
+
+   <button onclick="loadStats()">🔍 Áp dụng</button>
   </div>
 
   <div class="tableWrap">
@@ -257,9 +271,9 @@ th.sort-desc::after{content:" ▼"}
      <tr>
       <th>#</th>
       <th>Học viên</th>
-      <th onclick="sortTable('attempts')">Lượt thi</th>
-      <th onclick="sortTable('pass')">Lượt đạt</th>
-      <th onclick="sortTable('rate')">% đạt</th>
+      <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
+      <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
+      <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
      </tr>
     </thead>
     <tbody id="statTable"></tbody>
@@ -283,21 +297,18 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
-/* ===== AUTH ===== */
 if(localStorage.getItem("userType")!=="admin") location.href="index.html";
 
-/* ===== MENU ===== */
+/* MENU */
 function showPage(id,btn){
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
  document.getElementById(id).classList.add("active");
  document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
  btn.classList.add("active");
 }
-
-/* ===== LOGOUT ===== */
 function logout(){localStorage.clear();location.href="index.html";}
 
-/* ===== STUDENTS ===== */
+/* STUDENTS */
 function loadStudents(k=""){
  studentTable.innerHTML="";
  db.collection("students").orderBy("code").get().then(s=>{
@@ -312,40 +323,41 @@ loadStudents();
 searchStudent.oninput=e=>loadStudents(e.target.value);
 
 /* ===== STATS ===== */
-let stats=[],sortKey="rate",sortDir=-1;
+let stats=[],sortKey="",sortDir=1;
+
+function clearSortIcons(){
+ document.querySelectorAll(".sort-icon").forEach(i=>i.innerHTML="");
+}
+
+function sortTable(key,th){
+ if(sortKey===key) sortDir*=-1;
+ else{sortKey=key;sortDir=1;}
+ clearSortIcons();
+ th.querySelector(".sort-icon").innerHTML=sortDir===1?"▲":"▼";
+ renderStats();
+}
 
 function getTimeRange(){
  const now=new Date();
  let from=null,to=null;
-
  const monday=d=>{
-  const x=new Date(d);
-  const day=x.getDay()||7;
-  x.setDate(x.getDate()-day+1);
-  x.setHours(0,0,0,0);
-  return x;
+  const x=new Date(d);const day=x.getDay()||7;
+  x.setDate(x.getDate()-day+1);x.setHours(0,0,0,0);return x;
  };
-
- if(filterTime.value==="thisWeek"){
-  from=monday(now); to=now;
- }
+ if(filterTime.value==="thisWeek"){from=monday(now);to=now;}
  if(filterTime.value==="lastWeek"){
-  to=monday(now); to.setMilliseconds(-1);
-  from=monday(to);
+  to=monday(now);to.setMilliseconds(-1);from=monday(to);
  }
- if(filterTime.value==="thisMonth"){
-  from=new Date(now.getFullYear(),now.getMonth(),1);
-  to=now;
- }
+ if(filterTime.value==="thisMonth"){from=new Date(now.getFullYear(),now.getMonth(),1);to=now;}
  if(filterTime.value==="lastMonth"){
   from=new Date(now.getFullYear(),now.getMonth()-1,1);
   to=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
  }
- if(filterTime.value==="custom" && fromDate.value && toDate.value){
+ if(filterTime.value==="custom"&&fromDate.value&&toDate.value){
   from=new Date(fromDate.value);
   to=new Date(toDate.value+"T23:59:59");
  }
- return {from,to};
+ return{from,to};
 }
 
 function loadStats(){
@@ -357,12 +369,10 @@ function loadStats(){
   s.forEach(d=>{
    const e=d.data();
    if(filterSet.value && e.setId!==filterSet.value) return;
-
-   if(from && to){
+   if(from&&to){
     const t=e.time.toDate();
     if(t<from||t>to) return;
    }
-
    total++; if(e.pass) pass++;
    if(!map[e.studentCode]) map[e.studentCode]={a:0,p:0};
    map[e.studentCode].a++;
@@ -379,27 +389,18 @@ function loadStats(){
    pass:v.p,
    rate:Math.round(v.p/v.a*100)
   }));
-
   renderStats();
  });
 }
 
-function sortTable(key){
- sortKey=key;
- sortDir*=-1;
- renderStats();
-}
-
 function renderStats(){
  statTable.innerHTML="";
- stats.sort((a,b)=>(b[sortKey]-a[sortKey])*sortDir);
-
+ if(sortKey) stats.sort((a,b)=>(a[sortKey]-b[sortKey])*sortDir);
  stats.forEach((s,i)=>{
   let cls=s.rate>=80?"good":s.rate>=50?"mid":"bad";
-  let medal=i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
   statTable.innerHTML+=`
    <tr>
-    <td>${i+1}${medal}</td>
+    <td>${i+1}</td>
     <td>${s.code}</td>
     <td>${s.attempts}</td>
     <td>${s.pass}</td>
@@ -408,16 +409,11 @@ function renderStats(){
  });
 }
 
-filterSet.onchange=loadStats;
-filterTime.onchange=loadStats;
-fromDate.onchange=loadStats;
-toDate.onchange=loadStats;
-
+/* LOAD SETS */
 db.collection("exam_logs").get().then(s=>{
  const sets=new Set();
  s.forEach(d=>sets.add(d.data().setId||"DEFAULT"));
  sets.forEach(id=>filterSet.innerHTML+=`<option value="${id}">${id}</option>`);
- loadStats();
 });
 </script>
 
