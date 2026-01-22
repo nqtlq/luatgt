@@ -6,177 +6,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:#eef2f6;
-}
+/* ===== RESET ===== */
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6}
 
 /* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
- color:white;
- padding:16px 24px;
- display:flex;
- justify-content:space-between;
- align-items:center;
- box-shadow:0 4px 14px rgba(0,0,0,.25);
+ color:white;padding:16px 24px;
+ display:flex;justify-content:space-between;align-items:center;
+ box-shadow:0 4px 14px rgba(0,0,0,.25)
 }
 header b{font-size:18px}
 header button{
- background:#e63946;
- border:none;
- border-radius:8px;
- padding:8px 14px;
- color:white;
- cursor:pointer;
+ background:#e63946;border:none;border-radius:8px;
+ padding:8px 14px;color:white;cursor:pointer
 }
 
 /* ===== LAYOUT ===== */
-#layout{
- display:flex;
- min-height:calc(100vh - 70px);
-}
+#layout{display:flex;min-height:calc(100vh - 70px)}
 
 /* ===== SIDEBAR ===== */
 aside{
- width:260px;
- background:white;
- box-shadow:4px 0 15px rgba(0,0,0,.08);
- padding:22px;
-}
-aside h3{
- margin-top:0;
- color:#1d3557;
+ width:260px;background:white;padding:22px;
+ box-shadow:4px 0 15px rgba(0,0,0,.08)
 }
 .menu button{
- width:100%;
- margin-bottom:10px;
- padding:12px 14px;
- border:none;
- border-radius:10px;
- background:#f1f4fb;
- cursor:pointer;
- text-align:left;
+ width:100%;margin-bottom:10px;padding:12px 14px;
+ border:none;border-radius:10px;
+ background:#f1f4fb;text-align:left;cursor:pointer
 }
-.menu button.active,
-.menu button:hover{
- background:#dbe6ff;
-}
+.menu button.active,.menu button:hover{background:#dbe6ff}
 
 /* ===== MAIN ===== */
-main{
- flex:1;
- padding:24px;
-}
+main{flex:1;padding:24px}
 
 /* ===== BOX ===== */
 .box{
- background:white;
- padding:20px;
- border-radius:14px;
+ background:white;padding:20px;border-radius:14px;
  box-shadow:0 4px 14px rgba(0,0,0,.12);
- margin-bottom:20px;
+ margin-bottom:20px
 }
-.box h3{
- margin-top:0;
- color:#1d3557;
-}
+.box h3{margin-top:0;color:#1d3557}
 
 /* ===== TOOLBAR ===== */
-.toolbar{
- display:flex;
- gap:12px;
- flex-wrap:wrap;
- margin-bottom:16px;
-}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .toolbar input,select{
- padding:10px;
- border-radius:8px;
- border:1px solid #ccc;
+ padding:10px;border-radius:8px;border:1px solid #ccc
 }
 .toolbar button{
- background:#198754;
- color:white;
- border:none;
- border-radius:8px;
- padding:10px 16px;
- cursor:pointer;
+ background:#198754;color:white;border:none;
+ border-radius:8px;padding:10px 16px;cursor:pointer
 }
 
 /* ===== TABLE ===== */
-.tableWrap{
- overflow-x:auto;
-}
+.tableWrap{overflow-x:auto}
 table{
- width:100%;
- border-collapse:collapse;
- font-size:14px;
- min-width:800px;
+ width:100%;border-collapse:collapse;
+ font-size:14px;min-width:900px
 }
-th,td{
- padding:10px;
- border-bottom:1px solid #eee;
- text-align:left;
-}
-th{
- background:#f1f4fb;
- color:#1d3557;
- cursor:pointer;
-}
-
-/* ===== ACTION ===== */
-.action-btn{
- border:none;
- padding:6px 10px;
- border-radius:6px;
- cursor:pointer;
-}
-.edit{background:#457b9d;color:white}
-.del{background:#e63946;color:white}
-
-/* ===== PAGE ===== */
-.page{display:none}
-.page.active{display:block}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
+th{background:#f1f4fb;color:#1d3557;cursor:pointer}
 
 /* ===== STATS ===== */
 .statGrid{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:16px;
- margin-bottom:20px;
+ display:grid;grid-template-columns:repeat(3,1fr);
+ gap:16px;margin-bottom:20px
 }
 .statBox{
- border-radius:14px;
- padding:18px;
- color:white;
- text-align:center;
+ border-radius:14px;padding:18px;color:white;text-align:center
 }
-.statBox b{
- font-size:26px;
- display:block;
- margin-bottom:6px;
-}
+.statBox b{font-size:26px;display:block}
 .total{background:#0d6efd}
 .pass{background:#198754}
 .fail{background:#e63946}
 
 /* ===== RATE ===== */
 .rate{
- padding:6px 10px;
- border-radius:8px;
- font-weight:bold;
- display:inline-block;
+ padding:6px 10px;border-radius:8px;
+ font-weight:bold;display:inline-block
 }
 .good{background:#d1e7dd;color:#0f5132}
 .mid{background:#fff3cd;color:#664d03}
 .bad{background:#f8d7da;color:#842029}
 
 /* ===== MEDAL ===== */
-.medal{
- font-size:18px;
- margin-left:4px;
-}
+.medal{font-size:18px;margin-left:4px}
+
+/* ===== PAGE ===== */
+.page{display:none}
+.page.active{display:block}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
@@ -200,7 +118,6 @@ th{
 <div id="layout">
 
 <aside>
- <h3>📂 Quản trị</h3>
  <div class="menu">
   <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
   <button onclick="showPage('students',this)">👤 Học viên</button>
@@ -214,10 +131,10 @@ th{
 <!-- DASHBOARD -->
 <div id="dashboard" class="page active">
  <div class="box">
-  <h3>📊 Tổng quan</h3>
-  <p>• Quản lý học viên</p>
+  <h3>📊 Tổng quan hệ thống</h3>
   <p>• Theo dõi kết quả thi</p>
-  <p>• Thống kê & xếp hạng</p>
+  <p>• Xếp hạng học viên</p>
+  <p>• Thống kê theo bộ đề</p>
  </div>
 </div>
 
@@ -227,13 +144,10 @@ th{
   <h3>👤 Quản lý học viên</h3>
   <div class="toolbar">
    <input id="searchStudent" placeholder="🔍 Tìm học viên">
-   <button onclick="openAddStudent()">➕ Thêm</button>
   </div>
   <div class="tableWrap">
    <table>
-    <thead>
-     <tr><th>Mã</th><th>Họ tên</th><th>Thao tác</th></tr>
-    </thead>
+    <thead><tr><th>Mã</th><th>Họ tên</th></tr></thead>
     <tbody id="studentTable"></tbody>
    </table>
   </div>
@@ -242,6 +156,7 @@ th{
 
 <!-- STATS -->
 <div id="stats" class="page">
+
  <div class="statGrid">
   <div class="statBox total"><b id="tTotal">0</b>Tổng lượt thi</div>
   <div class="statBox pass"><b id="tPass">0</b>Lượt đạt</div>
@@ -249,7 +164,7 @@ th{
  </div>
 
  <div class="box">
-  <h3>📈 Thống kê chi tiết</h3>
+  <h3>📌 Bộ lọc</h3>
   <div class="toolbar">
    <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
    <select id="filterTime">
@@ -257,37 +172,42 @@ th{
     <option value="week">7 ngày</option>
     <option value="month">30 ngày</option>
    </select>
+   <select id="sortBy" onchange="renderStats()">
+    <option value="rate">% đạt</option>
+    <option value="pass">Lượt đạt</option>
+    <option value="attempts">Lượt thi</option>
+   </select>
   </div>
 
   <div class="tableWrap">
    <table>
     <thead>
      <tr>
+      <th>Hạng</th>
       <th>Học viên</th>
-      <th onclick="sortBy('attempts')">Số lần thi</th>
-      <th onclick="sortBy('pass')">Số lần đạt</th>
-      <th onclick="sortBy('rate')">% đạt</th>
-      <th>Lần thi gần nhất</th>
+      <th>Lượt thi</th>
+      <th>Lượt đạt</th>
+      <th>% đạt</th>
      </tr>
     </thead>
     <tbody id="statTable"></tbody>
    </table>
   </div>
  </div>
+
 </div>
 
 <!-- SETTINGS -->
 <div id="settings" class="page">
  <div class="box">
   <h3>⚙️ Cài đặt</h3>
-  <p>Đổi mật khẩu admin (sẽ bổ sung)</p>
+  <p>Sẽ mở rộng thêm</p>
  </div>
 </div>
 
 </main>
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -297,12 +217,12 @@ firebase.initializeApp({
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-/* AUTH */
+/* ===== AUTH ===== */
 if(localStorage.getItem("userType")!=="admin") location.href="index.html";
 
-/* MENU */
+/* ===== MENU ===== */
 function showPage(id,btn){
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
  document.getElementById(id).classList.add("active");
@@ -310,35 +230,83 @@ function showPage(id,btn){
  btn.classList.add("active");
 }
 
-/* LOGOUT */
-function logout(){
- localStorage.clear();
- location.href="index.html";
-}
+/* ===== LOGOUT ===== */
+function logout(){localStorage.clear();location.href="index.html";}
 
-/* ===== STUDENTS ===== */
-function loadStudents(k=""){
- studentTable.innerHTML="";
- db.collection("students").get().then(s=>{
-  s.forEach(d=>{
-   const s=d.data();
-   if(k && !s.nameSearch?.includes(k.toLowerCase())) return;
-   studentTable.innerHTML+=`
-    <tr>
-     <td>${s.code}</td>
-     <td>${s.name}</td>
-     <td>
-      <button class="action-btn edit" onclick="editStudent('${d.id}')">✏️</button>
-      <button class="action-btn del" onclick="deleteStudent('${d.id}')">🗑️</button>
-     </td>
-    </tr>`;
+/* ===== LOAD SETS ===== */
+function loadSets(){
+ db.collection("exam_logs").get().then(s=>{
+  const sets=new Set();
+  s.forEach(d=>sets.add(d.data().setId||"DEFAULT"));
+  sets.forEach(id=>{
+   filterSet.innerHTML+=`<option value="${id}">${id}</option>`;
   });
  });
 }
-loadStudents();
-searchStudent.oninput=e=>loadStudents(e.target.value);
 
-/* ADD / EDIT / DELETE giữ nguyên logic cũ */
+/* ===== STATS ===== */
+let rawStats=[];
+
+function loadStats(){
+ rawStats=[];
+ db.collection("exam_logs").get().then(s=>{
+  const now=Date.now();
+  let total=0,pass=0,map={};
+
+  s.forEach(d=>{
+   const e=d.data();
+   if(filterSet.value && e.setId!==filterSet.value) return;
+   if(filterTime.value){
+    const diff=(now-e.time.toMillis())/86400000;
+    if(filterTime.value==="week"&&diff>7) return;
+    if(filterTime.value==="month"&&diff>30) return;
+   }
+
+   total++; if(e.pass) pass++;
+   const c=e.studentCode;
+   if(!map[c]) map[c]={attempts:0,pass:0};
+   map[c].attempts++; if(e.pass) map[c].pass++;
+  });
+
+  tTotal.innerText=total;
+  tPass.innerText=pass;
+  tFail.innerText=total-pass;
+
+  rawStats=Object.entries(map).map(([c,v])=>({
+   code:c,
+   attempts:v.attempts,
+   pass:v.pass,
+   rate:Math.round(v.pass/v.attempts*100)
+  }));
+
+  renderStats();
+ });
+}
+
+function renderStats(){
+ statTable.innerHTML="";
+ const sort=sortBy.value;
+ rawStats.sort((a,b)=>b[sort]-a[sort]);
+
+ rawStats.forEach((s,i)=>{
+  let medal=i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
+  let cls=s.rate>=80?"good":s.rate>=50?"mid":"bad";
+  statTable.innerHTML+=`
+   <tr>
+    <td>${i+1}${medal}</td>
+    <td>${s.code}</td>
+    <td>${s.attempts}</td>
+    <td>${s.pass}</td>
+    <td><span class="rate ${cls}">${s.rate}%</span></td>
+   </tr>`;
+ });
+}
+
+filterSet.onchange=loadStats;
+filterTime.onchange=loadStats;
+
+loadSets();
+loadStats();
 </script>
 
 </body>
