@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ===== GLOBAL ===== */
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
@@ -39,7 +40,6 @@ header button{
 #layout{
  display:flex;
  min-height:calc(100vh - 64px);
- overflow:hidden;
 }
 
 /* ===== SIDEBAR ===== */
@@ -48,7 +48,6 @@ aside{
  background:white;
  box-shadow:4px 0 15px rgba(0,0,0,.08);
  padding:20px;
- flex-shrink:0;
 }
 .menu button{
  width:100%;
@@ -92,11 +91,6 @@ main{
  gap:10px;
  flex-wrap:wrap;
  margin-bottom:14px;
- align-items:center;
-}
-.toolbar label{
- font-size:13px;
- color:#333;
 }
 .toolbar input,
 .toolbar select{
@@ -116,14 +110,10 @@ main{
 }
 
 /* ===== TABLE ===== */
-.tableWrap{
- overflow-x:auto;
-}
 table{
  width:100%;
  border-collapse:collapse;
  font-size:13px;
- min-width:820px;
 }
 th,td{
  padding:9px;
@@ -133,61 +123,66 @@ th,td{
 th{
  background:#f1f4fb;
  color:#1d3557;
- cursor:pointer;
- user-select:none;
-}
-.sort-icon{
- font-size:11px;
- margin-left:4px;
 }
 
-/* ===== STATS SUMMARY ===== */
-.statGrid{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:12px;
- margin-bottom:14px;
-}
-.statBox{
- border-radius:12px;
- padding:12px;
- color:white;
- text-align:center;
- font-size:13px;
-}
-.statBox b{
- font-size:20px;
- display:block;
- margin-bottom:4px;
-}
-.total{background:#0d6efd}
-.pass{background:#198754}
-.fail{background:#e63946}
+/* ===== PAGE ===== */
+.page{display:none}
+.page.active{display:block}
 
 /* ===== RATE ===== */
 .rate{
  padding:5px 8px;
  border-radius:7px;
  font-weight:bold;
- display:inline-block;
  font-size:12px;
 }
 .good{background:#d1e7dd;color:#0f5132}
-.mid{background:#fff3cd;color:#664d03}
 .bad{background:#f8d7da;color:#842029}
 
-/* ===== PAGE ===== */
-.page{display:none}
-.page.active{display:block}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){
- #layout{flex-direction:column}
- aside{width:100%;box-shadow:none;border-bottom:1px solid #ddd}
- main{padding:14px}
- .statGrid{grid-template-columns:1fr}
- table{font-size:12px}
+/* ===== MODAL ===== */
+.modal{
+ display:none;
+ position:fixed;
+ top:0;left:0;right:0;bottom:0;
+ background:rgba(0,0,0,.7);
+ z-index:200;
+ align-items:center;
+ justify-content:center;
 }
+.modal.show{display:flex}
+.modalContent{
+ background:white;
+ border-radius:14px;
+ padding:24px;
+ max-width:800px;
+ width:90%;
+ max-height:90vh;
+ overflow:auto;
+ position:relative;
+}
+.closeModal{
+ position:absolute;
+ top:10px;
+ right:10px;
+ background:#e63946;
+ color:white;
+ border:none;
+ border-radius:50%;
+ width:32px;
+ height:32px;
+ cursor:pointer;
+}
+
+/* ===== ANSWER ===== */
+.answerRow{
+ display:flex;
+ justify-content:space-between;
+ padding:10px;
+ border-radius:8px;
+ margin-bottom:6px;
+}
+.answerRow.correct{background:#d1e7dd}
+.answerRow.wrong{background:#f8d7da}
 </style>
 </head>
 
@@ -202,88 +197,62 @@ th{
 
 <aside>
  <div class="menu">
-  <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
-  <button onclick="showPage('students',this)">👤 Học viên</button>
-  <button onclick="showPage('stats',this)">📈 Thống kê</button>
+  <button class="active" onclick="showPage('students',this)">👤 Học viên</button>
  </div>
 </aside>
 
 <main>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="page active">
- <div class="box">
-  <h3>📊 Tổng quan</h3>
-  <p>• Quản lý học viên</p>
-  <p>• Thống kê kết quả thi</p>
-  <p>• Xếp hạng & đánh giá</p>
- </div>
-</div>
-
 <!-- STUDENTS -->
-<div id="students" class="page">
+<div id="students" class="page active">
  <div class="box">
   <h3>👤 Danh sách học viên</h3>
-  <div class="toolbar">
-   <input id="searchStudent" placeholder="🔍 Tìm theo mã / tên">
-  </div>
-  <div class="tableWrap">
-   <table>
-    <thead><tr><th>Mã</th><th>Họ tên</th></tr></thead>
-    <tbody id="studentTable"></tbody>
-   </table>
-  </div>
+  <table>
+   <thead>
+    <tr><th>Mã</th><th>Họ tên</th><th>Chi tiết</th></tr>
+   </thead>
+   <tbody id="studentTable"></tbody>
+  </table>
  </div>
 </div>
 
-<!-- STATS -->
-<div id="stats" class="page">
+<!-- STUDENT DETAIL -->
+<div id="studentDetail" class="page">
+ <button onclick="showPage('students')">← Quay lại</button>
 
- <div class="statGrid">
-  <div class="statBox total"><b id="tTotal">0</b>Tổng lượt thi</div>
-  <div class="statBox pass"><b id="tPass">0</b>Lượt đạt</div>
-  <div class="statBox fail"><b id="tFail">0</b>Không đạt</div>
+ <div class="box">
+  <h3 id="detailName"></h3>
+  <p>Mã: <b id="detailCode"></b></p>
  </div>
 
  <div class="box">
-  <h3>📈 Thống kê chi tiết</h3>
-
-  <div class="toolbar">
-   <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
-   <select id="filterTime">
-    <option value="">Toàn bộ thời gian</option>
-    <option value="thisWeek">Tuần này</option>
-    <option value="lastWeek">Tuần trước</option>
-    <option value="thisMonth">Tháng này</option>
-    <option value="lastMonth">Tháng trước</option>
-    <option value="custom">Tùy chọn</option>
-   </select>
-
-   <label>Từ</label><input type="date" id="fromDate">
-   <label>Đến</label><input type="date" id="toDate">
-
-   <button onclick="loadStats()">🔍 Áp dụng</button>
-  </div>
-
-  <div class="tableWrap">
-   <table>
-    <thead>
-     <tr>
-      <th>#</th>
-      <th>Học viên</th>
-      <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
-      <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
-      <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
-     </tr>
-    </thead>
-    <tbody id="statTable"></tbody>
-   </table>
-  </div>
+  <h3>Lịch sử thi</h3>
+  <table>
+   <thead>
+    <tr>
+     <th>#</th>
+     <th>Thời gian</th>
+     <th>Bộ đề</th>
+     <th>Điểm</th>
+     <th>Kết quả</th>
+     <th>Chi tiết</th>
+    </tr>
+   </thead>
+   <tbody id="historyTable"></tbody>
+  </table>
  </div>
-
 </div>
 
 </main>
+</div>
+
+<!-- MODAL -->
+<div id="examModal" class="modal">
+ <div class="modalContent">
+  <button class="closeModal" onclick="closeExamModal()">✕</button>
+  <h3>Chi tiết bài thi</h3>
+  <div id="examDetailContent"></div>
+ </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -299,122 +268,109 @@ const db=firebase.firestore();
 
 if(localStorage.getItem("userType")!=="admin") location.href="index.html";
 
-/* MENU */
+let studentExams=[];
+let currentStudent=null;
+
+/* PAGE */
 function showPage(id,btn){
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
  document.getElementById(id).classList.add("active");
- document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
- btn.classList.add("active");
+ if(btn){
+  document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+ }
 }
-function logout(){localStorage.clear();location.href="index.html";}
+function logout(){
+ localStorage.clear();
+ location.href="index.html";
+}
 
-/* STUDENTS */
-function loadStudents(k=""){
+/* LOAD STUDENTS */
+function loadStudents(){
  studentTable.innerHTML="";
- db.collection("students").orderBy("code").get().then(s=>{
+ db.collection("students").get().then(s=>{
   s.forEach(d=>{
    const st=d.data();
-   if(k && !st.nameSearch?.includes(k.toLowerCase()) && !st.code.includes(k)) return;
-   studentTable.innerHTML+=`<tr><td>${st.code}</td><td>${st.name}</td></tr>`;
+   studentTable.innerHTML+=`
+    <tr>
+     <td>${st.code}</td>
+     <td>${st.name}</td>
+     <td><button onclick="viewStudent('${st.code}','${st.name}')">👁️ Xem</button></td>
+    </tr>`;
   });
  });
 }
 loadStudents();
-searchStudent.oninput=e=>loadStudents(e.target.value);
 
-/* ===== STATS ===== */
-let stats=[],sortKey="",sortDir=1;
-
-function clearSortIcons(){
- document.querySelectorAll(".sort-icon").forEach(i=>i.innerHTML="");
+/* STUDENT DETAIL */
+function viewStudent(code,name){
+ currentStudent={code,name};
+ detailCode.innerText=code;
+ detailName.innerText=name;
+ showPage('studentDetail');
+ loadHistory();
 }
 
-function sortTable(key,th){
- if(sortKey===key) sortDir*=-1;
- else{sortKey=key;sortDir=1;}
- clearSortIcons();
- th.querySelector(".sort-icon").innerHTML=sortDir===1?"▲":"▼";
- renderStats();
-}
-
-function getTimeRange(){
- const now=new Date();
- let from=null,to=null;
- const monday=d=>{
-  const x=new Date(d);const day=x.getDay()||7;
-  x.setDate(x.getDate()-day+1);x.setHours(0,0,0,0);return x;
- };
- if(filterTime.value==="thisWeek"){from=monday(now);to=now;}
- if(filterTime.value==="lastWeek"){
-  to=monday(now);to.setMilliseconds(-1);from=monday(to);
- }
- if(filterTime.value==="thisMonth"){from=new Date(now.getFullYear(),now.getMonth(),1);to=now;}
- if(filterTime.value==="lastMonth"){
-  from=new Date(now.getFullYear(),now.getMonth()-1,1);
-  to=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
- }
- if(filterTime.value==="custom"&&fromDate.value&&toDate.value){
-  from=new Date(fromDate.value);
-  to=new Date(toDate.value+"T23:59:59");
- }
- return{from,to};
-}
-
-function loadStats(){
- stats=[];
- let map={},total=0,pass=0;
- const {from,to}=getTimeRange();
-
- db.collection("exam_logs").get().then(s=>{
+function loadHistory(){
+ historyTable.innerHTML="";
+ studentExams=[];
+ db.collection("exam_logs").where("studentCode","==",currentStudent.code).get().then(s=>{
   s.forEach(d=>{
    const e=d.data();
-   if(filterSet.value && e.setId!==filterSet.value) return;
-   if(from&&to){
-    const t=e.time.toDate();
-    if(t<from||t>to) return;
-   }
-   total++; if(e.pass) pass++;
-   if(!map[e.studentCode]) map[e.studentCode]={a:0,p:0};
-   map[e.studentCode].a++;
-   if(e.pass) map[e.studentCode].p++;
+   studentExams.push({
+    time:e.time.toDate(),
+    setId:e.setId,
+    score:e.score,
+    pass:e.pass,
+    answers:e.answers||[]
+   });
   });
-
-  tTotal.innerText=total;
-  tPass.innerText=pass;
-  tFail.innerText=total-pass;
-
-  stats=Object.entries(map).map(([c,v])=>({
-   code:c,
-   attempts:v.a,
-   pass:v.p,
-   rate:Math.round(v.p/v.a*100)
-  }));
-  renderStats();
+  studentExams.sort((a,b)=>b.time-a.time);
+  studentExams.forEach((e,i)=>{
+   historyTable.innerHTML+=`
+    <tr>
+     <td>${i+1}</td>
+     <td>${e.time.toLocaleString('vi-VN')}</td>
+     <td>${e.setId}</td>
+     <td>${e.score}</td>
+     <td><span class="rate ${e.pass?'good':'bad'}">${e.pass?'Đạt':'Không đạt'}</span></td>
+     <td><span style="color:#0d6efd;cursor:pointer" onclick="showExamDetail(${i})">Xem</span></td>
+    </tr>`;
+  });
  });
 }
 
-function renderStats(){
- statTable.innerHTML="";
- if(sortKey) stats.sort((a,b)=>(a[sortKey]-b[sortKey])*sortDir);
- stats.forEach((s,i)=>{
-  let cls=s.rate>=80?"good":s.rate>=50?"mid":"bad";
-  statTable.innerHTML+=`
-   <tr>
-    <td>${i+1}</td>
-    <td>${s.code}</td>
-    <td>${s.attempts}</td>
-    <td>${s.pass}</td>
-    <td><span class="rate ${cls}">${s.rate}%</span></td>
-   </tr>`;
- });
+/* MODAL DETAIL */
+function showExamDetail(i){
+ const exam=studentExams[i];
+ let html=`
+  <p><b>Thời gian:</b> ${exam.time.toLocaleString('vi-VN')}</p>
+  <p><b>Bộ đề:</b> ${exam.setId}</p>
+  <p><b>Điểm:</b> ${exam.score}</p>
+  <p><b>Kết quả:</b> ${exam.pass?'Đạt':'Không đạt'}</p>
+  <hr>
+ `;
+
+ if(exam.answers.length){
+  exam.answers.forEach((a,idx)=>{
+   html+=`
+    <div class="answerRow ${a.correct?'correct':'wrong'}">
+     <span>Câu ${idx+1}: ${a.userAnswer||'Không trả lời'}</span>
+     <span>${a.correct?'✓':'✗'}</span>
+    </div>
+   `;
+  });
+ }else{
+  html+=`<p>Không có chi tiết câu hỏi</p>`;
+ }
+
+ examDetailContent.innerHTML=html;
+ examModal.classList.add("show");
 }
 
-/* LOAD SETS */
-db.collection("exam_logs").get().then(s=>{
- const sets=new Set();
- s.forEach(d=>sets.add(d.data().setId||"DEFAULT"));
- sets.forEach(id=>filterSet.innerHTML+=`<option value="${id}">${id}</option>`);
-});
+function closeExamModal(){
+ examModal.classList.remove("show");
+}
 </script>
 
 </body>
