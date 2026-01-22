@@ -6,91 +6,162 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ===== RESET ===== */
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6}
+body{
+ margin:0;
+ font-family:Arial,Helvetica,sans-serif;
+ background:#eef2f6;
+}
 
 /* ===== HEADER ===== */
 header{
  background:linear-gradient(90deg,#1d3557,#264a8a);
- color:white;padding:16px 24px;
- display:flex;justify-content:space-between;align-items:center;
- box-shadow:0 4px 14px rgba(0,0,0,.25)
+ color:white;
+ padding:14px 22px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ box-shadow:0 4px 14px rgba(0,0,0,.25);
+ position:sticky;
+ top:0;
+ z-index:100;
 }
-header b{font-size:18px}
+header b{font-size:17px}
 header button{
- background:#e63946;border:none;border-radius:8px;
- padding:8px 14px;color:white;cursor:pointer
+ background:#e63946;
+ border:none;
+ border-radius:8px;
+ padding:7px 12px;
+ color:white;
+ cursor:pointer;
 }
 
 /* ===== LAYOUT ===== */
-#layout{display:flex;min-height:calc(100vh - 70px)}
+#layout{
+ display:flex;
+ min-height:calc(100vh - 64px);
+ overflow:hidden;
+}
 
 /* ===== SIDEBAR ===== */
 aside{
- width:260px;background:white;padding:22px;
- box-shadow:4px 0 15px rgba(0,0,0,.08)
+ width:240px;
+ background:white;
+ box-shadow:4px 0 15px rgba(0,0,0,.08);
+ padding:20px;
+ flex-shrink:0;
 }
 .menu button{
- width:100%;margin-bottom:10px;padding:12px 14px;
- border:none;border-radius:10px;
- background:#f1f4fb;text-align:left;cursor:pointer
+ width:100%;
+ margin-bottom:8px;
+ padding:10px 14px;
+ border:none;
+ border-radius:10px;
+ background:#f1f4fb;
+ cursor:pointer;
+ text-align:left;
 }
-.menu button.active,.menu button:hover{background:#dbe6ff}
+.menu button.active,
+.menu button:hover{
+ background:#dbe6ff;
+}
 
 /* ===== MAIN ===== */
-main{flex:1;padding:24px}
+main{
+ flex:1;
+ padding:20px;
+ overflow-y:auto;
+}
 
 /* ===== BOX ===== */
 .box{
- background:white;padding:20px;border-radius:14px;
+ background:white;
+ padding:18px;
+ border-radius:14px;
  box-shadow:0 4px 14px rgba(0,0,0,.12);
- margin-bottom:20px
+ margin-bottom:18px;
 }
-.box h3{margin-top:0;color:#1d3557}
+.box h3{
+ margin-top:0;
+ color:#1d3557;
+ font-size:16px;
+}
 
 /* ===== TOOLBAR ===== */
-.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.toolbar input,select{
- padding:10px;border-radius:8px;border:1px solid #ccc
+.toolbar{
+ display:flex;
+ gap:10px;
+ flex-wrap:wrap;
+ margin-bottom:14px;
 }
-.toolbar button{
- background:#198754;color:white;border:none;
- border-radius:8px;padding:10px 16px;cursor:pointer
+.toolbar input,
+.toolbar select{
+ padding:8px 10px;
+ border-radius:8px;
+ border:1px solid #ccc;
+ font-size:13px;
 }
 
 /* ===== TABLE ===== */
-.tableWrap{overflow-x:auto}
-table{
- width:100%;border-collapse:collapse;
- font-size:14px;min-width:900px
+.tableWrap{
+ overflow-x:auto;
 }
-th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
-th{background:#f1f4fb;color:#1d3557;cursor:pointer}
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:13px;
+ min-width:820px;
+}
+th,td{
+ padding:9px;
+ border-bottom:1px solid #eee;
+ text-align:center;
+}
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+ cursor:pointer;
+ user-select:none;
+}
+th.sort-asc::after{content:" ▲"}
+th.sort-desc::after{content:" ▼"}
 
-/* ===== STATS ===== */
+/* ===== STATS SUMMARY ===== */
 .statGrid{
- display:grid;grid-template-columns:repeat(3,1fr);
- gap:16px;margin-bottom:20px
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:12px;
+ margin-bottom:14px;
 }
 .statBox{
- border-radius:14px;padding:18px;color:white;text-align:center
+ border-radius:12px;
+ padding:12px;
+ color:white;
+ text-align:center;
+ font-size:13px;
 }
-.statBox b{font-size:26px;display:block}
+.statBox b{
+ font-size:20px;
+ display:block;
+ margin-bottom:4px;
+}
 .total{background:#0d6efd}
 .pass{background:#198754}
 .fail{background:#e63946}
 
 /* ===== RATE ===== */
 .rate{
- padding:6px 10px;border-radius:8px;
- font-weight:bold;display:inline-block
+ padding:5px 8px;
+ border-radius:7px;
+ font-weight:bold;
+ display:inline-block;
+ font-size:12px;
 }
 .good{background:#d1e7dd;color:#0f5132}
 .mid{background:#fff3cd;color:#664d03}
 .bad{background:#f8d7da;color:#842029}
 
 /* ===== MEDAL ===== */
-.medal{font-size:18px;margin-left:4px}
+.medal{margin-left:4px}
 
 /* ===== PAGE ===== */
 .page{display:none}
@@ -98,12 +169,11 @@ th{background:#f1f4fb;color:#1d3557;cursor:pointer}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
- header{flex-direction:column;align-items:flex-start;gap:10px}
  #layout{flex-direction:column}
  aside{width:100%;box-shadow:none;border-bottom:1px solid #ddd}
  main{padding:14px}
  .statGrid{grid-template-columns:1fr}
- table{font-size:13px}
+ table{font-size:12px}
 }
 </style>
 </head>
@@ -122,7 +192,6 @@ th{background:#f1f4fb;color:#1d3557;cursor:pointer}
   <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
   <button onclick="showPage('students',this)">👤 Học viên</button>
   <button onclick="showPage('stats',this)">📈 Thống kê</button>
-  <button onclick="showPage('settings',this)">⚙️ Cài đặt</button>
  </div>
 </aside>
 
@@ -131,23 +200,25 @@ th{background:#f1f4fb;color:#1d3557;cursor:pointer}
 <!-- DASHBOARD -->
 <div id="dashboard" class="page active">
  <div class="box">
-  <h3>📊 Tổng quan hệ thống</h3>
-  <p>• Theo dõi kết quả thi</p>
-  <p>• Xếp hạng học viên</p>
-  <p>• Thống kê theo bộ đề</p>
+  <h3>📊 Tổng quan</h3>
+  <p>• Quản lý học viên</p>
+  <p>• Thống kê kết quả thi</p>
+  <p>• Xếp hạng theo bộ đề & thời gian</p>
  </div>
 </div>
 
 <!-- STUDENTS -->
 <div id="students" class="page">
  <div class="box">
-  <h3>👤 Quản lý học viên</h3>
+  <h3>👤 Danh sách học viên</h3>
   <div class="toolbar">
-   <input id="searchStudent" placeholder="🔍 Tìm học viên">
+   <input id="searchStudent" placeholder="🔍 Tìm theo mã / tên">
   </div>
   <div class="tableWrap">
    <table>
-    <thead><tr><th>Mã</th><th>Họ tên</th></tr></thead>
+    <thead>
+     <tr><th>Mã</th><th>Họ tên</th></tr>
+    </thead>
     <tbody id="studentTable"></tbody>
    </table>
   </div>
@@ -164,30 +235,31 @@ th{background:#f1f4fb;color:#1d3557;cursor:pointer}
  </div>
 
  <div class="box">
-  <h3>📌 Bộ lọc</h3>
+  <h3>📈 Thống kê chi tiết</h3>
+
   <div class="toolbar">
    <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
    <select id="filterTime">
     <option value="">Toàn bộ thời gian</option>
-    <option value="week">7 ngày</option>
-    <option value="month">30 ngày</option>
+    <option value="thisWeek">Tuần này</option>
+    <option value="lastWeek">Tuần trước</option>
+    <option value="thisMonth">Tháng này</option>
+    <option value="lastMonth">Tháng trước</option>
+    <option value="custom">Tùy chọn</option>
    </select>
-   <select id="sortBy" onchange="renderStats()">
-    <option value="rate">% đạt</option>
-    <option value="pass">Lượt đạt</option>
-    <option value="attempts">Lượt thi</option>
-   </select>
+   <input type="date" id="fromDate">
+   <input type="date" id="toDate">
   </div>
 
   <div class="tableWrap">
    <table>
     <thead>
      <tr>
-      <th>Hạng</th>
+      <th>#</th>
       <th>Học viên</th>
-      <th>Lượt thi</th>
-      <th>Lượt đạt</th>
-      <th>% đạt</th>
+      <th onclick="sortTable('attempts')">Lượt thi</th>
+      <th onclick="sortTable('pass')">Lượt đạt</th>
+      <th onclick="sortTable('rate')">% đạt</th>
      </tr>
     </thead>
     <tbody id="statTable"></tbody>
@@ -195,14 +267,6 @@ th{background:#f1f4fb;color:#1d3557;cursor:pointer}
   </div>
  </div>
 
-</div>
-
-<!-- SETTINGS -->
-<div id="settings" class="page">
- <div class="box">
-  <h3>⚙️ Cài đặt</h3>
-  <p>Sẽ mở rộng thêm</p>
- </div>
 </div>
 
 </main>
@@ -233,64 +297,106 @@ function showPage(id,btn){
 /* ===== LOGOUT ===== */
 function logout(){localStorage.clear();location.href="index.html";}
 
-/* ===== LOAD SETS ===== */
-function loadSets(){
- db.collection("exam_logs").get().then(s=>{
-  const sets=new Set();
-  s.forEach(d=>sets.add(d.data().setId||"DEFAULT"));
-  sets.forEach(id=>{
-   filterSet.innerHTML+=`<option value="${id}">${id}</option>`;
+/* ===== STUDENTS ===== */
+function loadStudents(k=""){
+ studentTable.innerHTML="";
+ db.collection("students").orderBy("code").get().then(s=>{
+  s.forEach(d=>{
+   const st=d.data();
+   if(k && !st.nameSearch?.includes(k.toLowerCase()) && !st.code.includes(k)) return;
+   studentTable.innerHTML+=`<tr><td>${st.code}</td><td>${st.name}</td></tr>`;
   });
  });
 }
+loadStudents();
+searchStudent.oninput=e=>loadStudents(e.target.value);
 
 /* ===== STATS ===== */
-let rawStats=[];
+let stats=[],sortKey="rate",sortDir=-1;
+
+function getTimeRange(){
+ const now=new Date();
+ let from=null,to=null;
+
+ const monday=d=>{
+  const x=new Date(d);
+  const day=x.getDay()||7;
+  x.setDate(x.getDate()-day+1);
+  x.setHours(0,0,0,0);
+  return x;
+ };
+
+ if(filterTime.value==="thisWeek"){
+  from=monday(now); to=now;
+ }
+ if(filterTime.value==="lastWeek"){
+  to=monday(now); to.setMilliseconds(-1);
+  from=monday(to);
+ }
+ if(filterTime.value==="thisMonth"){
+  from=new Date(now.getFullYear(),now.getMonth(),1);
+  to=now;
+ }
+ if(filterTime.value==="lastMonth"){
+  from=new Date(now.getFullYear(),now.getMonth()-1,1);
+  to=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
+ }
+ if(filterTime.value==="custom" && fromDate.value && toDate.value){
+  from=new Date(fromDate.value);
+  to=new Date(toDate.value+"T23:59:59");
+ }
+ return {from,to};
+}
 
 function loadStats(){
- rawStats=[];
- db.collection("exam_logs").get().then(s=>{
-  const now=Date.now();
-  let total=0,pass=0,map={};
+ stats=[];
+ let map={},total=0,pass=0;
+ const {from,to}=getTimeRange();
 
+ db.collection("exam_logs").get().then(s=>{
   s.forEach(d=>{
    const e=d.data();
    if(filterSet.value && e.setId!==filterSet.value) return;
-   if(filterTime.value){
-    const diff=(now-e.time.toMillis())/86400000;
-    if(filterTime.value==="week"&&diff>7) return;
-    if(filterTime.value==="month"&&diff>30) return;
+
+   if(from && to){
+    const t=e.time.toDate();
+    if(t<from||t>to) return;
    }
 
    total++; if(e.pass) pass++;
-   const c=e.studentCode;
-   if(!map[c]) map[c]={attempts:0,pass:0};
-   map[c].attempts++; if(e.pass) map[c].pass++;
+   if(!map[e.studentCode]) map[e.studentCode]={a:0,p:0};
+   map[e.studentCode].a++;
+   if(e.pass) map[e.studentCode].p++;
   });
 
   tTotal.innerText=total;
   tPass.innerText=pass;
   tFail.innerText=total-pass;
 
-  rawStats=Object.entries(map).map(([c,v])=>({
+  stats=Object.entries(map).map(([c,v])=>({
    code:c,
-   attempts:v.attempts,
-   pass:v.pass,
-   rate:Math.round(v.pass/v.attempts*100)
+   attempts:v.a,
+   pass:v.p,
+   rate:Math.round(v.p/v.a*100)
   }));
 
   renderStats();
  });
 }
 
+function sortTable(key){
+ sortKey=key;
+ sortDir*=-1;
+ renderStats();
+}
+
 function renderStats(){
  statTable.innerHTML="";
- const sort=sortBy.value;
- rawStats.sort((a,b)=>b[sort]-a[sort]);
+ stats.sort((a,b)=>(b[sortKey]-a[sortKey])*sortDir);
 
- rawStats.forEach((s,i)=>{
-  let medal=i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
+ stats.forEach((s,i)=>{
   let cls=s.rate>=80?"good":s.rate>=50?"mid":"bad";
+  let medal=i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
   statTable.innerHTML+=`
    <tr>
     <td>${i+1}${medal}</td>
@@ -304,9 +410,15 @@ function renderStats(){
 
 filterSet.onchange=loadStats;
 filterTime.onchange=loadStats;
+fromDate.onchange=loadStats;
+toDate.onchange=loadStats;
 
-loadSets();
-loadStats();
+db.collection("exam_logs").get().then(s=>{
+ const sets=new Set();
+ s.forEach(d=>sets.add(d.data().setId||"DEFAULT"));
+ sets.forEach(id=>filterSet.innerHTML+=`<option value="${id}">${id}</option>`);
+ loadStats();
+});
 </script>
 
 </body>
