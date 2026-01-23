@@ -19,7 +19,6 @@
         .good { background: #d1e7dd; color: #0f5132 }
         .mid { background: #fff3cd; color: #664d03 }
         .bad { background: #f8d7da; color: #842029 }
-        .badge-icon { font-size: 18px; margin-right: 5px; vertical-align: middle; }
 
         /* ===== HEADER ===== */
         header { background: linear-gradient(90deg, #1d3557, #264a8a); color: white; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); position: sticky; top: 0; z-index: 100; }
@@ -51,10 +50,9 @@
         .tableWrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
         th, td { padding: 12px 9px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
-        th { background: #f1f4fb; color: #1d3557; cursor: pointer; user-select: none; }
-        th:hover { background: #e2e8f0; }
+        th { background: #f1f4fb; color: #1d3557; cursor: pointer; }
 
-        /* ===== STATS GRID ===== */
+        /* ===== STATS GRID (UPDATED) ===== */
         .statGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
         .statBox { border-radius: 12px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; }
         .statBox .main-num { font-size: 24px; font-weight: bold; display: block; margin-bottom: 5px; }
@@ -68,16 +66,16 @@
         .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal.show { display: flex; }
         .modal-content { background: #fff; padding: 24px; border-radius: 14px; width: 90%; max-width: 500px; position: relative; animation: fadeIn 0.3s; }
+        .modal-content h3 { margin-top: 0; color: #1d3557; }
+        .modal-content label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #555; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ===== OTHER PAGES ===== */
         .page { display: none; }
         .page.active { display: block; }
-        .infoCard { background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%); color: white; padding: 20px; border-radius: 14px; margin-bottom: 18px; }
-        .infoGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .infoItem { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; font-size: 13px; }
-        
+        .infoCard { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 14px; margin-bottom: 18px; }
         .miniStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
         .miniStatBox { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .chartContainer { height: 300px; position: relative; }
@@ -133,7 +131,7 @@
             <div class="box">
                 <h3>👤 Danh sách học viên</h3>
                 <div class="toolbar">
-                    <input id="searchStudent" style="width: 300px;" placeholder="🔍 Tìm tên, mã hoặc đối tượng (không dấu/hoa)...">
+                    <input id="searchStudent" style="width: 250px;" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng...">
                     <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
                     <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
                 </div>
@@ -162,7 +160,7 @@
                 <div class="statBox fail"><div>Không đạt</div><b class="main-num" id="tFail">0</b></div>
             </div>
             <div class="box">
-                <h3>📈 Thống kê & Xếp hạng</h3>
+                <h3>📈 Thống kê chi tiết</h3>
                 <div class="toolbar">
                     <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
                     <button class="btn btn-success" onclick="loadStats()">🔍 Tải dữ liệu</button>
@@ -171,13 +169,12 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Hạng</th>
+                                <th>#</th>
                                 <th>Mã HV</th>
-                                <th>Họ tên</th>
-                                <th onclick="sortStats('attempts')">Lượt thi ⇅</th>
-                                <th onclick="sortStats('pass')">Lượt đạt ⇅</th>
-                                <th onclick="sortStats('rate')">% đạt ⇅</th>
-                                <th>Hành động</th>
+                                <th onclick="sortTable('attempts',this)">Lượt thi ⇅</th>
+                                <th onclick="sortTable('pass',this)">Lượt đạt ⇅</th>
+                                <th onclick="sortTable('rate',this)">% đạt ⇅</th>
+                                <th>Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody id="statTable"></tbody>
@@ -189,19 +186,18 @@
         <div id="studentDetail" class="page">
             <button class="btn btn-secondary" style="margin-bottom:15px" onclick="backFromDetail()">← Quay lại</button>
             <div class="infoCard">
-                <h2 id="detailName" style="margin:0 0 10px 0">---</h2>
-                <div class="infoGrid">
-                    <div class="infoItem">Mã số: <b id="detailCode">---</b></div>
-                    <div class="infoItem">Đối tượng: <b id="detailObject">---</b></div>
-                    <div class="infoItem">Đơn vị: <b id="detailUnit">---</b></div>
-                    <div class="infoItem">Trạng thái: <b id="detailStatus">---</b></div>
-                </div>
+                <h2 id="detailName">---</h2>
+                <p>📋 Mã học viên: <b id="detailCode">---</b></p>
             </div>
             <div class="miniStats">
-                <div class="miniStatBox"><div>Tổng thi</div><b id="detailTotal">0</b></div>
-                <div class="miniStatBox"><div>Lượt đạt</div><b id="detailPass" style="color:#198754">0</b></div>
-                <div class="miniStatBox"><div>Tỷ lệ</div><b id="detailRate" style="color:#0d6efd">0%</b></div>
-                <div class="miniStatBox"><div>Điểm TB</div><b id="detailAvg" style="color:#e63946">0</b></div>
+                <div class="miniStatBox"><div>Tổng thi</div><b class="value" id="detailTotal">0</b></div>
+                <div class="miniStatBox"><div>Lượt đạt</div><b class="value" id="detailPass" style="color:#198754">0</b></div>
+                <div class="miniStatBox"><div>Tỷ lệ</div><b class="value" id="detailRate" style="color:#0d6efd">0%</b></div>
+                <div class="miniStatBox"><div>Điểm TB</div><b class="value" id="detailAvg" style="color:#e63946">0</b></div>
+            </div>
+            <div class="box">
+                <h3>📊 Biểu đồ tiến độ</h3>
+                <div class="chartContainer"><canvas id="performanceChart"></canvas></div>
             </div>
             <div class="box">
                 <h3>📝 Lịch sử làm bài</h3>
@@ -213,6 +209,7 @@
                                 <th>Bộ đề</th>
                                 <th>Điểm</th>
                                 <th>Kết quả</th>
+                                <th>Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody id="historyTable"></tbody>
@@ -223,11 +220,75 @@
     </main>
 </div>
 
+<div class="modal" id="studentModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">➕ Thêm học viên</h3>
+        <input type="hidden" id="stMode"> <input type="hidden" id="stCurrentCode"> <label>Đối tượng học viên</label>
+        <select id="stObjectType" onchange="toggleOtherObject(this)">
+            <option value="HV">Học viên (HV)</option>
+            <option value="SQ">Sĩ quan (SQ)</option>
+            <option value="CN">Chuyên nghiệp (CN)</option>
+            <option value="OTHER">Khác...</option>
+        </select>
+        <input id="stObjectOther" placeholder="Nhập tên đối tượng khác" style="display:none; margin-top:-10px">
+
+        <label>Họ và tên</label>
+        <input id="stName" placeholder="Nhập họ và tên">
+        
+        <label>Đơn vị</label>
+        <input id="stUnit" placeholder="Nhập đơn vị (VD: Lớp A1)">
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-success" onclick="saveStudent()">Lưu lại</button>
+            <button class="btn btn-secondary" onclick="closeStudentModal()">Hủy</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="importModal">
+    <div class="modal-content">
+        <h3>📂 Nhập danh sách từ Excel</h3>
+        <p>Vui lòng sử dụng file mẫu để nhập liệu chính xác.</p>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:15px" onclick="downloadTemplate()">⬇️ Tải file mẫu (.xlsx)</button>
+        
+        <label>Chọn file Excel:</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls">
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importModal').classList.remove('show')">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="deleteModal">
+    <div class="modal-content" style="text-align: center; max-width: 400px;">
+        <h3 style="color:#dc3545">⚠️ Cảnh báo xóa</h3>
+        <p style="font-size:15px">Bạn có chắc chắn muốn xóa học viên: <b id="delNameDisplay"></b>?</p>
+        <p style="color:#666; font-size:13px; background:#f8d7da; padding:10px; border-radius:8px">
+            Lưu ý: Toàn bộ lịch sử thi và kết quả của học viên này sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top:20px">
+            <button class="btn btn-danger" onclick="confirmDelete()">Đồng ý xóa</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('show')">Quay lại</button>
+        </div>
+    </div>
+</div>
+
+<div id="examModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <h3>Chi tiết bài thi</h3>
+        <div id="examDetailContent" style="max-height: 400px; overflow-y: auto;"></div>
+        <button class="btn btn-danger" style="width:100%; margin-top:15px;" onclick="closeExamModal()">Đóng</button>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    // 1. CẤU HÌNH FIREBASE (Giữ nguyên)
+    // 1. CẤU HÌNH FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
         authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -236,171 +297,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let allStudents = [];
-    let statsData = [];
-    let currentSort = { key: 'rate', dir: 'desc' };
+    let allStudents = []; // Lưu local để search nhanh và sinh ID
+    let currentStudent = null;
+    let studentExams = [];
+    let chartInstance = null;
+    let deleteTargetCode = null;
 
-    // 2. TỐI ƯU TÌM KIẾM (KHÔNG PHÂN BIỆT CHỮ HOA/THƯỜNG/DẤU)
-    function removeVietnameseTones(str) {
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    }
-
-    document.getElementById("searchStudent").oninput = (e) => {
-        const keyword = removeVietnameseTones(e.target.value);
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "";
-        
-        allStudents.forEach(st => {
-            const content = removeVietnameseTones(`${st.name} ${st.code} ${st.object}`);
-            if (content.includes(keyword)) {
-                renderStudentRow(table, st);
-            }
-        });
-    };
-
-    // 3. TẢI DỮ LIỆU HỌC VIÊN
-    async function loadStudents() {
-        const qs = await db.collection("students").orderBy("code").get();
-        allStudents = qs.docs.map(doc => doc.data());
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "";
-        allStudents.forEach(st => renderStudentRow(table, st));
-        updateDashboardStats();
-    }
-
-    function renderStudentRow(table, st) {
-        table.innerHTML += `
-            <tr>
-                <td><b>${st.code}</b></td>
-                <td style="text-align:left">${st.name}</td>
-                <td><span class="rate mid">${st.object}</span></td>
-                <td>${st.unit || '---'}</td>
-                <td>
-                    <span class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
-                        ${st.status === 'active' ? 'Hoạt động' : 'Bị khóa'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetail('${st.code}')">👁️ Xem</button>
-                    <button class="btn btn-warning" style="padding:4px 8px" onclick="openEditStudent('${st.code}')">✏️</button>
-                </td>
-            </tr>`;
-    }
-
-    // 4. THỐNG KÊ & SẮP XẾP & HUY HIỆU
-    async function loadStats() {
-        const logsQs = await db.collection("exam_logs").get();
-        const map = {};
-        let tTotal = 0, tPass = 0;
-
-        logsQs.forEach(doc => {
-            const log = doc.data();
-            tTotal++; if(log.pass) tPass++;
-            if(!map[log.studentCode]) map[log.studentCode] = { attempts: 0, pass: 0 };
-            map[log.studentCode].attempts++;
-            if(log.pass) map[log.studentCode].pass++;
-        });
-
-        document.getElementById("tTotal").innerText = tTotal;
-        document.getElementById("tPass").innerText = tPass;
-        document.getElementById("tFail").innerText = tTotal - tPass;
-
-        statsData = allStudents.map(st => {
-            const s = map[st.code] || { attempts: 0, pass: 0 };
-            return {
-                code: st.code,
-                name: st.name,
-                attempts: s.attempts,
-                pass: s.pass,
-                rate: s.attempts > 0 ? Math.round((s.pass / s.attempts) * 100) : 0
-            };
-        });
-
-        sortStats('rate', true); // Mặc định sắp xếp theo % đạt giảm dần
-    }
-
-    function sortStats(key, forceDesc = false) {
-        if (!forceDesc) {
-            currentSort.dir = (currentSort.key === key && currentSort.dir === 'desc') ? 'asc' : 'desc';
-        }
-        currentSort.key = key;
-
-        statsData.sort((a, b) => {
-            let valA = a[key], valB = b[key];
-            return currentSort.dir === 'desc' ? valB - valA : valA - valB;
-        });
-
-        renderStatsTable();
-    }
-
-    function renderStatsTable() {
-        const table = document.getElementById("statTable");
-        table.innerHTML = "";
-        
-        statsData.forEach((s, i) => {
-            // Gắn huy hiệu cho Top 3 (Chỉ hiện khi sắp xếp giảm dần % Đạt hoặc Lượt đạt)
-            let badge = "";
-            if (currentSort.dir === 'desc' && (currentSort.key === 'rate' || currentSort.key === 'pass')) {
-                if (i === 0 && s.pass > 0) badge = '<span class="badge-icon">🥇</span>';
-                else if (i === 1 && s.pass > 0) badge = '<span class="badge-icon">🥈</span>';
-                else if (i === 2 && s.pass > 0) badge = '<span class="badge-icon">🥉</span>';
-            }
-
-            table.innerHTML += `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><b>${s.code}</b></td>
-                    <td style="text-align:left">${badge}${s.name}</td>
-                    <td>${s.attempts}</td>
-                    <td>${s.pass}</td>
-                    <td><span class="rate ${s.rate >= 80 ? 'good' : 'mid'}">${s.rate}%</span></td>
-                    <td><button class="btn btn-primary" onclick="viewStudentDetail('${s.code}')">Chi tiết</button></td>
-                </tr>`;
-        });
-    }
-
-    // 5. XEM CHI TIẾT ĐẦY ĐỦ THÔNG TIN
-    async function viewStudentDetail(code) {
-        const st = allStudents.find(item => item.code === code);
-        if(!st) return;
-
-        // Điền thông tin cơ bản
-        document.getElementById("detailName").innerText = st.name;
-        document.getElementById("detailCode").innerText = st.code;
-        document.getElementById("detailObject").innerText = st.object;
-        document.getElementById("detailUnit").innerText = st.unit || "Chưa cập nhật";
-        document.getElementById("detailStatus").innerText = st.status === 'active' ? "Đang hoạt động" : "Bị khóa";
-
-        // Tải lịch sử thi
-        const logsQs = await db.collection("exam_logs").where("studentCode", "==", code).get();
-        const logs = logsQs.docs.map(d => d.data()).sort((a,b) => b.time - a.time);
-        
-        let totalScore = 0, passCount = 0;
-        const hTable = document.getElementById("historyTable");
-        hTable.innerHTML = "";
-
-        logs.forEach(log => {
-            totalScore += log.score;
-            if(log.pass) passCount++;
-            hTable.innerHTML += `
-                <tr>
-                    <td>${log.time.toDate().toLocaleString('vi-VN')}</td>
-                    <td>${log.setName || 'Mặc định'}</td>
-                    <td><b>${log.score}</b></td>
-                    <td><span class="status ${log.pass ? 'activeStatus' : 'lockStatus'}">${log.pass ? 'ĐẠT' : 'TRƯỢT'}</span></td>
-                </tr>`;
-        });
-
-        // Cập nhật mini stats
-        document.getElementById("detailTotal").innerText = logs.length;
-        document.getElementById("detailPass").innerText = passCount;
-        document.getElementById("detailRate").innerText = logs.length > 0 ? Math.round((passCount/logs.length)*100) + "%" : "0%";
-        document.getElementById("detailAvg").innerText = logs.length > 0 ? (totalScore/logs.length).toFixed(1) : 0;
-
-        showPage('studentDetail');
-    }
-
-    // Các hàm phụ trợ
+    // 2. CHUYỂN TRANG
     function showPage(id, btn) {
         document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
         document.getElementById(id).classList.add("active");
@@ -408,12 +311,407 @@
             document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
         }
+        if(id === 'students') loadStudents();
+        if(id === 'stats') loadStats();
     }
-    function backFromDetail() { showPage('students'); }
-    function logout() { location.reload(); }
+    function logout() { localStorage.clear(); location.href="index.html"; }
 
-    // Khởi chạy
+    // 3. QUẢN LÝ HỌC VIÊN
+    function loadStudents(k = "") {
+        const table = document.getElementById("studentTable");
+        table.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
+        
+        db.collection("students").orderBy("code").get().then(qs => {
+            allStudents = [];
+            table.innerHTML = "";
+            
+            // Biến thống kê
+            let stats = {
+                total: { count: 0, detail: {} },
+                active: { count: 0, detail: {} },
+                lock: { count: 0, detail: {} }
+            };
+
+            qs.forEach(doc => {
+                const st = doc.data();
+                allStudents.push(st); // Lưu vào mảng global
+                
+                // Lọc tìm kiếm (Tên, Mã, Đối tượng)
+                const keyword = k.toLowerCase();
+                const match = !k || 
+                              st.nameSearch?.includes(keyword) || 
+                              st.code.toLowerCase().includes(keyword) || 
+                              st.object.toLowerCase().includes(keyword);
+
+                if (match) {
+                    renderStudentRow(table, st);
+                }
+
+                // Tính toán thống kê
+                const objType = st.object || "Khác";
+                stats.total.count++;
+                stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
+
+                if(st.status === 'active') {
+                    stats.active.count++;
+                    stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
+                } else {
+                    stats.lock.count++;
+                    stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
+                }
+            });
+
+            if(table.innerHTML === "") table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
+            
+            // Cập nhật UI Thống kê
+            updateStatBox("sTotal", "sTotalDetail", stats.total);
+            updateStatBox("sActive", "sActiveDetail", stats.active);
+            updateStatBox("sLock", "sLockDetail", stats.lock);
+        });
+    }
+
+    function renderStudentRow(table, st) {
+        table.innerHTML += `
+            <tr>
+                <td><b>${st.code}</b></td>
+                <td style="text-align:left; padding-left:15px">${st.name}</td>
+                <td><span class="rate mid">${st.object}</span></td>
+                <td>${st.unit}</td>
+                <td>
+                    <select onchange="changeStatus('${st.code}', this.value)" 
+                            class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
+                        <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
+                        <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
+                </td>
+            </tr>`;
+    }
+
+    function updateStatBox(idNum, idDetail, data) {
+        document.getElementById(idNum).innerText = data.count < 10 ? "0" + data.count : data.count;
+        let html = "";
+        for (const [key, val] of Object.entries(data.detail)) {
+            html += `<div>• ${key}: <b>${val < 10 ? "0"+val : val}</b></div>`;
+        }
+        document.getElementById(idDetail).innerHTML = html || "Chưa có dữ liệu";
+    }
+
+    // TÌM KIẾM
+    document.getElementById("searchStudent").oninput = (e) => loadStudents(e.target.value);
+
+    // THAY ĐỔI TRẠNG THÁI
+    function changeStatus(code, val) {
+        db.collection("students").doc(code).update({ status: val }).then(() => loadStudents(document.getElementById("searchStudent").value));
+    }
+
+    // ===== LOGIC THÊM / SỬA HỌC VIÊN =====
+    function toggleOtherObject(select) {
+        const input = document.getElementById("stObjectOther");
+        input.style.display = select.value === "OTHER" ? "block" : "none";
+    }
+
+    function openAddStudent() {
+        document.getElementById("stMode").value = "add";
+        document.getElementById("modalTitle").innerText = "➕ Thêm học viên mới";
+        document.getElementById("stName").value = "";
+        document.getElementById("stUnit").value = "";
+        document.getElementById("stObjectType").value = "HV";
+        toggleOtherObject(document.getElementById("stObjectType"));
+        document.getElementById("studentModal").classList.add("show");
+    }
+
+    function openEditStudent(code) {
+        const st = allStudents.find(s => s.code === code);
+        if(!st) return;
+
+        document.getElementById("stMode").value = "edit";
+        document.getElementById("stCurrentCode").value = code;
+        document.getElementById("modalTitle").innerText = "✏️ Sửa thông tin học viên (" + code + ")";
+        document.getElementById("stName").value = st.name;
+        document.getElementById("stUnit").value = st.unit;
+        
+        // Map đối tượng vào select
+        const sel = document.getElementById("stObjectType");
+        if(["HV", "SQ", "CN"].includes(st.objectCode)) {
+            sel.value = st.objectCode;
+        } else {
+            sel.value = "OTHER";
+            document.getElementById("stObjectOther").value = st.object;
+        }
+        toggleOtherObject(sel);
+        document.getElementById("studentModal").classList.add("show");
+    }
+
+    function closeStudentModal() { document.getElementById("studentModal").classList.remove("show"); }
+
+    async function saveStudent() {
+        const mode = document.getElementById("stMode").value;
+        const name = document.getElementById("stName").value.trim();
+        const unit = document.getElementById("stUnit").value.trim();
+        const objType = document.getElementById("stObjectType").value;
+        let objName = "";
+        let objPrefix = "";
+
+        // Xác định tên đối tượng và prefix
+        if (objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
+        else if (objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
+        else if (objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
+        else {
+            objName = document.getElementById("stObjectOther").value.trim();
+            objPrefix = "KH"; // Khác
+        }
+
+        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
+
+        if (mode === "add") {
+            // Sinh mã tự động: PREFIX + Số thứ tự
+            const code = generateNextCode(objPrefix);
+            
+            await db.collection("students").doc(code).set({
+                code: code,
+                name: name,
+                unit: unit,
+                object: objName,
+                objectCode: objType, // Lưu mã để dễ binding lại form sửa
+                status: "active",
+                nameSearch: name.toLowerCase()
+            });
+            alert("Đã thêm: " + code);
+        } else {
+            // Edit mode
+            const code = document.getElementById("stCurrentCode").value;
+            // Lưu ý: Không đổi Code khi sửa để tránh mất lịch sử thi
+            await db.collection("students").doc(code).update({
+                name: name,
+                unit: unit,
+                object: objName,
+                objectCode: objType,
+                nameSearch: name.toLowerCase()
+            });
+            alert("Cập nhật thành công!");
+        }
+        
+        closeStudentModal();
+        loadStudents();
+    }
+
+    function generateNextCode(prefix) {
+        // Lọc tất cả học viên có mã bắt đầu bằng prefix
+        const relevantCodes = allStudents
+            .filter(s => s.code.startsWith(prefix))
+            .map(s => parseInt(s.code.replace(prefix, "")))
+            .filter(n => !isNaN(n)); // Lấy phần số
+
+        // Tìm số lớn nhất
+        const maxNum = relevantCodes.length > 0 ? Math.max(...relevantCodes) : 0;
+        
+        // Tăng lên 1 và pad số 0 (ví dụ: 1 -> 0001)
+        const nextNum = maxNum + 1;
+        return prefix + String(nextNum).padStart(4, '0');
+    }
+
+    // ===== LOGIC XÓA HỌC VIÊN =====
+    function openDeleteModal(code, name) {
+        deleteTargetCode = code;
+        document.getElementById("delNameDisplay").innerText = name + " (" + code + ")";
+        document.getElementById("deleteModal").classList.add("show");
+    }
+
+    function confirmDelete() {
+        if(!deleteTargetCode) return;
+        
+        // Xóa học viên
+        db.collection("students").doc(deleteTargetCode).delete().then(() => {
+            // Xóa luôn lịch sử thi của học viên này (Tùy chọn, để sạch db)
+            db.collection("exam_logs").where("studentCode", "==", deleteTargetCode).get().then(qs => {
+                const batch = db.batch();
+                qs.forEach(doc => batch.delete(doc.ref));
+                return batch.commit();
+            });
+
+            alert("Đã xóa học viên và dữ liệu liên quan.");
+            document.getElementById("deleteModal").classList.remove("show");
+            loadStudents();
+        }).catch(err => alert("Lỗi: " + err.message));
+    }
+
+    // ===== IMPORT EXCEL =====
+    function openImportModal() { document.getElementById("importModal").classList.add("show"); }
+
+    function downloadTemplate() {
+        // Tạo dữ liệu mẫu
+        const ws = XLSX.utils.json_to_sheet([
+            { "HoTen": "Nguyễn Văn A", "DonVi": "c1 d1", "DoiTuong": "HV" },
+            { "HoTen": "Trần Văn B", "DonVi": "Phòng Tham Mưu", "DoiTuong": "SQ" },
+            { "HoTen": "Lê Thị C", "DonVi": "Ban Hậu Cần", "DoiTuong": "CN" }
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Mau_Nhap_Lieu");
+        XLSX.writeFile(wb, "Mau_Them_Hoc_Vien.xlsx");
+    }
+
+    function processExcel() {
+        const fileInput = document.getElementById('excelFile');
+        const file = fileInput.files[0];
+        if(!file) return alert("Vui lòng chọn file Excel!");
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(firstSheet);
+
+            if(json.length === 0) return alert("File rỗng!");
+
+            // Xử lý từng dòng
+            let batch = db.batch();
+            let count = 0;
+            
+            // Cần cập nhật allStudents mới nhất để sinh ID không trùng trong vòng lặp
+            // Tuy nhiên, batch write sinh ID hàng loạt phức tạp.
+            // Giải pháp đơn giản: dùng Promise.all và logic sinh ID tạm thời trong loop
+            
+            // Tạo bản đồ đếm tạm thời cho session import này
+            let tempCounters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
+            
+            // Tìm max hiện tại trong DB
+            allStudents.forEach(s => {
+                const p = s.code.substring(0, 2);
+                const n = parseInt(s.code.substring(2));
+                if(!isNaN(n) && n > (tempCounters[p] || 0)) tempCounters[p] = n;
+            });
+
+            let promises = [];
+
+            json.forEach(row => {
+                if(!row.HoTen) return;
+
+                let objCode = row.DoiTuong ? row.DoiTuong.toUpperCase() : "KH";
+                let prefix = "KH";
+                let objName = "Khác";
+
+                if(objCode === "HV") { prefix = "HV"; objName = "Học viên"; }
+                else if(objCode === "SQ") { prefix = "SQ"; objName = "Sĩ quan"; }
+                else if(objCode === "CN") { prefix = "CN"; objName = "Chuyên nghiệp"; }
+                
+                // Tăng counter
+                tempCounters[prefix] = (tempCounters[prefix] || 0) + 1;
+                let nextNum = tempCounters[prefix];
+                let newCode = prefix + String(nextNum).padStart(4, '0');
+
+                let ref = db.collection("students").doc(newCode);
+                promises.push(ref.set({
+                    code: newCode,
+                    name: row.HoTen,
+                    unit: row.DonVi || "",
+                    object: objName,
+                    objectCode: objCode,
+                    status: "active",
+                    nameSearch: row.HoTen.toLowerCase()
+                }));
+            });
+
+            Promise.all(promises).then(() => {
+                alert("Đã nhập thành công " + promises.length + " học viên!");
+                document.getElementById("importModal").classList.remove("show");
+                loadStudents();
+            }).catch(err => alert("Lỗi khi nhập: " + err));
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 4. CÁC HÀM THỐNG KÊ & CHI TIẾT (GIỮ NGUYÊN)
+    let statsData = [];
+    function loadStats() {
+        statsData = [];
+        let map = {}, total = 0, pass = 0;
+        const setFilter = document.getElementById("filterSet").value;
+        db.collection("exam_logs").get().then(s => {
+            s.forEach(d => {
+                const e = d.data();
+                if(setFilter && e.setId !== setFilter) return;
+                total++; if(e.pass) pass++;
+                if(!map[e.studentCode]) map[e.studentCode] = { a: 0, p: 0 };
+                map[e.studentCode].a++;
+                if(e.pass) map[e.studentCode].p++;
+            });
+            document.getElementById("tTotal").innerText = total;
+            document.getElementById("tPass").innerText = pass;
+            document.getElementById("tFail").innerText = total - pass;
+            statsData = Object.entries(map).map(([c, v]) => ({ code: c, attempts: v.a, pass: v.p, rate: Math.round((v.p / v.a) * 100) }));
+            renderStatsTable();
+        });
+    }
+    function renderStatsTable() {
+        const table = document.getElementById("statTable");
+        table.innerHTML = "";
+        statsData.forEach((s, i) => {
+            let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
+            table.innerHTML += `<tr><td>${i + 1}</td><td><b>${s.code}</b></td><td>${s.attempts}</td><td>${s.pass}</td><td><span class="rate ${cls}">${s.rate}%</span></td><td><button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetail('${s.code}','')">👁️ Xem</button></td></tr>`;
+        });
+    }
+
+    // 5. VIEW DETAIL
+    function viewStudentDetail(code, name) {
+        currentStudent = { code, name };
+        document.getElementById("detailCode").innerText = code;
+        document.getElementById("detailName").innerText = name || "Học viên " + code;
+        showPage('studentDetail');
+        loadStudentExams(code);
+    }
+    function backFromDetail() { showPage('students', document.querySelector('.menu button:nth-child(2)')); }
+    function loadStudentExams(code) {
+        db.collection("exam_logs").where("studentCode", "==", code).get().then(s => {
+            studentExams = [];
+            s.forEach(d => { const e = d.data(); studentExams.push({ ...e, time: e.time.toDate() }); });
+            studentExams.sort((a, b) => b.time - a.time);
+            updateStudentMiniStats(); renderHistory(); renderChart();
+        });
+    }
+    function updateStudentMiniStats() {
+        const total = studentExams.length;
+        const pass = studentExams.filter(e => e.pass).length;
+        const avg = total > 0 ? Math.round(studentExams.reduce((sum, e) => sum + e.score, 0) / total) : 0;
+        document.getElementById("detailTotal").innerText = total;
+        document.getElementById("detailPass").innerText = pass;
+        document.getElementById("detailRate").innerText = (total > 0 ? Math.round(pass/total*100) : 0) + "%";
+        document.getElementById("detailAvg").innerText = avg;
+    }
+    function renderHistory() {
+        const table = document.getElementById("historyTable");
+        table.innerHTML = "";
+        studentExams.forEach((e, i) => {
+            table.innerHTML += `<tr><td>${e.time.toLocaleString('vi-VN')}</td><td>${e.setId || 'Mặc định'}</td><td><b>${e.score}</b></td><td><span class="rate ${e.pass ? 'good' : 'bad'}">${e.pass ? 'Đạt' : 'Trượt'}</span></td><td><button class="btn btn-secondary" style="padding:4px 8px" onclick="showExamDetail(${i})">Chi tiết</button></td></tr>`;
+        });
+    }
+    function renderChart() {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        const lastExams = [...studentExams].reverse().slice(-10);
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: lastExams.map((_, i) => "Bài " + (i + 1)), datasets: [{ label: 'Điểm số', data: lastExams.map(e => e.score), borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', fill: true, tension: 0.3 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+        });
+    }
+    function showExamDetail(idx) {
+        const exam = studentExams[idx];
+        let html = `<p><b>Kết quả:</b> ${exam.score} điểm - ${exam.pass ? 'ĐẠT' : 'TRƯỢT'}</p><hr>`;
+        if(exam.answers) { exam.answers.forEach((ans, i) => { html += `<div style="padding:8px; margin-bottom:5px; background:${ans.correct ? '#d1e7dd' : '#f8d7da'}; border-radius:5px">Câu ${i+1}: ${ans.correct ? '✅ Đúng' : '❌ Sai'} (Chọn: ${ans.userAnswer || 'Bỏ trống'})</div>`; }); } 
+        else { html += "<p>Không có chi tiết.</p>"; }
+        document.getElementById("examDetailContent").innerHTML = html;
+        document.getElementById("examModal").classList.add("show");
+    }
+    function closeExamModal() { document.getElementById("examModal").classList.remove("show"); }
+
     loadStudents();
 </script>
+
 </body>
 </html>
