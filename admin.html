@@ -2,1312 +2,992 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN | Hệ thống thi luật giao thông</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Firebase SDK -->
+    <title>ADMIN | Hệ thống thi luật giao thông</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- SheetJS for Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #334155; line-height: 1.6; }
+        
+        /* Header */
+        header { background: linear-gradient(90deg, #0f172a, #1e40af); color: white; padding: 1rem 1.5rem; 
+                display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.1rem; font-weight: 600; }
+        header button { background: #dc2626; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; 
+                      cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        header button:hover { background: #b91c1c; transform: translateY(-1px); }
+        
+        /* Layout */
+        #app { display: flex; min-height: calc(100vh - 64px); }
+        aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; padding: 1.5rem 1rem; }
+        .menu-btn { width: 100%; text-align: left; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border: none; 
+                   background: transparent; border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
+                   color: #64748b; font-weight: 500; transition: all 0.2s; }
+        .menu-btn:hover { background: #f1f5f9; color: #1e40af; }
+        .menu-btn.active { background: #dbeafe; color: #1e40af; font-weight: 600; }
+        
+        main { flex: 1; padding: 1.5rem; overflow-y: auto; max-width: calc(100vw - 260px); }
+        
+        /* Cards & Boxes */
+        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; 
+               box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-box { padding: 1.25rem; border-radius: 0.75rem; color: white; position: relative; overflow: hidden; }
+        .stat-box::before { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100px; 
+                           background: rgba(255,255,255,0.1); border-radius: 50%; transform: translate(30%, -30%); }
+        .stat-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .stat-green { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .stat-label { font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; }
+        .stat-detail { font-size: 0.75rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.3); }
+        
+        /* Toolbar */
+        .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+        input, select { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.875rem; outline: none; }
+        input:focus, select:focus { border-color: #3b82f6; ring: 2px solid #bfdbfe; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; 
+              font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+        
+        /* Table */
+        .table-wrap { overflow-x: auto; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #475569; white-space: nowrap; cursor: pointer; user-select: none; }
+        th:hover { background: #f1f5f9; }
+        tr:hover { background: #f8fafc; }
+        td { color: #334155; }
+        
+        /* Status & Rate Badges */
+        .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; 
+                font-weight: 600; border: 1px solid transparent; }
+        .badge-green { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-red { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-yellow { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .badge-blue { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        
+        select.badge { cursor: pointer; appearance: none; padding-right: 2rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); 
+                      background-repeat: no-repeat; background-position: right 0.5rem center; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+                padding: 1rem; backdrop-filter: blur(4px); }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+                        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: modalIn 0.2s ease-out; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 1.25rem; }
+        .modal-footer { padding: 1rem 1.25rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 0.75rem; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; line-height: 1; }
+        
+        /* Form */
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+        .form-input { width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; }
+        
+        /* Page display */
+        .page { display: none; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Info Card */
+        .info-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 0.75rem; margin-bottom: 1.5rem; }
+        .info-card h2 { margin: 0 0 0.5rem 0; font-size: 1.75rem; }
+        .info-card p { margin: 0.25rem 0; opacity: 0.9; }
+        
+        /* Chart */
+        .chart-container { position: relative; height: 300px; margin: 1.5rem 0; }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            aside { position: fixed; left: -260px; top: 64px; height: calc(100vh - 64px); transition: left 0.3s; z-index: 50; }
+            aside.open { left: 0; }
+            main { max-width: 100vw; padding: 1rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar input, .toolbar select, .toolbar button { width: 100%; }
+            table { font-size: 0.8125rem; }
+            th, td { padding: 0.625rem; }
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-content {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        
+        .mobile-menu-btn { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 1rem; }
+        @media (max-width: 768px) { .mobile-menu-btn { display: block; } }
+        
+        /* Loading */
+        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; 
+                   animation: loading 1.5s infinite; border-radius: 0.25rem; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
+<body>
 
-<body class="bg-gray-100">
-    <div id="app"></div>
+<header>
+    <div style="display: flex; align-items: center;">
+        <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+        <h1>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
+    </div>
+    <button onclick="logout()">Đăng xuất</button>
+</header>
 
-    <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-            authDomain: "thi-luat-giao-thong.firebaseapp.com",
-            projectId: "thi-luat-giao-thong"
-        };
+<div id="app">
+    <aside id="sidebar">
+        <nav>
+            <button class="menu-btn active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
+            <button class="menu-btn" onclick="showPage('students', this)">👤 Quản lý Học viên</button>
+            <button class="menu-btn" onclick="showPage('question_sets', this)">📝 Quản lý đề thi</button>
+            <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê</button>
+            <button class="menu-btn" onclick="showPage('system', this)">⚙️ Cài đặt</button>
+        </nav>
+    </aside>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // Check authentication
-        if(localStorage.getItem("userType") !== "admin") {
-            location.href = "index.html";
-        }
-
-        // State Management
-        const state = {
-            currentPage: 'dashboard',
-            students: [],
-            filteredStudents: [],
-            searchQuery: '',
-            studentModal: false,
-            importModal: false,
-            deleteModal: false,
-            examModal: false,
-            mode: 'add',
-            currentCode: '',
-            deleteTarget: null,
-            currentExam: null,
-            statsData: [],
-            examLogs: [],
-            sortKey: '',
-            sortDir: 1,
-            currentStudent: null,
-            studentExams: [],
-            chartPeriod: 'week',
-            examSets: [],
-            filterSet: '',
-            filterTime: '',
-            fromDate: '',
-            toDate: '',
-            formData: {
-                name: '',
-                unit: '',
-                objectType: 'HV',
-                objectOther: ''
-            },
-            loading: true,
-            statsLoading: false,
-            chartInstance: null
-        };
-
-        // Utility Functions
-        function formatDateTime(date) {
-            const d = new Date(date);
-            const dd = String(d.getDate()).padStart(2, '0');
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const yy = d.getFullYear();
-            const hh = String(d.getHours()).padStart(2, '0');
-            const min = String(d.getMinutes()).padStart(2, '0');
-            return `${dd}/${mm}/${yy} ${hh}:${min}`;
-        }
-
-        // Data Fetching
-        async function fetchStudents() {
-            state.loading = true;
-            render();
+    <main>
+        <!-- Dashboard -->
+        <div id="dashboard" class="page active">
+            <div class="card">
+                <h2 style="color: #1e40af; margin-bottom: 1rem;">Hệ thống quản trị</h2>
+                <p style="color: #64748b; margin-bottom: 1.5rem;">Chào mừng Admin. Sử dụng menu bên trái để quản lý học viên và xem báo cáo.</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="padding: 1rem; background: #f0f9ff; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+                        <strong>Quản lý học viên</strong><br><small>Thêm, sửa, xóa, nhập Excel</small>
+                    </div>
+                    <div style="padding: 1rem; background: #f0fdf4; border-radius: 0.5rem; border-left: 4px solid #10b981;">
+                        <strong>Thống kê kết quả</strong><br><small>Xem tỷ lệ đạt, biểu đồ</small>
+                    </div>
+                    <div style="padding: 1rem; background: #fefce8; border-radius: 0.5rem; border-left: 4px solid #eab308;">
+                        <strong>Chi tiết thành tích</strong><br><small>Lịch sử thi từng học viên</small>
+                    </div>
+                </div>
+            </div>
             
-            try {
-                const querySnapshot = await db.collection('students').get();
-                const studentList = [];
-                querySnapshot.forEach((doc) => {
-                    studentList.push(doc.data());
-                });
-                studentList.sort((a, b) => a.code.localeCompare(b.code));
-                state.students = studentList;
-                state.filteredStudents = studentList;
-            } catch (error) {
-                console.error('Error fetching students:', error);
-                alert('Lỗi tải dữ liệu học viên!');
-            } finally {
-                state.loading = false;
-                render();
-            }
-        }
+            <div class="stats-grid">
+                <div class="stat-box stat-blue">
+                    <div class="stat-label">Tổng học viên</div>
+                    <div class="stat-value" id="dashTotal">0</div>
+                </div>
+                <div class="stat-box stat-green">
+                    <div class="stat-label">Hoạt động</div>
+                    <div class="stat-value" id="dashActive">0</div>
+                </div>
+                <div class="stat-box stat-red">
+                    <div class="stat-label">Bị khóa</div>
+                    <div class="stat-value" id="dashLock">0</div>
+                </div>
+            </div>
+        </div>
 
-        async function fetchExamLogs() {
-            try {
-                const querySnapshot = await db.collection('exam_logs').get();
-                const logs = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    logs.push({
-                        ...data,
-                        time: data.time?.toDate() || new Date()
-                    });
-                });
-                state.examLogs = logs;
+        <!-- Students -->
+        <div id="students" class="page">
+            <div class="stats-grid">
+                <div class="stat-box stat-blue">
+                    <div class="stat-label">Tổng học viên</div>
+                    <div class="stat-value" id="sTotal">0</div>
+                    <div class="stat-detail" id="sTotalDetail">...</div>
+                </div>
+                <div class="stat-box stat-green">
+                    <div class="stat-label">Hoạt động</div>
+                    <div class="stat-value" id="sActive">0</div>
+                    <div class="stat-detail" id="sActiveDetail">...</div>
+                </div>
+                <div class="stat-box stat-red">
+                    <div class="stat-label">Bị khóa</div>
+                    <div class="stat-value" id="sLock">0</div>
+                    <div class="stat-detail" id="sLockDetail">...</div>
+                </div>
+            </div>
 
-                const sets = new Set();
-                logs.forEach(log => sets.add(log.setId || 'DEFAULT'));
-                state.examSets = Array.from(sets);
-                render();
-            } catch (error) {
-                console.error('Error fetching exam logs:', error);
-            }
-        }
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3 style="font-weight: 700; color: #0f172a;">Danh sách học viên</h3>
+                    <div class="toolbar" style="margin: 0;">
+                        <input type="text" id="searchStudent" placeholder="🔍 Tìm theo tên, mã..." style="width: 250px;" oninput="filterStudents()">
+                        <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
+                        <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
+                    </div>
+                </div>
+                
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã HV</th>
+                                <th>Họ và tên</th>
+                                <th>Đối tượng</th>
+                                <th>Đơn vị</th>
+                                <th style="text-align: center;">Trạng thái</th>
+                                <th style="text-align: center; width: 180px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTable">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        // Search and Filter
-        function handleSearch(query) {
-            state.searchQuery = query;
-            if (query.trim() === '') {
-                state.filteredStudents = state.students;
-            } else {
-                const q = query.toLowerCase();
-                state.filteredStudents = state.students.filter(st => 
-                    st.nameSearch?.includes(q) || 
-                    st.code.toLowerCase().includes(q) || 
-                    st.object.toLowerCase().includes(q)
-                );
-            }
-            render();
-        }
+        <!-- Student Detail -->
+        <div id="studentDetail" class="page">
+            <button class="btn btn-secondary" onclick="backFromDetail()" style="margin-bottom: 1rem;">← Quay lại</button>
+            
+            <div class="info-card">
+                <h2 id="detailName">---</h2>
+                <p>📋 Mã học viên: <b id="detailCode">---</b></p>
+            </div>
+            
+            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Tổng lượt thi</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #0f172a;" id="detailTotal">0</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Lượt đạt</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #059669;" id="detailPass">0</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Tỷ lệ đạt</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #2563eb;" id="detailRate">0%</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Điểm TB</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #dc2626;" id="detailAvg">0</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Biểu đồ thành tích</h3>
+                <select id="chartPeriod" onchange="renderChart()" style="margin-bottom: 1rem; width: 200px;">
+                    <option value="week">7 ngày gần nhất</option>
+                    <option value="month">30 ngày gần nhất</option>
+                    <option value="year">12 tháng gần nhất</option>
+                </select>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Lịch sử thi</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Thời gian</th>
+                                <th>Bộ đề</th>
+                                <th>Điểm</th>
+                                <th>Kết quả</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        // Generate Next Code
-        function generateNextCode(prefix) {
-            const relevantCodes = state.students
-                .filter(s => s.code.startsWith(prefix))
-                .map(s => parseInt(s.code.replace(prefix, '')))
-                .filter(n => !isNaN(n));
+        <!-- Question Sets -->
+        <div id="question_sets" class="page">
+            <div class="card">
+                <h3 class="card-title">Quản lý đề thi</h3>
+                <p style="color: #64748b; margin-bottom: 1rem;">Quản lý các bộ đề thi trắc nghiệm</p>
+                <button class="btn btn-success">➕ Thêm bộ đề</button>
+                <div style="margin-top: 2rem; padding: 3rem; text-align: center; background: #f8fafc; border-radius: 0.5rem; color: #94a3b8;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                    <p>Tính năng đang phát triển</p>
+                </div>
+            </div>
+        </div>
 
-            const maxNum = relevantCodes.length > 0 ? Math.max(...relevantCodes) : 0;
-            const nextNum = maxNum + 1;
-            return prefix + String(nextNum).padStart(4, '0');
-        }
+        <!-- Stats -->
+        <div id="stats" class="page">
+            <div class="stats-grid">
+                <div class="stat-box stat-blue">
+                    <div class="stat-label">Tổng lượt thi</div>
+                    <div class="stat-value" id="tTotal">0</div>
+                </div>
+                <div class="stat-box stat-green">
+                    <div class="stat-label">Lượt đạt</div>
+                    <div class="stat-value" id="tPass">0</div>
+                </div>
+                <div class="stat-box stat-red">
+                    <div class="stat-label">Không đạt</div>
+                    <div class="stat-value" id="tFail">0</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">Thống kê chi tiết</h3>
+                <div class="toolbar">
+                    <select id="filterSet"><option value="">Tất cả bộ đề</option></select>
+                    <select id="filterTime" onchange="toggleDateFilter()">
+                        <option value="">Toàn bộ thời gian</option>
+                        <option value="thisWeek">Tuần này</option>
+                        <option value="lastWeek">Tuần trước</option>
+                        <option value="thisMonth">Tháng này</option>
+                        <option value="lastMonth">Tháng trước</option>
+                        <option value="custom">Tùy chọn</option>
+                    </select>
+                    <span id="customDateRange" style="display: none;">
+                        <input type="date" id="fromDate"> đến <input type="date" id="toDate">
+                    </span>
+                    <button class="btn btn-success" onclick="loadStats()">🔍 Áp dụng</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã HV</th>
+                                <th onclick="sortStats('attempts')" style="cursor: pointer;">Lượt thi ↕</th>
+                                <th onclick="sortStats('pass')" style="cursor: pointer;">Lượt đạt ↕</th>
+                                <th onclick="sortStats('rate')" style="cursor: pointer;">% đạt ↕</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statTable">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Nhấn "Áp dụng" để xem dữ liệu</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        // Modal Functions
-        function openAddStudent() {
-            state.mode = 'add';
-            state.formData = {
-                name: '',
-                unit: '',
-                objectType: 'HV',
-                objectOther: ''
-            };
-            state.studentModal = true;
-            render();
-        }
+        <!-- System -->
+        <div id="system" class="page">
+            <div class="card">
+                <h3 class="card-title">Cài đặt hệ thống</h3>
+                <div style="max-width: 500px; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">Điểm đạt (%)</label>
+                        <input type="number" class="form-input" value="80" style="width: 100px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thời gian làm bài (phút)</label>
+                        <input type="number" class="form-input" value="20" style="width: 100px;">
+                    </div>
+                    <button class="btn btn-success">Lưu cấu hình</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
 
-        function openEditStudent(code) {
-            const student = state.students.find(s => s.code === code);
-            if (!student) {
-                alert('Không tìm thấy học viên!');
-                return;
-            }
+<!-- Student Modal -->
+<div class="modal" id="studentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Thêm học viên</h3>
+            <button class="close-btn" onclick="closeStudentModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Đối tượng</label>
+                <select class="form-input" id="stObjectType" onchange="toggleOtherObject()">
+                    <option value="HV">Học viên (HV)</option>
+                    <option value="SQ">Sĩ quan (SQ)</option>
+                    <option value="CN">Chuyên nghiệp (CN)</option>
+                    <option value="OTHER">Khác...</option>
+                </select>
+            </div>
+            <div class="form-group" id="otherObjectGroup" style="display: none;">
+                <label class="form-label">Tên đối tượng khác</label>
+                <input type="text" class="form-input" id="stObjectOther">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Họ và tên</label>
+                <input type="text" class="form-input" id="stName">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Đơn vị</label>
+                <input type="text" class="form-input" id="stUnit" placeholder="VD: Lớp A1">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeStudentModal()">Hủy</button>
+            <button class="btn btn-success" onclick="saveStudent()">Lưu lại</button>
+        </div>
+    </div>
+</div>
 
-            state.mode = 'edit';
-            state.currentCode = code;
-            state.formData = {
-                name: student.name,
-                unit: student.unit,
-                objectType: student.objectCode || 'HV',
-                objectOther: student.objectCode === 'OTHER' ? student.object : ''
-            };
-            state.studentModal = true;
-            render();
-        }
+<!-- Import Modal -->
+<div class="modal" id="importModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nhập từ Excel</h3>
+            <button class="close-btn" onclick="closeImportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 1rem; color: #64748b;">Tải file mẫu để nhập liệu chính xác.</p>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="downloadTemplate()">⬇️ Tải file mẫu</button>
+            <div class="form-group">
+                <label class="form-label">Chọn file Excel:</label>
+                <input type="file" class="form-input" id="excelFile" accept=".xlsx,.xls">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeImportModal()">Đóng</button>
+            <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
+        </div>
+    </div>
+</div>
 
-        function openDeleteModal(code, name) {
-            state.deleteTarget = { code, name };
-            state.deleteModal = true;
-            render();
-        }
+<!-- Delete Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-body" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Cảnh báo xóa</h3>
+            <p style="margin-bottom: 1rem;">Xóa học viên: <b id="delNameDisplay"></b>?</p>
+            <div style="background: #fee2e2; padding: 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #991b1b; margin-bottom: 1rem;">
+                Toàn bộ lịch sử thi sẽ bị xóa vĩnh viễn!
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                <button class="btn btn-danger" onclick="confirmDelete()">Đồng ý xóa</button>
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function openImportModal() {
-            state.importModal = true;
-            render();
-        }
+<script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+        authDomain: "thi-luat-giao-thong.firebaseapp.com",
+        projectId: "thi-luat-giao-thong"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        function closeModal(type) {
-            if (type === 'student') state.studentModal = false;
-            else if (type === 'import') state.importModal = false;
-            else if (type === 'delete') state.deleteModal = false;
-            else if (type === 'exam') state.examModal = false;
-            render();
-        }
+    // Global State
+    let allStudents = [];
+    let currentStudent = null;
+    let studentExams = [];
+    let chartInstance = null;
+    let deleteTargetCode = null;
+    let editingCode = null;
+    let statsData = [];
+    let sortCol = '';
+    let sortAsc = true;
 
-        // Student Operations
-        async function saveStudent() {
-            const { name, unit, objectType, objectOther } = state.formData;
-            let objName = '', objPrefix = '';
+    // Check auth
+    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
 
-            if (objectType === 'HV') { objName = 'Học viên'; objPrefix = 'HV'; }
-            else if (objectType === 'SQ') { objName = 'Sĩ quan'; objPrefix = 'SQ'; }
-            else if (objectType === 'CN') { objName = 'Chuyên nghiệp'; objPrefix = 'CN'; }
-            else {
-                objName = objectOther.trim();
-                objPrefix = 'KH';
-            }
+    // Navigation
+    function showPage(id, btn) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        document.querySelectorAll(".menu-btn").forEach(b => b.classList.remove("active"));
+        if(btn) btn.classList.add("active");
+        
+        if(id === 'students') loadStudents();
+        if(id === 'dashboard') loadDashboard();
+        if(id === 'stats') loadExamSets();
+        
+        // Close mobile menu
+        document.getElementById("sidebar").classList.remove("open");
+    }
 
-            if (!name.trim() || !unit.trim() || !objName.trim()) {
-                alert('Vui lòng nhập đầy đủ thông tin!');
-                return;
-            }
+    function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("open");
+    }
 
-            try {
-                if (state.mode === 'add') {
-                    const code = generateNextCode(objPrefix);
-                    await db.collection('students').doc(code).set({
-                        code,
-                        name: name.trim(),
-                        unit: unit.trim(),
-                        object: objName,
-                        objectCode: objectType,
-                        status: 'active',
-                        nameSearch: name.toLowerCase()
-                    });
-                    alert(`✅ Đã thêm: ${code}`);
+    function logout() { 
+        localStorage.clear(); 
+        location.href = "index.html"; 
+    }
+
+    // Load Data
+    async function loadStudents() {
+        const tbody = document.getElementById("studentTable");
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải...</td></tr>';
+        
+        try {
+            const snapshot = await db.collection("students").orderBy("code").get();
+            allStudents = [];
+            let stats = { total: {count:0, detail:{}}, active: {count:0, detail:{}}, lock: {count:0, detail:{}} };
+            
+            snapshot.forEach(doc => {
+                const st = doc.data();
+                allStudents.push(st);
+                
+                const obj = st.object || "Khác";
+                stats.total.count++; stats.total.detail[obj] = (stats.total.detail[obj]||0)+1;
+                if(st.status === 'active') {
+                    stats.active.count++; stats.active.detail[obj] = (stats.active.detail[obj]||0)+1;
                 } else {
-                    await db.collection('students').doc(state.currentCode).update({
-                        name: name.trim(),
-                        unit: unit.trim(),
-                        object: objName,
-                        objectCode: objectType,
-                        nameSearch: name.toLowerCase()
-                    });
-                    alert('✅ Cập nhật thành công!');
+                    stats.lock.count++; stats.lock.detail[obj] = (stats.lock.detail[obj]||0)+1;
                 }
-                closeModal('student');
-                fetchStudents();
-            } catch (error) {
-                console.error('Error saving student:', error);
-                alert('❌ Lỗi lưu dữ liệu!');
-            }
-        }
-
-        async function deleteStudent() {
-            if (!state.deleteTarget) return;
-            
-            try {
-                await db.collection('students').doc(state.deleteTarget.code).delete();
-                
-                const querySnapshot = await db.collection('exam_logs')
-                    .where('studentCode', '==', state.deleteTarget.code).get();
-                
-                const batch = db.batch();
-                querySnapshot.forEach((doc) => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
-
-                alert('✅ Đã xóa học viên và dữ liệu liên quan.');
-                closeModal('delete');
-                fetchStudents();
-            } catch (error) {
-                console.error('Error deleting student:', error);
-                alert('❌ Lỗi khi xóa!');
-            }
-        }
-
-        async function changeStatus(code, newStatus) {
-            try {
-                await db.collection('students').doc(code).update({ status: newStatus });
-                alert('✅ Đã cập nhật trạng thái!');
-                fetchStudents();
-            } catch (error) {
-                console.error('Error changing status:', error);
-                alert('❌ Lỗi cập nhật trạng thái!');
-            }
-        }
-
-        // Excel Import/Export
-        function downloadTemplate() {
-            const ws = XLSX.utils.json_to_sheet([
-                { "HoTen": "Nguyễn Văn A", "DonVi": "Lớp A1", "DoiTuong": "HV" },
-                { "HoTen": "Trần Văn B", "DonVi": "Phòng Tham Mưu", "DoiTuong": "SQ" },
-                { "HoTen": "Lê Thị C", "DonVi": "Ban Hậu Cần", "DoiTuong": "CN" }
-            ]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Mau_Nhap_Lieu");
-            XLSX.writeFile(wb, "Mau_Them_Hoc_Vien.xlsx");
-        }
-
-        async function processExcel(file) {
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet);
-
-                    if(json.length === 0) {
-                        alert("File rỗng!");
-                        return;
-                    }
-
-                    let tempCounters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
-                    
-                    state.students.forEach(s => {
-                        const p = s.code.substring(0, 2);
-                        const n = parseInt(s.code.substring(2));
-                        if(!isNaN(n) && n > (tempCounters[p] || 0)) tempCounters[p] = n;
-                    });
-
-                    const promises = [];
-
-                    json.forEach(row => {
-                        if(!row.HoTen) return;
-
-                        let objCode = row.DoiTuong ? row.DoiTuong.toUpperCase() : "KH";
-                        let prefix = "KH";
-                        let objName = "Khác";
-
-                        if(objCode === "HV") { prefix = "HV"; objName = "Học viên"; }
-                        else if(objCode === "SQ") { prefix = "SQ"; objName = "Sĩ quan"; }
-                        else if(objCode === "CN") { prefix = "CN"; objName = "Chuyên nghiệp"; }
-                        
-                        tempCounters[prefix] = (tempCounters[prefix] || 0) + 1;
-                        let nextNum = tempCounters[prefix];
-                        let newCode = prefix + String(nextNum).padStart(4, '0');
-
-                        promises.push(
-                            db.collection('students').doc(newCode).set({
-                                code: newCode,
-                                name: row.HoTen,
-                                unit: row.DonVi || "",
-                                object: objName,
-                                objectCode: objCode,
-                                status: "active",
-                                nameSearch: row.HoTen.toLowerCase()
-                            })
-                        );
-                    });
-
-                    await Promise.all(promises);
-                    alert(`✅ Đã nhập thành công ${promises.length} học viên!`);
-                    closeModal('import');
-                    fetchStudents();
-                } catch(err) {
-                    console.error('Error processing Excel:', err);
-                    alert("❌ Lỗi xử lý file: " + err.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Statistics Functions
-        function getTimeRange() {
-            const now = new Date();
-            let from = null, to = null;
-            
-            const monday = d => {
-                const x = new Date(d);
-                const day = x.getDay() || 7;
-                x.setDate(x.getDate() - day + 1);
-                x.setHours(0, 0, 0, 0);
-                return x;
-            };
-            
-            if(state.filterTime === 'thisWeek') {
-                from = monday(now); to = now;
-            } else if(state.filterTime === 'lastWeek') {
-                to = monday(now); to.setMilliseconds(-1); from = monday(to);
-            } else if(state.filterTime === 'thisMonth') {
-                from = new Date(now.getFullYear(), now.getMonth(), 1); to = now;
-            } else if(state.filterTime === 'lastMonth') {
-                from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-            } else if(state.filterTime === 'custom' && state.fromDate && state.toDate) {
-                from = new Date(state.fromDate);
-                to = new Date(state.toDate + "T23:59:59");
-            }
-            
-            return { from, to };
-        }
-
-        function loadStats() {
-            state.statsLoading = true;
-            state.statsData = [];
-            render();
-
-            let map = {}, total = 0, pass = 0;
-            const { from, to } = getTimeRange();
-
-            state.examLogs.forEach(e => {
-                if(state.filterSet && e.setId !== state.filterSet) return;
-                if(from && to) {
-                    const t = new Date(e.time);
-                    if(t < from || t > to) return;
-                }
-                total++; 
-                if(e.pass) pass++;
-                if(!map[e.studentCode]) map[e.studentCode] = { a: 0, p: 0 };
-                map[e.studentCode].a++;
-                if(e.pass) map[e.studentCode].p++;
             });
             
-            state.statsData = Object.entries(map).map(([c, v]) => ({ 
-                code: c, 
-                attempts: v.a, 
-                pass: v.p, 
-                rate: Math.round((v.p / v.a) * 100) 
-            }));
+            updateStatBox("sTotal", "sTotalDetail", stats.total);
+            updateStatBox("sActive", "sActiveDetail", stats.active);
+            updateStatBox("sLock", "sLockDetail", stats.lock);
+            
+            filterStudents();
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi tải dữ liệu!</td></tr>';
+        }
+    }
 
-            state.statsLoading = false;
-            render();
+    function updateStatBox(idNum, idDetail, data) {
+        document.getElementById(idNum).innerText = data.count.toString().padStart(2, '0');
+        let html = '';
+        for (let [k, v] of Object.entries(data.detail)) {
+            html += `<div>• ${k}: <b>${v.toString().padStart(2, '0')}</b></div>`;
+        }
+        document.getElementById(idDetail).innerHTML = html || "Không có dữ liệu";
+    }
+
+    function filterStudents() {
+        const k = document.getElementById("searchStudent").value.toLowerCase();
+        const filtered = allStudents.filter(st => 
+            !k || st.nameSearch?.includes(k) || st.code.toLowerCase().includes(k)
+        );
+        
+        const tbody = document.getElementById("studentTable");
+        tbody.innerHTML = '';
+        
+        if(filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Không tìm thấy dữ liệu</td></tr>';
+            return;
+        }
+        
+        filtered.forEach(st => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${st.code}</b></td>
+                <td>${st.name}</td>
+                <td><span class="badge badge-yellow">${st.object}</span></td>
+                <td>${st.unit}</td>
+                <td style="text-align: center;">
+                    <select class="badge ${st.status==='active'?'badge-green':'badge-red'}" onchange="changeStatus('${st.code}', this.value)">
+                        <option value="active" ${st.status==='active'?'selected':''}>Hoạt động</option>
+                        <option value="lock" ${st.status==='lock'?'selected':''}>Khóa</option>
+                    </select>
+                </td>
+                <td style="text-align: center;">
+                    <button class="btn btn-warning" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin-right: 0.5rem;" onclick="openEditStudent('${st.code}')">✏️</button>
+                    <button class="btn btn-danger" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin-right: 0.5rem;" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️</button>
+                    <button class="btn btn-success" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="viewStudentDetail('${st.code}')">👁️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function loadDashboard() {
+        const snapshot = await db.collection("students").get();
+        let active = 0, lock = 0;
+        snapshot.forEach(doc => {
+            if(doc.data().status === 'active') active++; else lock++;
+        });
+        document.getElementById("dashTotal").innerText = snapshot.size.toString().padStart(2,'0');
+        document.getElementById("dashActive").innerText = active.toString().padStart(2,'0');
+        document.getElementById("dashLock").innerText = lock.toString().padStart(2,'0');
+    }
+
+    // Student CRUD
+    function openAddStudent() {
+        editingCode = null;
+        document.getElementById("modalTitle").innerText = "Thêm học viên mới";
+        document.getElementById("stName").value = "";
+        document.getElementById("stUnit").value = "";
+        document.getElementById("stObjectType").value = "HV";
+        toggleOtherObject();
+        document.getElementById("studentModal").classList.add("show");
+    }
+
+    function openEditStudent(code) {
+        const st = allStudents.find(s => s.code === code);
+        if(!st) return;
+        editingCode = code;
+        document.getElementById("modalTitle").innerText = "Sửa học viên (" + code + ")";
+        document.getElementById("stName").value = st.name;
+        document.getElementById("stUnit").value = st.unit;
+        
+        if(["HV","SQ","CN"].includes(st.objectCode)) {
+            document.getElementById("stObjectType").value = st.objectCode;
+        } else {
+            document.getElementById("stObjectType").value = "OTHER";
+            document.getElementById("stObjectOther").value = st.object;
+        }
+        toggleOtherObject();
+        document.getElementById("studentModal").classList.add("show");
+    }
+
+    function closeStudentModal() {
+        document.getElementById("studentModal").classList.remove("show");
+    }
+
+    function toggleOtherObject() {
+        const val = document.getElementById("stObjectType").value;
+        document.getElementById("otherObjectGroup").style.display = val === "OTHER" ? "block" : "none";
+    }
+
+    async function saveStudent() {
+        const name = document.getElementById("stName").value.trim();
+        const unit = document.getElementById("stUnit").value.trim();
+        const objType = document.getElementById("stObjectType").value;
+        let objName = "", objPrefix = "";
+
+        if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
+        else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
+        else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
+        else {
+            objName = document.getElementById("stObjectOther").value.trim();
+            objPrefix = "KH";
         }
 
-        function sortStats(key) {
-            if(state.sortKey === key) {
-                state.sortDir *= -1;
+        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
+
+        try {
+            if(!editingCode) {
+                // Generate new code
+                const relevant = allStudents.filter(s => s.code.startsWith(objPrefix))
+                    .map(s => parseInt(s.code.substring(2)))
+                    .filter(n => !isNaN(n));
+                const maxNum = relevant.length ? Math.max(...relevant) : 0;
+                const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
+                
+                await db.collection("students").doc(newCode).set({
+                    code: newCode, name, unit, object: objName, objectCode: objType,
+                    status: "active", nameSearch: name.toLowerCase()
+                });
             } else {
-                state.sortKey = key;
-                state.sortDir = 1;
-            }
-            
-            state.statsData.sort((a, b) => (a[key] - b[key]) * state.sortDir);
-            render();
-        }
-
-        // Student Detail Functions
-        async function viewStudentDetail(code, name) {
-            state.currentStudent = { code, name };
-            state.currentPage = 'studentDetail';
-            
-            try {
-                const querySnapshot = await db.collection('exam_logs')
-                    .where('studentCode', '==', code).get();
-                
-                const exams = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    exams.push({
-                        ...data,
-                        time: data.time?.toDate() || new Date()
-                    });
+                await db.collection("students").doc(editingCode).update({
+                    name, unit, object: objName, objectCode: objType,
+                    nameSearch: name.toLowerCase()
                 });
-                
-                exams.sort((a, b) => b.time - a.time);
-                state.studentExams = exams;
-                render();
-                renderChart();
-            } catch (error) {
-                console.error('Error loading student exams:', error);
             }
+            closeStudentModal();
+            loadStudents();
+        } catch(e) {
+            alert("Lỗi: " + e.message);
         }
+    }
 
-        function showExamDetail(exam) {
-            state.currentExam = exam;
-            state.examModal = true;
-            render();
-        }
+    async function changeStatus(code, val) {
+        await db.collection("students").doc(code).update({ status: val });
+        loadStudents();
+    }
 
-        // Chart Functions
-        function getChartData() {
-            const now = new Date();
-            const labels = [];
-            const scores = [];
+    // Delete
+    function openDeleteModal(code, name) {
+        deleteTargetCode = code;
+        document.getElementById("delNameDisplay").innerText = name + " (" + code + ")";
+        document.getElementById("deleteModal").classList.add("show");
+    }
+
+    function closeDeleteModal() {
+        document.getElementById("deleteModal").classList.remove("show");
+    }
+
+    async function confirmDelete() {
+        if(!deleteTargetCode) return;
+        try {
+            await db.collection("students").doc(deleteTargetCode).delete();
+            const logs = await db.collection("exam_logs").where("studentCode", "==", deleteTargetCode).get();
+            const batch = db.batch();
+            logs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
             
-            if (state.chartPeriod === 'week') {
-                for(let i = 6; i >= 0; i--) {
-                    const d = new Date(now);
-                    d.setDate(d.getDate() - i);
-                    const dateStr = d.toLocaleDateString('vi-VN');
-                    labels.push(dateStr);
-                    
-                    const exams = state.studentExams.filter(e => {
-                        const eDate = new Date(e.time).toLocaleDateString('vi-VN');
-                        return eDate === dateStr;
-                    });
-                    
-                    const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
-                    scores.push(avg);
-                }
-            } else if (state.chartPeriod === 'month') {
-                for(let i = 29; i >= 0; i--) {
-                    const d = new Date(now);
-                    d.setDate(d.getDate() - i);
-                    labels.push(d.getDate() + "/" + (d.getMonth() + 1));
-                    
-                    const dateStr = d.toLocaleDateString('vi-VN');
-                    const exams = state.studentExams.filter(e => {
-                        const eDate = new Date(e.time).toLocaleDateString('vi-VN');
-                        return eDate === dateStr;
-                    });
-                    
-                    const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
-                    scores.push(avg);
-                }
-            } else if (state.chartPeriod === 'year') {
-                for(let i = 11; i >= 0; i--) {
-                    const d = new Date(now);
-                    d.setMonth(d.getMonth() - i);
-                    const month = d.getMonth() + 1;
-                    const year = d.getFullYear();
-                    labels.push(`T${month}/${year}`);
-                    
-                    const exams = state.studentExams.filter(e => {
-                        const et = new Date(e.time);
-                        return et.getMonth() === d.getMonth() && et.getFullYear() === d.getFullYear();
-                    });
-                    
-                    const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
-                    scores.push(avg);
-                }
-            }
+            closeDeleteModal();
+            loadStudents();
+        } catch(e) {
+            alert("Lỗi xóa: " + e.message);
+        }
+    }
+
+    // Import Excel
+    function openImportModal() {
+        document.getElementById("importModal").classList.add("show");
+    }
+
+    function closeImportModal() {
+        document.getElementById("importModal").classList.remove("show");
+    }
+
+    function downloadTemplate() {
+        const ws = XLSX.utils.json_to_sheet([
+            { HoTen: "Nguyễn Văn A", DonVi: "Lớp A1", DoiTuong: "HV" },
+            { HoTen: "Trần Văn B", DonVi: "Phòng TM", DoiTuong: "SQ" }
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Mau");
+        XLSX.writeFile(wb, "Mau_Hoc_Vien.xlsx");
+    }
+
+    async function processExcel() {
+        const file = document.getElementById("excelFile").files[0];
+        if(!file) return alert("Chọn file!");
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
             
-            return { labels, scores };
-        }
-
-        function renderChart() {
-            setTimeout(() => {
-                const canvas = document.getElementById('performanceChart');
-                if (!canvas) return;
-
-                const ctx = canvas.getContext('2d');
-                
-                if(state.chartInstance) {
-                    state.chartInstance.destroy();
-                }
-                
-                const data = getChartData();
-                
-                state.chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Điểm trung bình',
-                            data: data.scores,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59,130,246,0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: true },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return 'Điểm TB: ' + context.parsed.y;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: { stepSize: 10 }
-                            }
-                        }
-                    }
-                });
-            }, 100);
-        }
-
-        // Calculate Stats
-        function getStudentStats() {
-            const totalCount = state.students.length;
-            const activeCount = state.students.filter(s => s.status === 'active').length;
-            const lockCount = state.students.filter(s => s.status === 'lock').length;
-
-            const objectCounts = {};
-            state.students.forEach(s => {
-                const obj = s.object || 'Khác';
-                objectCounts[obj] = (objectCounts[obj] || 0) + 1;
+            let counters = { HV:0, SQ:0, CN:0, KH:0 };
+            allStudents.forEach(s => {
+                const p = s.code.substring(0,2);
+                const n = parseInt(s.code.substring(2));
+                if(!isNaN(n) && n > counters[p]) counters[p] = n;
             });
+            
+            for(let row of json) {
+                if(!row.HoTen) continue;
+                let code = (row.DoiTuong||'KH').toUpperCase();
+                let prefix = code === 'HV' ? 'HV' : code === 'SQ' ? 'SQ' : code === 'CN' ? 'CN' : 'KH';
+                let objName = prefix === 'HV' ? 'Học viên' : prefix === 'SQ' ? 'Sĩ quan' : prefix === 'CN' ? 'Chuyên nghiệp' : 'Khác';
+                
+                counters[prefix]++;
+                let newCode = prefix + String(counters[prefix]).padStart(4,'0');
+                
+                await db.collection("students").doc(newCode).set({
+                    code: newCode, name: row.HoTen, unit: row.DonVi||"",
+                    object: objName, objectCode: prefix, status: "active",
+                    nameSearch: row.HoTen.toLowerCase()
+                });
+            }
+            alert("Nhập thành công " + json.length + " học viên!");
+            closeImportModal();
+            loadStudents();
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-            return { totalCount, activeCount, lockCount, objectCounts };
-        }
+    // Detail View
+    async function viewStudentDetail(code) {
+        const st = allStudents.find(s => s.code === code);
+        if(!st) return;
+        currentStudent = st;
+        
+        document.getElementById("detailCode").innerText = code;
+        document.getElementById("detailName").innerText = st.name;
+        
+        showPage('studentDetail');
+        
+        // Load exams
+        const snapshot = await db.collection("exam_logs").where("studentCode", "==", code).get();
+        studentExams = [];
+        snapshot.forEach(doc => {
+            let d = doc.data();
+            d.id = doc.id;
+            d.time = d.time.toDate();
+            studentExams.push(d);
+        });
+        studentExams.sort((a,b) => b.time - a.time);
+        
+        // Update stats
+        const total = studentExams.length;
+        const pass = studentExams.filter(e => e.pass).length;
+        const avg = total ? Math.round(studentExams.reduce((s,e) => s+e.score,0)/total) : 0;
+        const rate = total ? Math.round(pass/total*100) : 0;
+        
+        document.getElementById("detailTotal").innerText = total;
+        document.getElementById("detailPass").innerText = pass;
+        document.getElementById("detailRate").innerText = rate + "%";
+        document.getElementById("detailAvg").innerText = avg;
+        
+        renderHistory();
+        renderChart();
+    }
 
-        function getExamStats() {
-            const total = state.examLogs.length;
-            const pass = state.examLogs.filter(e => e.pass).length;
-            const fail = total - pass;
-            return { total, pass, fail };
-        }
+    function backFromDetail() {
+        showPage('students', document.querySelectorAll(".menu-btn")[1]);
+    }
 
-        function getMiniStats() {
-            const total = state.studentExams.length;
-            const pass = state.studentExams.filter(e => e.pass).length;
-            const avg = total > 0 ? Math.round(state.studentExams.reduce((sum, e) => sum + e.score, 0) / total) : 0;
-            const rate = total > 0 ? Math.round(pass / total * 100) : 0;
-            return { total, pass, avg, rate };
-        }
-
-        // Render Functions
-        function render() {
-            const app = document.getElementById('app');
-            if (!app) return;
-
-            app.innerHTML = `
-                <!-- Header -->
-                <header class="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg sticky top-0 z-40">
-                    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                        <h1 class="text-xl font-bold">🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
-                        <button 
-                            onclick="logout()" 
-                            class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition">
-                            Đăng xuất
-                        </button>
-                    </div>
-                </header>
-
-                <!-- Layout -->
-                <div class="flex min-h-screen">
-                    <!-- Sidebar -->
-                    <aside class="w-64 bg-white shadow-lg">
-                        <nav class="p-4 space-y-2">
-                            ${renderMenuButton('dashboard', '📊 Tổng quan')}
-                            ${renderMenuButton('students', '👤 Quản lý Học viên')}
-                            ${renderMenuButton('question_sets', '📝 Quản lý đề thi')}
-                            ${renderMenuButton('stats', '📈 Thống kê')}
-                            ${renderMenuButton('system', '⚙️ Cài đặt')}
-                        </nav>
-                    </aside>
-
-                    <!-- Main Content -->
-                    <main class="flex-1 p-6 overflow-y-auto">
-                        ${renderPage()}
-                    </main>
-                </div>
-
-                <!-- Modals -->
-                ${renderStudentModal()}
-                ${renderImportModal()}
-                ${renderDeleteModal()}
-                ${renderExamModal()}
+    function renderHistory() {
+        const tbody = document.getElementById("historyTable");
+        tbody.innerHTML = '';
+        studentExams.forEach((e,i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i+1}</td>
+                <td>${e.time.toLocaleString('vi-VN')}</td>
+                <td>${e.setId || 'DEFAULT'}</td>
+                <td><b>${e.score}</b></td>
+                <td><span class="badge ${e.pass?'badge-green':'badge-red'}">${e.pass?'✓ Đạt':'✗ Không đạt'}</span></td>
             `;
-        }
+            tbody.appendChild(tr);
+        });
+    }
 
-        function renderMenuButton(page, label) {
-            const isActive = state.currentPage === page;
-            return `
-                <button 
-                    onclick="changePage('${page}')" 
-                    class="w-full text-left px-4 py-3 rounded-lg transition ${
-                        isActive 
-                            ? 'bg-blue-100 text-blue-600 font-bold' 
-                            : 'bg-gray-50 hover:bg-gray-100'
-                    }">
-                    ${label}
-                </button>
-            `;
-        }
-
-        function renderPage() {
-            switch(state.currentPage) {
-                case 'dashboard':
-                    return renderDashboard();
-                case 'students':
-                    return renderStudents();
-                case 'question_sets':
-                    return renderQuestionSets();
-                case 'stats':
-                    return renderStats();
-                case 'system':
-                    return renderSystem();
-                case 'studentDetail':
-                    return renderStudentDetail();
-                default:
-                    return renderDashboard();
+    function renderChart() {
+        const period = document.getElementById("chartPeriod").value;
+        const ctx = document.getElementById("performanceChart").getContext("2d");
+        
+        if(chartInstance) chartInstance.destroy();
+        
+        let labels = [], scores = [];
+        const now = new Date();
+        
+        if(period === 'week') {
+            for(let i=6; i>=0; i--) {
+                let d = new Date(now); d.setDate(d.getDate()-i);
+                labels.push(d.toLocaleDateString('vi-VN',{weekday:'short', day:'numeric'}));
+                let dayExams = studentExams.filter(e => e.time.toDateString() === d.toDateString());
+                scores.push(dayExams.length ? Math.round(dayExams.reduce((s,e)=>s+e.score,0)/dayExams.length) : 0);
+            }
+        } else if(period === 'month') {
+            for(let i=29; i>=0; i--) {
+                let d = new Date(now); d.setDate(d.getDate()-i);
+                labels.push(`${d.getDate()}/${d.getMonth()+1}`);
+                let dayExams = studentExams.filter(e => e.time.toDateString() === d.toDateString());
+                scores.push(dayExams.length ? Math.round(dayExams.reduce((s,e)=>s+e.score,0)/dayExams.length) : 0);
+            }
+        } else {
+            for(let i=11; i>=0; i--) {
+                let d = new Date(now); d.setMonth(d.getMonth()-i);
+                labels.push(`T${d.getMonth()+1}`);
+                let monthExams = studentExams.filter(e => e.time.getMonth()===d.getMonth() && e.time.getFullYear()===d.getFullYear());
+                scores.push(monthExams.length ? Math.round(monthExams.reduce((s,e)=>s+e.score,0)/monthExams.length) : 0);
             }
         }
+        
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Điểm TB',
+                    data: scores,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 100 } }
+            }
+        });
+    }
 
-        function renderDashboard() {
-            return `
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold text-blue-900 mb-4">📊 Hệ thống quản trị</h2>
-                    <p class="text-gray-700 mb-2">Chào mừng Admin. Sử dụng menu bên trái để quản lý học viên và xem báo cáo kết quả thi.</p>
-                    <ul class="list-disc list-inside text-gray-700 space-y-1">
-                        <li>Quản lý học viên</li>
-                        <li>Quản lý đề thi</li>
-                        <li>Thống kê kết quả thi</li>
-                        <li>Chi tiết thành tích từng học viên</li>
-                    </ul>
-                </div>
-            `;
-        }
+    // Stats Page
+    async function loadExamSets() {
+        const snapshot = await db.collection("exam_logs").get();
+        const sets = new Set();
+        snapshot.forEach(d => sets.add(d.data().setId || "DEFAULT"));
+        const select = document.getElementById("filterSet");
+        sets.forEach(s => {
+            if(!select.querySelector(`option[value="${s}"]`)) {
+                select.innerHTML += `<option value="${s}">${s}</option>`;
+            }
+        });
+    }
 
-        function renderStudents() {
-            const { totalCount, activeCount, lockCount, objectCounts } = getStudentStats();
+    function toggleDateFilter() {
+        const val = document.getElementById("filterTime").value;
+        document.getElementById("customDateRange").style.display = val === 'custom' ? 'inline' : 'none';
+    }
+
+    async function loadStats() {
+        const setFilter = document.getElementById("filterSet").value;
+        const timeFilter = document.getElementById("filterTime").value;
+        const from = document.getElementById("fromDate").value;
+        const to = document.getElementById("toDate").value;
+        
+        let q = db.collection("exam_logs");
+        const snapshot = await q.get();
+        
+        let map = {}, total=0, pass=0;
+        const now = new Date();
+        
+        snapshot.forEach(doc => {
+            const e = doc.data();
+            const t = e.time.toDate();
             
-            return `
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-blue-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Tổng học viên</div>
-                        <div class="text-4xl font-bold mb-3">${totalCount}</div>
-                        <div class="text-xs opacity-90 border-t border-white/30 pt-2">
-                            ${Object.entries(objectCounts).map(([k, v]) => `<div>• ${k}: ${v}</div>`).join('')}
-                        </div>
-                    </div>
-                    <div class="bg-green-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Hoạt động</div>
-                        <div class="text-4xl font-bold">${activeCount}</div>
-                    </div>
-                    <div class="bg-red-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Bị khóa</div>
-                        <div class="text-4xl font-bold">${lockCount}</div>
-                    </div>
-                </div>
-
-                <!-- Student List -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4">👤 Danh sách học viên</h2>
-                    
-                    <!-- Toolbar -->
-                    <div class="flex gap-3 mb-4 flex-wrap">
-                        <input 
-                            type="text" 
-                            placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng..."
-                            class="flex-1 px-4 py-2 border rounded-lg min-w-[250px]"
-                            value="${state.searchQuery}"
-                            oninput="handleSearch(this.value)">
-                        <button onclick="openAddStudent()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                            ➕ Thêm mới
-                        </button>
-                        <button onclick="openImportModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
-                            📂 Nhập Excel
-                        </button>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        ${state.loading ? `
-                            <div class="flex justify-center items-center py-12">
-                                <div class="spinner"></div>
-                            </div>
-                        ` : `
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Mã học viên</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Họ tên</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Đối tượng</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Đơn vị</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Trạng thái</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                    ${state.filteredStudents.length === 0 ? `
-                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Không tìm thấy dữ liệu</td></tr>
-                                    ` : state.filteredStudents.map(st => `
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-center"><b>${st.code}</b></td>
-                                            <td class="px-4 py-3">${st.name}</td>
-                                            <td class="px-4 py-3 text-center">
-                                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">${st.object}</span>
-                                            </td>
-                                            <td class="px-4 py-3 text-center">${st.unit}</td>
-                                            <td class="px-4 py-3 text-center">
-                                                <select 
-                                                    onchange="changeStatus('${st.code}', this.value)"
-                                                    class="px-3 py-1 border rounded-lg text-xs font-medium cursor-pointer ${
-                                                        st.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                    }">
-                                                    <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
-                                                    <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
-                                                </select>
-                                            </td>
-                                            <td class="px-4 py-3 text-center">
-                                                <div class="flex gap-1 justify-center">
-                                                    <button onclick="openEditStudent('${st.code}')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition">✏️ Sửa</button>
-                                                    <button onclick="openDeleteModal('${st.code}', '${st.name}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition">🗑️ Xóa</button>
-                                                    <button onclick="viewStudentDetail('${st.code}', '${st.name}')" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition">👁️ Xem</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderQuestionSets() {
-            return `
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4">📝 Quản lý Bộ đề</h2>
-                    <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition mb-4">
-                        ➕ Thêm bộ đề
-                    </button>
-                    <div class="text-center text-gray-500 py-12">
-                        Chưa có dữ liệu
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderStats() {
-            const { total, pass, fail } = getExamStats();
+            // Filter set
+            if(setFilter && e.setId !== setFilter) return;
             
-            return `
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-blue-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Tổng lượt thi</div>
-                        <div class="text-4xl font-bold">${total}</div>
-                    </div>
-                    <div class="bg-green-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Lượt đạt</div>
-                        <div class="text-4xl font-bold">${pass}</div>
-                    </div>
-                    <div class="bg-red-500 text-white rounded-xl p-6 shadow-lg">
-                        <div class="text-sm mb-2">Không đạt</div>
-                        <div class="text-4xl font-bold">${fail}</div>
-                    </div>
-                </div>
-
-                <!-- Stats Detail -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4">📈 Thống kê chi tiết</h2>
-                    
-                    <!-- Filters -->
-                    <div class="flex gap-3 mb-4 flex-wrap items-center">
-                        <select class="px-4 py-2 border rounded-lg" onchange="state.filterSet = this.value">
-                            <option value="">Tất cả bộ đề</option>
-                            ${state.examSets.map(s => `<option value="${s}">${s}</option>`).join('')}
-                        </select>
-                        <select class="px-4 py-2 border rounded-lg" onchange="state.filterTime = this.value">
-                            <option value="">Toàn bộ thời gian</option>
-                            <option value="thisWeek">Tuần này</option>
-                            <option value="lastWeek">Tuần trước</option>
-                            <option value="thisMonth">Tháng này</option>
-                            <option value="lastMonth">Tháng trước</option>
-                            <option value="custom">Tùy chọn</option>
-                        </select>
-                        <button onclick="loadStats()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                            🔍 Áp dụng
-                        </button>
-                    </div>
-
-                    <!-- Stats Table -->
-                    <div class="overflow-x-auto">
-                        ${state.statsLoading ? `
-                            <div class="flex justify-center items-center py-12">
-                                <div class="spinner"></div>
-                            </div>
-                        ` : `
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">#</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Mã HV</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer" onclick="sortStats('attempts')">
-                                            Lượt thi ${state.sortKey === 'attempts' ? (state.sortDir === 1 ? '▲' : '▼') : ''}
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer" onclick="sortStats('pass')">
-                                            Lượt đạt ${state.sortKey === 'pass' ? (state.sortDir === 1 ? '▲' : '▼') : ''}
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer" onclick="sortStats('rate')">
-                                            % đạt ${state.sortKey === 'rate' ? (state.sortDir === 1 ? '▲' : '▼') : ''}
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Chi tiết</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                    ${state.statsData.length === 0 ? `
-                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Không có dữ liệu</td></tr>
-                                    ` : state.statsData.map((s, i) => `
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-center">${i + 1}</td>
-                                            <td class="px-4 py-3 text-center"><b>${s.code}</b></td>
-                                            <td class="px-4 py-3 text-center">${s.attempts}</td>
-                                            <td class="px-4 py-3 text-center">${s.pass}</td>
-                                            <td class="px-4 py-3 text-center">
-                                                <span class="px-2 py-1 rounded text-xs font-medium ${
-                                                    s.rate >= 80 ? 'bg-green-100 text-green-800' : 
-                                                    s.rate >= 50 ? 'bg-yellow-100 text-yellow-800' : 
-                                                    'bg-red-100 text-red-800'
-                                                }">${s.rate}%</span>
-                                            </td>
-                                            <td class="px-4 py-3 text-center">
-                                                <button onclick="viewStudentDetailFromCode('${s.code}')" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition">
-                                                    👁️ Xem
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderSystem() {
-            return `
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4">⚙️ Cài đặt hệ thống</h2>
-                    <p class="text-gray-700 mb-4">Cấu hình các thông số của hệ thống</p>
-                    <div class="flex gap-4 items-center">
-                        <label class="text-sm font-medium text-gray-700">Điểm đạt (%)</label>
-                        <input type="number" class="px-4 py-2 border rounded-lg w-24" value="80">
-                        <label class="text-sm font-medium text-gray-700">Thời gian làm bài (phút)</label>
-                        <input type="number" class="px-4 py-2 border rounded-lg w-24" value="20">
-                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                            Lưu cấu hình
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderStudentDetail() {
-            if (!state.currentStudent) return '';
-            
-            const { total, pass, avg, rate } = getMiniStats();
-            
-            return `
-                <button onclick="changePage('students')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg mb-4 transition">
-                    ← Quay lại
-                </button>
-
-                <!-- Student Info Card -->
-                <div class="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl p-6 mb-6 shadow-lg">
-                    <h2 class="text-3xl font-bold mb-2">${state.currentStudent.name}</h2>
-                    <p class="opacity-90">📋 Mã học viên: <b>${state.currentStudent.code}</b></p>
-                </div>
-
-                <!-- Mini Stats -->
-                <div class="grid grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-sm text-gray-600 mb-2">Tổng lượt thi</div>
-                        <div class="text-3xl font-bold text-blue-900">${total}</div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-sm text-gray-600 mb-2">Lượt đạt</div>
-                        <div class="text-3xl font-bold text-green-600">${pass}</div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-sm text-gray-600 mb-2">Tỷ lệ đạt</div>
-                        <div class="text-3xl font-bold text-blue-600">${rate}%</div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-sm text-gray-600 mb-2">Điểm TB</div>
-                        <div class="text-3xl font-bold text-red-600">${avg}</div>
-                    </div>
-                </div>
-
-                <!-- Chart -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h3 class="text-xl font-bold text-blue-900 mb-4">📊 Biểu đồ thành tích</h3>
-                    <div class="mb-4">
-                        <select onchange="state.chartPeriod = this.value; renderChart()" class="px-4 py-2 border rounded-lg">
-                            <option value="week" ${state.chartPeriod === 'week' ? 'selected' : ''}>Theo tuần (7 ngày gần nhất)</option>
-                            <option value="month" ${state.chartPeriod === 'month' ? 'selected' : ''}>Theo tháng (30 ngày gần nhất)</option>
-                            <option value="year" ${state.chartPeriod === 'year' ? 'selected' : ''}>Theo năm (12 tháng gần nhất)</option>
-                        </select>
-                    </div>
-                    <div class="relative h-64">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Exam History -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-blue-900 mb-4">📝 Lịch sử thi</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">#</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Thời gian</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Bộ đề</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Điểm</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Kết quả</th>
-                                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Chi tiết</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y">
-                                ${state.studentExams.length === 0 ? `
-                                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Chưa có lượt thi</td></tr>
-                                ` : state.studentExams.map((e, i) => `
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-center">${i + 1}</td>
-                                        <td class="px-4 py-3 text-center">${formatDateTime(e.time)}</td>
-                                        <td class="px-4 py-3 text-center">${e.setId}</td>
-                                        <td class="px-4 py-3 text-center"><b>${e.score}</b></td>
-                                        <td class="px-4 py-3 text-center">
-                                            <span class="px-2 py-1 rounded text-xs font-medium ${
-                                                e.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                            }">${e.pass ? '✓ Đạt' : '✗ Không đạt'}</span>
-                                        </td>
-                                        <td class="px-4 py-3 text-center">
-                                            <button onclick='showExamDetail(${JSON.stringify(e)})' class="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs transition">
-                                                📋 Xem
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderStudentModal() {
-            if (!state.studentModal) return '';
-            
-            return `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="modal-content bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
-                        <h3 class="text-xl font-bold text-blue-900 mb-4">
-                            ${state.mode === 'add' ? '➕ Thêm học viên mới' : `✏️ Sửa thông tin học viên (${state.currentCode})`}
-                        </h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Đối tượng học viên</label>
-                                <select 
-                                    class="w-full px-4 py-2 border rounded-lg"
-                                    value="${state.formData.objectType}"
-                                    onchange="state.formData.objectType = this.value; render()">
-                                    <option value="HV">Học viên (HV)</option>
-                                    <option value="SQ">Sĩ quan (SQ)</option>
-                                    <option value="CN">Chuyên nghiệp (CN)</option>
-                                    <option value="OTHER">Khác...</option>
-                                </select>
-                            </div>
-
-                            ${state.formData.objectType === 'OTHER' ? `
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nhập tên đối tượng khác</label>
-                                    <input 
-                                        type="text"
-                                        class="w-full px-4 py-2 border rounded-lg"
-                                        placeholder="Nhập tên đối tượng"
-                                        value="${state.formData.objectOther}"
-                                        oninput="state.formData.objectOther = this.value">
-                                </div>
-                            ` : ''}
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
-                                <input 
-                                    type="text"
-                                    class="w-full px-4 py-2 border rounded-lg"
-                                    placeholder="Nhập họ và tên"
-                                    value="${state.formData.name}"
-                                    oninput="state.formData.name = this.value">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Đơn vị</label>
-                                <input 
-                                    type="text"
-                                    class="w-full px-4 py-2 border rounded-lg"
-                                    placeholder="Nhập đơn vị (VD: Lớp A1)"
-                                    value="${state.formData.unit}"
-                                    oninput="state.formData.unit = this.value">
-                            </div>
-
-                            <div class="flex gap-4 justify-end pt-4">
-                                <button 
-                                    onclick="closeModal('student')"
-                                    class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
-                                    Hủy
-                                </button>
-                                <button 
-                                    onclick="saveStudent()"
-                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                                    Lưu lại
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderImportModal() {
-            if (!state.importModal) return '';
-            
-            return `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="modal-content bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 class="text-xl font-bold text-blue-900 mb-4">📂 Nhập danh sách từ Excel</h3>
-                        <p class="text-gray-600 mb-4">Vui lòng sử dụng file mẫu để nhập liệu chính xác.</p>
-
-                        <button 
-                            onclick="downloadTemplate()"
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition mb-4">
-                            ⬇️ Tải file mẫu (.xlsx)
-                        </button>
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Chọn file Excel:</label>
-                            <input 
-                                type="file"
-                                class="w-full px-4 py-2 border rounded-lg"
-                                accept=".xlsx, .xls"
-                                onchange="if(this.files[0]) processExcel(this.files[0])">
-                        </div>
-
-                        <div class="flex justify-end">
-                            <button 
-                                onclick="closeModal('import')"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
-                                Đóng
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderDeleteModal() {
-            if (!state.deleteModal || !state.deleteTarget) return '';
-            
-            return `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="modal-content bg-white rounded-xl p-6 w-full max-w-md text-center shadow-2xl">
-                        <h3 class="text-xl font-bold text-red-500 mb-4">⚠️ Cảnh báo xóa</h3>
-                        <p class="text-gray-700 mb-4">
-                            Bạn có chắc chắn muốn xóa học viên: <b>${state.deleteTarget.name}</b> (${state.deleteTarget.code})?
-                        </p>
-                        <div class="bg-red-100 border border-red-300 rounded-lg p-4 mb-4">
-                            <p class="text-sm text-red-700">
-                                Lưu ý: Toàn bộ lịch sử thi và kết quả của học viên này sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
-                            </p>
-                        </div>
-                        <div class="flex gap-4 justify-center">
-                            <button 
-                                onclick="deleteStudent()"
-                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
-                                Đồng ý xóa
-                            </button>
-                            <button 
-                                onclick="closeModal('delete')"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
-                                Quay lại
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderExamModal() {
-            if (!state.examModal || !state.currentExam) return '';
-            
-            return `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="modal-content bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-                        <h3 class="text-xl font-bold text-blue-900 mb-4">Chi tiết bài thi</h3>
-
-                        <div class="space-y-2 mb-4">
-                            <p><b>Thời gian:</b> ${formatDateTime(state.currentExam.time)}</p>
-                            <p><b>Bộ đề:</b> ${state.currentExam.setId}</p>
-                            <p><b>Điểm:</b> <span class="text-2xl text-blue-600 font-bold">${state.currentExam.score}</span></p>
-                            <p>
-                                <b>Kết quả:</b>
-                                <span class="px-2 py-1 rounded text-xs font-medium ${
-                                    state.currentExam.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }">
-                                    ${state.currentExam.pass ? '✓ Đạt' : '✗ Không đạt'}
-                                </span>
-                            </p>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <h4 class="font-bold text-gray-800 mb-2">Chi tiết câu trả lời:</h4>
-                        ${state.currentExam.answers && state.currentExam.answers.length > 0 ? `
-                            <div class="space-y-2">
-                                ${state.currentExam.answers.map((answer, index) => `
-                                    <div class="flex justify-between p-3 rounded-lg ${
-                                        answer.correct ? 'bg-green-100' : 'bg-red-100'
-                                    }">
-                                        <span>
-                                            <b>Câu ${index + 1}:</b> ${answer.userAnswer || 'Không trả lời'}
-                                        </span>
-                                        <span>${answer.correct ? '✓' : '✗'}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : `
-                            <p class="text-gray-500">Không có dữ liệu chi tiết câu trả lời</p>
-                        `}
-
-                        <button 
-                            onclick="closeModal('exam')"
-                            class="w-full mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
-                            Đóng
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Page Navigation
-        function changePage(page) {
-            state.currentPage = page;
-            
-            if (page === 'students') {
-                fetchStudents();
-            } else if (page === 'stats') {
-                loadStats();
+            // Filter time
+            if(timeFilter) {
+                let ok = false;
+                if(timeFilter === 'thisWeek') {
+                    const day = now.getDay()||7;
+                    const mon = new Date(now); mon.setDate(now.getDate()-day+1); mon.setHours(0,0,0,0);
+                    ok = t >= mon;
+                } else if(timeFilter === 'lastWeek') {
+                    const day = now.getDay()||7;
+                    const sun = new Date(now); sun.setDate(now.getDate()-day); sun.setHours(23,59,59,999);
+                    const mon = new Date(sun); mon.setDate(sun.getDate()-6); mon.setHours(0,0,0,0);
+                    ok = t >= mon && t <= sun;
+                } else if(timeFilter === 'thisMonth') {
+                    ok = t.getMonth() === now.getMonth() && t.getFullYear() === now.getFullYear();
+                } else if(timeFilter === 'lastMonth') {
+                    const last = new Date(now.getFullYear(), now.getMonth()-1, 1);
+                    ok = t.getMonth() === last.getMonth() && t.getFullYear() === last.getFullYear();
+                } else if(timeFilter === 'custom' && from && to) {
+                    const f = new Date(from), td = new Date(to+'T23:59:59');
+                    ok = t >= f && t <= td;
+                }
+                if(!ok) return;
             }
             
-            render();
-        }
+            total++; if(e.pass) pass++;
+            if(!map[e.studentCode]) map[e.studentCode] = {a:0,p:0};
+            map[e.studentCode].a++;
+            if(e.pass) map[e.studentCode].p++;
+        });
+        
+        document.getElementById("tTotal").innerText = total;
+        document.getElementById("tPass").innerText = pass;
+        document.getElementById("tFail").innerText = total-pass;
+        
+        statsData = Object.entries(map).map(([code,v]) => ({
+            code, attempts: v.a, pass: v.p, rate: Math.round(v.p/v.a*100)
+        }));
+        
+        renderStatsTable();
+    }
 
-        async function viewStudentDetailFromCode(code) {
-            const student = state.students.find(s => s.code === code);
-            if (student) {
-                await viewStudentDetail(code, student.name);
-            } else {
-                alert('Không tìm thấy học viên!');
-            }
-        }
+    function sortStats(key) {
+        if(sortCol === key) sortAsc = !sortAsc;
+        else { sortCol = key; sortAsc = true; }
+        
+        statsData.sort((a,b) => sortAsc ? a[key]-b[key] : b[key]-a[key]);
+        renderStatsTable();
+    }
 
-        function logout() {
-            localStorage.clear();
-            location.href = 'index.html';
-        }
+    function renderStatsTable() {
+        const tbody = document.getElementById("statTable");
+        tbody.innerHTML = '';
+        statsData.forEach((s,i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i+1}</td>
+                <td><b>${s.code}</b></td>
+                <td>${s.attempts}</td>
+                <td>${s.pass}</td>
+                <td><span class="badge ${s.rate>=80?'badge-green':s.rate>=50?'badge-yellow':'badge-red'}">${s.rate}%</span></td>
+                <td><button class="btn btn-success" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="viewStudentDetail('${s.code}')">Xem</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
-        // Initialize App
-        (async function init() {
-            await fetchStudents();
-            await fetchExamLogs();
-            render();
-        })();
-    </script>
+    // Init
+    loadDashboard();
+    showPage('dashboard', document.querySelector(".menu-btn"));
+</script>
 </body>
 </html>
