@@ -1,21 +1,14 @@
-Dưới đây là toàn bộ mã nguồn (`HTML + CSS + JavaScript`) đã được sửa lỗi logic trong hàm **Thêm học viên** và **Tải danh sách**.
-
-Bạn có thể lưu file này thành `admin.html` và chạy ngay.
-
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMIN | Hệ thống thi luật giao thông</title>
-    <!-- Thư viện cần thiết -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* CSS Styles - Giữ nguyên giao diện đẹp */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #334155; line-height: 1.6; }
         
@@ -78,16 +71,13 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         tr:hover { background: #f8fafc; }
         td { color: #334155; }
         
-        /* Status & Rate Badges */
+        /* Badges */
         .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; 
                 font-weight: 600; border: 1px solid transparent; }
         .badge-green { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
         .badge-red { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
         .badge-yellow { background: #fef3c7; color: #92400e; border-color: #fde68a; }
         .badge-blue { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
-        
-        select.badge { cursor: pointer; appearance: none; padding-right: 2rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); 
-                      background-repeat: no-repeat; background-position: right 0.5rem center; }
         
         /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
@@ -106,7 +96,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
         .form-input { width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; }
         
-        /* Page display */
+        /* Page */
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -140,7 +130,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 <header>
     <div style="display: flex; align-items: center;">
         <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
-        <h1>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
+        <h1>ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
     </div>
     <button onclick="logout()">Đăng xuất</button>
 </header>
@@ -148,11 +138,11 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 <div id="app">
     <aside id="sidebar">
         <nav>
-            <button class="menu-btn active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
-            <button class="menu-btn" onclick="showPage('students', this)">👤 Quản lý Học viên</button>
-            <button class="menu-btn" onclick="showPage('question_sets', this)">📝 Quản lý đề thi</button>
-            <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê</button>
-            <button class="menu-btn" onclick="showPage('system', this)">⚙️ Cài đặt</button>
+            <button class="menu-btn active" onclick="showPage('dashboard', this)">Tổng quan</button>
+            <button class="menu-btn" onclick="showPage('students', this)">Quản lý Học viên</button>
+            <button class="menu-btn" onclick="showPage('question_sets', this)">Quản lý đề thi</button>
+            <button class="menu-btn" onclick="showPage('stats', this)">Thống kê</button>
+            <button class="menu-btn" onclick="showPage('system', this)">Cài đặt</button>
         </nav>
     </aside>
 
@@ -162,17 +152,6 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
             <div class="card">
                 <h2 style="color: #1e40af; margin-bottom: 1rem;">Hệ thống quản trị</h2>
                 <p style="color: #64748b; margin-bottom: 1.5rem;">Chào mừng Admin. Sử dụng menu bên trái để quản lý học viên và xem báo cáo.</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div style="padding: 1rem; background: #f0f9ff; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
-                        <strong>Quản lý học viên</strong><br><small>Thêm, sửa, xóa, nhập Excel</small>
-                    </div>
-                    <div style="padding: 1rem; background: #f0fdf4; border-radius: 0.5rem; border-left: 4px solid #10b981;">
-                        <strong>Thống kê kết quả</strong><br><small>Xem tỷ lệ đạt, biểu đồ</small>
-                    </div>
-                    <div style="padding: 1rem; background: #fefce8; border-radius: 0.5rem; border-left: 4px solid #eab308;">
-                        <strong>Chi tiết thành tích</strong><br><small>Lịch sử thi từng học viên</small>
-                    </div>
-                </div>
             </div>
             
             <div class="stats-grid">
@@ -215,9 +194,9 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <h3 style="font-weight: 700; color: #0f172a;">Danh sách học viên</h3>
                     <div class="toolbar" style="margin: 0;">
-                        <input type="text" id="searchStudent" placeholder="🔍 Tìm theo tên, mã..." style="width: 250px;" oninput="filterStudents()">
-                        <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
-                        <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
+                        <input type="text" id="searchStudent" placeholder="Tìm theo tên, mã, đơn vị..." style="width: 250px;" oninput="filterStudents()">
+                        <button class="btn btn-success" onclick="openAddStudent()">Thêm mới</button>
+                        <button class="btn btn-primary" onclick="openImportModal()">Nhập Excel</button>
                     </div>
                 </div>
                 
@@ -243,11 +222,11 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 
         <!-- Student Detail -->
         <div id="studentDetail" class="page">
-            <button class="btn btn-secondary" onclick="backFromDetail()" style="margin-bottom: 1rem;">← Quay lại</button>
+            <button class="btn btn-secondary" onclick="backFromDetail()" style="margin-bottom: 1rem;">Quay lại</button>
             
             <div class="info-card">
                 <h2 id="detailName">---</h2>
-                <p>📋 Mã học viên: <b id="detailCode">---</b></p>
+                <p> Mã học viên: <b id="detailCode">---</b></p>
             </div>
             
             <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
@@ -305,10 +284,9 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
             <div class="card">
                 <h3 class="card-title">Quản lý đề thi</h3>
                 <p style="color: #64748b; margin-bottom: 1rem;">Quản lý các bộ đề thi trắc nghiệm</p>
-                <button class="btn btn-success">➕ Thêm bộ đề</button>
+                <button class="btn btn-success">Thêm bộ đề</button>
                 <div style="margin-top: 2rem; padding: 3rem; text-align: center; background: #f8fafc; border-radius: 0.5rem; color: #94a3b8;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
-                    <p>Tính năng đang phát triển</p>
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">Tính năng đang phát triển</div>
                 </div>
             </div>
         </div>
@@ -345,7 +323,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
                     <span id="customDateRange" style="display: none;">
                         <input type="date" id="fromDate"> đến <input type="date" id="toDate">
                     </span>
-                    <button class="btn btn-success" onclick="loadStats()">🔍 Áp dụng</button>
+                    <button class="btn btn-success" onclick="loadStats()">Áp dụng</button>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -353,9 +331,9 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
                             <tr>
                                 <th>#</th>
                                 <th>Mã HV</th>
-                                <th onclick="sortStats('attempts')" style="cursor: pointer;">Lượt thi ↕</th>
-                                <th onclick="sortStats('pass')" style="cursor: pointer;">Lượt đạt ↕</th>
-                                <th onclick="sortStats('rate')" style="cursor: pointer;">% đạt ↕</th>
+                                <th onclick="sortStats('attempts')" style="cursor: pointer;">Lượt thi</th>
+                                <th onclick="sortStats('pass')" style="cursor: pointer;">Lượt đạt</th>
+                                <th onclick="sortStats('rate')" style="cursor: pointer;">% đạt</th>
                                 <th>Chi tiết</th>
                             </tr>
                         </thead>
@@ -392,7 +370,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">Thêm học viên</h3>
-            <button class="close-btn" onclick="closeStudentModal()">&times;</button>
+            <button class="close-btn" onclick="closeStudentModal()">×</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -406,11 +384,11 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
             </div>
             <div class="form-group" id="otherObjectGroup" style="display: none;">
                 <label class="form-label">Tên đối tượng khác</label>
-                <input type="text" class="form-input" id="stObjectOther">
+                <input type="text" class="form-input" id="stObjectOther" placeholder="Ví dụ: Bộ đội, Công an...">
             </div>
             <div class="form-group">
                 <label class="form-label">Họ và tên</label>
-                <input type="text" class="form-input" id="stName">
+                <input type="text" class="form-input" id="stName" placeholder="Nguyễn Văn A">
             </div>
             <div class="form-group">
                 <label class="form-label">Đơn vị</label>
@@ -429,11 +407,11 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
     <div class="modal-content">
         <div class="modal-header">
             <h3>Nhập từ Excel</h3>
-            <button class="close-btn" onclick="closeImportModal()">&times;</button>
+            <button class="close-btn" onclick="closeImportModal()">×</button>
         </div>
         <div class="modal-body">
             <p style="margin-bottom: 1rem; color: #64748b;">Tải file mẫu để nhập liệu chính xác.</p>
-            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="downloadTemplate()">⬇️ Tải file mẫu</button>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="downloadTemplate()">Tải file mẫu</button>
             <div class="form-group">
                 <label class="form-label">Chọn file Excel:</label>
                 <input type="file" class="form-input" id="excelFile" accept=".xlsx,.xls">
@@ -450,8 +428,8 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 <div class="modal" id="deleteModal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-body" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-            <h3 style="color: #dc2626; margin-bottom: 1rem;">Cảnh báo xóa</h3>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">Cảnh báo</div>
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Xóa học viên</h3>
             <p style="margin-bottom: 1rem;">Xóa học viên: <b id="delNameDisplay"></b>?</p>
             <div style="background: #fee2e2; padding: 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #991b1b; margin-bottom: 1rem;">
                 Toàn bộ lịch sử thi sẽ bị xóa vĩnh viễn!
@@ -465,7 +443,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 </div>
 
 <script>
-    // Firebase Config (Giữ nguyên của bạn)
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
         authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -499,7 +477,6 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         if(id === 'dashboard') loadDashboard();
         if(id === 'stats') loadExamSets();
         
-        // Close mobile menu
         document.getElementById("sidebar").classList.remove("open");
     }
 
@@ -512,7 +489,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         location.href = "index.html"; 
     }
 
-    // Load Data (ĐÃ SỬA LỖI: Đảm bảo luôn có code)
+    // Load Data
     async function loadStudents() {
         const tbody = document.getElementById("studentTable");
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải...</td></tr>';
@@ -524,17 +501,18 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
             
             snapshot.forEach(doc => {
                 const st = doc.data();
-                // --- SỬA LỖI ---
-                if (!st.code) st.code = doc.id; // Nếu mất code thì lấy ID làm code
-                // ---------------
+                st.id = doc.id;
                 allStudents.push(st);
                 
                 const obj = st.object || "Khác";
-                stats.total.count++; stats.total.detail[obj] = (stats.total.detail[obj]||0)+1;
+                stats.total.count++; 
+                stats.total.detail[obj] = (stats.total.detail[obj]||0)+1;
                 if(st.status === 'active') {
-                    stats.active.count++; stats.active.detail[obj] = (stats.active.detail[obj]||0)+1;
+                    stats.active.count++; 
+                    stats.active.detail[obj] = (stats.active.detail[obj]||0)+1;
                 } else {
-                    stats.lock.count++; stats.lock.detail[obj] = (stats.lock.detail[obj]||0)+1;
+                    stats.lock.count++; 
+                    stats.lock.detail[obj] = (stats.lock.detail[obj]||0)+1;
                 }
             });
             
@@ -553,32 +531,42 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         document.getElementById(idNum).innerText = data.count.toString().padStart(2, '0');
         let html = '';
         for (let [k, v] of Object.entries(data.detail)) {
-            html += `<div>• ${k}: <b>${v.toString().padStart(2, '0')}</b></div>`;
+            html += `<div>• ${k}: <b>${v}</b></div>`;
         }
         document.getElementById(idDetail).innerHTML = html || "Không có dữ liệu";
     }
 
     function filterStudents() {
-        const k = document.getElementById("searchStudent").value.toLowerCase();
-        const filtered = allStudents.filter(st => 
-            !k || st.nameSearch?.includes(k) || st.code.toLowerCase().includes(k)
-        );
-        
+        const search = document.getElementById("searchStudent").value.trim();
+        let filtered = allStudents;
+
+        if (search) {
+            const k = search.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            filtered = allStudents.filter(st => {
+                const nameNorm = st.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const unitNorm = (st.unit || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const codeLower = st.code.toLowerCase();
+                return nameNorm.includes(k) || unitNorm.includes(k) || codeLower.includes(k);
+            });
+        }
+
+        filtered.sort((a, b) => a.code.localeCompare(b.code));
+
         const tbody = document.getElementById("studentTable");
         tbody.innerHTML = '';
-        
-        if(filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Không tìm thấy dữ liệu</td></tr>';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Không tìm thấy học viên nào</td></tr>';
             return;
         }
-        
+
         filtered.forEach(st => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><b>${st.code}</b></td>
                 <td>${st.name}</td>
-                <td><span class="badge badge-yellow">${st.object}</span></td>
-                <td>${st.unit}</td>
+                <td><span class="badge badge-yellow">${st.object || 'Khác'}</span></td>
+                <td>${st.unit || ''}</td>
                 <td style="text-align: center;">
                     <select class="badge ${st.status==='active'?'badge-green':'badge-red'}" onchange="changeStatus('${st.code}', this.value)">
                         <option value="active" ${st.status==='active'?'selected':''}>Hoạt động</option>
@@ -586,9 +574,9 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
                     </select>
                 </td>
                 <td style="text-align: center;">
-                    <button class="btn btn-warning" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin-right: 0.5rem;" onclick="openEditStudent('${st.code}')">✏️</button>
-                    <button class="btn btn-danger" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin-right: 0.5rem;" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️</button>
-                    <button class="btn btn-success" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="viewStudentDetail('${st.code}')">👁️</button>
+                    <button class="btn btn-warning" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin: 0.25rem;" onclick="openEditStudent('${st.code}')">Sửa</button>
+                    <button class="btn btn-danger" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin: 0.25rem;" onclick="openDeleteModal('${st.code}', '${st.name}')">Xóa</button>
+                    <button class="btn btn-success" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; margin: 0.25rem;" onclick="viewStudentDetail('${st.code}')">Xem</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -606,7 +594,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         document.getElementById("dashLock").innerText = lock.toString().padStart(2,'0');
     }
 
-    // Student CRUD
+    // ==================== STUDENT CRUD ====================
     function openAddStudent() {
         editingCode = null;
         document.getElementById("modalTitle").innerText = "Thêm học viên mới";
@@ -623,13 +611,13 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         editingCode = code;
         document.getElementById("modalTitle").innerText = "Sửa học viên (" + code + ")";
         document.getElementById("stName").value = st.name;
-        document.getElementById("stUnit").value = st.unit;
-        
+        document.getElementById("stUnit").value = st.unit || "";
+
         if(["HV","SQ","CN"].includes(st.objectCode)) {
             document.getElementById("stObjectType").value = st.objectCode;
         } else {
             document.getElementById("stObjectType").value = "OTHER";
-            document.getElementById("stObjectOther").value = st.object;
+            document.getElementById("stObjectOther").value = st.object || "";
         }
         toggleOtherObject();
         document.getElementById("studentModal").classList.add("show");
@@ -644,52 +632,63 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         document.getElementById("otherObjectGroup").style.display = val === "OTHER" ? "block" : "none";
     }
 
-    // Save Student (ĐÃ SỬA LỖI: Kiểm tra code tồn tại trước khi startsWith)
     async function saveStudent() {
         const name = document.getElementById("stName").value.trim();
         const unit = document.getElementById("stUnit").value.trim();
         const objType = document.getElementById("stObjectType").value;
-        let objName = "", objPrefix = "";
 
-        if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
+        let objName = "";
+        let objPrefix = "";
+        let objectCode = "";
+
+        if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; objectCode = "HV"; }
+        else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; objectCode = "SQ"; }
+        else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; objectCode = "CN"; }
         else {
             objName = document.getElementById("stObjectOther").value.trim();
+            if(!objName) return alert("Vui lòng nhập tên đối tượng khác!");
             objPrefix = "KH";
+            objectCode = "KH";
         }
 
         if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
 
         try {
             if(!editingCode) {
-                // Generate new code safely
-                // --- SỬA LỖI ---
-                const relevant = allStudents
-                    .filter(s => s.code && s.code.startsWith(objPrefix)) 
-                    .map(s => parseInt(s.code.substring(2)))
-                    .filter(n => !isNaN(n));
-                // ---------------
+                // FIX CHÍNH: Load dữ liệu mới nhất trước khi sinh mã
+                await loadStudents();
 
-                const maxNum = relevant.length ? Math.max(...relevant) : 0;
-                const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
-                
+                const relevant = allStudents
+                    .filter(s => s.code && s.code.startsWith(objPrefix))
+                    .map(s => parseInt(s.code.substring(objPrefix.length)) || 0)
+                    .filter(n => n > 0);
+
+                const maxNum = relevant.length > 0 ? Math.max(...relevant) : 0;
+                const newNum = maxNum + 1;
+                const newCode = objPrefix + String(newNum).padStart(4, '0');
+
                 await db.collection("students").doc(newCode).set({
-                    code: newCode, name, unit, object: objName, objectCode: objType,
-                    status: "active", nameSearch: name.toLowerCase()
+                    code: newCode,
+                    name: name,
+                    unit: unit,
+                    object: objName,
+                    objectCode: objectCode,
+                    status: "active"
                 });
             } else {
                 await db.collection("students").doc(editingCode).update({
-                    name, unit, object: objName, objectCode: objType,
-                    nameSearch: name.toLowerCase()
+                    name: name,
+                    unit: unit,
+                    object: objName,
+                    objectCode: objectCode
                 });
             }
+
             closeStudentModal();
             loadStudents();
-            alert("Lưu thành công!");
         } catch(e) {
             console.error(e);
-            alert("Lỗi: " + e.message);
+            alert("Lỗi khi lưu học viên: " + e.message);
         }
     }
 
@@ -726,18 +725,10 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
     }
 
     // Import Excel
-    function openImportModal() {
-        document.getElementById("importModal").classList.add("show");
-    }
-
-    function closeImportModal() {
-        document.getElementById("importModal").classList.remove("show");
-    }
-
     function downloadTemplate() {
         const ws = XLSX.utils.json_to_sheet([
             { HoTen: "Nguyễn Văn A", DonVi: "Lớp A1", DoiTuong: "HV" },
-            { HoTen: "Trần Văn B", DonVi: "Phòng TM", DoiTuong: "SQ" }
+            { HoTen: "Trần Thị B", DonVi: "Phòng HC", DoiTuong: "SQ" }
         ]);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Mau");
@@ -746,55 +737,59 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 
     async function processExcel() {
         const file = document.getElementById("excelFile").files[0];
-        if(!file) return alert("Chọn file!");
-        
+        if(!file) return alert("Vui lòng chọn file Excel!");
+
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            let counters = { HV:0, SQ:0, CN:0, KH:0 };
-            
-            // Tìm số lớn nhất hiện có
-            allStudents.forEach(s => {
-                if(!s.code) return; // Bỏ qua nếu lỗi
-                const p = s.code.substring(0,2);
-                const n = parseInt(s.code.substring(2));
-                if(!isNaN(n) && n > (counters[p] || 0)) counters[p] = n;
-            });
-            
-            let batch = db.batch();
-            let count = 0;
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-            for(let row of json) {
-                if(!row.HoTen) continue;
-                let code = (row.DoiTuong||'KH').toUpperCase();
-                let prefix = code === 'HV' ? 'HV' : code === 'SQ' ? 'SQ' : code === 'CN' ? 'CN' : 'KH';
-                let objName = prefix === 'HV' ? 'Học viên' : prefix === 'SQ' ? 'Sĩ quan' : prefix === 'CN' ? 'Chuyên nghiệp' : 'Khác';
-                
-                counters[prefix]++;
-                let newCode = prefix + String(counters[prefix]).padStart(4,'0');
-                
-                const ref = db.collection("students").doc(newCode);
-                batch.set(ref, {
-                    code: newCode, name: row.HoTen, unit: row.DonVi||"",
-                    object: objName, objectCode: prefix, status: "active",
-                    nameSearch: row.HoTen.toLowerCase()
+                await loadStudents();
+
+                let counters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
+                allStudents.forEach(s => {
+                    if(!s.code) return;
+                    const p = s.code.substring(0, 2).toUpperCase();
+                    if(counters.hasOwnProperty(p)) {
+                        const n = parseInt(s.code.substring(2)) || 0;
+                        if(n > counters[p]) counters[p] = n;
+                    }
                 });
-                count++;
-                
-                // Firestore batch limit is 500
-                if(count % 400 === 0) {
-                    await batch.commit();
-                    batch = db.batch();
+
+                let successCount = 0;
+                for(let row of json) {
+                    if(!row.HoTen || !row.HoTen.toString().trim()) continue;
+
+                    const dt = (row.DoiTuong || "KH").toString().trim().toUpperCase();
+                    let prefix = ["HV","SQ","CN"].includes(dt) ? dt : "KH";
+
+                    let objName = prefix === "HV" ? "Học viên" :
+                                  prefix === "SQ" ? "Sĩ quan" :
+                                  prefix === "CN" ? "Chuyên nghiệp" : (row.DoiTuong || "Khác");
+
+                    counters[prefix]++;
+                    const newCode = prefix + String(counters[prefix]).padStart(4, '0');
+
+                    await db.collection("students").doc(newCode).set({
+                        code: newCode,
+                        name: row.HoTen.toString().trim(),
+                        unit: (row.DonVi || "").toString().trim(),
+                        object: objName,
+                        objectCode: prefix,
+                        status: "active"
+                    });
+                    successCount++;
                 }
+
+                alert(`Nhập thành công ${successCount} học viên!`);
+                closeImportModal();
+                loadStudents();
+            } catch(err) {
+                console.error(err);
+                alert("Lỗi xử lý file Excel: " + err.message);
             }
-            if(count > 0) await batch.commit();
-            
-            alert("Nhập thành công " + count + " học viên!");
-            closeImportModal();
-            loadStudents();
         };
         reader.readAsArrayBuffer(file);
     }
@@ -810,7 +805,6 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         
         showPage('studentDetail');
         
-        // Load exams
         const snapshot = await db.collection("exam_logs").where("studentCode", "==", code).get();
         studentExams = [];
         snapshot.forEach(doc => {
@@ -821,7 +815,6 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
         });
         studentExams.sort((a,b) => b.time - a.time);
         
-        // Update stats
         const total = studentExams.length;
         const pass = studentExams.filter(e => e.pass).length;
         const avg = total ? Math.round(studentExams.reduce((s,e) => s+e.score,0)/total) : 0;
@@ -850,7 +843,7 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
                 <td>${e.time.toLocaleString('vi-VN')}</td>
                 <td>${e.setId || 'DEFAULT'}</td>
                 <td><b>${e.score}</b></td>
-                <td><span class="badge ${e.pass?'badge-green':'badge-red'}">${e.pass?'✓ Đạt':'✗ Không đạt'}</span></td>
+                <td><span class="badge ${e.pass?'badge-green':'badge-red'}">${e.pass?'Đạt':'Không đạt'}</span></td>
             `;
             tbody.appendChild(tr);
         });
@@ -944,10 +937,8 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
             const e = doc.data();
             const t = e.time.toDate();
             
-            // Filter set
             if(setFilter && e.setId !== setFilter) return;
             
-            // Filter time
             if(timeFilter) {
                 let ok = false;
                 if(timeFilter === 'thisWeek') {
@@ -1015,8 +1006,6 @@ Bạn có thể lưu file này thành `admin.html` và chạy ngay.
 
     // Init
     loadDashboard();
-    showPage('dashboard', document.querySelector(".menu-btn"));
 </script>
 </body>
 </html>
-```
