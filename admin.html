@@ -645,18 +645,27 @@
     const objType = document.getElementById("stObjectType").value;
     let objName = "", objPrefix = "";
 
-    if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-    else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-    else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
-    else {
+    if (objType === "HV") { 
+        objName = "Học viên"; 
+        objPrefix = "HV"; 
+    } else if (objType === "SQ") { 
+        objName = "Sĩ quan"; 
+        objPrefix = "SQ"; 
+    } else if (objType === "CN") { 
+        objName = "Chuyên nghiệp"; 
+        objPrefix = "CN"; 
+    } else {
         objName = document.getElementById("stObjectOther").value.trim();
         objPrefix = "KH";
     }
 
-    if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
+    if (!name || !unit || !objName) {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+        return;
+    }
 
     try {
-        if(!editingCode) {
+        if (!editingCode) {
             // Tạo mã mới
             const relevant = allStudents.filter(s => s.code.startsWith(objPrefix))
                 .map(s => parseInt(s.code.substring(2)))
@@ -694,7 +703,7 @@
             });
             // Cập nhật danh sách local
             const index = allStudents.findIndex(s => s.code === editingCode);
-            if(index !== -1) {
+            if (index !== -1) {
                 allStudents[index] = {
                     ...allStudents[index],
                     name,
@@ -706,8 +715,8 @@
             }
         }
         closeStudentModal();
-        loadStudents(); // hoặc gọi trực tiếp để cập nhật UI chính xác hơn
-    } catch(e) {
+        loadStudents();
+    } catch (e) {
         alert("Lỗi: " + e.message);
     }
 }
