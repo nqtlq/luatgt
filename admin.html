@@ -640,42 +640,77 @@
     }
 
     async function saveStudent() {
-        const name = document.getElementById("stName").value.trim();
-        const unit = document.getElementById("stUnit").value.trim();
-        const objType = document.getElementById("stObjectType").value;
-        let objName = "", objPrefix = "";
+    const name = document.getElementById("stName").value.trim();
+    const unit = document.getElementById("stUnit").value.trim();
+    const objType = document.getElementById("stObjectType").value;
+    let objName = "", objPrefix = "";
 
-        if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
-        else {
-            objName = document.getElementById("stObjectOther").value.trim();
-            objPrefix = "KH";
-        }
+    if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
+    else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
+    else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
+    else {
+        objName = document.getElementById("stObjectOther").value.trim();
+        objPrefix = "KH";
+    }
 
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
+    if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
 
-        try {
-            if(!editingCode) {
-                // Generate new code
-                const relevant = allStudents.filter(s => s.code.startsWith(objPrefix))
-                    .map(s => parseInt(s.code.substring(2)))
-                    .filter(n => !isNaN(n));
-                const maxNum = relevant.length ? Math.max(...relevant) : 0;
-                const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
-                
-                await db.collection("students").doc(newCode).set({
-                    code: newCode, name, unit, object: objName, objectCode: objType,
-                    status: "active", nameSearch: name.toLowerCase()
-                });
-            } else {
-                await db.collection("students").doc(editingCode).update({
-                    name, unit, object: objName, objectCode: objType,
+    try {
+        if(!editingCode) {
+            // Tạo mã mới
+            const relevant = allStudents.filter(s => s.code.startsWith(objPrefix))
+                .map(s => parseInt(s.code.substring(2)))
+                .filter(n => !isNaN(n));
+            const maxNum = relevant.length ? Math.max(...relevant) : 0;
+            const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
+
+            await db.collection("students").doc(newCode).set({
+                code: newCode,
+                name,
+                unit,
+                object: objName,
+                objectCode: objType,
+                status: "active",
+                nameSearch: name.toLowerCase()
+            });
+            // Thêm vào danh sách để cập nhật UI tức thì
+            allStudents.push({
+                code: newCode,
+                name,
+                unit,
+                object: objName,
+                objectCode: objType,
+                status: "active",
+                nameSearch: name.toLowerCase()
+            });
+        } else {
+            // Cập nhật học viên cũ
+            await db.collection("students").doc(editingCode).update({
+                name,
+                unit,
+                object: objName,
+                objectCode: objType,
+                nameSearch: name.toLowerCase()
+            });
+            // Cập nhật danh sách local
+            const index = allStudents.findIndex(s => s.code === editingCode);
+            if(index !== -1) {
+                allStudents[index] = {
+                    ...allStudents[index],
+                    name,
+                    unit,
+                    object: objName,
+                    objectCode: objType,
                     nameSearch: name.toLowerCase()
-                });
+                };
             }
-            closeStudentModal();
-            loadStudents();
+        }
+        closeStudentModal();
+        loadStudents(); // hoặc gọi trực tiếp để cập nhật UI chính xác hơn
+    } catch(e) {
+        alert("Lỗi: " + e.message);
+    }
+}
         } catch(e) {
             alert("Lỗi: " + e.message);
         }
