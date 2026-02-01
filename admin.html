@@ -5,38 +5,45 @@
     <title>ADMIN | Hệ thống thi luật giao thông</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* GIỮ NGUYÊN FORM CSS CỦA BẠN */
-        body { margin: 0; font-family: Arial, sans-serif; background: #eef2f6; }
-        header { background: #1d3557; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        /* GIỮ NGUYÊN TOÀN BỘ CẤU TRÚC CSS CỦA ADMIN_COMPLETE */
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6; }
+        .status { padding: 5px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid #ccc; cursor: pointer;}
+        .activeStatus { background: #d1e7dd; color: #0f5132 }
+        .lockStatus { background: #f8d7da; color: #842029 }
+        .rate { padding: 5px 8px; border-radius: 7px; font-weight: bold; display: inline-block; font-size: 12px; }
+        .good { background: #d1e7dd; color: #0f5132 }
+        .bad { background: #f8d7da; color: #842029 }
+
+        header { background: #1d3557; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         #layout { display: flex; min-height: calc(100vh - 60px); }
-        aside { width: 220px; background: white; border-right: 1px solid #ddd; padding: 20px; flex-shrink: 0; }
-        .menu button { width: 100%; padding: 12px; margin-bottom: 5px; border: none; border-radius: 8px; background: transparent; text-align: left; cursor: pointer; color: #555; }
+        aside { width: 220px; background: white; border-right: 1px solid #ddd; padding: 15px; flex-shrink: 0; }
+        .menu button { width: 100%; padding: 12px; margin-bottom: 5px; border: none; border-radius: 8px; background: transparent; text-align: left; cursor: pointer; color: #555; font-size: 14px; }
         .menu button.active { background: #e7f1ff; color: #0d6efd; font-weight: bold; }
-        main { flex: 1; padding: 20px; }
+        main { flex: 1; padding: 20px; overflow-y: auto; }
         .box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .statGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .statCard { padding: 20px; border-radius: 12px; color: white; }
-        table { width: 100%; border-collapse: collapse; background: white; }
+        
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-        th { background: #f8f9fa; font-weight: bold; }
-        .status { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .activeStatus { background: #d1e7dd; color: #0f5132; }
-        .lockStatus { background: #f8d7da; color: #842029; }
+        th { background: #f8f9fa; color: #666; font-weight: 600; }
+
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 400px; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 500px; }
     </style>
 </head>
 <body>
 
 <header>
-    <b>🛡️ QUẢN TRỊ VIÊN</b>
-    <button onclick="location.reload()" style="background:#457b9d; border:none; color:white; padding:7px 15px; border-radius:5px; cursor:pointer">Làm mới dữ liệu</button>
+    <b>🛡️ QUẢN TRỊ VIÊN HỆ THỐNG</b>
+    <button onclick="location.reload()" style="background:#457b9d; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer">Làm mới dữ liệu</button>
 </header>
 
 <div id="layout">
@@ -51,21 +58,24 @@
     <main>
         <div id="dashboard" class="page">
             <div class="statGrid">
-                <div class="statCard" style="background:#0d6efd">Tổng học viên: <h2 id="totalHV" style="margin:5px 0">0</h2></div>
-                <div class="statCard" style="background:#198754">Hoạt động: <h2 id="activeHV" style="margin:5px 0">0</h2></div>
-                <div class="statCard" style="background:#dc3545">Đã khóa: <h2 id="lockHV" style="margin:5px 0">0</h2></div>
+                <div class="statCard" style="background:#0d6efd">Tổng học viên <h2 id="totalCount">0</h2></div>
+                <div class="statCard" style="background:#198754">Đang hoạt động <h2 id="activeCount">0</h2></div>
+                <div class="statCard" style="background:#dc3545">Đã khóa <h2 id="lockCount">0</h2></div>
             </div>
             <div class="box">
-                <h3>🔔 Tin nhắn hệ thống</h3>
-                <p>Tổng số lượt thi đã thực hiện: <b id="totalExams">0</b></p>
+                <h3>🔔 Hoạt động hệ thống</h3>
+                <p>Số lượt thi đã thực hiện: <b id="examCount">0</b></p>
             </div>
         </div>
 
         <div id="students" class="page" style="display:none">
             <div class="box">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3 style="margin:0">Quản lý danh sách</h3>
-                    <button onclick="openModal()" style="background:#198754; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer">➕ Thêm học viên</button>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px">
+                    <h3 style="margin:0">Danh sách học viên</h3>
+                    <div>
+                        <button onclick="openImportModal()" style="background:#6c757d; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-right:5px">📥 Nhập Excel</button>
+                        <button onclick="openStudentModal('add')" style="background:#198754; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer">➕ Thêm mới</button>
+                    </div>
                 </div>
                 <table>
                     <thead>
@@ -77,24 +87,24 @@
                             <th>Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody id="studentTable"></tbody>
+                    <tbody id="studentTableBody"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="stats" class="page" style="display:none">
             <div class="box">
-                <h3>📈 Xếp hạng kết quả thi</h3>
+                <h3>📈 Xếp hạng và Tỷ lệ</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>Học viên</th>
                             <th>Lượt thi</th>
-                            <th>Đạt</th>
+                            <th>Lượt đạt</th>
                             <th>Tỷ lệ</th>
                         </tr>
                     </thead>
-                    <tbody id="statTable"></tbody>
+                    <tbody id="rankingTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -103,23 +113,23 @@
 
 <div id="studentModal" class="modal">
     <div class="modal-content">
-        <h3>Thêm học viên mới</h3>
-        <input type="text" id="stName" placeholder="Nhập họ và tên..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing:border-box">
-        <input type="text" id="stUnit" placeholder="Nhập đơn vị..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing:border-box">
-        <select id="stType" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:5px">
+        <h3 id="modalTitle">Thông tin học viên</h3>
+        <input type="text" id="stName" placeholder="Họ và tên" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px">
+        <input type="text" id="stUnit" placeholder="Đơn vị" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px">
+        <select id="stObject" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:6px">
             <option value="HV">Học viên (HV)</option>
             <option value="SQ">Sĩ quan (SQ)</option>
             <option value="CN">Chuyên nghiệp (CN)</option>
         </select>
         <div style="display:flex; justify-content:flex-end; gap:10px">
-            <button onclick="closeModal()" style="padding:8px 15px; background:#ddd; border:none; border-radius:5px">Hủy</button>
-            <button onclick="saveStudent()" style="padding:8px 15px; background:#0d6efd; color:white; border:none; border-radius:5px">Lưu lại</button>
+            <button onclick="closeStudentModal()" style="padding:8px 15px; border:none; border-radius:5px">Hủy</button>
+            <button onclick="saveStudent()" style="background:#0d6efd; color:white; padding:8px 15px; border:none; border-radius:5px">Lưu dữ liệu</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. CẤU HÌNH FIREBASE
+    // 1. ĐỒNG BỘ CẤU HÌNH FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
         authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -130,13 +140,12 @@
 
     let allStudents = [];
 
-    // 2. TẢI DỮ LIỆU TỪ FIREBASE
-    async function loadData() {
-        // Tải học viên
+    // 2. TẢI DỮ LIỆU TỪ FIRESTORE
+    async function fetchAllData() {
         const studentSnap = await db.collection("students").get();
         allStudents = [];
         let counts = { total: 0, active: 0, lock: 0 };
-        const tbody = document.getElementById('studentTable');
+        const tbody = document.getElementById("studentTableBody");
         tbody.innerHTML = "";
 
         studentSnap.forEach(doc => {
@@ -150,87 +159,74 @@
                     <td><b>${s.code}</b></td>
                     <td>${s.name}</td>
                     <td>${s.unit}</td>
-                    <td><span class="status ${s.status === 'active' ? 'activeStatus' : 'lockStatus'}" onclick="toggleStatus('${s.code}','${s.status}')">${s.status === 'active' ? 'Hoạt động' : 'Đã khóa'}</span></td>
+                    <td><span class="status ${s.status === 'active' ? 'activeStatus' : 'lockStatus'}" onclick="toggleStatus('${s.code}', '${s.status}')">${s.status === 'active' ? 'Hoạt động' : 'Đã khóa'}</span></td>
                     <td><button onclick="deleteStudent('${s.code}')" style="color:red; background:none; border:none; cursor:pointer">Xóa</button></td>
                 </tr>
             `;
         });
 
-        document.getElementById('totalHV').innerText = counts.total;
-        document.getElementById('activeHV').innerText = counts.active;
-        document.getElementById('lockHV').innerText = counts.lock;
+        document.getElementById("totalCount").innerText = counts.total;
+        document.getElementById("activeCount").innerText = counts.active;
+        document.getElementById("lockCount").innerText = counts.lock;
 
-        // Tải thống kê lượt thi
         const examSnap = await db.collection("exam_logs").get();
-        document.getElementById('totalExams').innerText = examSnap.size;
-        renderStats(examSnap);
+        document.getElementById("examCount").innerText = examSnap.size;
+        renderRanking(examSnap);
     }
 
-    // 3. SINH MÃ TỰ ĐỘNG
-    function generateNextCode(prefix) {
-        const list = allStudents.filter(s => s.code.startsWith(prefix));
-        if (list.length === 0) return prefix + "0001";
-        const nums = list.map(s => parseInt(s.code.replace(prefix, "")) || 0);
-        return prefix + (Math.max(...nums) + 1).toString().padStart(4, '0');
+    // 3. LOGIC SINH MÃ TỰ ĐỘNG (ĐỒNG BỘ TỪ ADMIN_FIXED)
+    async function generateNextCode(prefix) {
+        const sameType = allStudents.filter(s => s.code.startsWith(prefix));
+        if (sameType.length === 0) return prefix + "0001";
+        const nums = sameType.map(s => parseInt(s.code.replace(prefix, "")) || 0);
+        const nextNum = Math.max(...nums) + 1;
+        return prefix + nextNum.toString().padStart(4, '0');
     }
 
-    // 4. LƯU HỌC VIÊN MỚI
+    // 4. LƯU HỌC VIÊN
     async function saveStudent() {
-        const name = document.getElementById('stName').value.trim();
-        const unit = document.getElementById('stUnit').value.trim();
-        const type = document.getElementById('stType').value;
+        const name = document.getElementById("stName").value.trim();
+        const unit = document.getElementById("stUnit").value.trim();
+        const type = document.getElementById("stObject").value;
 
-        if(!name || !unit) return alert("Vui lòng nhập đủ thông tin!");
+        if(!name || !unit) return alert("Vui lòng điền đủ thông tin!");
 
         try {
-            const code = generateNextCode(type);
+            const code = await generateNextCode(type);
             await db.collection("students").doc(code).set({
-                code, name, unit, status: 'active', objectCode: type, createdAt: new Date()
+                code, name, unit, status: "active", objectCode: type, createdAt: new Date()
             });
-            alert("Đã thêm: " + code);
-            closeModal();
-            loadData();
-        } catch (e) { alert("Lỗi lưu: " + e.message); }
+            alert("Thêm thành công: " + code);
+            closeStudentModal();
+            fetchAllData();
+        } catch (e) { alert("Lỗi: " + e.message); }
     }
 
     // 5. THỐNG KÊ KẾT QUẢ
-    function renderStats(examSnap) {
+    function renderRanking(examSnap) {
         const stats = {};
         examSnap.forEach(doc => {
-            const log = doc.data();
-            if(!stats[log.studentCode]) stats[log.studentCode] = { name: log.studentName, total: 0, pass: 0 };
-            stats[log.studentCode].total++;
-            if(log.pass) stats[log.studentCode].pass++;
+            const e = doc.data();
+            if(!stats[e.studentCode]) stats[e.studentCode] = { name: e.studentName, total: 0, pass: 0 };
+            stats[e.studentCode].total++;
+            if(e.pass) stats[e.studentCode].pass++;
         });
 
-        const statBody = document.getElementById('statTable');
-        statBody.innerHTML = "";
-        for(let code in stats) {
-            const item = stats[code];
-            const rate = Math.round((item.pass / item.total) * 100);
-            statBody.innerHTML += `
+        const rBody = document.getElementById("rankingTableBody");
+        rBody.innerHTML = Object.entries(stats).map(([code, data]) => {
+            const rate = Math.round((data.pass / data.total) * 100);
+            return `
                 <tr>
-                    <td><b>${item.name}</b><br><small>${code}</small></td>
-                    <td>${item.total}</td>
-                    <td>${item.pass}</td>
-                    <td style="font-weight:bold; color:${rate >= 80 ? 'green' : 'red'}">${rate}%</td>
+                    <td>${data.name} <br><small>${code}</small></td>
+                    <td>${data.total}</td>
+                    <td>${data.pass}</td>
+                    <td><span class="rate ${rate >= 80 ? 'good' : 'bad'}">${rate}%</span></td>
                 </tr>
             `;
-        }
+        }).join("");
     }
 
-    async function toggleStatus(code, cur) {
-        await db.collection("students").doc(code).update({ status: cur === 'active' ? 'locked' : 'active' });
-        loadData();
-    }
-
-    async function deleteStudent(code) {
-        if(confirm("Xóa học viên này?")) {
-            await db.collection("students").doc(code).delete();
-            loadData();
-        }
-    }
-
+    // ĐIỀU HƯỚNG TRANG
     function showPage(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.getElementById(id).style.display = 'block';
@@ -238,10 +234,22 @@
         btn.classList.add('active');
     }
 
-    function openModal() { document.getElementById('studentModal').classList.add('show'); }
-    function closeModal() { document.getElementById('studentModal').classList.remove('show'); }
+    async function toggleStatus(code, cur) {
+        await db.collection("students").doc(code).update({ status: cur === 'active' ? 'locked' : 'active' });
+        fetchAllData();
+    }
 
-    window.onload = loadData;
+    async function deleteStudent(code) {
+        if(confirm("Bạn muốn xóa học viên " + code + "?")) {
+            await db.collection("students").doc(code).delete();
+            fetchAllData();
+        }
+    }
+
+    function openStudentModal() { document.getElementById("studentModal").classList.add("show"); }
+    function closeStudentModal() { document.getElementById("studentModal").classList.remove("show"); }
+
+    window.onload = fetchAllData;
 </script>
 </body>
 </html>
