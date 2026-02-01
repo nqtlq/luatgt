@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -98,7 +98,20 @@
             main { padding: 14px; }
             .statGrid, .miniStats { grid-template-columns: 1fr; }
             .chartContainer { height: 250px; }
+        
+        /* ===== FIX NAME ALIGN ===== */
+        .td-name {
+        text-align: left;
+        padding-left: 14px;
+        white-space: nowrap;
         }
+
+        /* ===== MEDAL ICON ===== */
+        .medal {
+       font-size: 16px;
+        margin-right: 4px;
+        }
+
     </style>
 </head>
 
@@ -233,16 +246,17 @@
                 </div>
                 <div class="tableWrap">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Mã HV</th>
-                                <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
-                                <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
-                                <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
-                                <th>Chi tiết</th>
-                            </tr>
-                        </thead>
+                       <thead>
+                       <tr>
+                        <th>#</th>
+                        <th>Mã HV</th>
+                        <th>Họ và tên</th>
+                        <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
+                        <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
+                        <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
+                        <th>Chi tiết</th>
+                      </tr>
+                      </thead>
                         <tbody id="statTable"></tbody>
                     </table>
                 </div>
@@ -426,6 +440,10 @@
     let statsData = [];
     let sortKey = "";
     let sortDir = 1;
+    studentNameMap = {};
+    allStudents.forEach(st => {
+    studentNameMap[st.code] = st.name;
+    });
 
     // ===== CHUYỂN TRANG =====
     function showPage(id, btn) {
@@ -500,7 +518,7 @@
         table.innerHTML += `
             <tr>
                 <td><b>${st.code}</b></td>
-                <td style="text-align:left; padding-left:15px">${st.name}</td>
+                <td class="td-name">${st.name}</td>
                 <td><span class="rate mid">${st.object}</span></td>
                 <td>${st.unit}</td>
                 <td>
@@ -823,24 +841,41 @@
     }
 
     function renderStatsTable() {
-        const table = document.getElementById("statTable");
-        table.innerHTML = "";
-        if(sortKey) {
-            statsData.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
-        }
-        statsData.forEach((s, i) => {
-            let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
-            table.innerHTML += `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><b>${s.code}</b></td>
-                    <td>${s.attempts}</td>
-                    <td>${s.pass}</td>
-                    <td><span class="rate ${cls}">${s.rate}%</span></td>
-                    <td><button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetailFromStats('${s.code}')">👁️ Xem</button></td>
-                </tr>`;
-        });
+    const table = document.getElementById("statTable");
+    table.innerHTML = "";
+
+    if(sortKey) {
+        statsData.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
     }
+
+    statsData.forEach((s, i) => {
+        let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
+
+        let medal = "";
+        if(i === 0) medal = "🥇";
+        else if(i === 1) medal = "🥈";
+        else if(i === 2) medal = "🥉";
+
+        table.innerHTML += `
+            <tr>
+                <td>
+                    <span class="medal">${medal}</span>${i + 1}
+                </td>
+                <td><b>${s.code}</b></td>
+                <td class="td-name">${studentNameMap[s.code] || "—"}</td>
+                <td>${s.attempts}</td>
+                <td>${s.pass}</td>
+                <td><span class="rate ${cls}">${s.rate}%</span></td>
+                <td>
+                    <button class="btn btn-success" style="padding:4px 8px"
+                        onclick="viewStudentDetailFromStats('${s.code}')">
+                        👁️ Xem
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
 
     // Load sets for filter
     db.collection("exam_logs").get().then(s => {
@@ -1163,7 +1198,7 @@
             table.innerHTML += `
                 <tr>
                     <td><b>${st.code}</b></td>
-                    <td style="text-align:left; padding-left:15px">${st.name}</td>
+                    <td class="td-name">${st.name}</td>
                     <td><span class="rate mid">${st.object}</span></td>
                     <td>${st.unit}</td>
                     <td>
