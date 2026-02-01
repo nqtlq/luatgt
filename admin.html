@@ -13,35 +13,41 @@
 <!-- Thư viện Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- CSS giữ nguyên từ mẫu, tối giản để phù hợp -->
 <style>
-/* Giữ nguyên CSS từ các tài liệu, bỏ qua phần này để tối giản */
 body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6; }
-/* ... (CSS giữ nguyên) ... */
+header { background: #1d3557; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+header button { background: #457b9d; border: none; border-radius: 5px; padding: 8px 15px; cursor: pointer; color: white; }
+
+#layout { display: flex; min-height: calc(100vh - 60px); }
+aside { width: 220px; background: white; border-right: 1px solid #ddd; padding: 15px; flex-shrink: 0; }
+.menu button { width: 100%; padding: 12px; margin-bottom: 5px; border: none; border-radius: 8px; background: transparent; text-align: left; cursor: pointer; font-size: 14px; color: #555; }
+.menu button.active { background: #e7f1ff; color: #0d6efd; font-weight: bold; }
+
+main { flex: 1; padding: 20px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* Các phần khác giữ nguyên, tối giản cho rõ ràng */
 </style>
 </head>
-
 <body>
 
-<!-- Header chung -->
 <header>
-    <b>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</b>
-    <button onclick="logout()">Đăng xuất</button>
+    <b>🛡️ QUẢN TRỊ VIÊN HỆ THỐNG</b>
+    <button onclick="location.reload()">Làm mới dữ liệu</button>
 </header>
 
-<!-- Layout chính -->
 <div id="layout">
     <aside>
         <div class="menu">
-            <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
-            <button onclick="showPage('students',this)">👤 Quản lý Học viên</button>
-            <button onclick="showPage('question_sets',this)">📝 Quản lý đề thi</button>
-            <button onclick="showPage('stats',this)">📈 Thống kê</button>
-            <button onclick="showPage('system',this)">⚙️ Cài đặt</button>
+            <button class="active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
+            <button onclick="showPage('students', this)">👤 Học viên</button>
+            <button onclick="showPage('stats', this)">📈 Thống kê thi</button>
         </div>
     </aside>
 
     <main>
-        <!-- Trang tổng quan -->
         <div id="dashboard" class="page active">
             <div class="box">
                 <h3>📊 Hệ thống quản trị</h3>
@@ -53,7 +59,6 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
             </div>
         </div>
 
-        <!-- Quản lý học viên -->
         <div id="students" class="page" style="display:none">
             <div class="statGrid">
                 <div class="statBox total">
@@ -69,11 +74,10 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
                     <div class="sub-stats" id="sLockDetail">Loading...</div>
                 </div>
             </div>
-
             <div class="box">
                 <h3>👤 Danh sách học viên</h3>
                 <div class="toolbar">
-                    <input id="searchStudent" style="width: 250px;" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng..." />
+                    <input id="searchStudent" style="width:250px" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng..." />
                     <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
                     <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
                 </div>
@@ -95,7 +99,6 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
             </div>
         </div>
 
-        <!-- Quản lý đề thi -->
         <div id="question_sets" class="page" style="display:none">
             <div class="box">
                 <h3>📝 Quản lý đề thi</h3>
@@ -123,7 +126,6 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
             </div>
         </div>
 
-        <!-- Thống kê -->
         <div id="stats" class="page" style="display:none">
             <div class="statGrid">
                 <div class="statBox total"><div>Tổng lượt thi</div><b class="main-num" id="tTotal">0</b></div>
@@ -198,7 +200,7 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
                         <option value="year">Theo năm (12 tháng gần nhất)</option>
                     </select>
                 </div>
-                <div class="chartContainer">
+                <div class="chartContainer" style="height:300px; position:relative;">
                     <canvas id="performanceChart"></canvas>
                 </div>
             </div>
@@ -242,8 +244,8 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
 </div>
 
 <!-- Modal Thêm/Sửa học viên -->
-<div class="modal" id="studentModal">
-    <div class="modal-content">
+<div class="modal" id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:999;">
+    <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; width:300px;">
         <h3 id="modalTitle">➕ Thêm học viên</h3>
         <input type="hidden" id="stMode" />
         <input type="hidden" id="stCurrentCode" />
@@ -254,7 +256,7 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
             <option value="CN">Chuyên nghiệp (CN)</option>
             <option value="OTHER">Khác...</option>
         </select>
-        <input id="stObjectOther" placeholder="Nhập tên đối tượng khác" style="display:none; margin-top:-10px" />
+        <input id="stObjectOther" placeholder="Nhập tên đối tượng khác" style="display:none; margin-top:10px" />
         <label>Họ và tên</label>
         <input id="stName" placeholder="Nhập họ và tên" />
         <label>Đơn vị</label>
@@ -267,13 +269,13 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
 </div>
 
 <!-- Modal Nhập Excel -->
-<div class="modal" id="importModal">
-    <div class="modal-content">
+<div class="modal" id="importModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:999;">
+    <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; width:350px;">
         <h3>📂 Nhập danh sách từ Excel</h3>
         <p>Vui lòng sử dụng file mẫu để nhập liệu chính xác.</p>
         <button class="btn btn-primary" style="width:100%; margin-bottom:15px" onclick="downloadTemplate()">⬇️ Tải file mẫu (.xlsx)</button>
         <label>Chọn file Excel:</label>
-        <input type="file" id="excelFile" accept=".xlsx, .xls" />
+        <input type="file" id="excelFile" accept=".xlsx,.xls" />
         <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px">
             <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
             <button class="btn btn-secondary" onclick="closeImportModal()">Đóng</button>
@@ -282,8 +284,8 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
 </div>
 
 <!-- Modal Xóa học viên -->
-<div class="modal" id="deleteModal">
-    <div class="modal-content" style="text-align:center; max-width:400px">
+<div class="modal" id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:999;">
+    <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; width:350px; text-align:center;">
         <h3 style="color:#dc3545">⚠️ Cảnh báo xóa</h3>
         <p style="font-size:15px">Bạn có chắc chắn muốn xóa học viên: <b id="delNameDisplay"></b>?</p>
         <p style="color:#666; font-size:13px; background:#f8d7da; padding:10px; border-radius:8px">
@@ -297,18 +299,18 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6
 </div>
 
 <!-- Modal Chi tiết bài thi -->
-<div id="examModal" class="modal">
-    <div class="modal-content" style="max-width:600px">
+<div id="examModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:999;">
+    <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; max-width:600px; width:90%; max-height:80%; overflow-y:auto;">
         <h3>Chi tiết bài thi</h3>
-        <div id="examDetailContent" style="max-height:400px; overflow-y:auto"></div>
+        <div id="examDetailContent" style="max-height:400px; overflow-y:auto; margin-top:10px"></div>
         <button class="btn btn-secondary" style="width:100%; margin-top:15px" onclick="closeExamModal()">Đóng</button>
     </div>
 </div>
 
 <script>
-// ==========================
+// ===========================
 // CẤU HÌNH FIREBASE
-// ==========================
+// ===========================
 const firebaseConfig = {
     apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
     authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -317,18 +319,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ==========================
+// ===========================
 // BIẾN TOÀN CỤC
-// ==========================
+// ===========================
 let allStudents = [];
 let currentStudent = null;
 let studentExams = [];
 let chartInstance = null;
 let deleteTargetCode = null;
 
-// ==========================
+// ===========================
 // CHUYỂN TRANG
-// ==========================
+// ===========================
 function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.style.display='none');
     document.getElementById(id).style.display='block';
@@ -340,17 +342,17 @@ function showPage(id, btn) {
     if(id==='stats') loadStats();
 }
 
-// ==========================
+// ===========================
 // ĐĂNG XUẤT
-// ==========================
+// ===========================
 function logout() {
     localStorage.clear();
     location.href='index.html';
 }
 
-// ==========================
+// ===========================
 // Lấy danh sách học viên
-// ==========================
+// ===========================
 async function fetchAllStudents() {
     const tbody = document.getElementById("studentTable");
     tbody.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
@@ -391,9 +393,9 @@ async function fetchAllStudents() {
     } catch(e) { console.error(e); }
 }
 
-// ==========================
+// ===========================
 // Cập nhật thống kê
-// ==========================
+// ===========================
 function updateStatBox(idNum, idDetail, data) {
     document.getElementById(idNum).innerText = data.count <10 ? "0"+data.count : data.count;
     let html='';
@@ -403,9 +405,9 @@ function updateStatBox(idNum, idDetail, data) {
     document.getElementById(idDetail).innerHTML=html || "Chưa có dữ liệu";
 }
 
-// ==========================
+// ===========================
 // Thêm hoặc sửa học viên
-// ==========================
+// ===========================
 function toggleOtherObject(select) {
     document.getElementById("stObjectOther").style.display = select.value==='OTHER'?'block':'none';
 }
@@ -418,7 +420,7 @@ function openAddStudent() {
     document.getElementById("stObjectType").value='HV';
     document.getElementById("stObjectOther").value='';
     toggleOtherObject(document.getElementById("stObjectType"));
-    document.getElementById("studentModal").classList.add("show");
+    document.getElementById("studentModal").style.display='flex';
 }
 
 function openEditStudent(code) {
@@ -429,7 +431,6 @@ function openEditStudent(code) {
     document.getElementById("modalTitle").innerText='✏️ Sửa thông tin học viên ('+code+')';
     document.getElementById("stName").value=s.name;
     document.getElementById("stUnit").value=s.unit;
-    // Chọn đúng loại đối tượng
     const sel=document.getElementById("stObjectType");
     if(["HV","SQ","CN"].includes(s.objectCode)) {
         sel.value=s.objectCode;
@@ -438,16 +439,16 @@ function openEditStudent(code) {
         document.getElementById("stObjectOther").value=s.object;
     }
     toggleOtherObject(sel);
-    document.getElementById("studentModal").classList.add("show");
+    document.getElementById("studentModal").style.display='flex';
 }
 
 function closeStudentModal() {
-    document.getElementById("studentModal").classList.remove("show");
+    document.getElementById("studentModal").style.display='none';
 }
 
-// ==========================
+// ===========================
 // Lưu học viên
-// ==========================
+// ===========================
 async function saveStudent() {
     const mode=document.getElementById("stMode").value;
     const name=document.getElementById("stName").value.trim();
@@ -481,9 +482,9 @@ async function saveStudent() {
     } catch(e) { alert("Lỗi: " + e.message); }
 }
 
-// ==========================
+// ===========================
 // Hàm sinh mã code không trùng
-// ==========================
+// ===========================
 function generateNextCode(prefix) {
     const relevantCodes = allStudents
         .filter(s => s.code.startsWith(prefix))
@@ -492,16 +493,16 @@ function generateNextCode(prefix) {
     return prefix + String(maxNum+1).padStart(4,'0');
 }
 
-// ==========================
+// ===========================
 // Xóa học viên
-// ==========================
+// ===========================
 function openDeleteModal(code, name) {
     deleteTargetCode=code;
     document.getElementById("delNameDisplay").innerText= name + " ("+code+")";
-    document.getElementById("deleteModal").classList.add("show");
+    document.getElementById("deleteModal").style.display='flex';
 }
 function closeDeleteModal() {
-    document.getElementById("deleteModal").classList.remove("show");
+    document.getElementById("deleteModal").style.display='none';
 }
 async function confirmDelete() {
     if(!deleteTargetCode) return;
@@ -518,14 +519,14 @@ async function confirmDelete() {
     } catch(e) { alert("Lỗi: " + e.message); }
 }
 
-// ==========================
+// ===========================
 // Nhập Excel
-// ==========================
+// ===========================
 function openImportModal() {
-    document.getElementById("importModal").classList.add("show");
+    document.getElementById("importModal").style.display='flex';
 }
 function closeImportModal() {
-    document.getElementById("importModal").classList.remove("show");
+    document.getElementById("importModal").style.display='none';
 }
 
 function downloadTemplate() {
@@ -550,7 +551,6 @@ async function processExcel() {
         const sheet=workbook.Sheets[workbook.SheetNames[0]];
         const json=XLSX.utils.sheet_to_json(sheet);
         if(json.length===0) return alert("File rỗng!");
-        // Tìm mã lớn nhất của từng loại để tiếp tục sinh mã mới
         let counters={ HV:0, SQ:0, CN:0, KH:0 };
         allStudents.forEach(s=>{
             const prefix=s.code.substring(0,2);
@@ -590,16 +590,13 @@ async function processExcel() {
     reader.readAsArrayBuffer(file);
 }
 
-// ==========================
+// ===========================
 // Thống kê
-// ==========================
-let statsData=[];
-let sortKey=''; let sortDir=1;
-
+// ===========================
+let statsData=[]; let sortKey=''; let sortDir=1;
 function clearSortIcons() {
     document.querySelectorAll('.sort-icon').forEach(i=>i.innerHTML='');
 }
-
 function sortTable(key, th) {
     if(sortKey===key) sortDir*=-1;
     else { sortKey=key; sortDir=1; }
@@ -637,20 +634,13 @@ function getTimeRange() {
     const now=new Date();
     let from=null, to=null;
     if(document.getElementById("filterTime").value==='thisWeek') {
-        // Tuần này
-        const day=now.getDay()||7;
-        from=new Date(now); from.setDate(now.getDate() - day + 1);
-        from.setHours(0,0,0,0);
+        const day=now.getDay()||7; from=new Date(now); from.setDate(now.getDate() - day + 1); from.setHours(0,0,0,0);
         to=now;
     } else if(document.getElementById("filterTime").value==='lastWeek') {
-        const day=now.getDay()||7;
-        to=new Date(now); to.setDate(now.getDate() - day);
-        to.setHours(0,0,0,0); to.setMilliseconds(-1);
-        from=new Date(to); from.setDate(to.getDate() - 6);
-        from.setHours(0,0,0,0);
+        const day=now.getDay()||7; to=new Date(now); to.setDate(now.getDate() - day); to.setHours(0,0,0,0); to.setMilliseconds(-1);
+        from=new Date(to); from.setDate(to.getDate() - 6); from.setHours(0,0,0,0);
     } else if(document.getElementById("filterTime").value==='thisMonth') {
-        from=new Date(now.getFullYear(), now.getMonth(), 1);
-        to=now;
+        from=new Date(now.getFullYear(), now.getMonth(), 1); to=now;
     } else if(document.getElementById("filterTime").value==='lastMonth') {
         from=new Date(now.getFullYear(), now.getMonth() -1, 1);
         to=new Date(now.getFullYear(), now.getMonth(), 0, 23,59,59);
@@ -685,9 +675,9 @@ function renderStatsTable() {
     });
 }
 
-// ==========================
+// ===========================
 // Chi tiết học viên từ thống kê
-// ==========================
+// ===========================
 function viewStudentDetailFromStats(code) {
     db.collection("students").where("code","==",code).get().then(s=>{
         if(s.empty) return alert("Không tìm thấy học viên");
@@ -697,8 +687,8 @@ function viewStudentDetailFromStats(code) {
 }
 function viewStudentDetail(code, name) {
     currentStudent={ code, name };
-    document.getElementById("detailCode").innerText=code;
     document.getElementById("detailName").innerText=name || "Học viên " + code;
+    document.getElementById("detailCode").innerText=code;
     showPage('studentDetail');
     loadStudentExams(code);
 }
@@ -760,9 +750,9 @@ function formatDateTime(d) {
     return `${dd}/${mm}/${yy} ${hh}:${min}`;
 }
 
-// ==========================
+// ===========================
 // Biểu đồ thành tích
-// ==========================
+// ===========================
 let chartInstance=null;
 function renderChart() {
     const period=document.getElementById("chartPeriod").value;
@@ -789,6 +779,7 @@ function getWeekData() {
     }
     return {labels, scores};
 }
+
 function getMonthData() {
     const now=new Date();
     const labels=[]; const scores=[];
@@ -805,6 +796,7 @@ function getMonthData() {
     }
     return {labels, scores};
 }
+
 function getYearData() {
     const now=new Date();
     const labels=[]; const scores=[];
@@ -819,6 +811,7 @@ function getYearData() {
     }
     return {labels, scores};
 }
+
 function drawChart(data) {
     const ctx=document.getElementById('performanceChart');
     if(chartInstance) chartInstance.destroy();
@@ -853,9 +846,9 @@ function drawChart(data) {
     });
 }
 
-// ==========================
+// ===========================
 // Xem chi tiết bài thi
-// ==========================
+// ===========================
 function showExamDetail(index) {
     const e=studentExams[index];
     let html=`
@@ -879,20 +872,20 @@ function showExamDetail(index) {
         html+=`<p style="color:#999">Không có dữ liệu chi tiết câu trả lời</p>`;
     }
     document.getElementById("examDetailContent").innerHTML=html;
-    document.getElementById("examModal").classList.add("show");
+    document.getElementById("examModal").style.display='flex';
 }
 
 function closeExamModal() {
-    document.getElementById("examModal").classList.remove("show");
+    document.getElementById("examModal").style.display='none';
 }
 
 document.getElementById("examModal").onclick=function(e){
     if(e.target===document.getElementById("examModal")) closeExamModal();
 }
 
-// ==========================
+// ===========================
 // Khởi động hệ thống
-// ==========================
+// ===========================
 fetchAllStudents();
 </script>
 
