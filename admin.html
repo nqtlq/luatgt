@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -98,20 +98,7 @@
             main { padding: 14px; }
             .statGrid, .miniStats { grid-template-columns: 1fr; }
             .chartContainer { height: 250px; }
-        
-        /* ===== FIX NAME ALIGN ===== */
-        .td-name {
-        text-align: left;
-        padding-left: 14px;
-        white-space: nowrap;
         }
-
-        /* ===== MEDAL ICON ===== */
-        .medal {
-       font-size: 16px;
-        margin-right: 4px;
-        }
-
     </style>
 </head>
 
@@ -174,8 +161,8 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Mã Học viên</th>
-                                <th>Họ và tên</th>
+                                <th>Mã</th>
+                                <th>Họ tên</th>
                                 <th>Đối tượng</th>
                                 <th>Đơn vị</th>
                                 <th>Trạng thái</th>
@@ -246,17 +233,16 @@
                 </div>
                 <div class="tableWrap">
                     <table>
-                       <thead>
-                       <tr>
-                        <th>#</th>
-                        <th>Mã HV</th>
-                        <th>Họ và tên</th>
-                        <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
-                        <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
-                        <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
-                        <th>Chi tiết</th>
-                      </tr>
-                      </thead>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã HV</th>
+                                <th onclick="sortTable('attempts',this)">Lượt thi<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('pass',this)">Lượt đạt<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('rate',this)">% đạt<span class="sort-icon"></span></th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
                         <tbody id="statTable"></tbody>
                     </table>
                 </div>
@@ -440,10 +426,6 @@
     let statsData = [];
     let sortKey = "";
     let sortDir = 1;
-    studentNameMap = {};
-    allStudents.forEach(st => {
-    studentNameMap[st.code] = st.name;
-    });
 
     // ===== CHUYỂN TRANG =====
     function showPage(id, btn) {
@@ -518,7 +500,7 @@
         table.innerHTML += `
             <tr>
                 <td><b>${st.code}</b></td>
-                <td class="td-name">${st.name}</td>
+                <td style="text-align:left; padding-left:15px">${st.name}</td>
                 <td><span class="rate mid">${st.object}</span></td>
                 <td>${st.unit}</td>
                 <td>
@@ -841,41 +823,24 @@
     }
 
     function renderStatsTable() {
-    const table = document.getElementById("statTable");
-    table.innerHTML = "";
-
-    if(sortKey) {
-        statsData.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
+        const table = document.getElementById("statTable");
+        table.innerHTML = "";
+        if(sortKey) {
+            statsData.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
+        }
+        statsData.forEach((s, i) => {
+            let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
+            table.innerHTML += `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><b>${s.code}</b></td>
+                    <td>${s.attempts}</td>
+                    <td>${s.pass}</td>
+                    <td><span class="rate ${cls}">${s.rate}%</span></td>
+                    <td><button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetailFromStats('${s.code}')">👁️ Xem</button></td>
+                </tr>`;
+        });
     }
-
-    statsData.forEach((s, i) => {
-        let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
-
-        let medal = "";
-        if(i === 0) medal = "🥇";
-        else if(i === 1) medal = "🥈";
-        else if(i === 2) medal = "🥉";
-
-        table.innerHTML += `
-            <tr>
-                <td>
-                    <span class="medal">${medal}</span>${i + 1}
-                </td>
-                <td><b>${s.code}</b></td>
-                <td class="td-name">${studentNameMap[s.code] || "—"}</td>
-                <td>${s.attempts}</td>
-                <td>${s.pass}</td>
-                <td><span class="rate ${cls}">${s.rate}%</span></td>
-                <td>
-                    <button class="btn btn-success" style="padding:4px 8px"
-                        onclick="viewStudentDetailFromStats('${s.code}')">
-                        👁️ Xem
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-}
 
     // Load sets for filter
     db.collection("exam_logs").get().then(s => {
@@ -1137,186 +1102,6 @@
     // ===== KHỞI ĐỘNG =====
     loadStudents();
 </script>
-// ... (Giữ nguyên phần cấu hình Firebase và Style bên trên) ...
 
-<script>
-    // 1. CẤU HÌNH FIREBASE
-    const firebaseConfig = {
-        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-        authDomain: "thi-luat-giao-thong.firebaseapp.com",
-        projectId: "thi-luat-giao-thong"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    let allStudents = []; 
-    let statsData = [];
-    let currentStudent = null;
-    let studentExams = [];
-    let chartInstance = null;
-    let deleteTargetCode = null;
-
-    // 2. CHUYỂN TRANG
-    function showPage(id, btn) {
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(id).classList.add("active");
-        if(btn) {
-            document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        }
-        if(id === 'students') fetchAllStudents(); // Tải lại dữ liệu khi vào trang
-        if(id === 'stats') loadStats();
-    }
-    
-    function logout() { localStorage.clear(); location.href="index.html"; }
-
-    // 3. QUẢN LÝ HỌC VIÊN (TỐI ƯU HÓA TÌM KIẾM)
-    // Tải toàn bộ học viên một lần để tìm kiếm nhanh và tiết kiệm chi phí Firebase
-    function fetchAllStudents() {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
-
-        db.collection("students").orderBy("code").get().then(qs => {
-            allStudents = [];
-            qs.forEach(doc => allStudents.push(doc.data()));
-            renderStudentTable(allStudents);
-            updateGlobalStats();
-        }).catch(err => {
-            console.error("Lỗi tải học viên:", err);
-            table.innerHTML = "<tr><td colspan='6'>Lỗi khi tải dữ liệu!</td></tr>";
-        });
-    }
-
-    function renderStudentTable(list) {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "";
-        if (list.length === 0) {
-            table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
-            return;
-        }
-        list.forEach(st => {
-            table.innerHTML += `
-                <tr>
-                    <td><b>${st.code}</b></td>
-                    <td class="td-name">${st.name}</td>
-                    <td><span class="rate mid">${st.object}</span></td>
-                    <td>${st.unit}</td>
-                    <td>
-                        <select onchange="changeStatus('${st.code}', this.value)" 
-                                class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
-                            <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
-                            <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
-                        <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    // Lọc dữ liệu ngay lập tức không cần gọi Firebase
-    document.getElementById("searchStudent").oninput = (e) => {
-        const k = e.target.value.toLowerCase();
-        const filtered = allStudents.filter(st => 
-            st.nameSearch?.includes(k) || 
-            st.code.toLowerCase().includes(k) || 
-            st.object.toLowerCase().includes(k)
-        );
-        renderStudentTable(filtered);
-    };
-
-    function updateGlobalStats() {
-        let stats = {
-            total: { count: 0, detail: {} },
-            active: { count: 0, detail: {} },
-            lock: { count: 0, detail: {} }
-        };
-
-        allStudents.forEach(st => {
-            const objType = st.object || "Khác";
-            stats.total.count++;
-            stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
-
-            if(st.status === 'active') {
-                stats.active.count++;
-                stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
-            } else {
-                stats.lock.count++;
-                stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
-            }
-        });
-
-        updateStatBox("sTotal", "sTotalDetail", stats.total);
-        updateStatBox("sActive", "sActiveDetail", stats.active);
-        updateStatBox("sLock", "sLockDetail", stats.lock);
-    }
-
-    // BỔ SUNG HÀM SẮP XẾP BẢNG THỐNG KÊ (Fix lỗi thiếu hàm)
-    let currentSort = { key: '', asc: true };
-    function sortTable(key, th) {
-        currentSort.asc = (currentSort.key === key) ? !currentSort.asc : true;
-        currentSort.key = key;
-
-        statsData.sort((a, b) => {
-            let valA = a[key], valB = b[key];
-            return currentSort.asc ? valA - valB : valB - valA;
-        });
-        
-        // Cập nhật icon UI nếu cần
-        renderStatsTable();
-    }
-
-    // ... (Giữ nguyên các hàm saveStudent, generateNextCode, loadStats) ...
-
-    async function saveStudent() {
-        const mode = document.getElementById("stMode").value;
-        const name = document.getElementById("stName").value.trim();
-        const unit = document.getElementById("stUnit").value.trim();
-        const objType = document.getElementById("stObjectType").value;
-        let objName = "", objPrefix = "";
-
-        if (objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if (objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if (objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
-        else {
-            objName = document.getElementById("stObjectOther").value.trim();
-            objPrefix = "KH";
-        }
-
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
-
-        try {
-            if (mode === "add") {
-                const code = generateNextCode(objPrefix);
-                await db.collection("students").doc(code).set({
-                    code: code, name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    status: "active", nameSearch: name.toLowerCase()
-                });
-                alert("Đã thêm: " + code);
-            } else {
-                const code = document.getElementById("stCurrentCode").value;
-                await db.collection("students").doc(code).update({
-                    name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    nameSearch: name.toLowerCase()
-                });
-                alert("Cập nhật thành công!");
-            }
-            closeStudentModal();
-            fetchAllStudents(); // Tải lại danh sách
-        } catch (e) {
-            alert("Lỗi lưu dữ liệu: " + e.message);
-        }
-    }
-
-    // ... (Các hàm còn lại giữ nguyên) ...
-
-    // Khởi tạo
-    fetchAllStudents();
-</script>
 </body>
 </html>
