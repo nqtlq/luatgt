@@ -13,7 +13,7 @@
 <!-- Thư viện Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- CSS giữ nguyên từ mẫu, tối giản để phù hợp -->
+<!-- Style nguyên mẫu, tối giản để phù hợp -->
 <style>
 body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6; }
 header { background: #1d3557; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
@@ -25,29 +25,33 @@ aside { width: 220px; background: white; border-right: 1px solid #ddd; padding: 
 .menu button.active { background: #e7f1ff; color: #0d6efd; font-weight: bold; }
 
 main { flex: 1; padding: 20px; overflow-y: auto; }
+
 .page { display: none; }
 .page.active { display: block; }
 
-/* Các phần khác giữ nguyên, tối giản cho rõ ràng */
+/* Các style khác giữ nguyên, tối giản */
 </style>
 </head>
 <body>
 
 <header>
     <b>🛡️ QUẢN TRỊ VIÊN HỆ THỐNG</b>
-    <button onclick="location.reload()">Làm mới dữ liệu</button>
+    <button onclick="logout()">Đăng xuất</button>
 </header>
 
 <div id="layout">
     <aside>
         <div class="menu">
             <button class="active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
-            <button onclick="showPage('students', this)">👤 Học viên</button>
-            <button onclick="showPage('stats', this)">📈 Thống kê thi</button>
+            <button onclick="showPage('students', this)">👤 Quản lý Học viên</button>
+            <button onclick="showPage('question_sets', this)">📝 Quản lý đề thi</button>
+            <button onclick="showPage('stats', this)">📈 Thống kê</button>
+            <button onclick="showPage('system', this)">⚙️ Cài đặt</button>
         </div>
     </aside>
 
     <main>
+        <!-- Trang tổng quan -->
         <div id="dashboard" class="page active">
             <div class="box">
                 <h3>📊 Hệ thống quản trị</h3>
@@ -59,6 +63,7 @@ main { flex: 1; padding: 20px; overflow-y: auto; }
             </div>
         </div>
 
+        <!-- Quản lý học viên -->
         <div id="students" class="page" style="display:none">
             <div class="statGrid">
                 <div class="statBox total">
@@ -77,7 +82,7 @@ main { flex: 1; padding: 20px; overflow-y: auto; }
             <div class="box">
                 <h3>👤 Danh sách học viên</h3>
                 <div class="toolbar">
-                    <input id="searchStudent" style="width:250px" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng..." />
+                    <input id="searchStudent" style="width: 250px;" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng..." />
                     <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
                     <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
                 </div>
@@ -99,6 +104,7 @@ main { flex: 1; padding: 20px; overflow-y: auto; }
             </div>
         </div>
 
+        <!-- Quản lý đề thi -->
         <div id="question_sets" class="page" style="display:none">
             <div class="box">
                 <h3>📝 Quản lý đề thi</h3>
@@ -126,6 +132,7 @@ main { flex: 1; padding: 20px; overflow-y: auto; }
             </div>
         </div>
 
+        <!-- Thống kê -->
         <div id="stats" class="page" style="display:none">
             <div class="statGrid">
                 <div class="statBox total"><div>Tổng lượt thi</div><b class="main-num" id="tTotal">0</b></div>
@@ -409,7 +416,7 @@ function updateStatBox(idNum, idDetail, data) {
 // Thêm hoặc sửa học viên
 // ===========================
 function toggleOtherObject(select) {
-    document.getElementById("stObjectOther").style.display = select.value==='OTHER'?'block':'none';
+    document.getElementById("stObjectOther").style.display=select.value==='OTHER'?'block':'none';
 }
 
 function openAddStudent() {
@@ -528,7 +535,6 @@ function openImportModal() {
 function closeImportModal() {
     document.getElementById("importModal").style.display='none';
 }
-
 function downloadTemplate() {
     const ws = XLSX.utils.json_to_sheet([
         { "HoTen": "Nguyễn Văn A", "DonVi": "Lớp A1", "DoiTuong": "HV" },
@@ -539,7 +545,6 @@ function downloadTemplate() {
     XLSX.utils.book_append_sheet(wb, ws, "Mau_Nhap_Lieu");
     XLSX.writeFile(wb, "Mau_Them_Hoc_Vien.xlsx");
 }
-
 async function processExcel() {
     const input=document.getElementById('excelFile');
     const file=input.files[0];
@@ -642,8 +647,7 @@ function getTimeRange() {
     } else if(document.getElementById("filterTime").value==='thisMonth') {
         from=new Date(now.getFullYear(), now.getMonth(), 1); to=now;
     } else if(document.getElementById("filterTime").value==='lastMonth') {
-        from=new Date(now.getFullYear(), now.getMonth() -1, 1);
-        to=new Date(now.getFullYear(), now.getMonth(), 0, 23,59,59);
+        from=new Date(now.getFullYear(), now.getMonth() -1, 1); to=new Date(now.getFullYear(), now.getMonth(), 0, 23,59,59);
     } else if(document.getElementById("filterTime").value==='custom') {
         if(document.getElementById("fromDate").value && document.getElementById("toDate").value) {
             from=new Date(document.getElementById("fromDate").value);
@@ -874,11 +878,9 @@ function showExamDetail(index) {
     document.getElementById("examDetailContent").innerHTML=html;
     document.getElementById("examModal").style.display='flex';
 }
-
 function closeExamModal() {
     document.getElementById("examModal").style.display='none';
 }
-
 document.getElementById("examModal").onclick=function(e){
     if(e.target===document.getElementById("examModal")) closeExamModal();
 }
