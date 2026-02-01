@@ -1105,183 +1105,136 @@
 // ... (Giữ nguyên phần cấu hình Firebase và Style bên trên) ...
 
 <script>
-    // 1. CẤU HÌNH FIREBASE
-    const firebaseConfig = {
-        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-        authDomain: "thi-luat-giao-thong.firebaseapp.com",
-        projectId: "thi-luat-giao-thong"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+   // Cấu hình Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+    authDomain: "thi-luat-giao-thong.firebaseapp.com",
+    projectId: "thi-luat-giao-thong"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    let allStudents = []; 
-    let statsData = [];
-    let currentStudent = null;
-    let studentExams = [];
-    let chartInstance = null;
-    let deleteTargetCode = null;
+if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
 
-    // 2. CHUYỂN TRANG
-    function showPage(id, btn) {
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(id).classList.add("active");
-        if(btn) {
-            document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        }
-        if(id === 'students') fetchAllStudents(); // Tải lại dữ liệu khi vào trang
-        if(id === 'stats') loadStats();
-    }
-    
-    function logout() { localStorage.clear(); location.href="index.html"; }
+let allStudents = [];
+let currentStudent = null;
+let studentExams = [];
+let chartInstance = null;
+let deleteTargetCode = null;
+let statsData = [];
+let sortKey = "";
+let sortDir = 1;
 
-    // 3. QUẢN LÝ HỌC VIÊN (TỐI ƯU HÓA TÌM KIẾM)
-    // Tải toàn bộ học viên một lần để tìm kiếm nhanh và tiết kiệm chi phí Firebase
-    function fetchAllStudents() {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
+// Hàm chuyển trang
+function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(id==='students') loadStudents();
+    if(id==='stats') loadStats();
+}
 
-        db.collection("students").orderBy("code").get().then(qs => {
-            allStudents = [];
-            qs.forEach(doc => allStudents.push(doc.data()));
-            renderStudentTable(allStudents);
-            updateGlobalStats();
-        }).catch(err => {
-            console.error("Lỗi tải học viên:", err);
-            table.innerHTML = "<tr><td colspan='6'>Lỗi khi tải dữ liệu!</td></tr>";
+// Hàm đăng xuất
+function logout() {
+    localStorage.clear();
+    location.href='index.html';
+}
+
+// Hàm load danh sách học viên và cập nhật thống kê toàn hệ thống
+async function loadStudents() {
+    const tbody = document.getElementById("studentTable");
+    tbody.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
+    try {
+        const snap = await db.collection("students").orderBy("code").get();
+        allStudents = [];
+        let counts = { total:0, active:0, lock:0 };
+        tbody.innerHTML='';
+        snap.forEach(doc => {
+            const s=doc.data();
+            allStudents.push(s);
+            counts.total++;
+            if(s.status==='active') counts.active++;
+            else counts.lock++;
         });
-    }
-
-    function renderStudentTable(list) {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "";
-        if (list.length === 0) {
-            table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
-            return;
-        }
-        list.forEach(st => {
-            table.innerHTML += `
-                <tr>
-                    <td><b>${st.code}</b></td>
-                    <td style="text-align:left; padding-left:15px">${st.name}</td>
-                    <td><span class="rate mid">${st.object}</span></td>
-                    <td>${st.unit}</td>
-                    <td>
-                        <select onchange="changeStatus('${st.code}', this.value)" 
-                                class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
-                            <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
-                            <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
-                        <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
-                    </td>
-                </tr>`;
+        // Hiển thị danh sách
+        allStudents.forEach(s => {
+            tbody.innerHTML+=`
+            <tr>
+                <td><b>${s.code}</b></td>
+                <td>${s.name}</td>
+                <td><span class="rate mid">${s.object}</span></td>
+                <td>${s.unit}</td>
+                <td>
+                    <select onchange="changeStatus('${s.code}', this.value)" class="status ${s.status==='active'?'activeStatus':'lockStatus'}">
+                        <option value="active" ${s.status==='active'?'selected':''}>Hoạt động</option>
+                        <option value="lock" ${s.status==='lock'?'selected':''}>Khóa</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${s.code}')">✏️ Sửa</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${s.code}', '${s.name}')">🗑️ Xóa</button>
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${s.code}','${s.name}')">👁️ Xem</button>
+                </td>
+            </tr>`;
         });
+        // Cập nhật thống kê toàn hệ thống
+        updateStatBox("sTotal", "sTotalDetail", { count: counts.total, detail: { 'Tổng': counts.total } });
+        updateStatBox("sActive", "sActiveDetail", { count: counts.active, detail: { 'Hoạt động': counts.active } });
+        updateStatBox("sLock", "sLockDetail", { count: counts.lock, detail: { 'Khóa': counts.lock } });
+    } catch(e) { console.error(e); }
+}
+
+// Hàm cập nhật thống kê
+function updateStatBox(idNum, idDetail, data) {
+    document.getElementById(idNum).innerText = data.count <10 ? "0"+data.count : data.count;
+    let html='';
+    for(const [k,v] of Object.entries(data.detail)){
+        html+=`<div>• ${k}: <b>${v<10?"0"+v:v}</b></div>`;
     }
+    document.getElementById(idDetail).innerHTML=html || "Chưa có dữ liệu";
+}
 
-    // Lọc dữ liệu ngay lập tức không cần gọi Firebase
-    document.getElementById("searchStudent").oninput = (e) => {
-        const k = e.target.value.toLowerCase();
-        const filtered = allStudents.filter(st => 
-            st.nameSearch?.includes(k) || 
-            st.code.toLowerCase().includes(k) || 
-            st.object.toLowerCase().includes(k)
-        );
-        renderStudentTable(filtered);
-    };
+// Tìm kiếm học viên
+document.getElementById("searchStudent").oninput = (e) => {
+    const k=e.target.value.toLowerCase();
+    const filtered= allStudents.filter(st=>
+        st.nameSearch?.includes(k) || st.code.toLowerCase().includes(k) || st.object.toLowerCase().includes(k)
+    );
+    renderStudentTable(filtered);
+}
 
-    function updateGlobalStats() {
-        let stats = {
-            total: { count: 0, detail: {} },
-            active: { count: 0, detail: {} },
-            lock: { count: 0, detail: {} }
-        };
-
-        allStudents.forEach(st => {
-            const objType = st.object || "Khác";
-            stats.total.count++;
-            stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
-
-            if(st.status === 'active') {
-                stats.active.count++;
-                stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
-            } else {
-                stats.lock.count++;
-                stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
-            }
-        });
-
-        updateStatBox("sTotal", "sTotalDetail", stats.total);
-        updateStatBox("sActive", "sActiveDetail", stats.active);
-        updateStatBox("sLock", "sLockDetail", stats.lock);
+// Hàm render danh sách học viên
+function renderStudentTable(list) {
+    const tbody=document.getElementById("studentTable");
+    tbody.innerHTML='';
+    if(list.length===0) {
+        tbody.innerHTML='<tr><td colspan="6">Không tìm thấy dữ liệu</td></tr>';
+        return;
     }
+    list.forEach(s=>{
+        tbody.innerHTML+=`
+        <tr>
+            <td><b>${s.code}</b></td>
+            <td>${s.name}</td>
+            <td><span class="rate mid">${s.object}</span></td>
+            <td>${s.unit}</td>
+            <td>
+                <select onchange="changeStatus('${s.code}', this.value)" class="status ${s.status==='active'?'activeStatus':'lockStatus'}">
+                    <option value="active" ${s.status==='active'?'selected':''}>Hoạt động</option>
+                    <option value="lock" ${s.status==='lock'?'selected':''}>Khóa</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${s.code}')">✏️ Sửa</button>
+                <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${s.code}', '${s.name}')">🗑️ Xóa</button>
+                <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${s.code}','${s.name}')">👁️ Xem</button>
+            </td>
+        </tr>`;
+    });
+}
 
-    // BỔ SUNG HÀM SẮP XẾP BẢNG THỐNG KÊ (Fix lỗi thiếu hàm)
-    let currentSort = { key: '', asc: true };
-    function sortTable(key, th) {
-        currentSort.asc = (currentSort.key === key) ? !currentSort.asc : true;
-        currentSort.key = key;
-
-        statsData.sort((a, b) => {
-            let valA = a[key], valB = b[key];
-            return currentSort.asc ? valA - valB : valB - valA;
-        });
-        
-        // Cập nhật icon UI nếu cần
-        renderStatsTable();
-    }
-
-    // ... (Giữ nguyên các hàm saveStudent, generateNextCode, loadStats) ...
-
-    async function saveStudent() {
-        const mode = document.getElementById("stMode").value;
-        const name = document.getElementById("stName").value.trim();
-        const unit = document.getElementById("stUnit").value.trim();
-        const objType = document.getElementById("stObjectType").value;
-        let objName = "", objPrefix = "";
-
-        if (objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if (objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if (objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
-        else {
-            objName = document.getElementById("stObjectOther").value.trim();
-            objPrefix = "KH";
-        }
-
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
-
-        try {
-            if (mode === "add") {
-                const code = generateNextCode(objPrefix);
-                await db.collection("students").doc(code).set({
-                    code: code, name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    status: "active", nameSearch: name.toLowerCase()
-                });
-                alert("Đã thêm: " + code);
-            } else {
-                const code = document.getElementById("stCurrentCode").value;
-                await db.collection("students").doc(code).update({
-                    name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    nameSearch: name.toLowerCase()
-                });
-                alert("Cập nhật thành công!");
-            }
-            closeStudentModal();
-            fetchAllStudents(); // Tải lại danh sách
-        } catch (e) {
-            alert("Lỗi lưu dữ liệu: " + e.message);
-        }
-    }
-
-    // ... (Các hàm còn lại giữ nguyên) ...
-
-    // Khởi tạo
-    fetchAllStudents();
+// Load dữ liệu ban đầu
+loadStudents();
 </script>
 </body>
 </html>
