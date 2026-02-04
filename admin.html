@@ -64,11 +64,34 @@
         .btn-warning { background: #f59e0b; color: white; }
         .btn-secondary { background: #64748b; color: white; }
         
-        /* Table */
-        .table-wrap { overflow-x: auto; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+        /* ===== TABLE WITH SCROLL ===== */
+        .table-wrap { 
+            overflow-x: auto; 
+            border-radius: 0.5rem; 
+            border: 1px solid #e2e8f0; 
+            max-height: 60vh; /* Giới hạn chiều cao để cuộn */
+            overflow-y: auto; /* Cho phép cuộn dọc */
+            position: relative;
+        }
+        
+        /* Header cố định khi cuộn */
+        .table-wrap thead {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        
         table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
         th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 600; color: #475569; white-space: nowrap; cursor: pointer; user-select: none; }
+        th { 
+            background: #f8fafc; 
+            font-weight: 600; 
+            color: #475569; 
+            white-space: nowrap; 
+            cursor: pointer; 
+            user-select: none;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); /* Đổ bóng nhẹ để phân biệt */
+        }
         th:hover { background: #f1f5f9; }
         tr:hover { background: #f8fafc; }
         td { color: #334155; }
@@ -124,72 +147,63 @@
             .toolbar input, .toolbar select, .toolbar button { width: 100%; }
             table { font-size: 0.8125rem; }
             th, td { padding: 0.625rem; }
+            /* Trên mobile giảm chiều cao cuộn để dễ nhìn */
+            .table-wrap { max-height: 50vh; }
         }
         
         .mobile-menu-btn { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 1rem; }
         @media (max-width: 768px) { .mobile-menu-btn { display: block; } }
+        
         /* ===== ACTION ICON BUTTONS ===== */
-.action-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:34px;
-    height:34px;
-    border-radius:8px;
-    border:none;
-    cursor:pointer;
-    font-size:16px;
-    margin:0 3px;
-    transition:all .2s;
-}
-
-.action-btn:hover{
-    transform:translateY(-1px);
-    box-shadow:0 4px 6px rgba(0,0,0,.15);
-}
-
-.action-edit{
-    background:#f59e0b;
-    color:white;
-}
-.action-edit:hover{ background:#d97706; }
-
-.action-delete{
-    background:#ef4444;
-    color:white;
-}
-.action-delete:hover{ background:#dc2626; }
-
-.action-view{
-    background:#3b82f6;
-    color:white;
-}
-.action-view:hover{ background:#2563eb; }
-
-/* Tooltip đơn giản */
-.action-btn[data-title]{
-    position:relative;
-}
-.action-btn[data-title]::after{
-    content:attr(data-title);
-    position:absolute;
-    bottom:110%;
-    left:50%;
-    transform:translateX(-50%);
-    background:#111827;
-    color:white;
-    padding:4px 8px;
-    font-size:11px;
-    border-radius:6px;
-    white-space:nowrap;
-    opacity:0;
-    pointer-events:none;
-    transition:.2s;
-}
-.action-btn[data-title]:hover::after{
-    opacity:1;
-}
-
+        .action-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:34px;
+            height:34px;
+            border-radius:8px;
+            border:none;
+            cursor:pointer;
+            font-size:16px;
+            margin:0 3px;
+            transition:all .2s;
+        }
+        .action-btn:hover{
+            transform:translateY(-1px);
+            box-shadow:0 4px 6px rgba(0,0,0,.15);
+        }
+        .action-edit{ background:#f59e0b; color:white; }
+        .action-edit:hover{ background:#d97706; }
+        .action-delete{ background:#ef4444; color:white; }
+        .action-delete:hover{ background:#dc2626; }
+        .action-view{ background:#3b82f6; color:white; }
+        .action-view:hover{ background:#2563eb; }
+        
+        /* Tooltip đơn giản */
+        .action-btn[data-title]{ position:relative; }
+        .action-btn[data-title]::after{
+            content:attr(data-title);
+            position:absolute;
+            bottom:110%;
+            left:50%;
+            transform:translateX(-50%);
+            background:#111827;
+            color:white;
+            padding:4px 8px;
+            font-size:11px;
+            border-radius:6px;
+            white-space:nowrap;
+            opacity:0;
+            pointer-events:none;
+            transition:.2s;
+        }
+        .action-btn[data-title]:hover::after{ opacity:1; }
+        
+        /* Scrollbar đẹp cho table */
+        .table-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-wrap::-webkit-scrollbar-track { background: #f1f5f9; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-wrap::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
@@ -271,8 +285,10 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <h3 style="font-weight: 700; color: #0f172a;">Danh sách học viên</h3>
+                    <!-- ===== THANH TÌM KIẾM ĐÃ CẬP NHẬT ===== -->
                     <div class="toolbar" style="margin: 0;">
-                        <input type="text" id="searchStudent" placeholder="🔍 Tìm theo tên, mã..." style="width: 250px;" oninput="filterStudents()">
+                        <input type="text" id="searchStudent" placeholder="🔍 Tìm theo tên, mã..." style="width: 200px;" oninput="filterStudents()">
+                        <input type="text" id="searchUnit" placeholder="🏢 Tìm theo đơn vị..." style="width: 200px;" oninput="filterStudents()">
                         <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
                         <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
                     </div>
@@ -282,18 +298,21 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Mã HV</th>
+                                <th style="width: 100px;">Mã HV</th>
                                 <th>Họ và tên</th>
-                                <th>Đối tượng</th>
+                                <th style="width: 120px;">Đối tượng</th>
                                 <th>Đơn vị</th>
-                                <th style="text-align: center;">Trạng thái</th>
-                                <th style="text-align: center; width: 180px;">Hành động</th>
+                                <th style="text-align: center; width: 120px;">Trạng thái</th>
+                                <th style="text-align: center; width: 140px;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="studentTable">
                             <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #64748b; text-align: right;">
+                    <span id="studentCount">0</span> học viên được hiển thị
                 </div>
             </div>
         </div>
@@ -569,7 +588,7 @@
         location.href = "index.html"; 
     }
 
-    // Load Data (ĐÃ SỬA LỖI: Đảm bảo luôn có code)
+    // Load Data
     async function loadStudents() {
         const tbody = document.getElementById("studentTable");
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải...</td></tr>';
@@ -581,9 +600,7 @@
             
             snapshot.forEach(doc => {
                 const st = doc.data();
-                // --- SỬA LỖI ---
-                if (!st.code) st.code = doc.id; // Nếu mất code thì lấy ID làm code
-                // ---------------
+                if (!st.code) st.code = doc.id;
                 allStudents.push(st);
                 
                 const obj = st.object || "Khác";
@@ -615,17 +632,34 @@
         document.getElementById(idDetail).innerHTML = html || "Không có dữ liệu";
     }
 
+    // ===== FILTER FUNCTION ĐÃ CẬP NHẬT: THÊM TÌM THEO ĐƠN VỊ =====
     function filterStudents() {
-        const k = document.getElementById("searchStudent").value.toLowerCase();
-        const filtered = allStudents.filter(st => 
-            !k || st.nameSearch?.includes(k) || st.code.toLowerCase().includes(k)
-        );
+        const k = document.getElementById("searchStudent").value.toLowerCase().trim();
+        const unitK = document.getElementById("searchUnit").value.toLowerCase().trim(); // Lấy giá trị tìm đơn vị
+        
+        const filtered = allStudents.filter(st => {
+            // Điều kiện 1: Tìm theo tên/mã/đối tượng (nếu có nhập)
+            const matchGeneral = !k || 
+                st.nameSearch?.includes(k) || 
+                st.code?.toLowerCase().includes(k) ||
+                st.object?.toLowerCase().includes(k);
+            
+            // Điều kiện 2: Tìm theo đơn vị (nếu có nhập)
+            const matchUnit = !unitK || 
+                st.unit?.toLowerCase().includes(unitK);
+            
+            // Phải thỏa mãn cả 2 điều kiện (AND)
+            return matchGeneral && matchUnit;
+        });
         
         const tbody = document.getElementById("studentTable");
         tbody.innerHTML = '';
         
+        // Cập nhật số lượng hiển thị
+        document.getElementById("studentCount").innerText = filtered.length;
+        
         if(filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Không tìm thấy dữ liệu</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Không tìm thấy dữ liệu phù hợp</td></tr>';
             return;
         }
         
@@ -635,7 +669,7 @@
                 <td><b>${st.code}</b></td>
                 <td>${st.name}</td>
                 <td><span class="badge badge-yellow">${st.object}</span></td>
-                <td>${st.unit}</td>
+                <td>${st.unit || '-'}</td>
                 <td style="text-align: center;">
                     <select class="badge ${st.status==='active'?'badge-green':'badge-red'}" onchange="changeStatus('${st.code}', this.value)">
                         <option value="active" ${st.status==='active'?'selected':''}>Hoạt động</option>
@@ -643,24 +677,10 @@
                     </select>
                 </td>
                 <td style="text-align:center;">
-    <button class="action-btn action-edit"
-        data-title="Sửa học viên"
-        onclick="openEditStudent('${st.code}')">
-        ✏️
-    </button>
-
-    <button class="action-btn action-delete"
-        data-title="Xóa học viên"
-        onclick="openDeleteModal('${st.code}', '${st.name}')">
-        🗑️
-    </button>
-
-    <button class="action-btn action-view"
-        data-title="Xem chi tiết"
-        onclick="viewStudentDetail('${st.code}')">
-        👁️
-    </button>
-</td>
+                    <button class="action-btn action-edit" data-title="Sửa học viên" onclick="openEditStudent('${st.code}')">✏️</button>
+                    <button class="action-btn action-delete" data-title="Xóa học viên" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️</button>
+                    <button class="action-btn action-view" data-title="Xem chi tiết" onclick="viewStudentDetail('${st.code}')">👁️</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -715,7 +735,6 @@
         document.getElementById("otherObjectGroup").style.display = val === "OTHER" ? "block" : "none";
     }
 
-    // Save Student (ĐÃ SỬA LỖI: Kiểm tra code tồn tại trước khi startsWith)
     async function saveStudent() {
         const name = document.getElementById("stName").value.trim();
         const unit = document.getElementById("stUnit").value.trim();
@@ -734,14 +753,7 @@
 
         try {
             if(!editingCode) {
-                // Generate new code safely
-                // --- SỬA LỖI ---
-                const relevant = allStudents
-                    .filter(s => s.code && s.code.startsWith(objPrefix)) 
-                    .map(s => parseInt(s.code.substring(2)))
-                    .filter(n => !isNaN(n));
-                // ---------------
-
+                const relevant = allStudents.filter(s => s.code && s.code.startsWith(objPrefix)).map(s => parseInt(s.code.substring(2))).filter(n => !isNaN(n));
                 const maxNum = relevant.length ? Math.max(...relevant) : 0;
                 const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
                 
@@ -757,7 +769,6 @@
             }
             closeStudentModal();
             loadStudents();
-            alert("Lưu thành công!");
         } catch(e) {
             console.error(e);
             alert("Lỗi: " + e.message);
@@ -826,10 +837,8 @@
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
             
             let counters = { HV:0, SQ:0, CN:0, KH:0 };
-            
-            // Tìm số lớn nhất hiện có
             allStudents.forEach(s => {
-                if(!s.code) return; // Bỏ qua nếu lỗi
+                if(!s.code) return;
                 const p = s.code.substring(0,2);
                 const n = parseInt(s.code.substring(2));
                 if(!isNaN(n) && n > (counters[p] || 0)) counters[p] = n;
@@ -855,7 +864,6 @@
                 });
                 count++;
                 
-                // Firestore batch limit is 500
                 if(count % 400 === 0) {
                     await batch.commit();
                     batch = db.batch();
@@ -881,7 +889,6 @@
         
         showPage('studentDetail');
         
-        // Load exams
         const snapshot = await db.collection("exam_logs").where("studentCode", "==", code).get();
         studentExams = [];
         snapshot.forEach(doc => {
@@ -892,7 +899,6 @@
         });
         studentExams.sort((a,b) => b.time - a.time);
         
-        // Update stats
         const total = studentExams.length;
         const pass = studentExams.filter(e => e.pass).length;
         const avg = total ? Math.round(studentExams.reduce((s,e) => s+e.score,0)/total) : 0;
@@ -1015,10 +1021,8 @@
             const e = doc.data();
             const t = e.time.toDate();
             
-            // Filter set
             if(setFilter && e.setId !== setFilter) return;
             
-            // Filter time
             if(timeFilter) {
                 let ok = false;
                 if(timeFilter === 'thisWeek') {
