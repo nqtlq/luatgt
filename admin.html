@@ -64,13 +64,13 @@
         .btn-warning { background: #f59e0b; color: white; }
         .btn-secondary { background: #64748b; color: white; }
         
-        /* ===== TABLE WITH SCROLL ===== */
+        /* ===== TABLE WITH SCROLL - ĐẢM BẢO MỖI HỌC VIÊN 1 DÒNG ===== */
         .table-wrap { 
             overflow-x: auto; 
             border-radius: 0.5rem; 
             border: 1px solid #e2e8f0; 
-            max-height: 60vh; /* Giới hạn chiều cao để cuộn */
-            overflow-y: auto; /* Cho phép cuộn dọc */
+            max-height: 60vh;
+            overflow-y: auto;
             position: relative;
         }
         
@@ -81,19 +81,64 @@
             z-index: 20;
         }
         
-        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.875rem;
+            table-layout: fixed; /* Cố định layout bảng */
+        }
+        
+        th, td { 
+            padding: 0.75rem 0.5rem; 
+            text-align: left; 
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap; /* QUAN TRỌNG: Không cho xuống dòng */
+            overflow: hidden; /* Ẩn phần tràn */
+            text-overflow: ellipsis; /* Hiện ... khi quá dài */
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
+        }
+        
+        /* Định nghĩa độ rộng cột cụ thể cho bảng học viên */
+        #studentTable th:nth-child(1), 
+        #studentTable td:nth-child(1) { width: 100px; } /* Mã HV */
+        
+        #studentTable th:nth-child(2), 
+        #studentTable td:nth-child(2) { 
+            width: auto; 
+            min-width: 150px;
+            max-width: 250px; /* Họ tên */
+        }
+        
+        #studentTable th:nth-child(3), 
+        #studentTable td:nth-child(3) { width: 120px; text-align: center; } /* Đối tượng */
+        
+        #studentTable th:nth-child(4), 
+        #studentTable td:nth-child(4) { 
+            width: 25%; 
+            min-width: 150px; /* Đơn vị */
+        }
+        
+        #studentTable th:nth-child(5), 
+        #studentTable td:nth-child(5) { width: 120px; text-align: center; } /* Trạng thái */
+        
+        #studentTable th:nth-child(6), 
+        #studentTable td:nth-child(6) { width: 140px; text-align: center; } /* Hành động */
+        
         th { 
             background: #f8fafc; 
             font-weight: 600; 
             color: #475569; 
-            white-space: nowrap; 
             cursor: pointer; 
             user-select: none;
-            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); /* Đổ bóng nhẹ để phân biệt */
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
         }
         th:hover { background: #f1f5f9; }
-        tr:hover { background: #f8fafc; }
+        
+        tbody tr { 
+            height: 56px; /* Chiều cao cố định mỗi dòng */
+        }
+        
+        tbody tr:hover { background: #f8fafc; }
         td { color: #334155; }
         
         /* Status & Rate Badges */
