@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
-        /* ===== 1. CORE STYLES (GIỮ NGUYÊN TỪ 11.TXT) ===== */
+        /* ===== 1. CORE STYLES (GIỮ NGUYÊN CỦA 11) ===== */
         :root {
             --primary: #2563eb; --secondary: #64748b; --success: #10b981;
             --danger: #ef4444; --warning: #f59e0b; --bg: #f8fafc;
@@ -21,7 +21,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
         
-        /* Header */
         header { 
             background: white; padding: 0 1.5rem; height: 64px; 
             display: flex; justify-content: space-between; align-items: center; 
@@ -32,7 +31,6 @@
         
         #app { display: flex; flex: 1; overflow: hidden; }
         
-        /* Sidebar */
         aside { width: 260px; background: #1e293b; color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.5rem; }
         .menu-btn { 
             width: 100%; text-align: left; padding: 0.75rem 1rem; border: none; background: transparent; 
@@ -44,7 +42,7 @@
 
         main { flex: 1; padding: 2rem; overflow-y: auto; max-width: 100%; }
 
-        /* Dashboard Cards */
+        /* Dashboard & Cards (Của 11) */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .db-card {
             background: white; border-radius: 1rem; padding: 1.5rem;
@@ -59,7 +57,6 @@
         .db-card.red { border-left: 5px solid var(--danger); }
         .db-card.orange { border-left: 5px solid var(--warning); }
 
-        /* Common Elements */
         .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; color: white; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
@@ -80,23 +77,22 @@
         .bg-green { background: #dcfce7; color: #166534; } .bg-red { background: #fee2e2; color: #991b1b; }
         .bg-blue { background: #dbeafe; color: #1e40af; } .bg-yellow { background: #fef3c7; color: #92400e; }
 
-        /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; padding: 1.5rem; animation: slideIn 0.2s ease-out; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 600px; padding: 1.5rem; animation: slideIn 0.2s ease-out; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
         .form-group { margin-bottom: 1rem; }
         .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
         .form-input { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; }
 
-        /* ===== CSS BỔ SUNG TỪ 55.TXT (Chi tiết câu hỏi) ===== */
+        /* ===== CSS BỔ SUNG TỪ 55 (STYLE CHO CHI TIẾT BÀI THI) ===== */
         .answerRow { padding: 10px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center; border: 1px solid transparent; }
         .correct { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
         .wrong { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
         .answer-icon { font-weight: bold; font-size: 1.1rem; }
 
-        /* Print Styles */
+        /* Print Styles (Của 11) */
         @media print {
             header, aside, .toolbar, .action-column, .no-print { display: none !important; }
             #app { display: block; height: auto; }
@@ -116,7 +112,7 @@
 <body>
 
 <header class="no-print">
-    <h1>🛡️ ADMIN SYSTEM</h1>
+    <h1>🛡️ QUẢN TRỊ HỆ THỐNG</h1>
     <button class="btn btn-danger" onclick="logout()">Đăng xuất</button>
 </header>
 
@@ -124,7 +120,7 @@
     <aside id="sidebar" class="no-print">
         <nav>
             <button class="menu-btn active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
-            <button class="menu-btn" onclick="showPage('students', this)">👤 Quản lý Học viên</button>
+            <button class="menu-btn" onclick="showPage('students', this)">👤 Học viên</button>
             <button class="menu-btn" onclick="showPage('history', this)">📜 Lịch sử thi</button>
             <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê</button>
         </nav>
@@ -206,7 +202,7 @@
 
         <div id="history" class="page" style="display:none">
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">Lịch sử thi chi tiết</h3>
+                <h3 style="margin-bottom: 1rem;">Nhật ký thi chi tiết</h3>
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -227,7 +223,7 @@
 
         <div id="stats" class="page" style="display:none">
             <div class="card">
-                <h3>Thống kê chi tiết</h3>
+                <h3>Bảng xếp hạng kết quả</h3>
                 <div class="table-wrap" style="margin-top: 1rem;">
                     <table>
                         <thead>
@@ -273,7 +269,7 @@
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem">
             <button class="btn btn-secondary" onclick="closeModal('studentModal')">Hủy</button>
-            <button class="btn btn-primary" onclick="saveStudent()">Lưu thông tin</button>
+            <button class="btn btn-primary" onclick="saveStudent()">Lưu lại</button>
         </div>
     </div>
 </div>
@@ -295,13 +291,13 @@
         <input type="file" id="excelFile" class="form-input" accept=".xlsx,.xls">
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1rem">
             <button class="btn btn-secondary" onclick="closeModal('importModal')">Đóng</button>
-            <button class="btn btn-success" onclick="processExcel()">Nhập dữ liệu</button>
+            <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. FIREBASE CONFIG
+    // 1. CẤU HÌNH FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
         authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -313,7 +309,7 @@
     if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
 
     let allStudents = [];
-    let allExams = [];
+    let allExams = []; // Biến mới chứa lịch sử thi
     let editingCode = null;
     let myChart = null;
 
@@ -323,43 +319,40 @@
             // Load Students
             const stSnap = await db.collection("students").get();
             allStudents = [];
-            let active = 0;
             stSnap.forEach(doc => {
                 const s = doc.data();
                 if(!s.code) s.code = doc.id;
                 allStudents.push(s);
-                if(s.status === 'active') active++;
             });
 
-            // Load Exams (Bổ sung logic để lấy dữ liệu cho History & Stats)
+            // Load Exams (Bổ sung logic từ 55 để lấy dữ liệu thi)
             const exSnap = await db.collection("exam_logs").orderBy("time", "desc").get();
             allExams = [];
-            let passCount = 0;
             exSnap.forEach(doc => {
                 const e = doc.data(); e.id = doc.id;
-                // Xử lý timestamp firebase
+                // Chuẩn hóa thời gian
                 if(e.time && e.time.toDate) e.timeDate = e.time.toDate();
-                else e.timeDate = new Date();
-                
-                if(e.pass) passCount++;
+                else e.timeDate = new Date(); 
                 allExams.push(e);
             });
 
-            // Update Dashboard
+            // Tính toán Dashboard
+            const active = allStudents.filter(s => s.status === 'active').length;
+            const passCount = allExams.filter(e => e.pass).length;
             const passRate = allExams.length > 0 ? Math.round((passCount / allExams.length) * 100) : 0;
+
             document.getElementById("dashTotal").innerText = allStudents.length;
             document.getElementById("dashActive").innerText = active;
             document.getElementById("dashExams").innerText = allExams.length;
             document.getElementById("dashRate").innerText = passRate + "%";
 
-            // Render Views
-            filterStudents();
-            renderHistoryTable(); // Render bảng history (từ 55.txt)
-            renderChart(passCount, allExams.length - passCount);
-        } catch(e) { console.error(e); alert("Lỗi tải dữ liệu!"); }
+            filterStudents(); // Render bảng học viên
+            renderHistoryTable(); // Render bảng lịch sử (Mới)
+            renderChart(passCount, allExams.length - passCount); // Vẽ biểu đồ
+        } catch(e) { console.error(e); }
     }
 
-    // 3. RENDER STUDENTS (Giữ logic lọc & in của 11.txt)
+    // 3. RENDER BẢNG HỌC VIÊN (Logic gốc 11)
     function filterStudents() {
         const k = document.getElementById("searchStudent").value.toLowerCase().trim();
         const u = document.getElementById("searchUnit").value.toLowerCase().trim();
@@ -404,7 +397,7 @@
         });
     }
 
-    // 4. RENDER HISTORY (TÍNH NĂNG MỚI TỪ 55.TXT)
+    // 4. RENDER LỊCH SỬ THI (Bổ sung từ 55)
     function renderHistoryTable() {
         const tbody = document.getElementById("historyTableBody");
         tbody.innerHTML = "";
@@ -423,18 +416,19 @@
         });
     }
 
-    // 5. VIEW EXAM DETAIL (TÍNH NĂNG ƯU VIỆT TỪ 55.TXT)
+    // 5. CHI TIẾT BÀI THI (Logic ưu việt từ 55)
     function viewExamDetail(id) {
         const exam = allExams.find(e => e.id === id);
         if(!exam) return;
 
         let html = `
             <div style="margin-bottom:10px">
-                <p>Học viên: <b>${exam.studentName}</b> (${exam.studentCode})</p>
-                <p>Điểm: <b style="color:blue">${exam.score}</b> | Kết quả: <b style="color:${exam.pass?'green':'red'}">${exam.pass?'ĐẠT':'KHÔNG ĐẠT'}</b></p>
+                <p><b>Học viên:</b> ${exam.studentName} (${exam.studentCode})</p>
+                <p><b>Điểm số:</b> <span style="color:blue; font-weight:bold">${exam.score}</span></p>
+                <p><b>Kết quả:</b> <span class="badge ${exam.pass ? 'bg-green' : 'bg-red'}">${exam.pass ? 'ĐẠT' : 'KHÔNG ĐẠT'}</span></p>
             </div>
             <hr style="margin:10px 0; border:0; border-top:1px solid #eee">
-            <h4>Chi tiết câu trả lời:</h4>
+            <h4>Danh sách câu trả lời:</h4>
         `;
 
         if(exam.answers && exam.answers.length > 0) {
@@ -449,14 +443,14 @@
                 `;
             });
         } else {
-            html += `<p style="color:#999">Không có dữ liệu chi tiết.</p>`;
+            html += `<p style="color:#999">Không có dữ liệu chi tiết câu hỏi.</p>`;
         }
 
         document.getElementById("examDetailContent").innerHTML = html;
         document.getElementById("examDetailModal").classList.add("show");
     }
 
-    // 6. SAVE STUDENT (GIỮ NGUYÊN LOGIC CHECK TRÙNG CỦA 11.TXT)
+    // 6. SAVE STUDENT (Giữ nguyên logic check trùng của 11)
     async function saveStudent() {
         const name = document.getElementById("stName").value.trim();
         const unit = document.getElementById("stUnit").value.trim();
@@ -471,7 +465,7 @@
 
         if(!name || !unit || !objName) return alert("Vui lòng nhập đủ thông tin!");
 
-        // Logic check trùng lặp (11.txt)
+        // Logic check trùng của 11
         const isDuplicate = allStudents.some(s => {
             if(editingCode && s.code === editingCode) return false;
             return s.name.toLowerCase() === name.toLowerCase() && 
@@ -479,7 +473,9 @@
                    s.dob === dob;
         });
 
-        if(isDuplicate && !confirm(`⚠️ CẢNH BÁO: Đã có học viên trùng tên/đơn vị/ngày sinh.\nTiếp tục?`)) return;
+        if(isDuplicate) {
+            if(!confirm(`⚠️ CẢNH BÁO TRÙNG LẶP!\nĐã có học viên: ${name} - ${unit}.\nBạn có chắc muốn lưu tiếp?`)) return;
+        }
 
         try {
             if(!editingCode) {
@@ -488,8 +484,7 @@
                 const newCode = prefix + String(max + 1).padStart(4, '0');
                 
                 await db.collection("students").doc(newCode).set({
-                    code: newCode, name, unit, dob,
-                    object: objName, objectCode: objType,
+                    code: newCode, name, unit, dob, object: objName, objectCode: objType,
                     status: 'active', nameSearch: name.toLowerCase(), createdAt: new Date()
                 });
                 alert("Đã thêm: " + newCode);
@@ -504,26 +499,13 @@
         } catch(e) { alert("Lỗi: " + e.message); }
     }
 
-    // UTILS
-    function showPage(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-        if(btn) {
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-    }
-    
+    // CÁC HÀM TIỆN ÍCH (Giữ nguyên)
     function openAddStudent() {
         editingCode = null;
         document.getElementById("modalTitle").innerText = "Thêm học viên mới";
-        document.getElementById("stName").value = "";
-        document.getElementById("stUnit").value = "";
-        document.getElementById("stDob").value = "";
-        toggleOtherObject();
+        document.getElementById("stName").value = ""; document.getElementById("stUnit").value = ""; document.getElementById("stDob").value = "";
         document.getElementById("studentModal").classList.add("show");
     }
-
     function openEditStudent(code) {
         const s = allStudents.find(x => x.code === code);
         if(!s) return;
@@ -536,8 +518,7 @@
         toggleOtherObject();
         document.getElementById("studentModal").classList.add("show");
     }
-
-    async function changeStatus(code, val) { await db.collection("students").doc(code).update({ status: val }); loadData(); }
+    async function changeStatus(code, val) { await db.collection("students").doc(code).update({status: val}); loadData(); }
     async function deleteStudent(code) { if(confirm("Xóa học viên?")) { await db.collection("students").doc(code).delete(); loadData(); } }
     
     function printList() {
@@ -560,7 +541,20 @@
         });
     }
 
-    // Các hàm phụ trợ khác (Import Excel, Logout...) giữ nguyên từ 11.txt
+    function showPage(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        if(btn) { document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+    }
+    function toggleOtherObject() { document.getElementById("otherObjectGroup").style.display = document.getElementById("stObjectType").value === 'OTHER' ? 'block' : 'none'; }
+    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+    function formatDate(s) { if(!s) return ""; const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; }
+    function logout() { localStorage.clear(); location.href = "index.html"; }
+
+    // Init
+    loadData();
+    
+    // Hàm Import Excel (Giữ nguyên từ 11)
     async function processExcel() {
         const file = document.getElementById("excelFile").files[0];
         if(!file) return alert("Chọn file!");
@@ -596,7 +590,8 @@
                 batch.set(ref, {
                     code: newCode, name, unit, dob: "",
                     object: objName, objectCode: prefix,
-                    status: 'active', nameSearch: name.toLowerCase(), createdAt: new Date()
+                    status: 'active', nameSearch: name.toLowerCase(),
+                    createdAt: new Date()
                 });
                 count++;
             }
@@ -607,14 +602,6 @@
         };
         reader.readAsArrayBuffer(file);
     }
-
-    function toggleOtherObject() { document.getElementById("otherObjectGroup").style.display = document.getElementById("stObjectType").value === 'OTHER' ? 'block' : 'none'; }
-    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
-    function logout() { localStorage.clear(); location.href = "index.html"; }
-    function formatDate(s) { if(!s) return ""; const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; }
-
-    // Init
-    loadData();
 </script>
 </body>
 </html>
