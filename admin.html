@@ -99,6 +99,28 @@
             .statGrid, .miniStats { grid-template-columns: 1fr; }
             .chartContainer { height: 250px; }
         }
+        /* ===== SCROLL STUDENT TABLE ===== */
+.student-scroll{
+    max-height:520px;
+    overflow-y:auto;
+}
+
+/* ===== MEDAL ===== */
+.medal{
+    font-size:18px;
+    margin-left:6px;
+}
+.medal.gold{color:#f1c40f}
+.medal.silver{color:#95a5a6}
+.medal.bronze{color:#cd7f32}
+
+/* ===== FILTER BAR ===== */
+.filter-bar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+}
     </style>
 </head>
 
@@ -148,9 +170,74 @@
                     <div>Bị khóa <span class="main-num" id="sLock">0</span></div>
                     <div class="sub-stats" id="sLockDetail">Loading...</div>
                 </div>
+                <div class="toolbar filter-bar">
+    <input type="text" id="searchStudent" placeholder="🔍 Tìm tên / mã" oninput="filterStudents()">
+    
+    <select id="filterUnit" onchange="filterStudents()">
+        <option value="">🏢 Tất cả đơn vị</option>
+    function filterStudents(){
+    const k = searchStudent.value.toLowerCase();
+    const unit = filterUnit.value;
+
+    const filtered = allStudents.filter(s=>{
+        if(k && !s.nameSearch?.includes(k) && !s.code.toLowerCase().includes(k)) return false;
+        if(unit && s.unit !== unit) return false;
+        return true;
+    });
+
+    const tbody = studentTable;
+    tbody.innerHTML = "";
+
+    if(!filtered.length){
+        tbody.innerHTML = `<tr><td colspan="6" class="activity-empty">Không có dữ liệu</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(st=>{
+        tbody.innerHTML += `
+        <tr>
+            <td><b>${st.code}</b></td>
+            <td>${st.name}</td>
+            <td><span class="badge badge-yellow">${st.object}</span></td>
+            <td>${st.unit}</td>
+            <td style="text-align:center">
+                <select class="badge ${st.status==="active"?"badge-green":"badge-red"}"
+                    onchange="changeStatus('${st.code}',this.value)">
+                    <option value="active" ${st.status==="active"?"selected":""}>Hoạt động</option>
+                    <option value="lock" ${st.status==="lock"?"selected":""}>Khóa</option>
+                </select>
+            </td>
+            <td style="text-align:center">
+                <button class="btn btn-warning" onclick="openEditStudent('${st.code}')">✏️</button>
+                <button class="btn btn-danger" onclick="openDeleteModal('${st.code}','${st.name}')">🗑️</button>
+                <button class="btn btn-success" onclick="viewStudentDetail('${st.code}')">👁️</button>
+            </td>
+        </tr>`;
+    });
+}
+        function exportStudents(){
+    const rows = allStudents.map(s=>({
+        MaHV: s.code,
+        HoTen: s.name,
+        DoiTuong: s.object,
+        DonVi: s.unit,
+        TrangThai: s.status==="active"?"Hoạt động":"Khóa"
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "HocVien");
+    XLSX.writeFile(wb, "Danh_sach_hoc_vien.xlsx");
+}
+
+    </select>
+
+    <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm</button>
+    <button class="btn btn-primary" onclick="exportStudents()">⬇️ Xuất Excel</button>
+</div>
+
             </div>
 
-            <div class="box">
+           <div class="table-wrap student-scroll">
                 <h3>👤 Danh sách học viên</h3>
                 <div class="toolbar">
                     <input id="searchStudent" style="width: 250px;" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng...">
@@ -233,6 +320,7 @@
                 </div>
                 <div class="tableWrap">
                     <table>
+                        <th>#</th>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -533,6 +621,14 @@
         db.collection("students").doc(code).update({ status: val })
             .then(() => loadStudents(document.getElementById("searchStudent").value));
     }
+        function populateUnitFilter(){
+    const select = document.getElementById("filterUnit");
+    const units = [...new Set(allStudents.map(s=>s.unit).filter(Boolean))];
+    select.innerHTML = `<option value="">🏢 Tất cả đơn vị</option>`;
+    units.forEach(u=>{
+        select.innerHTML += `<option value="${u}">${u}</option>`;
+    });
+}
 
     // ===== THÊM / SỬA HỌC VIÊN =====
     function toggleOtherObject(select) {
@@ -621,6 +717,7 @@
         
         closeStudentModal();
         loadStudents();
+        populateUnitFilter();
     }
 
     function generateNextCode(prefix) {
@@ -751,7 +848,34 @@
         else { sortKey = key; sortDir = 1; }
         clearSortIcons();
         th.querySelector(".sort-icon").innerHTML = sortDir === 1 ? "▲" : "▼";
-        renderStatsTable();
+        function renderStatsTable(){
+    const tbody = statTable;
+    tbody.innerHTML="";
+
+    statsData.forEach((s,i)=>{
+        let medal="";
+        if(i===0) medal='<span class="medal gold">🥇</span>';
+        if(i===1) medal='<span class="medal silver">🥈</span>';
+        if(i===2) medal='<span class="medal bronze">🥉</span>';
+
+        tbody.innerHTML+=`
+        <tr>
+            <td>${i+1}${medal}</td>
+            <td><b>${s.code}</b></td>
+            <td>${s.attempts}</td>
+            <td>${s.pass}</td>
+            <td>
+                <span class="badge ${
+                    s.rate>=80?'badge-green':s.rate>=50?'badge-yellow':'badge-red'
+                }">${s.rate}%</span>
+            </td>
+            <td>
+                <button class="btn btn-success" onclick="viewStudentDetail('${s.code}')">Xem</button>
+            </td>
+        </tr>`;
+    });
+}
+
     }
 
     function getTimeRange() {
