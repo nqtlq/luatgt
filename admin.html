@@ -142,6 +142,56 @@
             .statGrid, .miniStats, .dashboard-stats { grid-template-columns: 1fr; }
             .chartContainer { height: 250px; }
         }
+        /* ===== DASHBOARD MODERN GRID (PATCH FROM 22.txt) ===== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.db-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.db-card h4 {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.db-card .value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1d3557;
+}
+
+.db-card .icon {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    font-size: 42px;
+    opacity: 0.15;
+}
+
+.db-card.blue { border-left: 6px solid #0d6efd; }
+.db-card.green { border-left: 6px solid #198754; }
+.db-card.red { border-left: 6px solid #dc3545; }
+.db-card.orange { border-left: 6px solid #ffc107; }
+
+@media(max-width: 1024px) {
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 600px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+
     </style>
 </head>
 
@@ -164,44 +214,77 @@
     </aside>
 
     <main>
-        <div id="dashboard" class="page">
-            <h2 style="margin-bottom: 1.5rem; color: #1e293b;">Tổng quan hệ thống</h2>
-            
-            <div class="dashboard-grid">
-                <div class="db-card blue">
-                    <h3>TỔNG HỌC VIÊN</h3>
-                    <div class="value" id="dashTotal">0</div>
-                    <div class="icon">👥</div>
-                </div>
-                <div class="db-card green">
-                    <h3>ĐANG HOẠT ĐỘNG</h3>
-                    <div class="value" id="dashActive">0</div>
-                    <div class="icon">✅</div>
-                </div>
-                <div class="db-card red">
-                    <h3>ĐÃ KHÓA</h3>
-                    <div class="value" id="dashLock">0</div>
-                    <div class="icon">🔒</div>
-                </div>
-                <div class="db-card orange">
-                    <h3>LƯỢT THI HÔM NAY</h3>
-                    <div class="value" id="dashToday">0</div>
-                    <div class="icon">📝</div>
-                </div>
-            </div>
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="page active">
+    <h2 style="color:#1d3557; margin-bottom:18px; font-size:20px">
+        📊 Tổng quan hệ thống
+    </h2>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem;">Biểu đồ lượt thi (7 ngày gần nhất)</h3>
-                    <div style="height: 300px;"><canvas id="mainChart"></canvas></div>
-                </div>
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem;">Phím tắt</h3>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <button class="btn btn-primary" onclick="showPage('students'); openAddStudent()" style="justify-content: center; padding: 1rem;">➕ Thêm học viên mới</button>
-                        <button class="btn btn-success" onclick="showPage('students'); openImportModal()" style="justify-content: center; padding: 1rem;">📂 Nhập từ Excel</button>
-                        <button class="btn btn-warning" onclick="alert('Tính năng in báo cáo tổng hợp đang phát triển')" style="justify-content: center; padding: 1rem;">🖨️ In báo cáo ngày</button>
-                    </div>
+    <div class="dashboard-grid">
+        <div class="db-card blue">
+            <h4>Tổng học viên</h4>
+            <div class="value" id="dashTotalStudents">0</div>
+            <div class="icon">👥</div>
+        </div>
+
+        <div class="db-card green">
+            <h4>Đang hoạt động</h4>
+            <div class="value" id="dashActiveStudents">0</div>
+            <div class="icon">✅</div>
+        </div>
+
+        <div class="db-card red">
+            <h4>Bị khóa</h4>
+            <div class="value" id="dashLockedStudents">0</div>
+            <div class="icon">🔒</div>
+        </div>
+
+        <div class="db-card orange">
+            <h4>Lượt thi hôm nay</h4>
+            <div class="value" id="dashTodayExams">0</div>
+            <div class="icon">📝</div>
+        </div>
+    </div>
+
+    <div class="activity-table">
+        <h3>🕐 Hoạt động gần đây</h3>
+        <div class="tableWrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Học viên</th>
+                        <th>Hoạt động</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTable">
+                    <tr>
+                        <td colspan="4" class="activity-empty">Đang tải...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+            
+            <div class="activity-table">
+                <h3>🕐 Hoạt động gần đây</h3>
+                <div class="tableWrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Học viên</th>
+                                <th>Hoạt động</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityTable">
+                            <tr><td colspan="4" class="activity-empty">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -545,66 +628,71 @@
 
     // ===== DASHBOARD =====
     function loadDashboard() {
-        // Load tổng học viên
-        db.collection("students").get().then(qs => {
-            const total = qs.size;
-            const active = qs.docs.filter(d => d.data().status === 'active').length;
-            const locked = total - active;
-            
-            document.getElementById("dashTotalStudents").innerText = total;
-            document.getElementById("dashActiveStudents").innerText = active;
-            document.getElementById("dashWarnings").innerText = locked;
+    // ===== HỌC VIÊN =====
+    db.collection("students").get().then(qs => {
+        let total = qs.size;
+        let active = 0;
+
+        qs.forEach(doc => {
+            if (doc.data().status === "active") active++;
         });
-        
-        // Load lượt thi hôm nay
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        db.collection("exam_logs")
-            .where("time", ">=", today)
-            .get()
-            .then(qs => {
-                const todayCount = qs.size;
-                const passCount = qs.docs.filter(d => d.data().pass).length;
-                
-                document.getElementById("dashTodayExams").innerText = todayCount;
-                document.getElementById("dashTodayPass").innerText = passCount;
+
+        document.getElementById("dashTotalStudents").innerText = total;
+        document.getElementById("dashActiveStudents").innerText = active;
+        document.getElementById("dashLockedStudents").innerText = total - active;
+    });
+
+    // ===== LƯỢT THI HÔM NAY =====
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    db.collection("exam_logs")
+        .where("time", ">=", today)
+        .get()
+        .then(qs => {
+            document.getElementById("dashTodayExams").innerText = qs.size;
+        });
+
+    // ===== HOẠT ĐỘNG GẦN ĐÂY =====
+    db.collection("exam_logs")
+        .orderBy("time", "desc")
+        .limit(10)
+        .get()
+        .then(qs => {
+            const table = document.getElementById("activityTable");
+            table.innerHTML = "";
+
+            if (qs.empty) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="activity-empty">
+                            Chưa có hoạt động nào
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            qs.forEach(doc => {
+                const e = doc.data();
+                const t = e.time.toDate();
+                const status = e.pass ? "✓ Đạt" : "✗ Không đạt";
+                const cls = e.pass ? "good" : "bad";
+
+                table.innerHTML += `
+                    <tr>
+                        <td>${formatDateTime(t)}</td>
+                        <td><b>${e.studentCode}</b></td>
+                        <td>Làm bài thi</td>
+                        <td>
+                            <span class="rate ${cls}">${status}</span>
+                            <b style="margin-left:8px">${e.score}đ</b>
+                        </td>
+                    </tr>
+                `;
             });
-        
-        // Load hoạt động gần đây (10 bài thi gần nhất)
-        db.collection("exam_logs")
-            .orderBy("time", "desc")
-            .limit(10)
-            .get()
-            .then(qs => {
-                const table = document.getElementById("activityTable");
-                table.innerHTML = "";
-                
-                if(qs.empty) {
-                    table.innerHTML = "<tr><td colspan='4' class='activity-empty'>Chưa có hoạt động nào</td></tr>";
-                    return;
-                }
-                
-                qs.forEach(doc => {
-                    const exam = doc.data();
-                    const time = exam.time.toDate();
-                    const status = exam.pass ? "✓ Đạt" : "✗ Không đạt";
-                    const statusClass = exam.pass ? "good" : "bad";
-                    
-                    table.innerHTML += `
-                        <tr>
-                            <td>${formatDateTime(time)}</td>
-                            <td><b>${exam.studentCode}</b></td>
-                            <td>Làm bài thi</td>
-                            <td>
-                                <span class="rate ${statusClass}">${status}</span>
-                                <b style="margin-left:10px">${exam.score} điểm</b>
-                            </td>
-                        </tr>
-                    `;
-                });
-            });
-    }
+        });
+}
+
 
     // ===== QUẢN LÝ HỌC VIÊN =====
     function fetchAllStudents() {
