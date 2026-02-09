@@ -92,6 +92,13 @@
         .answerRow.correct { background: #d1e7dd }
         .answerRow.wrong { background: #f8d7da }
 
+        .student-scroll { max-height: 520px; overflow-y: auto; }
+        .medal { font-size: 18px; margin-left: 6px; }
+        .medal.gold { color: #f1c40f }
+        .medal.silver { color: #95a5a6 }
+        .medal.bronze { color: #cd7f32 }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+
         @media(max-width: 768px) {
             #layout { flex-direction: column; }
             aside { width: 100%; border-bottom: 1px solid #ddd; box-shadow: none; }
@@ -99,28 +106,6 @@
             .statGrid, .miniStats { grid-template-columns: 1fr; }
             .chartContainer { height: 250px; }
         }
-        /* ===== SCROLL STUDENT TABLE ===== */
-.student-scroll{
-    max-height:520px;
-    overflow-y:auto;
-}
-
-/* ===== MEDAL ===== */
-.medal{
-    font-size:18px;
-    margin-left:6px;
-}
-.medal.gold{color:#f1c40f}
-.medal.silver{color:#95a5a6}
-.medal.bronze{color:#cd7f32}
-
-/* ===== FILTER BAR ===== */
-.filter-bar{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-}
     </style>
 </head>
 
@@ -170,79 +155,18 @@
                     <div>Bị khóa <span class="main-num" id="sLock">0</span></div>
                     <div class="sub-stats" id="sLockDetail">Loading...</div>
                 </div>
-                <div class="toolbar filter-bar">
-    <input type="text" id="searchStudent" placeholder="🔍 Tìm tên / mã" oninput="filterStudents()">
-    
-    <select id="filterUnit" onchange="filterStudents()">
-        <option value="">🏢 Tất cả đơn vị</option>
-    function filterStudents(){
-    const k = searchStudent.value.toLowerCase();
-    const unit = filterUnit.value;
-
-    const filtered = allStudents.filter(s=>{
-        if(k && !s.nameSearch?.includes(k) && !s.code.toLowerCase().includes(k)) return false;
-        if(unit && s.unit !== unit) return false;
-        return true;
-    });
-
-    const tbody = studentTable;
-    tbody.innerHTML = "";
-
-    if(!filtered.length){
-        tbody.innerHTML = `<tr><td colspan="6" class="activity-empty">Không có dữ liệu</td></tr>`;
-        return;
-    }
-
-    filtered.forEach(st=>{
-        tbody.innerHTML += `
-        <tr>
-            <td><b>${st.code}</b></td>
-            <td>${st.name}</td>
-            <td><span class="badge badge-yellow">${st.object}</span></td>
-            <td>${st.unit}</td>
-            <td style="text-align:center">
-                <select class="badge ${st.status==="active"?"badge-green":"badge-red"}"
-                    onchange="changeStatus('${st.code}',this.value)">
-                    <option value="active" ${st.status==="active"?"selected":""}>Hoạt động</option>
-                    <option value="lock" ${st.status==="lock"?"selected":""}>Khóa</option>
-                </select>
-            </td>
-            <td style="text-align:center">
-                <button class="btn btn-warning" onclick="openEditStudent('${st.code}')">✏️</button>
-                <button class="btn btn-danger" onclick="openDeleteModal('${st.code}','${st.name}')">🗑️</button>
-                <button class="btn btn-success" onclick="viewStudentDetail('${st.code}')">👁️</button>
-            </td>
-        </tr>`;
-    });
-}
-        function exportStudents(){
-    const rows = allStudents.map(s=>({
-        MaHV: s.code,
-        HoTen: s.name,
-        DoiTuong: s.object,
-        DonVi: s.unit,
-        TrangThai: s.status==="active"?"Hoạt động":"Khóa"
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "HocVien");
-    XLSX.writeFile(wb, "Danh_sach_hoc_vien.xlsx");
-}
-
-    </select>
-
-    <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm</button>
-    <button class="btn btn-primary" onclick="exportStudents()">⬇️ Xuất Excel</button>
-</div>
-
             </div>
 
-           <div class="table-wrap student-scroll">
+            <div class="box student-scroll">
                 <h3>👤 Danh sách học viên</h3>
-                <div class="toolbar">
-                    <input id="searchStudent" style="width: 250px;" placeholder="🔍 Tìm theo Tên, Mã hoặc Đối tượng...">
-                    <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm mới</button>
+                <div class="toolbar filter-bar">
+                    <input type="text" id="searchStudent" placeholder="🔍 Tìm tên / mã" style="width: 250px;">
+                    <select id="filterUnit" onchange="filterStudents()">
+                        <option value="">🏢 Tất cả đơn vị</option>
+                    </select>
+                    <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm</button>
                     <button class="btn btn-primary" onclick="openImportModal()">📂 Nhập Excel</button>
+                    <button class="btn btn-primary" onclick="exportStudents()">⬇️ Xuất Excel</button>
                 </div>
                 <div class="tableWrap">
                     <table>
@@ -320,7 +244,6 @@
                 </div>
                 <div class="tableWrap">
                     <table>
-                        <th>#</th>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -503,7 +426,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
+    // Kiểm tra quyền truy cập
+    if(localStorage.getItem("userType") !== "admin") {
+        location.href = "index.html";
+    }
 
     // ===== BIẾN TOÀN CỤC =====
     let allStudents = [];
@@ -523,7 +449,7 @@
             document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
         }
-        if(id === 'students') loadStudents();
+        if(id === 'students') fetchAllStudents();
         if(id === 'stats') loadStats();
     }
     
@@ -533,77 +459,111 @@
     }
 
     // ===== QUẢN LÝ HỌC VIÊN =====
-    function loadStudents(k = "") {
+    function fetchAllStudents() {
         const table = document.getElementById("studentTable");
         table.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
         
         db.collection("students").orderBy("code").get().then(qs => {
             allStudents = [];
-            table.innerHTML = "";
+            qs.forEach(doc => allStudents.push(doc.data()));
             
-            let stats = {
-                total: { count: 0, detail: {} },
-                active: { count: 0, detail: {} },
-                lock: { count: 0, detail: {} }
-            };
-
-            qs.forEach(doc => {
-                const st = doc.data();
-                allStudents.push(st);
-                
-                const keyword = k.toLowerCase();
-                const match = !k || 
-                              st.nameSearch?.includes(keyword) || 
-                              st.code.toLowerCase().includes(keyword) || 
-                              st.object.toLowerCase().includes(keyword);
-
-                if (match) {
-                    renderStudentRow(table, st);
-                }
-
-                const objType = st.object || "Khác";
-                stats.total.count++;
-                stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
-
-                if(st.status === 'active') {
-                    stats.active.count++;
-                    stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
-                } else {
-                    stats.lock.count++;
-                    stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
-                }
-            });
-
-            if(table.innerHTML === "") {
-                table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
-            }
+            // Populate unit filter
+            populateUnitFilter();
             
-            updateStatBox("sTotal", "sTotalDetail", stats.total);
-            updateStatBox("sActive", "sActiveDetail", stats.active);
-            updateStatBox("sLock", "sLockDetail", stats.lock);
+            // Render table
+            filterStudents();
+            
+            // Update stats
+            updateGlobalStats();
+        }).catch(err => {
+            console.error("Lỗi tải học viên:", err);
+            table.innerHTML = "<tr><td colspan='6'>Lỗi khi tải dữ liệu!</td></tr>";
         });
     }
 
-    function renderStudentRow(table, st) {
-        table.innerHTML += `
-            <tr>
-                <td><b>${st.code}</b></td>
-                <td style="text-align:left; padding-left:15px">${st.name}</td>
-                <td><span class="rate mid">${st.object}</span></td>
-                <td>${st.unit}</td>
-                <td>
-                    <select onchange="changeStatus('${st.code}', this.value)" 
-                            class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
-                        <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
-                        <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
-                    </select>
-                </td>
-                <td>
-                    <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
-                    <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
-                    <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
-                </td>
-            </tr>`;
+    function populateUnitFilter() {
+        const select = document.getElementById("filterUnit");
+        const units = [...new Set(allStudents.map(s => s.unit).filter(Boolean))];
+        select.innerHTML = `<option value="">🏢 Tất cả đơn vị</option>`;
+        units.forEach(u => {
+            select.innerHTML += `<option value="${u}">${u}</option>`;
+        });
+    }
+
+    function filterStudents() {
+        const searchKey = document.getElementById("searchStudent").value.toLowerCase();
+        const unitFilter = document.getElementById("filterUnit").value;
+        
+        const filtered = allStudents.filter(st => {
+            const matchSearch = !searchKey || 
+                st.nameSearch?.includes(searchKey) || 
+                st.code.toLowerCase().includes(searchKey) || 
+                st.object.toLowerCase().includes(searchKey);
+            
+            const matchUnit = !unitFilter || st.unit === unitFilter;
+            
+            return matchSearch && matchUnit;
+        });
+        
+        renderStudentTable(filtered);
+    }
+
+    function renderStudentTable(list) {
+        const table = document.getElementById("studentTable");
+        table.innerHTML = "";
+        
+        if (list.length === 0) {
+            table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
+            return;
+        }
+        
+        list.forEach(st => {
+            table.innerHTML += `
+                <tr>
+                    <td><b>${st.code}</b></td>
+                    <td style="text-align:left; padding-left:15px">${st.name}</td>
+                    <td><span class="rate mid">${st.object}</span></td>
+                    <td>${st.unit}</td>
+                    <td>
+                        <select onchange="changeStatus('${st.code}', this.value)" 
+                                class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
+                            <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
+                            <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
+                        <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    function updateGlobalStats() {
+        let stats = {
+            total: { count: 0, detail: {} },
+            active: { count: 0, detail: {} },
+            lock: { count: 0, detail: {} }
+        };
+
+        allStudents.forEach(st => {
+            const objType = st.object || "Khác";
+            stats.total.count++;
+            stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
+
+            if(st.status === 'active') {
+                stats.active.count++;
+                stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
+            } else {
+                stats.lock.count++;
+                stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
+            }
+        });
+
+        updateStatBox("sTotal", "sTotalDetail", stats.total);
+        updateStatBox("sActive", "sActiveDetail", stats.active);
+        updateStatBox("sLock", "sLockDetail", stats.lock);
     }
 
     function updateStatBox(idNum, idDetail, data) {
@@ -615,20 +575,34 @@
         document.getElementById(idDetail).innerHTML = html || "Chưa có dữ liệu";
     }
 
-    document.getElementById("searchStudent").oninput = (e) => loadStudents(e.target.value);
+    // Event listeners for filters
+    document.getElementById("searchStudent").oninput = filterStudents;
 
     function changeStatus(code, val) {
         db.collection("students").doc(code).update({ status: val })
-            .then(() => loadStudents(document.getElementById("searchStudent").value));
+            .then(() => {
+                // Update local data
+                const student = allStudents.find(s => s.code === code);
+                if(student) student.status = val;
+                filterStudents();
+                updateGlobalStats();
+            })
+            .catch(err => alert("Lỗi cập nhật: " + err.message));
     }
-        function populateUnitFilter(){
-    const select = document.getElementById("filterUnit");
-    const units = [...new Set(allStudents.map(s=>s.unit).filter(Boolean))];
-    select.innerHTML = `<option value="">🏢 Tất cả đơn vị</option>`;
-    units.forEach(u=>{
-        select.innerHTML += `<option value="${u}">${u}</option>`;
-    });
-}
+
+    function exportStudents() {
+        const rows = allStudents.map(s => ({
+            MaHV: s.code,
+            HoTen: s.name,
+            DoiTuong: s.object,
+            DonVi: s.unit,
+            TrangThai: s.status === "active" ? "Hoạt động" : "Khóa"
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "HocVien");
+        XLSX.writeFile(wb, "Danh_sach_hoc_vien.xlsx");
+    }
 
     // ===== THÊM / SỬA HỌC VIÊN =====
     function toggleOtherObject(select) {
@@ -688,36 +662,42 @@
             objPrefix = "KH";
         }
 
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
-
-        if (mode === "add") {
-            const code = generateNextCode(objPrefix);
-            
-            await db.collection("students").doc(code).set({
-                code: code,
-                name: name,
-                unit: unit,
-                object: objName,
-                objectCode: objType,
-                status: "active",
-                nameSearch: name.toLowerCase()
-            });
-            alert("Đã thêm: " + code);
-        } else {
-            const code = document.getElementById("stCurrentCode").value;
-            await db.collection("students").doc(code).update({
-                name: name,
-                unit: unit,
-                object: objName,
-                objectCode: objType,
-                nameSearch: name.toLowerCase()
-            });
-            alert("Cập nhật thành công!");
+        if(!name || !unit || !objName) {
+            alert("Vui lòng nhập đầy đủ thông tin!");
+            return;
         }
-        
-        closeStudentModal();
-        loadStudents();
-        populateUnitFilter();
+
+        try {
+            if (mode === "add") {
+                const code = generateNextCode(objPrefix);
+                
+                await db.collection("students").doc(code).set({
+                    code: code,
+                    name: name,
+                    unit: unit,
+                    object: objName,
+                    objectCode: objType === "OTHER" ? "KH" : objType,
+                    status: "active",
+                    nameSearch: name.toLowerCase()
+                });
+                alert("Đã thêm: " + code);
+            } else {
+                const code = document.getElementById("stCurrentCode").value;
+                await db.collection("students").doc(code).update({
+                    name: name,
+                    unit: unit,
+                    object: objName,
+                    objectCode: objType === "OTHER" ? "KH" : objType,
+                    nameSearch: name.toLowerCase()
+                });
+                alert("Cập nhật thành công!");
+            }
+            
+            closeStudentModal();
+            fetchAllStudents();
+        } catch(err) {
+            alert("Lỗi lưu dữ liệu: " + err.message);
+        }
     }
 
     function generateNextCode(prefix) {
@@ -742,20 +722,25 @@
         document.getElementById("deleteModal").classList.remove("show");
     }
 
-    function confirmDelete() {
+    async function confirmDelete() {
         if(!deleteTargetCode) return;
         
-        db.collection("students").doc(deleteTargetCode).delete().then(() => {
-            db.collection("exam_logs").where("studentCode", "==", deleteTargetCode).get().then(qs => {
-                const batch = db.batch();
-                qs.forEach(doc => batch.delete(doc.ref));
-                return batch.commit();
-            });
+        try {
+            // Xóa học viên
+            await db.collection("students").doc(deleteTargetCode).delete();
+            
+            // Xóa logs thi
+            const logs = await db.collection("exam_logs").where("studentCode", "==", deleteTargetCode).get();
+            const batch = db.batch();
+            logs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
 
             alert("Đã xóa học viên và dữ liệu liên quan.");
             closeDeleteModal();
-            loadStudents();
-        }).catch(err => alert("Lỗi: " + err.message));
+            fetchAllStudents();
+        } catch(err) {
+            alert("Lỗi: " + err.message);
+        }
     }
 
     // ===== IMPORT EXCEL =====
@@ -765,6 +750,7 @@
 
     function closeImportModal() {
         document.getElementById("importModal").classList.remove("show");
+        document.getElementById("excelFile").value = "";
     }
 
     function downloadTemplate() {
@@ -781,107 +767,102 @@
     function processExcel() {
         const fileInput = document.getElementById('excelFile');
         const file = fileInput.files[0];
-        if(!file) return alert("Vui lòng chọn file Excel!");
+        if(!file) {
+            alert("Vui lòng chọn file Excel!");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(firstSheet);
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(firstSheet);
 
-            if(json.length === 0) return alert("File rỗng!");
+                if(json.length === 0) {
+                    alert("File rỗng!");
+                    return;
+                }
 
-            let tempCounters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
-            
-            allStudents.forEach(s => {
-                const p = s.code.substring(0, 2);
-                const n = parseInt(s.code.substring(2));
-                if(!isNaN(n) && n > (tempCounters[p] || 0)) tempCounters[p] = n;
-            });
-
-            let promises = [];
-
-            json.forEach(row => {
-                if(!row.HoTen) return;
-
-                let objCode = row.DoiTuong ? row.DoiTuong.toUpperCase() : "KH";
-                let prefix = "KH";
-                let objName = "Khác";
-
-                if(objCode === "HV") { prefix = "HV"; objName = "Học viên"; }
-                else if(objCode === "SQ") { prefix = "SQ"; objName = "Sĩ quan"; }
-                else if(objCode === "CN") { prefix = "CN"; objName = "Chuyên nghiệp"; }
+                let tempCounters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
                 
-                tempCounters[prefix] = (tempCounters[prefix] || 0) + 1;
-                let nextNum = tempCounters[prefix];
-                let newCode = prefix + String(nextNum).padStart(4, '0');
+                // Tính số lượng hiện có
+                allStudents.forEach(s => {
+                    const prefix = s.code.substring(0, 2);
+                    const num = parseInt(s.code.substring(2));
+                    if(!isNaN(num) && num > (tempCounters[prefix] || 0)) {
+                        tempCounters[prefix] = num;
+                    }
+                });
 
-                let ref = db.collection("students").doc(newCode);
-                promises.push(ref.set({
-                    code: newCode,
-                    name: row.HoTen,
-                    unit: row.DonVi || "",
-                    object: objName,
-                    objectCode: objCode,
-                    status: "active",
-                    nameSearch: row.HoTen.toLowerCase()
-                }));
-            });
+                let promises = [];
 
-            Promise.all(promises).then(() => {
-                alert("Đã nhập thành công " + promises.length + " học viên!");
-                closeImportModal();
-                loadStudents();
-            }).catch(err => alert("Lỗi khi nhập: " + err));
+                json.forEach(row => {
+                    if(!row.HoTen) return;
+
+                    let objCode = row.DoiTuong ? row.DoiTuong.toUpperCase() : "KH";
+                    let prefix = "KH";
+                    let objName = "Khác";
+
+                    if(objCode === "HV") { prefix = "HV"; objName = "Học viên"; }
+                    else if(objCode === "SQ") { prefix = "SQ"; objName = "Sĩ quan"; }
+                    else if(objCode === "CN") { prefix = "CN"; objName = "Chuyên nghiệp"; }
+                    
+                    tempCounters[prefix] = (tempCounters[prefix] || 0) + 1;
+                    let nextNum = tempCounters[prefix];
+                    let newCode = prefix + String(nextNum).padStart(4, '0');
+
+                    promises.push(
+                        db.collection("students").doc(newCode).set({
+                            code: newCode,
+                            name: row.HoTen,
+                            unit: row.DonVi || "",
+                            object: objName,
+                            objectCode: objCode,
+                            status: "active",
+                            nameSearch: row.HoTen.toLowerCase()
+                        })
+                    );
+                });
+
+                Promise.all(promises).then(() => {
+                    alert("Đã nhập thành công " + promises.length + " học viên!");
+                    closeImportModal();
+                    fetchAllStudents();
+                }).catch(err => {
+                    alert("Lỗi khi nhập: " + err.message);
+                });
+            } catch(err) {
+                alert("Lỗi đọc file: " + err.message);
+            }
         };
         reader.readAsArrayBuffer(file);
     }
 
     // ===== THỐNG KÊ =====
-    function clearSortIcons() {
-        document.querySelectorAll(".sort-icon").forEach(i => i.innerHTML = "");
-    }
-
     function sortTable(key, th) {
-        if(sortKey === key) sortDir *= -1;
-        else { sortKey = key; sortDir = 1; }
+        if(sortKey === key) {
+            sortDir *= -1;
+        } else {
+            sortKey = key;
+            sortDir = 1;
+        }
+        
         clearSortIcons();
         th.querySelector(".sort-icon").innerHTML = sortDir === 1 ? "▲" : "▼";
-        function renderStatsTable(){
-    const tbody = statTable;
-    tbody.innerHTML="";
+        renderStatsTable();
+    }
 
-    statsData.forEach((s,i)=>{
-        let medal="";
-        if(i===0) medal='<span class="medal gold">🥇</span>';
-        if(i===1) medal='<span class="medal silver">🥈</span>';
-        if(i===2) medal='<span class="medal bronze">🥉</span>';
-
-        tbody.innerHTML+=`
-        <tr>
-            <td>${i+1}${medal}</td>
-            <td><b>${s.code}</b></td>
-            <td>${s.attempts}</td>
-            <td>${s.pass}</td>
-            <td>
-                <span class="badge ${
-                    s.rate>=80?'badge-green':s.rate>=50?'badge-yellow':'badge-red'
-                }">${s.rate}%</span>
-            </td>
-            <td>
-                <button class="btn btn-success" onclick="viewStudentDetail('${s.code}')">Xem</button>
-            </td>
-        </tr>`;
-    });
-}
-
+    function clearSortIcons() {
+        document.querySelectorAll(".sort-icon").forEach(i => i.innerHTML = "");
     }
 
     function getTimeRange() {
         const now = new Date();
         let from = null, to = null;
-        const monday = d => {
+        
+        const getMonday = (d) => {
             const x = new Date(d);
             const day = x.getDay() || 7;
             x.setDate(x.getDate() - day + 1);
@@ -889,59 +870,75 @@
             return x;
         };
         
-        if(document.getElementById("filterTime").value === "thisWeek") {
-            from = monday(now); to = now;
-        }
-        if(document.getElementById("filterTime").value === "lastWeek") {
-            to = monday(now); to.setMilliseconds(-1); from = monday(to);
-        }
-        if(document.getElementById("filterTime").value === "thisMonth") {
-            from = new Date(now.getFullYear(), now.getMonth(), 1); to = now;
-        }
-        if(document.getElementById("filterTime").value === "lastMonth") {
+        const filterValue = document.getElementById("filterTime").value;
+        
+        if(filterValue === "thisWeek") {
+            from = getMonday(now);
+            to = now;
+        } else if(filterValue === "lastWeek") {
+            to = getMonday(now);
+            to.setMilliseconds(-1);
+            from = getMonday(to);
+        } else if(filterValue === "thisMonth") {
+            from = new Date(now.getFullYear(), now.getMonth(), 1);
+            to = now;
+        } else if(filterValue === "lastMonth") {
             from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        } else if(filterValue === "custom") {
+            const fromDate = document.getElementById("fromDate").value;
+            const toDate = document.getElementById("toDate").value;
+            if(fromDate && toDate) {
+                from = new Date(fromDate);
+                to = new Date(toDate + "T23:59:59");
+            }
         }
-        if(document.getElementById("filterTime").value === "custom" && 
-           document.getElementById("fromDate").value && 
-           document.getElementById("toDate").value) {
-            from = new Date(document.getElementById("fromDate").value);
-            to = new Date(document.getElementById("toDate").value + "T23:59:59");
-        }
+        
         return { from, to };
     }
 
     function loadStats() {
         statsData = [];
-        let map = {}, total = 0, pass = 0;
+        let map = {};
+        let total = 0, pass = 0;
+        
         const setFilter = document.getElementById("filterSet").value;
         const { from, to } = getTimeRange();
 
-        db.collection("exam_logs").get().then(s => {
-            s.forEach(d => {
-                const e = d.data();
-                if(setFilter && e.setId !== setFilter) return;
+        db.collection("exam_logs").get().then(snapshot => {
+            snapshot.forEach(doc => {
+                const exam = doc.data();
+                
+                // Filter by set
+                if(setFilter && exam.setId !== setFilter) return;
+                
+                // Filter by time
                 if(from && to) {
-                    const t = e.time.toDate();
-                    if(t < from || t > to) return;
+                    const examTime = exam.time.toDate();
+                    if(examTime < from || examTime > to) return;
                 }
-                total++; 
-                if(e.pass) pass++;
-                if(!map[e.studentCode]) map[e.studentCode] = { a: 0, p: 0 };
-                map[e.studentCode].a++;
-                if(e.pass) map[e.studentCode].p++;
+                
+                total++;
+                if(exam.pass) pass++;
+                
+                if(!map[exam.studentCode]) {
+                    map[exam.studentCode] = { attempts: 0, pass: 0 };
+                }
+                map[exam.studentCode].attempts++;
+                if(exam.pass) map[exam.studentCode].pass++;
             });
             
             document.getElementById("tTotal").innerText = total;
             document.getElementById("tPass").innerText = pass;
             document.getElementById("tFail").innerText = total - pass;
             
-            statsData = Object.entries(map).map(([c, v]) => ({ 
-                code: c, 
-                attempts: v.a, 
-                pass: v.p, 
-                rate: Math.round((v.p / v.a) * 100) 
+            statsData = Object.entries(map).map(([code, data]) => ({
+                code: code,
+                attempts: data.attempts,
+                pass: data.pass,
+                rate: Math.round((data.pass / data.attempts) * 100)
             }));
+            
             renderStatsTable();
         });
     }
@@ -949,27 +946,46 @@
     function renderStatsTable() {
         const table = document.getElementById("statTable");
         table.innerHTML = "";
+        
+        // Sort if needed
         if(sortKey) {
             statsData.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
         }
+        
+        if(statsData.length === 0) {
+            table.innerHTML = "<tr><td colspan='6'>Không có dữ liệu</td></tr>";
+            return;
+        }
+        
         statsData.forEach((s, i) => {
-            let cls = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
+            let medal = "";
+            if(i === 0 && sortKey === "rate" && sortDir === -1) medal = '<span class="medal gold">🥇</span>';
+            if(i === 1 && sortKey === "rate" && sortDir === -1) medal = '<span class="medal silver">🥈</span>';
+            if(i === 2 && sortKey === "rate" && sortDir === -1) medal = '<span class="medal bronze">🥉</span>';
+            
+            let rateClass = s.rate >= 80 ? "good" : s.rate >= 50 ? "mid" : "bad";
+            
             table.innerHTML += `
                 <tr>
-                    <td>${i + 1}</td>
+                    <td>${i + 1}${medal}</td>
                     <td><b>${s.code}</b></td>
                     <td>${s.attempts}</td>
                     <td>${s.pass}</td>
-                    <td><span class="rate ${cls}">${s.rate}%</span></td>
-                    <td><button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetailFromStats('${s.code}')">👁️ Xem</button></td>
+                    <td><span class="rate ${rateClass}">${s.rate}%</span></td>
+                    <td>
+                        <button class="btn btn-success" style="padding:4px 8px" onclick="viewStudentDetailFromStats('${s.code}')">👁️ Xem</button>
+                    </td>
                 </tr>`;
         });
     }
 
     // Load sets for filter
-    db.collection("exam_logs").get().then(s => {
+    db.collection("exam_logs").get().then(snapshot => {
         const sets = new Set();
-        s.forEach(d => sets.add(d.data().setId || "DEFAULT"));
+        snapshot.forEach(doc => {
+            const setId = doc.data().setId || "DEFAULT";
+            sets.add(setId);
+        });
         sets.forEach(id => {
             document.getElementById("filterSet").innerHTML += `<option value="${id}">${id}</option>`;
         });
@@ -977,10 +993,13 @@
 
     // ===== CHI TIẾT HỌC VIÊN =====
     function viewStudentDetailFromStats(code) {
-        db.collection("students").where("code", "==", code).get().then(s => {
-            if(s.empty) return alert("Không tìm thấy học viên");
-            const st = s.docs[0].data();
-            viewStudentDetail(code, st.name);
+        db.collection("students").where("code", "==", code).get().then(snapshot => {
+            if(snapshot.empty) {
+                alert("Không tìm thấy học viên");
+                return;
+            }
+            const student = snapshot.docs[0].data();
+            viewStudentDetail(code, student.name);
         });
     }
 
@@ -998,17 +1017,17 @@
     }
 
     function loadStudentExams(code) {
-        db.collection("exam_logs").where("studentCode", "==", code).get().then(s => {
+        db.collection("exam_logs").where("studentCode", "==", code).get().then(snapshot => {
             studentExams = [];
-            s.forEach(d => { 
-                const e = d.data(); 
+            snapshot.forEach(doc => { 
+                const exam = doc.data();
                 studentExams.push({ 
-                    id: d.id,
-                    time: e.time.toDate(),
-                    setId: e.setId || "DEFAULT",
-                    score: e.score,
-                    pass: e.pass,
-                    answers: e.answers || []
+                    id: doc.id,
+                    time: exam.time.toDate(),
+                    setId: exam.setId || "DEFAULT",
+                    score: exam.score,
+                    pass: exam.pass,
+                    answers: exam.answers || []
                 }); 
             });
             studentExams.sort((a, b) => b.time - a.time);
@@ -1022,7 +1041,7 @@
         const total = studentExams.length;
         const pass = studentExams.filter(e => e.pass).length;
         const avg = total > 0 ? Math.round(studentExams.reduce((sum, e) => sum + e.score, 0) / total) : 0;
-        const rate = total > 0 ? Math.round(pass / total * 100) : 0;
+        const rate = total > 0 ? Math.round((pass / total) * 100) : 0;
         
         document.getElementById("detailTotal").innerText = total;
         document.getElementById("detailPass").innerText = pass;
@@ -1033,34 +1052,43 @@
     function renderHistory() {
         const table = document.getElementById("historyTable");
         table.innerHTML = "";
-        studentExams.forEach((e, i) => {
-            const cls = e.pass ? "good" : "bad";
-            const status = e.pass ? "✓ Đạt" : "✗ Không đạt";
+        
+        if(studentExams.length === 0) {
+            table.innerHTML = "<tr><td colspan='6'>Chưa có lịch sử thi</td></tr>";
+            return;
+        }
+        
+        studentExams.forEach((exam, i) => {
+            const statusClass = exam.pass ? "good" : "bad";
+            const statusText = exam.pass ? "✓ Đạt" : "✗ Không đạt";
+            
             table.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
-                    <td>${formatDateTime(e.time)}</td>
-                    <td>${e.setId}</td>
-                    <td><b>${e.score}</b></td>
-                    <td><span class="rate ${cls}">${status}</span></td>
-                    <td><button class="btn btn-secondary" style="padding:4px 8px" onclick="showExamDetail(${i})">📋 Xem</button></td>
+                    <td>${formatDateTime(exam.time)}</td>
+                    <td>${exam.setId}</td>
+                    <td><b>${exam.score}</b></td>
+                    <td><span class="rate ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding:4px 8px" onclick="showExamDetail(${i})">📋 Xem</button>
+                    </td>
                 </tr>`;
         });
     }
 
-    function formatDateTime(d) {
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const yy = d.getFullYear();
-        const hh = String(d.getHours()).padStart(2, '0');
-        const min = String(d.getMinutes()).padStart(2, '0');
-        return `${dd}/${mm}/${yy} ${hh}:${min}`;
+    function formatDateTime(date) {
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        const hh = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
     }
 
     // ===== BIỂU ĐỒ =====
     function renderChart() {
         const period = document.getElementById("chartPeriod").value;
-        let data = [];
+        let data = {};
         
         if(period === "week") data = getWeekData();
         else if(period === "month") data = getMonthData();
@@ -1075,17 +1103,19 @@
         const scores = [];
         
         for(let i = 6; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toLocaleDateString('vi-VN');
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toLocaleDateString('vi-VN');
             labels.push(dateStr);
             
-            const exams = studentExams.filter(e => {
-                const eDate = e.time.toLocaleDateString('vi-VN');
-                return eDate === dateStr;
+            const examsOnDate = studentExams.filter(e => {
+                const examDate = e.time.toLocaleDateString('vi-VN');
+                return examDate === dateStr;
             });
             
-            const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
+            const avg = examsOnDate.length > 0 
+                ? Math.round(examsOnDate.reduce((sum, e) => sum + e.score, 0) / examsOnDate.length) 
+                : 0;
             scores.push(avg);
         }
         
@@ -1098,17 +1128,19 @@
         const scores = [];
         
         for(let i = 29; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toLocaleDateString('vi-VN');
-            labels.push(d.getDate() + "/" + (d.getMonth() + 1));
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toLocaleDateString('vi-VN');
+            labels.push(date.getDate() + "/" + (date.getMonth() + 1));
             
-            const exams = studentExams.filter(e => {
-                const eDate = e.time.toLocaleDateString('vi-VN');
-                return eDate === dateStr;
+            const examsOnDate = studentExams.filter(e => {
+                const examDate = e.time.toLocaleDateString('vi-VN');
+                return examDate === dateStr;
             });
             
-            const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
+            const avg = examsOnDate.length > 0 
+                ? Math.round(examsOnDate.reduce((sum, e) => sum + e.score, 0) / examsOnDate.length) 
+                : 0;
             scores.push(avg);
         }
         
@@ -1121,17 +1153,19 @@
         const scores = [];
         
         for(let i = 11; i >= 0; i--) {
-            const d = new Date(now);
-            d.setMonth(d.getMonth() - i);
-            const month = d.getMonth() + 1;
-            const year = d.getFullYear();
-            labels.push(`T${month}/${year}`);
+            const date = new Date(now);
+            date.setMonth(date.getMonth() - i);
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            labels.push(`T${month + 1}/${year}`);
             
-            const exams = studentExams.filter(e => {
-                return e.time.getMonth() === d.getMonth() && e.time.getFullYear() === d.getFullYear();
+            const examsInMonth = studentExams.filter(e => {
+                return e.time.getMonth() === month && e.time.getFullYear() === year;
             });
             
-            const avg = exams.length > 0 ? Math.round(exams.reduce((sum, e) => sum + e.score, 0) / exams.length) : 0;
+            const avg = examsInMonth.length > 0 
+                ? Math.round(examsInMonth.reduce((sum, e) => sum + e.score, 0) / examsInMonth.length) 
+                : 0;
             scores.push(avg);
         }
         
@@ -1195,12 +1229,12 @@
         `;
         
         if(exam.answers && exam.answers.length > 0) {
-            exam.answers.forEach((a, i) => {
-                const cls = a.correct ? 'correct' : 'wrong';
-                const icon = a.correct ? '✓' : '✗';
+            exam.answers.forEach((answer, i) => {
+                const answerClass = answer.correct ? 'correct' : 'wrong';
+                const icon = answer.correct ? '✓' : '✗';
                 html += `
-                    <div class="answerRow ${cls}">
-                        <span><b>Câu ${i + 1}:</b> ${a.userAnswer || 'Không trả lời'}</span>
+                    <div class="answerRow ${answerClass}">
+                        <span><b>Câu ${i + 1}:</b> ${answer.userAnswer || 'Không trả lời'}</span>
                         <span>${icon}</span>
                     </div>
                 `;
@@ -1217,195 +1251,16 @@
         document.getElementById("examModal").classList.remove("show");
     }
 
+    // Close modal when clicking outside
     document.getElementById("examModal").onclick = function(e) {
         if(e.target === document.getElementById("examModal")) {
             closeExamModal();
         }
-    }
+    };
 
     // ===== KHỞI ĐỘNG =====
-    loadStudents();
-</script>
-// ... (Giữ nguyên phần cấu hình Firebase và Style bên trên) ...
-
-<script>
-    // 1. CẤU HÌNH FIREBASE
-    const firebaseConfig = {
-        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-        authDomain: "thi-luat-giao-thong.firebaseapp.com",
-        projectId: "thi-luat-giao-thong"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    let allStudents = []; 
-    let statsData = [];
-    let currentStudent = null;
-    let studentExams = [];
-    let chartInstance = null;
-    let deleteTargetCode = null;
-
-    // 2. CHUYỂN TRANG
-    function showPage(id, btn) {
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(id).classList.add("active");
-        if(btn) {
-            document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-        }
-        if(id === 'students') fetchAllStudents(); // Tải lại dữ liệu khi vào trang
-        if(id === 'stats') loadStats();
-    }
-    
-    function logout() { localStorage.clear(); location.href="index.html"; }
-
-    // 3. QUẢN LÝ HỌC VIÊN (TỐI ƯU HÓA TÌM KIẾM)
-    // Tải toàn bộ học viên một lần để tìm kiếm nhanh và tiết kiệm chi phí Firebase
-    function fetchAllStudents() {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "<tr><td colspan='6'>Đang tải dữ liệu...</td></tr>";
-
-        db.collection("students").orderBy("code").get().then(qs => {
-            allStudents = [];
-            qs.forEach(doc => allStudents.push(doc.data()));
-            renderStudentTable(allStudents);
-            updateGlobalStats();
-        }).catch(err => {
-            console.error("Lỗi tải học viên:", err);
-            table.innerHTML = "<tr><td colspan='6'>Lỗi khi tải dữ liệu!</td></tr>";
-        });
-    }
-
-    function renderStudentTable(list) {
-        const table = document.getElementById("studentTable");
-        table.innerHTML = "";
-        if (list.length === 0) {
-            table.innerHTML = "<tr><td colspan='6'>Không tìm thấy dữ liệu</td></tr>";
-            return;
-        }
-        list.forEach(st => {
-            table.innerHTML += `
-                <tr>
-                    <td><b>${st.code}</b></td>
-                    <td style="text-align:left; padding-left:15px">${st.name}</td>
-                    <td><span class="rate mid">${st.object}</span></td>
-                    <td>${st.unit}</td>
-                    <td>
-                        <select onchange="changeStatus('${st.code}', this.value)" 
-                                class="status ${st.status === 'active' ? 'activeStatus' : 'lockStatus'}">
-                            <option value="active" ${st.status === 'active' ? 'selected' : ''}>Hoạt động</option>
-                            <option value="lock" ${st.status === 'lock' ? 'selected' : ''}>Khóa</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="btn btn-warning" style="padding:4px 8px; font-size:11px" onclick="openEditStudent('${st.code}')">✏️ Sửa</button>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="openDeleteModal('${st.code}', '${st.name}')">🗑️ Xóa</button>
-                        <button class="btn btn-success" style="padding:4px 8px; font-size:11px" onclick="viewStudentDetail('${st.code}','${st.name}')">👁️ Xem</button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    // Lọc dữ liệu ngay lập tức không cần gọi Firebase
-    document.getElementById("searchStudent").oninput = (e) => {
-        const k = e.target.value.toLowerCase();
-        const filtered = allStudents.filter(st => 
-            st.nameSearch?.includes(k) || 
-            st.code.toLowerCase().includes(k) || 
-            st.object.toLowerCase().includes(k)
-        );
-        renderStudentTable(filtered);
-    };
-
-    function updateGlobalStats() {
-        let stats = {
-            total: { count: 0, detail: {} },
-            active: { count: 0, detail: {} },
-            lock: { count: 0, detail: {} }
-        };
-
-        allStudents.forEach(st => {
-            const objType = st.object || "Khác";
-            stats.total.count++;
-            stats.total.detail[objType] = (stats.total.detail[objType] || 0) + 1;
-
-            if(st.status === 'active') {
-                stats.active.count++;
-                stats.active.detail[objType] = (stats.active.detail[objType] || 0) + 1;
-            } else {
-                stats.lock.count++;
-                stats.lock.detail[objType] = (stats.lock.detail[objType] || 0) + 1;
-            }
-        });
-
-        updateStatBox("sTotal", "sTotalDetail", stats.total);
-        updateStatBox("sActive", "sActiveDetail", stats.active);
-        updateStatBox("sLock", "sLockDetail", stats.lock);
-    }
-
-    // BỔ SUNG HÀM SẮP XẾP BẢNG THỐNG KÊ (Fix lỗi thiếu hàm)
-    let currentSort = { key: '', asc: true };
-    function sortTable(key, th) {
-        currentSort.asc = (currentSort.key === key) ? !currentSort.asc : true;
-        currentSort.key = key;
-
-        statsData.sort((a, b) => {
-            let valA = a[key], valB = b[key];
-            return currentSort.asc ? valA - valB : valB - valA;
-        });
-        
-        // Cập nhật icon UI nếu cần
-        renderStatsTable();
-    }
-
-    // ... (Giữ nguyên các hàm saveStudent, generateNextCode, loadStats) ...
-
-    async function saveStudent() {
-        const mode = document.getElementById("stMode").value;
-        const name = document.getElementById("stName").value.trim();
-        const unit = document.getElementById("stUnit").value.trim();
-        const objType = document.getElementById("stObjectType").value;
-        let objName = "", objPrefix = "";
-
-        if (objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if (objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if (objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
-        else {
-            objName = document.getElementById("stObjectOther").value.trim();
-            objPrefix = "KH";
-        }
-
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đầy đủ thông tin!");
-
-        try {
-            if (mode === "add") {
-                const code = generateNextCode(objPrefix);
-                await db.collection("students").doc(code).set({
-                    code: code, name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    status: "active", nameSearch: name.toLowerCase()
-                });
-                alert("Đã thêm: " + code);
-            } else {
-                const code = document.getElementById("stCurrentCode").value;
-                await db.collection("students").doc(code).update({
-                    name: name, unit: unit,
-                    object: objName, objectCode: objType,
-                    nameSearch: name.toLowerCase()
-                });
-                alert("Cập nhật thành công!");
-            }
-            closeStudentModal();
-            fetchAllStudents(); // Tải lại danh sách
-        } catch (e) {
-            alert("Lỗi lưu dữ liệu: " + e.message);
-        }
-    }
-
-    // ... (Các hàm còn lại giữ nguyên) ...
-
-    // Khởi tạo
     fetchAllStudents();
 </script>
+
 </body>
 </html>
