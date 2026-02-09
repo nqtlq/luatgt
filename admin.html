@@ -9,11 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* ===== 1. CORE STYLES (GIỮ NGUYÊN) ===== */
+        /* ===== 1. CORE STYLES (GIỮ NGUYÊN CỦA 11) ===== */
         :root {
             --primary: #2563eb; --secondary: #64748b; --success: #10b981;
             --danger: #ef4444; --warning: #f59e0b; --bg: #f8fafc;
@@ -31,7 +29,7 @@
         }
         header h1 { font-size: 1.25rem; font-weight: 700; color: #1e40af; }
         
-        #app { display: flex; flex: 1; overflow: hidden; position: relative; }
+        #app { display: flex; flex: 1; overflow: hidden; }
         
         aside { width: 260px; background: #1e293b; color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.5rem; }
         .menu-btn { 
@@ -44,7 +42,7 @@
 
         main { flex: 1; padding: 2rem; overflow-y: auto; max-width: 100%; }
 
-        /* Dashboard & Cards */
+        /* Dashboard & Cards (Của 11) */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .db-card {
             background: white; border-radius: 1rem; padding: 1.5rem;
@@ -88,27 +86,15 @@
         .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
         .form-input { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; }
 
+        /* ===== CSS BỔ SUNG TỪ 55 (STYLE CHO CHI TIẾT BÀI THI) ===== */
         .answerRow { padding: 10px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center; border: 1px solid transparent; }
         .correct { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
         .wrong { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
         .answer-icon { font-weight: bold; font-size: 1.1rem; }
 
-        /* BỔ SUNG: LOADING SPINNER */
-        #loadingOverlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.8); z-index: 999;
-            display: none; align-items: center; justify-content: center; flex-direction: column;
-        }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* BỔ SUNG: PHÂN TRANG */
-        .pagination { display: flex; justify-content: flex-end; align-items: center; margin-top: 1rem; gap: 10px; font-size: 0.9rem; }
-        .page-btn { padding: 5px 10px; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 4px; }
-        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .page-btn:hover:not(:disabled) { background: #f1f5f9; }
-
+        /* Print Styles (Của 11) */
         @media print {
-            header, aside, .toolbar, .action-column, .no-print, .pagination { display: none !important; }
+            header, aside, .toolbar, .action-column, .no-print { display: none !important; }
             #app { display: block; height: auto; }
             main { padding: 0; overflow: visible; }
             .card { border: none; box-shadow: none; padding: 0; margin: 0; }
@@ -124,11 +110,6 @@
     </style>
 </head>
 <body>
-
-<div id="loadingOverlay">
-    <div class="spinner"></div>
-    <div style="margin-top:10px; font-weight:500; color:var(--secondary)">Đang xử lý dữ liệu...</div>
-</div>
 
 <header class="no-print">
     <h1>🛡️ QUẢN TRỊ HỆ THỐNG</h1>
@@ -149,10 +130,22 @@
         <div id="dashboard" class="page">
             <h2 style="margin-bottom: 1.5rem;">Bảng điều khiển</h2>
             <div class="stats-grid">
-                <div class="db-card blue"><h3>TỔNG HỌC VIÊN</h3><div class="value" id="dashTotal">0</div></div>
-                <div class="db-card green"><h3>ĐANG HOẠT ĐỘNG</h3><div class="value" id="dashActive">0</div></div>
-                <div class="db-card red"><h3>TỔNG LƯỢT THI</h3><div class="value" id="dashExams">0</div></div>
-                <div class="db-card orange"><h3>TỶ LỆ ĐẠT</h3><div class="value" id="dashRate">0%</div></div>
+                <div class="db-card blue">
+                    <h3>TỔNG HỌC VIÊN</h3>
+                    <div class="value" id="dashTotal">0</div>
+                </div>
+                <div class="db-card green">
+                    <h3>ĐANG HOẠT ĐỘNG</h3>
+                    <div class="value" id="dashActive">0</div>
+                </div>
+                <div class="db-card red">
+                    <h3>TỔNG LƯỢT THI</h3>
+                    <div class="value" id="dashExams">0</div>
+                </div>
+                <div class="db-card orange">
+                    <h3>TỶ LỆ ĐẠT</h3>
+                    <div class="value" id="dashRate">0%</div>
+                </div>
             </div>
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">Biểu đồ thống kê</h3>
@@ -170,9 +163,9 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
                     <h3 style="margin: 0;" class="no-print">Danh sách học viên</h3>
                     <div class="toolbar no-print" style="margin: 0;">
-                        <input type="text" id="searchStudent" placeholder="🔍 Tên / Mã..." style="width: 150px;" oninput="resetPageAndFilter()">
-                        <input type="text" id="searchUnit" placeholder="🏢 Đơn vị..." style="width: 150px;" oninput="resetPageAndFilter()">
-                        <select id="searchObject" onchange="resetPageAndFilter()" style="width: 120px;">
+                        <input type="text" id="searchStudent" placeholder="🔍 Tên / Mã..." style="width: 150px;" oninput="filterStudents()">
+                        <input type="text" id="searchUnit" placeholder="🏢 Đơn vị..." style="width: 150px;" oninput="filterStudents()">
+                        <select id="searchObject" onchange="filterStudents()" style="width: 120px;">
                             <option value="">--Đối tượng--</option>
                             <option value="HV">Học viên</option>
                             <option value="SQ">Sĩ quan</option>
@@ -201,13 +194,8 @@
                         <tbody id="studentTableBody"></tbody>
                     </table>
                 </div>
-                
-                <div class="pagination no-print">
-                    <span style="color:#64748b">Hiển thị: <b id="displayCount">0</b> kết quả</span>
-                    <div style="flex:1"></div>
-                    <button class="page-btn" onclick="changePage(-1)" id="prevBtn">❮ Trước</button>
-                    <span id="pageInfo">Trang 1 / 1</span>
-                    <button class="page-btn" onclick="changePage(1)" id="nextBtn">Sau ❯</button>
+                <div class="no-print" style="margin-top: 10px; font-size: 0.8rem; color: #64748b; text-align: right;">
+                    Hiển thị: <b id="displayCount">0</b> học viên
                 </div>
             </div>
         </div>
@@ -218,7 +206,14 @@
                 <div class="table-wrap">
                     <table>
                         <thead>
-                            <tr><th>Thời gian</th><th>Mã HV</th><th>Họ tên</th><th>Điểm</th><th>Kết quả</th><th>Chi tiết</th></tr>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Mã HV</th>
+                                <th>Họ tên</th>
+                                <th>Điểm</th>
+                                <th>Kết quả</th>
+                                <th>Chi tiết</th>
+                            </tr>
                         </thead>
                         <tbody id="historyTableBody"></tbody>
                     </table>
@@ -246,20 +241,31 @@
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-bottom:1rem;">Thêm học viên</h3>
         <input type="hidden" id="stMode"><input type="hidden" id="stCurrentCode">
+        
         <div class="form-group">
             <label class="form-label">Họ và tên <span style="color:red">*</span></label>
             <input type="text" class="form-input" id="stName">
         </div>
-        <div class="form-group"><label class="form-label">Ngày sinh</label><input type="date" class="form-input" id="stDob"></div>
-        <div class="form-group"><label class="form-label">Đơn vị <span style="color:red">*</span></label><input type="text" class="form-input" id="stUnit"></div>
+        <div class="form-group">
+            <label class="form-label">Ngày sinh</label>
+            <input type="date" class="form-input" id="stDob">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Đơn vị <span style="color:red">*</span></label>
+            <input type="text" class="form-input" id="stUnit">
+        </div>
         <div class="form-group">
             <label class="form-label">Đối tượng</label>
             <select class="form-input" id="stObjectType" onchange="toggleOtherObject()">
-                <option value="HV">Học viên (HV)</option><option value="SQ">Sĩ quan (SQ)</option><option value="CN">Chuyên nghiệp (CN)</option><option value="OTHER">Khác...</option>
+                <option value="HV">Học viên (HV)</option>
+                <option value="SQ">Sĩ quan (SQ)</option>
+                <option value="CN">Chuyên nghiệp (CN)</option>
+                <option value="OTHER">Khác...</option>
             </select>
         </div>
         <div class="form-group" id="otherObjectGroup" style="display:none">
-            <label class="form-label">Tên đối tượng khác</label><input type="text" class="form-input" id="stObjectOther">
+            <label class="form-label">Tên đối tượng khác</label>
+            <input type="text" class="form-input" id="stObjectOther">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem">
             <button class="btn btn-secondary" onclick="closeModal('studentModal')">Hủy</button>
@@ -302,36 +308,16 @@
 
     if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
 
-    // 2. BIẾN TOÀN CỤC & PAGINATION
     let allStudents = [];
-    let filteredStudents = []; // Danh sách sau khi lọc
-    let allExams = [];
+    let allExams = []; // Biến mới chứa lịch sử thi
     let editingCode = null;
     let myChart = null;
-    
-    // Pagination configs
-    let currentPage = 1;
-    const itemsPerPage = 20;
 
-    // Toast Config
-    const Toast = Swal.mixin({
-        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-        timerProgressBar: true, didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-    });
-
-    // Loading Utilities
-    function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
-    function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
-
-    // 3. KHỞI TẠO & LOAD DỮ LIỆU
+    // 2. KHỞI TẠO & LOAD DỮ LIỆU
     async function loadData() {
-        showLoading();
         try {
             // Load Students
-            const stSnap = await db.collection("students").orderBy("createdAt", "desc").get(); // Sort newest first
+            const stSnap = await db.collection("students").get();
             allStudents = [];
             stSnap.forEach(doc => {
                 const s = doc.data();
@@ -339,17 +325,18 @@
                 allStudents.push(s);
             });
 
-            // Load Exams
+            // Load Exams (Bổ sung logic từ 55 để lấy dữ liệu thi)
             const exSnap = await db.collection("exam_logs").orderBy("time", "desc").get();
             allExams = [];
             exSnap.forEach(doc => {
                 const e = doc.data(); e.id = doc.id;
+                // Chuẩn hóa thời gian
                 if(e.time && e.time.toDate) e.timeDate = e.time.toDate();
                 else e.timeDate = new Date(); 
                 allExams.push(e);
             });
 
-            // Dashboard Stats
+            // Tính toán Dashboard
             const active = allStudents.filter(s => s.status === 'active').length;
             const passCount = allExams.filter(e => e.pass).length;
             const passRate = allExams.length > 0 ? Math.round((passCount / allExams.length) * 100) : 0;
@@ -359,68 +346,37 @@
             document.getElementById("dashExams").innerText = allExams.length;
             document.getElementById("dashRate").innerText = passRate + "%";
 
-            // Init Tables
-            resetPageAndFilter(); // Students
-            renderHistoryTable(); // Exams
-            renderChart(passCount, allExams.length - passCount);
-        } catch(e) { 
-            console.error(e);
-            Swal.fire('Lỗi', 'Không thể tải dữ liệu!', 'error');
-        } finally {
-            hideLoading();
-        }
+            filterStudents(); // Render bảng học viên
+            renderHistoryTable(); // Render bảng lịch sử (Mới)
+            renderChart(passCount, allExams.length - passCount); // Vẽ biểu đồ
+        } catch(e) { console.error(e); }
     }
 
-    // 4. LOGIC LỌC & PHÂN TRANG (NÂNG CẤP)
-    function resetPageAndFilter() {
-        currentPage = 1;
-        filterStudents();
-    }
-
+    // 3. RENDER BẢNG HỌC VIÊN (Logic gốc 11)
     function filterStudents() {
         const k = document.getElementById("searchStudent").value.toLowerCase().trim();
         const u = document.getElementById("searchUnit").value.toLowerCase().trim();
         const o = document.getElementById("searchObject").value;
 
-        // 1. Lọc dữ liệu
-        filteredStudents = allStudents.filter(s => {
+        const filtered = allStudents.filter(s => {
             const matchK = !k || s.nameSearch?.includes(k) || s.code?.toLowerCase().includes(k);
             const matchU = !u || s.unit?.toLowerCase().includes(u);
             const matchO = !o || s.objectCode === o;
             return matchK && matchU && matchO;
         });
 
-        document.getElementById("displayCount").innerText = filteredStudents.length;
-        renderPaginatedTable();
-    }
-
-    function renderPaginatedTable() {
+        filtered.sort((a,b) => a.code.localeCompare(b.code));
         const tbody = document.getElementById("studentTableBody");
         tbody.innerHTML = '';
+        document.getElementById("displayCount").innerText = filtered.length;
 
-        if(filteredStudents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:2rem; color:#94a3b8">Không tìm thấy dữ liệu</td></tr>';
-            document.getElementById("pageInfo").innerText = `Trang 0 / 0`;
-            return;
-        }
-
-        // 2. Tính toán phân trang
-        const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-        if (currentPage > totalPages) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageData = filteredStudents.slice(start, end);
-
-        // 3. Render
-        pageData.forEach((s, index) => {
+        filtered.forEach((s, index) => {
             let dob = s.dob ? formatDate(s.dob) : '-';
             let badgeClass = s.objectCode === 'HV' ? 'bg-green' : (s.objectCode === 'SQ' ? 'bg-blue' : 'bg-red');
             
             tbody.innerHTML += `
                 <tr>
-                    <td>${start + index + 1}</td>
+                    <td>${index + 1}</td>
                     <td><b>${s.code}</b></td>
                     <td>${s.name}</td>
                     <td>${dob}</td>
@@ -439,26 +395,13 @@
                 </tr>
             `;
         });
-
-        // 4. Update Controls
-        document.getElementById("pageInfo").innerText = `Trang ${currentPage} / ${totalPages}`;
-        document.getElementById("prevBtn").disabled = currentPage === 1;
-        document.getElementById("nextBtn").disabled = currentPage === totalPages;
     }
 
-    function changePage(step) {
-        currentPage += step;
-        renderPaginatedTable();
-    }
-
-    // 5. RENDER LỊCH SỬ THI
+    // 4. RENDER LỊCH SỬ THI (Bổ sung từ 55)
     function renderHistoryTable() {
         const tbody = document.getElementById("historyTableBody");
         tbody.innerHTML = "";
-        // Chỉ lấy 50 bài thi mới nhất để tránh lag
-        const recentExams = allExams.slice(0, 50); 
-        
-        recentExams.forEach(e => {
+        allExams.forEach(e => {
             const timeStr = e.timeDate.toLocaleString('vi-VN');
             tbody.innerHTML += `
                 <tr>
@@ -473,6 +416,7 @@
         });
     }
 
+    // 5. CHI TIẾT BÀI THI (Logic ưu việt từ 55)
     function viewExamDetail(id) {
         const exam = allExams.find(e => e.id === id);
         if(!exam) return;
@@ -506,7 +450,7 @@
         document.getElementById("examDetailModal").classList.add("show");
     }
 
-    // 6. SAVE STUDENT (Với SweetAlert)
+    // 6. SAVE STUDENT (Giữ nguyên logic check trùng của 11)
     async function saveStudent() {
         const name = document.getElementById("stName").value.trim();
         const unit = document.getElementById("stUnit").value.trim();
@@ -519,9 +463,9 @@
         else if(objType === "CN") { objName = "Chuyên nghiệp"; prefix = "CN"; }
         else { objName = document.getElementById("stObjectOther").value.trim(); prefix = "KH"; }
 
-        if(!name || !unit || !objName) return Swal.fire('Thiếu thông tin', 'Vui lòng nhập tên và đơn vị!', 'warning');
+        if(!name || !unit || !objName) return alert("Vui lòng nhập đủ thông tin!");
 
-        // Check Duplicate
+        // Logic check trùng của 11
         const isDuplicate = allStudents.some(s => {
             if(editingCode && s.code === editingCode) return false;
             return s.name.toLowerCase() === name.toLowerCase() && 
@@ -530,15 +474,9 @@
         });
 
         if(isDuplicate) {
-            const result = await Swal.fire({
-                title: 'Cảnh báo trùng lặp',
-                text: `Đã có học viên: ${name} - ${unit}. Bạn có chắc chắn muốn lưu?`,
-                icon: 'warning', showCancelButton: true, confirmButtonText: 'Lưu luôn', cancelButtonText: 'Hủy'
-            });
-            if(!result.isConfirmed) return;
+            if(!confirm(`⚠️ CẢNH BÁO TRÙNG LẶP!\nĐã có học viên: ${name} - ${unit}.\nBạn có chắc muốn lưu tiếp?`)) return;
         }
 
-        showLoading();
         try {
             if(!editingCode) {
                 const max = allStudents.filter(s => s.code.startsWith(prefix))
@@ -549,35 +487,19 @@
                     code: newCode, name, unit, dob, object: objName, objectCode: objType,
                     status: 'active', nameSearch: name.toLowerCase(), createdAt: new Date()
                 });
-                Toast.fire({ icon: 'success', title: 'Đã thêm: ' + newCode });
+                alert("Đã thêm: " + newCode);
             } else {
                 await db.collection("students").doc(editingCode).update({
                     name, unit, dob, object: objName, objectCode: objType, nameSearch: name.toLowerCase()
                 });
-                Toast.fire({ icon: 'success', title: 'Cập nhật thành công!' });
+                alert("Cập nhật thành công!");
             }
             closeModal('studentModal');
             loadData();
-        } catch(e) { Swal.fire('Lỗi', e.message, 'error'); } finally { hideLoading(); }
+        } catch(e) { alert("Lỗi: " + e.message); }
     }
 
-    async function deleteStudent(code) {
-        const result = await Swal.fire({
-            title: 'Xóa học viên?',
-            text: "Dữ liệu thi của học viên này cũng sẽ bị xóa!",
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Xóa'
-        });
-
-        if(result.isConfirmed) {
-            showLoading();
-            await db.collection("students").doc(code).delete();
-            // Optional: Delete exams
-            loadData();
-            Toast.fire({ icon: 'success', title: 'Đã xóa thành công' });
-        }
-    }
-
-    // CÁC HÀM TIỆN ÍCH
+    // CÁC HÀM TIỆN ÍCH (Giữ nguyên)
     function openAddStudent() {
         editingCode = null;
         document.getElementById("modalTitle").innerText = "Thêm học viên mới";
@@ -597,6 +519,7 @@
         document.getElementById("studentModal").classList.add("show");
     }
     async function changeStatus(code, val) { await db.collection("students").doc(code).update({status: val}); loadData(); }
+    async function deleteStudent(code) { if(confirm("Xóa học viên?")) { await db.collection("students").doc(code).delete(); loadData(); } }
     
     function printList() {
         const u = document.getElementById("searchUnit").value;
@@ -635,51 +558,48 @@
     // Import Excel (Giữ nguyên logic 11)
     async function processExcel() {
         const file = document.getElementById("excelFile").files[0];
-        if(!file) return Swal.fire('Lỗi', 'Chưa chọn file!', 'error');
-        showLoading();
+        if(!file) return alert("Chọn file!");
         const reader = new FileReader();
         reader.onload = async (e) => {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-                
-                let counters = { HV:0, SQ:0, CN:0, KH:0 };
-                allStudents.forEach(s => {
-                    const p = s.objectCode || 'KH';
-                    const n = parseInt(s.code.substring(2)) || 0;
-                    if(n > (counters[p]||0)) counters[p] = n;
-                });
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            
+            let counters = { HV:0, SQ:0, CN:0, KH:0 };
+            allStudents.forEach(s => {
+                const p = s.objectCode || 'KH';
+                const n = parseInt(s.code.substring(2)) || 0;
+                if(n > (counters[p]||0)) counters[p] = n;
+            });
 
-                let batch = db.batch();
-                let count = 0;
-                for(let i=1; i<json.length; i++) {
-                    const row = json[i];
-                    if(!row[0]) continue;
-                    const name = row[0].toString().trim();
-                    const unit = row[1] ? row[1].toString().trim() : "";
-                    const type = row[2] ? row[2].toString().toUpperCase() : "HV";
-                    
-                    let prefix = ['HV','SQ','CN'].includes(type) ? type : 'KH';
-                    let objName = prefix==='HV'?'Học viên':prefix==='SQ'?'Sĩ quan':prefix==='CN'?'Chuyên nghiệp':'Khác';
-                    
-                    counters[prefix]++;
-                    const newCode = prefix + String(counters[prefix]).padStart(4, '0');
-                    const ref = db.collection("students").doc(newCode);
-                    
-                    batch.set(ref, {
-                        code: newCode, name, unit, dob: "",
-                        object: objName, objectCode: prefix,
-                        status: 'active', nameSearch: name.toLowerCase(),
-                        createdAt: new Date()
-                    });
-                    count++;
-                }
-                if(count>0) await batch.commit();
-                closeModal('importModal');
-                loadData();
-                Swal.fire('Thành công', `Đã nhập ${count} học viên!`, 'success');
-            } catch(err) { Swal.fire('Lỗi Excel', err.message, 'error'); hideLoading(); }
+            let batch = db.batch();
+            let count = 0;
+            for(let i=1; i<json.length; i++) {
+                const row = json[i];
+                if(!row[0]) continue;
+                const name = row[0].toString().trim();
+                const unit = row[1] ? row[1].toString().trim() : "";
+                const type = row[2] ? row[2].toString().toUpperCase() : "HV";
+                
+                let prefix = ['HV','SQ','CN'].includes(type) ? type : 'KH';
+                let objName = prefix==='HV'?'Học viên':prefix==='SQ'?'Sĩ quan':prefix==='CN'?'Chuyên nghiệp':'Khác';
+                
+                counters[prefix]++;
+                const newCode = prefix + String(counters[prefix]).padStart(4, '0');
+                const ref = db.collection("students").doc(newCode);
+                
+                batch.set(ref, {
+                    code: newCode, name, unit, dob: "",
+                    object: objName, objectCode: prefix,
+                    status: 'active', nameSearch: name.toLowerCase(),
+                    createdAt: new Date()
+                });
+                count++;
+            }
+            if(count>0) await batch.commit();
+            alert(`Đã nhập ${count} học viên!`);
+            closeModal('importModal');
+            loadData();
         };
         reader.readAsArrayBuffer(file);
     }
