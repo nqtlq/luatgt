@@ -18,79 +18,101 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --bg: #f1f5f9;
+            --bg: #f8fafc; /* Màu nền sáng hơn giống Admin2 */
             --card-bg: #ffffff;
             --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-light: #64748b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: #334155; line-height: 1.5; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
         
-        /* Layout */
+        /* Header */
         header { 
-            background: linear-gradient(135deg, #0f172a, #1e40af); 
-            color: white; padding: 0 1.5rem; height: 60px; 
+            background: #ffffff; color: var(--text-main); padding: 0 1.5rem; height: 64px; 
             display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            border-bottom: 1px solid var(--border);
         }
-        header h1 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        header h1 { font-size: 1.25rem; font-weight: 700; color: #1e40af; display: flex; align-items: center; gap: 10px; }
         
-        #app { display: flex; min-height: calc(100vh - 60px); }
+        #app { display: flex; flex: 1; overflow: hidden; }
         
         /* Sidebar */
-        aside { width: 250px; background: white; border-right: 1px solid var(--border); padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.5rem; transition: margin 0.3s; }
+        aside { width: 260px; background: #1e293b; color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.5rem; }
         .menu-btn { 
             width: 100%; text-align: left; padding: 0.75rem 1rem; border: none; background: transparent; 
             border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; 
-            color: #64748b; font-weight: 500; transition: all 0.2s; 
+            color: #94a3b8; font-weight: 500; transition: all 0.2s; 
         }
-        .menu-btn:hover { background: #f1f5f9; color: var(--primary); }
-        .menu-btn.active { background: #eff6ff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .menu-btn:hover { background: #334155; color: white; }
+        .menu-btn.active { background: #3b82f6; color: white; font-weight: 600; }
 
-        main { flex: 1; padding: 1.5rem; overflow-y: auto; max-width: 100%; }
+        main { flex: 1; padding: 2rem; overflow-y: auto; max-width: 100%; }
 
-        /* Dashboard Grid Layout (NEW) */
-        .dashboard-grid {
+        /* ===== 2. DASHBOARD STYLES (THEO HƯỚNG ADMIN2.TXT) ===== */
+        .dashboard-header { margin-bottom: 2rem; }
+        .dashboard-header h2 { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+        .dashboard-header p { color: #64748b; }
+
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr); /* 3 Cột giống Admin2 */
             gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
-        .db-card {
-            background: white; border-radius: 1rem; padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border);
-            display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; overflow: hidden;
-        }
-        .db-card h3 { font-size: 0.875rem; color: #64748b; font-weight: 500; margin-bottom: 0.5rem; }
-        .db-card .value { font-size: 2rem; font-weight: 700; color: #0f172a; }
-        .db-card .icon { position: absolute; right: 1rem; bottom: 1rem; font-size: 2.5rem; opacity: 0.1; }
         
-        .db-card.blue { border-left: 5px solid var(--primary); }
-        .db-card.green { border-left: 5px solid var(--success); }
-        .db-card.red { border-left: 5px solid var(--danger); }
-        .db-card.orange { border-left: 5px solid var(--warning); }
+        /* Card Style giống Admin2 */
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .stat-label { font-size: 0.875rem; color: #64748b; font-weight: 500; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2.25rem; font-weight: 700; line-height: 1; }
+        
+        /* Màu sắc số liệu */
+        .text-dark { color: #1e293b; }
+        .text-blue { color: #2563eb; }
+        .text-green { color: #16a34a; }
 
-        /* General UI Elements */
+        /* Chart Section */
+        .chart-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* ===== 3. GENERAL UI ELEMENTS ===== */
         .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         
         .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; color: white; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:hover { opacity: 0.9; }
         .btn-primary { background: var(--primary); }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
         .btn-secondary { background: var(--secondary); }
-        .btn-warning { background: var(--warning); }
 
-        /* Input & Toolbar */
+        /* Toolbar */
         .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
-        input, select { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; font-size: 0.875rem; transition: border 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        input, select { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; font-size: 0.875rem; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
 
-        /* Table Styles */
+        /* Table Styles (Giữ nguyên từ code trước) */
         .table-wrap { overflow-x: auto; border-radius: 0.5rem; border: 1px solid var(--border); background: white; max-height: 65vh; }
         table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-        th { background: #f8fafc; font-weight: 600; text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        th { background: #f8fafc; font-weight: 600; text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; color: #475569; }
         td { padding: 0.75rem; border-bottom: 1px solid var(--border); color: #334155; }
         tr:hover { background: #f8fafc; }
         
@@ -104,110 +126,102 @@
         /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; padding: 1.5rem; animation: slideIn 0.2s ease-out; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; padding: 1.5rem; animation: slideIn 0.2s ease-out; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
         .form-group { margin-bottom: 1rem; }
         .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #475569; }
         .form-input { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; }
 
-        /* ===== PRINT STYLES (IN DANH SÁCH) ===== */
+        /* Print Styles */
         @media print {
-            header, aside, .toolbar, .action-column, .stats-grid, .no-print { display: none !important; }
-            #app { display: block; height: auto; }
-            main { padding: 0; overflow: visible; }
-            .card { border: none; box-shadow: none; padding: 0; margin: 0; }
-            .table-wrap { border: 1px solid #000; max-height: none; overflow: visible; }
-            table { width: 100%; border: 1px solid #000; font-size: 10pt; }
+            header, aside, .toolbar, .action-column, .no-print { display: none !important; }
+            #app { display: block; }
+            main { padding: 0; }
+            .card { border: none; box-shadow: none; padding: 0; }
+            .table-wrap { border: 1px solid #000; max-height: none; }
+            table { border: 1px solid #000; font-size: 10pt; }
             th, td { border: 1px solid #000; padding: 5px; color: black; }
-            th { background-color: #eee !important; -webkit-print-color-adjust: exact; }
-            /* Hiện thông tin bộ lọc khi in */
             #printInfo { display: block !important; margin-bottom: 20px; text-align: center; }
-            #printInfo h2 { margin: 0; }
-            body { background: white; }
         }
         #printInfo { display: none; }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            aside { display: none; } /* Mobile menu toggle logic omitted for brevity */
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { aside { display: none; } .stats-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <header class="no-print">
-    <h1>🚔 ADMIN SYSTEM</h1>
+    <h1>🛡️ ADMIN DASHBOARD</h1>
     <button class="btn btn-danger" onclick="logout()" style="padding: 0.4rem 0.8rem;">Đăng xuất</button>
 </header>
 
 <div id="app">
     <aside id="sidebar" class="no-print">
+        <div style="margin-bottom: 1rem; padding: 0 1rem; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Menu chính</div>
         <nav>
             <button class="menu-btn active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
-            <button class="menu-btn" onclick="showPage('students', this)">👤 Quản lý Học viên</button>
-            <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê kết quả</button>
-            <button class="menu-btn" onclick="alert('Tính năng đang phát triển')">⚙️ Cài đặt</button>
+            <button class="menu-btn" onclick="showPage('students', this)">👤 Học viên</button>
+            <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê</button>
+            <button class="menu-btn" onclick="alert('Đang cập nhật')">⚙️ Cài đặt</button>
         </nav>
     </aside>
 
     <main>
         <div id="dashboard" class="page">
-            <h2 style="margin-bottom: 1.5rem; color: #1e293b;">Tổng quan hệ thống</h2>
+            <div class="dashboard-header">
+                <h2>Bảng điều khiển</h2>
+                <p>Tổng quan hoạt động của hệ thống thi luật giao thông.</p>
+            </div>
             
-            <div class="dashboard-grid">
-                <div class="db-card blue">
-                    <h3>TỔNG HỌC VIÊN</h3>
-                    <div class="value" id="dashTotal">0</div>
-                    <div class="icon">👥</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Tổng học viên</div>
+                        <div class="stat-value text-dark" id="dashTotal">0</div>
+                    </div>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: #64748b;">
+                        Học viên trong hệ thống
+                    </div>
                 </div>
-                <div class="db-card green">
-                    <h3>ĐANG HOẠT ĐỘNG</h3>
-                    <div class="value" id="dashActive">0</div>
-                    <div class="icon">✅</div>
+
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Tổng lượt thi</div>
+                        <div class="stat-value text-blue" id="dashExams">0</div>
+                    </div>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: #64748b;">
+                        Bài thi đã thực hiện
+                    </div>
                 </div>
-                <div class="db-card red">
-                    <h3>ĐÃ KHÓA</h3>
-                    <div class="value" id="dashLock">0</div>
-                    <div class="icon">🔒</div>
-                </div>
-                <div class="db-card orange">
-                    <h3>LƯỢT THI HÔM NAY</h3>
-                    <div class="value" id="dashToday">0</div>
-                    <div class="icon">📝</div>
+
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Tỷ lệ Đạt</div>
+                        <div class="stat-value text-green" id="dashRate">0%</div>
+                    </div>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: #64748b;">
+                        Trên tổng số lượt thi
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem;">Biểu đồ lượt thi (7 ngày gần nhất)</h3>
-                    <div style="height: 300px;"><canvas id="mainChart"></canvas></div>
-                </div>
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem;">Phím tắt</h3>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <button class="btn btn-primary" onclick="showPage('students'); openAddStudent()" style="justify-content: center; padding: 1rem;">➕ Thêm học viên mới</button>
-                        <button class="btn btn-success" onclick="showPage('students'); openImportModal()" style="justify-content: center; padding: 1rem;">📂 Nhập từ Excel</button>
-                        <button class="btn btn-warning" onclick="alert('Tính năng in báo cáo tổng hợp đang phát triển')" style="justify-content: center; padding: 1rem;">🖨️ In báo cáo ngày</button>
-                    </div>
-                </div>
+            <div class="chart-section">
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Biểu đồ thống kê điểm số</h3>
+                <div style="height: 350px;"><canvas id="mainChart"></canvas></div>
             </div>
         </div>
 
         <div id="students" class="page" style="display:none">
             <div id="printInfo">
                 <h2>DANH SÁCH HỌC VIÊN</h2>
-                <p id="printFilterText"></p>
-                <br>
+                <p id="printFilterText"></p><br>
             </div>
 
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-                    <h3 style="margin: 0;" class="no-print">Quản lý Học viên</h3>
+                    <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;" class="no-print">Danh sách học viên</h3>
                     <div class="toolbar no-print" style="margin: 0;">
                         <input type="text" id="searchStudent" placeholder="🔍 Tên / Mã..." style="width: 150px;" oninput="filterStudents()">
                         <input type="text" id="searchUnit" placeholder="🏢 Đơn vị..." style="width: 150px;" oninput="filterStudents()">
@@ -230,15 +244,14 @@
                                 <th style="width: 50px;">#</th>
                                 <th style="width: 100px;">Mã HV</th>
                                 <th>Họ và tên</th>
-                                <th style="width: 100px;">Ngày sinh</th>
+                                <th style="width: 110px;">Ngày sinh</th>
                                 <th>Đơn vị</th>
                                 <th style="width: 100px; text-align: center;">Đối tượng</th>
                                 <th style="width: 100px; text-align: center;" class="no-print">Trạng thái</th>
                                 <th style="width: 120px; text-align: center;" class="action-column no-print">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody id="studentTableBody">
-                            </tbody>
+                        <tbody id="studentTableBody"></tbody>
                     </table>
                 </div>
                 <div class="no-print" style="margin-top: 10px; font-size: 0.8rem; color: #64748b; text-align: right;">
@@ -249,7 +262,7 @@
 
         <div id="stats" class="page" style="display:none">
             <div class="card">
-                <h3>Thống kê kết quả thi</h3>
+                <h3>Thống kê chi tiết</h3>
                 <div class="table-wrap" style="margin-top: 1rem;">
                     <table>
                         <thead>
@@ -265,9 +278,8 @@
 
 <div class="modal" id="studentModal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-bottom:1rem;">Thêm học viên</h3>
-        <input type="hidden" id="stMode">
-        <input type="hidden" id="stCurrentCode">
+        <h3 id="modalTitle" style="margin-bottom:1.5rem; color: #1e293b; font-size: 1.25rem;">Thêm học viên</h3>
+        <input type="hidden" id="stMode"><input type="hidden" id="stCurrentCode">
         
         <div class="form-group">
             <label class="form-label">Họ và tên <span style="color:red">*</span></label>
@@ -275,9 +287,9 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Ngày sinh (Ngày/Tháng/Năm)</label>
+            <label class="form-label">Ngày sinh</label>
             <input type="date" class="form-input" id="stDob">
-            <small style="color:#64748b">Không bắt buộc</small>
+            <small style="color:#94a3b8; font-size: 0.75rem;">Không bắt buộc</small>
         </div>
 
         <div class="form-group">
@@ -309,14 +321,12 @@
 
 <div class="modal" id="importModal">
     <div class="modal-content">
-        <h3>📂 Nhập danh sách từ Excel</h3>
-        <p style="margin:1rem 0; font-size:0.9rem; color:#64748b">
-            Cấu trúc file: Cột A (Họ tên) | Cột B (Đơn vị) | Cột C (Đối tượng)
-        </p>
+        <h3>📂 Nhập từ Excel</h3>
+        <p style="margin:1rem 0; font-size:0.9rem; color:#64748b">Cấu trúc: Họ tên | Đơn vị | Đối tượng</p>
         <input type="file" id="excelFile" class="form-input" accept=".xlsx,.xls">
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1rem">
             <button class="btn btn-secondary" onclick="closeModal('importModal')">Đóng</button>
-            <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
+            <button class="btn btn-success" onclick="processExcel()">Nhập dữ liệu</button>
         </div>
     </div>
 </div>
@@ -331,10 +341,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Check auth
     if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
 
-    // GLOBAL VARIABLES
     let allStudents = [];
     let editingCode = null;
 
@@ -344,35 +352,34 @@
             // Load Students
             const snapshot = await db.collection("students").get();
             allStudents = [];
-            let active = 0, locked = 0;
-            
             snapshot.forEach(doc => {
                 const s = doc.data();
                 if(!s.code) s.code = doc.id;
                 allStudents.push(s);
-                if(s.status === 'active') active++; else locked++;
             });
 
-            // Update Dashboard Counters
+            // Load Exam Logs for Dashboard
+            const logSnap = await db.collection("exam_logs").get();
+            const totalExams = logSnap.size;
+            let passCount = 0;
+            logSnap.forEach(doc => { if(doc.data().pass) passCount++; });
+            const passRate = totalExams > 0 ? Math.round((passCount / totalExams) * 100) : 0;
+
+            // Update Dashboard (Admin2 Style)
             document.getElementById("dashTotal").innerText = allStudents.length;
-            document.getElementById("dashActive").innerText = active;
-            document.getElementById("dashLock").innerText = locked;
+            document.getElementById("dashExams").innerText = totalExams;
+            document.getElementById("dashRate").innerText = passRate + "%";
 
-            // Load Exams for today count (Example logic)
-            const today = new Date(); today.setHours(0,0,0,0);
-            const logSnap = await db.collection("exam_logs").where("time", ">=", today).get();
-            document.getElementById("dashToday").innerText = logSnap.size;
-
-            // Render Initial Table
+            // Render Table & Chart
             filterStudents();
-            renderChart(); // Vẽ biểu đồ demo
+            renderChart(totalExams, passCount); 
         } catch(e) {
-            console.error("Lỗi tải dữ liệu:", e);
-            alert("Không thể kết nối dữ liệu!");
+            console.error("Lỗi:", e);
+            alert("Lỗi kết nối dữ liệu!");
         }
     }
 
-    // 3. XỬ LÝ BẢNG HỌC VIÊN & BỘ LỌC
+    // 3. XỬ LÝ BẢNG & LỌC
     function filterStudents() {
         const k = document.getElementById("searchStudent").value.toLowerCase().trim();
         const u = document.getElementById("searchUnit").value.toLowerCase().trim();
@@ -385,7 +392,6 @@
             return matchK && matchU && matchO;
         });
 
-        // Sort by Code
         filtered.sort((a,b) => a.code.localeCompare(b.code));
 
         const tbody = document.getElementById("studentTableBody");
@@ -398,10 +404,7 @@
         }
 
         filtered.forEach((s, index) => {
-            // Format Date of Birth
             let dobDisplay = s.dob ? formatDate(s.dob) : '-';
-            
-            // Badge style
             let badgeClass = 'bg-yellow';
             if(s.objectCode === 'HV') badgeClass = 'bg-green';
             if(s.objectCode === 'SQ') badgeClass = 'bg-blue';
@@ -430,29 +433,28 @@
         });
     }
 
-    // 4. CHỨC NĂNG IN DANH SÁCH
+    // 4. CHỨC NĂNG IN (PRINT)
     function printList() {
-        // Cập nhật text hiển thị bộ lọc
-        const unit = document.getElementById("searchUnit").value;
-        const obj = document.getElementById("searchObject").options[document.getElementById("searchObject").selectedIndex].text;
+        // Lấy thông tin bộ lọc để hiển thị khi in
+        const u = document.getElementById("searchUnit").value;
+        const oSelect = document.getElementById("searchObject");
+        const o = oSelect.value ? oSelect.options[oSelect.selectedIndex].text : "";
         
-        let info = [];
-        if(unit) info.push(`Đơn vị: ${unit}`);
-        if(obj && obj !== "--Đối tượng--") info.push(`Đối tượng: ${obj}`);
+        let text = [];
+        if(u) text.push("Đơn vị: " + u);
+        if(o) text.push("Đối tượng: " + o);
+        document.getElementById("printFilterText").innerText = text.length ? `(${text.join(" - ")})` : "(Toàn bộ danh sách)";
         
-        document.getElementById("printFilterText").innerText = info.length > 0 ? `(${info.join(' - ')})` : "(Toàn bộ danh sách)";
-        
-        // Gọi lệnh in trình duyệt
         window.print();
     }
 
-    // 5. THÊM / SỬA HỌC VIÊN (CÓ CHECK TRÙNG LẶP)
+    // 5. CRUD & KIỂM TRA TRÙNG LẶP
     function openAddStudent() {
         editingCode = null;
         document.getElementById("modalTitle").innerText = "Thêm học viên mới";
         document.getElementById("stName").value = "";
         document.getElementById("stUnit").value = "";
-        document.getElementById("stDob").value = ""; // Reset ngày sinh
+        document.getElementById("stDob").value = "";
         document.getElementById("stObjectType").value = "HV";
         toggleOtherObject();
         document.getElementById("studentModal").classList.add("show");
@@ -465,7 +467,7 @@
         document.getElementById("modalTitle").innerText = `Sửa thông tin (${code})`;
         document.getElementById("stName").value = s.name;
         document.getElementById("stUnit").value = s.unit;
-        document.getElementById("stDob").value = s.dob || ""; // Load ngày sinh
+        document.getElementById("stDob").value = s.dob || "";
         
         if(['HV','SQ','CN'].includes(s.objectCode)) {
             document.getElementById("stObjectType").value = s.objectCode;
@@ -480,64 +482,48 @@
     async function saveStudent() {
         const name = document.getElementById("stName").value.trim();
         const unit = document.getElementById("stUnit").value.trim();
-        const dob = document.getElementById("stDob").value; // Format: YYYY-MM-DD
+        const dob = document.getElementById("stDob").value;
         const objType = document.getElementById("stObjectType").value;
         
-        // Xác định tên đối tượng
-        let objName = "", objPrefix = "";
-        if(objType === "HV") { objName = "Học viên"; objPrefix = "HV"; }
-        else if(objType === "SQ") { objName = "Sĩ quan"; objPrefix = "SQ"; }
-        else if(objType === "CN") { objName = "Chuyên nghiệp"; objPrefix = "CN"; }
+        let objName = "", prefix = "";
+        if(objType === "HV") { objName = "Học viên"; prefix = "HV"; }
+        else if(objType === "SQ") { objName = "Sĩ quan"; prefix = "SQ"; }
+        else if(objType === "CN") { objName = "Chuyên nghiệp"; prefix = "CN"; }
         else {
             objName = document.getElementById("stObjectOther").value.trim();
-            objPrefix = "KH";
+            prefix = "KH";
         }
 
-        if(!name || !unit || !objName) return alert("Vui lòng nhập Tên và Đơn vị!");
+        if(!name || !unit) return alert("Vui lòng nhập Tên và Đơn vị!");
 
-        // === KIỂM TRA TRÙNG LẶP ===
-        // Chỉ kiểm tra nếu đang thêm mới hoặc sửa (nhưng thay đổi thông tin quan trọng)
-        const isDuplicate = allStudents.some(s => {
-            // Không check chính nó khi đang sửa
+        // === CHECK DUPLICATE ===
+        const duplicate = allStudents.find(s => {
             if(editingCode && s.code === editingCode) return false;
-            
-            // So sánh Tên, Đơn vị và Ngày sinh (nếu có nhập)
-            const sameName = s.name.toLowerCase() === name.toLowerCase();
-            const sameUnit = s.unit.toLowerCase() === unit.toLowerCase();
-            const sameDob = (!dob && !s.dob) || (s.dob === dob); // Cùng trống hoặc cùng giá trị
-            
-            return sameName && sameUnit && sameDob;
+            return s.name.toLowerCase() === name.toLowerCase() && 
+                   s.unit.toLowerCase() === unit.toLowerCase() && 
+                   s.dob === dob;
         });
 
-        if(isDuplicate) {
-            const confirmMsg = `⚠️ CẢNH BÁO TRÙNG LẶP!\n\nHệ thống phát hiện đã có học viên:\n- Tên: ${name}\n- Đơn vị: ${unit}\n- Ngày sinh: ${dob?formatDate(dob):'Chưa nhập'}\n\nBạn có chắc chắn muốn tiếp tục lưu không?`;
-            if(!confirm(confirmMsg)) return; // Hủy lưu nếu người dùng chọn Cancel
+        if(duplicate) {
+            if(!confirm(`⚠️ CẢNH BÁO: Đã có học viên trùng thông tin:\n- Tên: ${name}\n- Đơn vị: ${unit}\n- Ngày sinh: ${dob || 'Chưa nhập'}\n\nBạn có chắc chắn muốn tiếp tục không?`)) return;
         }
-        // === HẾT KIỂM TRA TRÙNG LẶP ===
 
         try {
             if(!editingCode) {
-                // Add New
-                const maxNum = allStudents
-                    .filter(s => s.code.startsWith(objPrefix))
-                    .reduce((max, s) => {
-                        const num = parseInt(s.code.substring(2));
-                        return !isNaN(num) && num > max ? num : max;
-                    }, 0);
-                
-                const newCode = objPrefix + String(maxNum + 1).padStart(4, '0');
+                const max = allStudents.filter(s => s.code.startsWith(prefix))
+                    .reduce((m, s) => Math.max(m, parseInt(s.code.substring(2)) || 0), 0);
+                const newCode = prefix + String(max + 1).padStart(4, '0');
                 
                 await db.collection("students").doc(newCode).set({
-                    code: newCode, name, unit, dob, // Lưu trường dob
+                    code: newCode, name, unit, dob,
                     object: objName, objectCode: objType,
                     status: 'active', nameSearch: name.toLowerCase(),
                     createdAt: new Date()
                 });
-                alert(`Đã thêm học viên: ${newCode}`);
+                alert("Đã thêm: " + newCode);
             } else {
-                // Update
                 await db.collection("students").doc(editingCode).update({
-                    name, unit, dob, // Cập nhật dob
+                    name, unit, dob,
                     object: objName, objectCode: objType,
                     nameSearch: name.toLowerCase()
                 });
@@ -545,60 +531,46 @@
             }
             closeModal('studentModal');
             loadData();
-        } catch(e) {
-            alert("Lỗi: " + e.message);
-        }
+        } catch(e) { alert("Lỗi: " + e.message); }
     }
 
-    async function changeStatus(code, status) {
-        await db.collection("students").doc(code).update({ status });
-        const s = allStudents.find(x => x.code === code);
-        if(s) s.status = status;
-        loadData();
+    async function changeStatus(code, val) {
+        await db.collection("students").doc(code).update({ status: val });
     }
 
     async function deleteStudent(code) {
-        if(confirm(`Bạn có chắc muốn xóa học viên ${code}? Dữ liệu thi sẽ mất vĩnh viễn.`)) {
+        if(confirm(`Xóa học viên ${code}?`)) {
             await db.collection("students").doc(code).delete();
-            // Xóa logs liên quan (Optional)
             loadData();
         }
     }
 
-    // 6. XỬ LÝ EXCEL
     async function processExcel() {
         const file = document.getElementById("excelFile").files[0];
-        if(!file) return alert("Chưa chọn file!");
-        
+        if(!file) return alert("Chọn file!");
         const reader = new FileReader();
         reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(sheet, {header: 1}); // Read as Array of Arrays
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
             
-            // Giả sử Row 1 là header, data từ Row 2
-            // Cấu trúc: [0]Họ Tên, [1]Đơn vị, [2]Đối tượng
-            let count = 0;
-            const batch = db.batch();
-            
-            // Lấy max code hiện tại để tăng dần
             let counters = { HV:0, SQ:0, CN:0, KH:0 };
             allStudents.forEach(s => {
-                const prefix = s.objectCode || 'KH';
-                const num = parseInt(s.code.substring(2)) || 0;
-                if(num > (counters[prefix] || 0)) counters[prefix] = num;
+                const p = s.objectCode || 'KH';
+                const n = parseInt(s.code.substring(2)) || 0;
+                if(n > (counters[p]||0)) counters[p] = n;
             });
 
+            let batch = db.batch();
+            let count = 0;
             for(let i=1; i<json.length; i++) {
                 const row = json[i];
                 if(!row[0]) continue;
-                
                 const name = row[0].toString().trim();
                 const unit = row[1] ? row[1].toString().trim() : "";
-                const typeRaw = row[2] ? row[2].toString().toUpperCase() : "HV";
+                const type = row[2] ? row[2].toString().toUpperCase() : "HV";
                 
-                let prefix = ['HV','SQ','CN'].includes(typeRaw) ? typeRaw : 'KH';
+                let prefix = ['HV','SQ','CN'].includes(type) ? type : 'KH';
                 let objName = prefix==='HV'?'Học viên':prefix==='SQ'?'Sĩ quan':prefix==='CN'?'Chuyên nghiệp':'Khác';
                 
                 counters[prefix]++;
@@ -606,27 +578,22 @@
                 const ref = db.collection("students").doc(newCode);
                 
                 batch.set(ref, {
-                    code: newCode, name, unit, dob: "", // Mặc định trống khi import đơn giản
+                    code: newCode, name, unit, dob: "",
                     object: objName, objectCode: prefix,
                     status: 'active', nameSearch: name.toLowerCase(),
                     createdAt: new Date()
                 });
                 count++;
             }
-            
-            if(count > 0) {
-                await batch.commit();
-                alert(`Đã nhập ${count} học viên thành công!`);
-                closeModal('importModal');
-                loadData();
-            } else {
-                alert("File không có dữ liệu hợp lệ!");
-            }
+            if(count>0) await batch.commit();
+            alert(`Đã nhập ${count} học viên!`);
+            closeModal('importModal');
+            loadData();
         };
         reader.readAsArrayBuffer(file);
     }
 
-    // UTILITIES
+    // UTILS
     function showPage(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.getElementById(id).style.display = 'block';
@@ -634,7 +601,6 @@
             document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
-        if(id === 'students') filterStudents();
     }
     
     function closeModal(id) { document.getElementById(id).classList.remove("show"); }
@@ -643,34 +609,25 @@
         document.getElementById("otherObjectGroup").style.display = (val === 'OTHER') ? 'block' : 'none';
     }
     function logout() { localStorage.clear(); location.href = "index.html"; }
-    
-    // Format YYYY-MM-DD to DD/MM/YYYY
-    function formatDate(isoStr) {
-        if(!isoStr) return "";
-        const [y, m, d] = isoStr.split('-');
-        return `${d}/${m}/${y}`;
-    }
+    function formatDate(s) { const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; }
 
-    // Chart Demo (Dùng Chart.js)
-    function renderChart() {
+    function renderChart(total, pass) {
         const ctx = document.getElementById('mainChart');
         if(!ctx) return;
         new Chart(ctx, {
-            type: 'line',
+            type: 'doughnut',
             data: {
-                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                labels: ['Đạt', 'Không đạt'],
                 datasets: [{
-                    label: 'Lượt thi',
-                    data: [12, 19, 3, 5, 2, 3, 10],
-                    borderColor: '#2563eb',
-                    tension: 0.4
+                    data: [pass, total - pass],
+                    backgroundColor: ['#10b981', '#ef4444']
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    // Init
+    // INIT
     loadData();
 </script>
 </body>
