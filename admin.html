@@ -653,6 +653,17 @@
         appId: "YOUR_APP_ID"
     };
 
+    // ===== CẤU HÌNH FIREBASE =====
+    const firebaseConfig = {
+        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+        authDomain: "thi-luat-giao-thong.firebaseapp.com",
+        projectId: "thi-luat-giao-thong"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
+    
     // Initialize Firebase
     let db;
     try {
