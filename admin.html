@@ -88,15 +88,15 @@
         .activity-table tr:hover { background: #f8f9fa; }
         .activity-empty { text-align: center; padding: 40px; color: #adb5bd; font-style: italic; font-size: 14px; }
 
-        /* ===== STATS GRID - STUDENTS (GIỐNG CODE 11) ===== */
+        /* ===== STATS GRID - CẬP NHẬT MỚI ===== */
         .statGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-        .statBox { border-radius: 12px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; }
-        .statBox .main-num { font-size: 24px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .statBox .sub-stats { font-size: 11px; opacity: 0.9; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); text-align: left; }
-        .statBox .sub-stats div { margin-bottom: 2px; }
+        .statBox { border-radius: 12px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+        .statBox .main-num { font-size: 28px; font-weight: bold; display: block; margin-bottom: 8px; }
+        .statBox .sub-stats { font-size: 11px; opacity: 0.95; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); text-align: left; line-height: 1.5; }
+        .statBox .sub-stats div { margin-bottom: 3px; }
         .total { background: #0d6efd }
-        .pass { background: #198754 }
-        .fail { background: #e63946 }
+        .active-stat { background: #198754 }
+        .locked-stat { background: #dc3545 }
 
         /* ===== PAGINATION ===== */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
@@ -126,6 +126,9 @@
         .warning-box .warning-title { font-weight: bold; color: #856404; margin-bottom: 5px; }
         .warning-box .warning-text { font-size: 12px; color: #856404; }
         
+        .duplicate-list { background: #fee; border: 1px solid #fcc; padding: 10px; border-radius: 5px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+        .duplicate-item { padding: 5px; margin: 3px 0; background: white; border-radius: 3px; font-size: 12px; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ===== QUESTION TABLE ===== */
@@ -147,15 +150,64 @@
         /* ===== BACK BUTTON ===== */
         .back-btn { margin-bottom: 15px; }
 
-        /* ===== PRINT STYLES ===== */
+        /* ===== PRINT STYLES - CẬP NHẬT ===== */
+        #printHeader { display: none; }
+        
         @media print {
             header, aside, .toolbar, .btn, .box h3, .statGrid, .pagination, .no-print { display: none !important; }
             body { background: white; }
             main { padding: 0; }
-            .box { box-shadow: none; padding: 0; }
-            table { font-size: 11px; }
-            th, td { padding: 8px 5px; }
+            .box { box-shadow: none; padding: 10px; margin: 0; border: none; }
+            
+            #printHeader { 
+                display: block !important; 
+                text-align: center; 
+                margin-bottom: 20px; 
+                page-break-after: avoid;
+            }
+            #printHeader h2 { 
+                font-size: 18pt; 
+                font-weight: bold; 
+                margin-bottom: 10px; 
+                text-transform: uppercase;
+            }
+            #printHeader p { 
+                font-size: 11pt; 
+                margin: 5px 0; 
+            }
+            
+            .tableWrap { 
+                border: 1px solid #000; 
+                max-height: none; 
+                overflow: visible; 
+                border-radius: 0;
+            }
+            table { 
+                width: 100%; 
+                border: 1px solid #000; 
+                font-size: 10pt; 
+                page-break-inside: auto;
+            }
+            th, td { 
+                border: 1px solid #000; 
+                padding: 5px; 
+                color: black; 
+                page-break-inside: avoid;
+            }
+            th { 
+                background: #f0f0f0 !important; 
+                font-weight: bold;
+                position: relative;
+            }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            
             .page { display: block !important; }
+            
+            @page {
+                margin: 1.5cm;
+            }
         }
 
         @media(max-width: 768px) {
@@ -243,35 +295,35 @@
             </div>
         </div>
 
-        <!-- STUDENTS PAGE -->
+        <!-- STUDENTS PAGE - CẬP NHẬT -->
         <div id="students" class="page">
+            <!-- 3 MẢNG THỐNG KÊ MỚI -->
             <div class="statGrid">
                 <div class="statBox total">
                     <div>
-                        <span style="font-size: 13px;">Tổng số</span>
+                        <span style="font-size: 13px;">TỔNG SỐ HỌC VIÊN</span>
                         <span class="main-num" id="totalCount">0</span>
                     </div>
-                    <div class="sub-stats">
-                        <div>Đang hoạt động: <b id="activeCount">0</b></div>
-                        <div>Đã khóa: <b id="lockedCount">0</b></div>
+                    <div class="sub-stats" id="totalByObject">
+                        <div>Đang tải...</div>
                     </div>
                 </div>
-                <div class="statBox pass">
+                <div class="statBox active-stat">
                     <div>
-                        <span style="font-size: 13px;">Đã thi đạt</span>
-                        <span class="main-num" id="passCount">0</span>
+                        <span style="font-size: 13px;">ĐANG HOẠT ĐỘNG</span>
+                        <span class="main-num" id="activeCount">0</span>
                     </div>
-                    <div class="sub-stats">
-                        <div>Tỷ lệ đạt: <b id="passRate">0%</b></div>
+                    <div class="sub-stats" id="activeByObject">
+                        <div>Đang tải...</div>
                     </div>
                 </div>
-                <div class="statBox fail">
+                <div class="statBox locked-stat">
                     <div>
-                        <span style="font-size: 13px;">Chưa đạt</span>
-                        <span class="main-num" id="failCount">0</span>
+                        <span style="font-size: 13px;">ĐANG KHÓA</span>
+                        <span class="main-num" id="lockedCount">0</span>
                     </div>
-                    <div class="sub-stats">
-                        <div>Cần luyện thêm</div>
+                    <div class="sub-stats" id="lockedByObject">
+                        <div>Đang tải...</div>
                     </div>
                 </div>
             </div>
@@ -301,6 +353,12 @@
                     </select>
                 </div>
 
+                <!-- PRINT HEADER -->
+                <div id="printHeader">
+                    <h2>DANH SÁCH HỌC VIÊN</h2>
+                    <p id="printInfo"></p>
+                </div>
+
                 <div class="tableWrap">
                     <table id="studentTable">
                         <thead>
@@ -311,8 +369,8 @@
                                 <th onclick="sortTable(3)" style="width: 18%;">Đơn vị <span class="sort-icon">⇅</span></th>
                                 <th onclick="sortTable(4)" style="width: 12%;">Ngày sinh <span class="sort-icon">⇅</span></th>
                                 <th onclick="sortTable(5)" style="width: 12%;">Đối tượng <span class="sort-icon">⇅</span></th>
-                                <th style="width: 10%;">Trạng thái</th>
-                                <th style="width: 13%;">Hành động</th>
+                                <th style="width: 10%;" class="no-print">Trạng thái</th>
+                                <th style="width: 13%;" class="no-print">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody">
@@ -627,17 +685,36 @@
     </div>
 </div>
 
-<!-- MODAL IMPORT EXCEL -->
+<!-- MODAL IMPORT EXCEL - CẬP NHẬT -->
 <div id="importModal" class="modal">
     <div class="modal-content">
         <h3>📤 Nhập danh sách từ Excel</h3>
         <p style="color:#666; font-size: 13px; margin-bottom: 15px;">
-            File Excel cần có các cột: <b>Họ tên, Đơn vị, Đối tượng (HV/SQ/CN)</b>
+            File Excel cần có các cột: <b>Họ tên, Đơn vị, Đối tượng (HV/SQ/CN), Ngày sinh (DD/MM/YYYY)</b>
         </p>
+        
+        <div style="margin-bottom: 15px;">
+            <button class="btn btn-info" onclick="downloadExcelTemplate()">📥 Tải form mẫu</button>
+        </div>
+        
         <input type="file" id="excelFile" accept=".xlsx,.xls" style="margin-bottom: 15px;">
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        
+        <div id="duplicateWarning" style="display: none;">
+            <div class="warning-box" style="background: #fee; border-color: #fcc;">
+                <div class="warning-title">⚠️ Phát hiện trùng lặp!</div>
+                <div class="warning-text">
+                    Các học viên sau đã tồn tại trong hệ thống (trùng tên, đơn vị, ngày sinh):
+                </div>
+            </div>
+            <div class="duplicate-list" id="duplicateList"></div>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                Bạn có muốn tiếp tục nhập các học viên còn lại không?
+            </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
             <button class="btn btn-secondary" onclick="closeModal('importModal')">Hủy</button>
-            <button class="btn btn-success" onclick="processExcelImport()">📤 Nhập dữ liệu</button>
+            <button class="btn btn-success" id="importBtn" onclick="processExcelImport()">📤 Nhập dữ liệu</button>
         </div>
     </div>
 </div>
@@ -653,17 +730,6 @@
         appId: "YOUR_APP_ID"
     };
 
-    // ===== CẤU HÌNH FIREBASE =====
-    const firebaseConfig = {
-        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-        authDomain: "thi-luat-giao-thong.firebaseapp.com",
-        projectId: "thi-luat-giao-thong"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
-    
     // Initialize Firebase
     let db;
     try {
@@ -685,6 +751,8 @@
     let sortDirection = {};
     let currentSetForQuestions = null;
     let tempQuestions = [];
+    let pendingImportData = [];
+    let duplicatesFound = [];
 
     // ===== INITIALIZATION =====
     window.onload = function() {
@@ -705,7 +773,6 @@
         loadQuestionSets();
         loadStats();
         
-        // Refresh activities every 30 seconds
         setInterval(loadActivitiesFromDB, 30000);
     }
 
@@ -786,7 +853,10 @@
             { code: "HV0002", name: "Trần Thị Bình", unit: "Đại đội 2", dob: "1999-07-20", object: "Học viên", status: "active", exams: 3, bestScore: 88, avgScore: 82 },
             { code: "SQ0001", name: "Lê Văn Cường", unit: "Tiểu đoàn 3", dob: "1995-01-10", object: "Sĩ quan", status: "active", exams: 8, bestScore: 98, avgScore: 93 },
             { code: "HV0003", name: "Phạm Thị Dung", unit: "Đại đội 1", dob: "2000-12-05", object: "Học viên", status: "locked", exams: 2, bestScore: 65, avgScore: 60 },
-            { code: "CN0001", name: "Hoàng Văn Hải", unit: "Phòng Kỹ thuật", dob: "1992-06-25", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 85, avgScore: 78 }
+            { code: "CN0001", name: "Hoàng Văn Hải", unit: "Phòng Kỹ thuật", dob: "1992-06-25", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 85, avgScore: 78 },
+            { code: "SQ0002", name: "Ngô Thị Mai", unit: "Tiểu đoàn 1", dob: "1994-04-12", object: "Sĩ quan", status: "active", exams: 9, bestScore: 99, avgScore: 95 },
+            { code: "HV0004", name: "Vũ Thị Lan", unit: "Đại đội 2", dob: "1997-09-18", object: "Học viên", status: "active", exams: 6, bestScore: 92, avgScore: 88 },
+            { code: "CN0002", name: "Phan Văn Phong", unit: "Phòng Hành chính", dob: "1993-05-08", object: "Chuyên nghiệp", status: "locked", exams: 5, bestScore: 87, avgScore: 82 }
         ];
         
         allQuestionSets = [
@@ -809,7 +879,6 @@
         const activeStudents = allStudents.filter(s => s.status === 'active').length;
         const lockedStudents = allStudents.filter(s => s.status === 'locked').length;
         
-        // Count today's exams (mock for now)
         const todayExams = Math.floor(Math.random() * 20);
         
         document.getElementById('totalStudents').textContent = totalStudents;
@@ -841,7 +910,7 @@
         tbody.innerHTML = html;
     }
 
-    // ===== STUDENTS PAGE =====
+    // ===== STUDENTS PAGE - CẬP NHẬT =====
     function loadStudents() {
         updateStudentStats();
         filteredStudents = [...allStudents];
@@ -853,16 +922,36 @@
         const total = allStudents.length;
         const active = allStudents.filter(s => s.status === 'active').length;
         const locked = allStudents.filter(s => s.status === 'locked').length;
-        const passed = allStudents.filter(s => s.bestScore >= 80).length;
-        const failed = total - passed;
-        const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+        // Thống kê theo đối tượng
+        const countByObject = (students) => {
+            const counts = {};
+            students.forEach(s => {
+                counts[s.object] = (counts[s.object] || 0) + 1;
+            });
+            return counts;
+        };
+
+        const totalByObj = countByObject(allStudents);
+        const activeByObj = countByObject(allStudents.filter(s => s.status === 'active'));
+        const lockedByObj = countByObject(allStudents.filter(s => s.status === 'locked'));
+
+        // Format hiển thị
+        const formatObjectStats = (counts) => {
+            const parts = [];
+            if (counts['Sĩ quan']) parts.push(`Sĩ quan: ${String(counts['Sĩ quan']).padStart(2, '0')}`);
+            if (counts['Chuyên nghiệp']) parts.push(`Chuyên nghiệp: ${String(counts['Chuyên nghiệp']).padStart(2, '0')}`);
+            if (counts['Học viên']) parts.push(`Học viên: ${String(counts['Học viên']).padStart(2, '0')}`);
+            return parts.length > 0 ? parts.join('<br>') : 'Chưa có dữ liệu';
+        };
 
         document.getElementById('totalCount').textContent = total;
         document.getElementById('activeCount').textContent = active;
         document.getElementById('lockedCount').textContent = locked;
-        document.getElementById('passCount').textContent = passed;
-        document.getElementById('failCount').textContent = failed;
-        document.getElementById('passRate').textContent = passRate + '%';
+        
+        document.getElementById('totalByObject').innerHTML = formatObjectStats(totalByObj);
+        document.getElementById('activeByObject').innerHTML = formatObjectStats(activeByObj);
+        document.getElementById('lockedByObject').innerHTML = formatObjectStats(lockedByObj);
     }
 
     function applyFilters() {
@@ -909,14 +998,14 @@
                     <td style="text-align:left;">${student.unit}</td>
                     <td>${formatDate(student.dob)}</td>
                     <td>${student.object}</td>
-                    <td>
+                    <td class="no-print">
                         <select onchange="changeStatus('${student.code}', this.value)" 
                                 style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px;">
                             <option value="active" ${student.status === 'active' ? 'selected' : ''}>Hoạt động</option>
                             <option value="locked" ${student.status === 'locked' ? 'selected' : ''}>Khóa</option>
                         </select>
                     </td>
-                    <td>
+                    <td class="no-print">
                         <button class="btn btn-primary" style="padding: 5px 10px; font-size: 11px;" onclick="editStudent('${student.code}')">✏️</button>
                         <button class="btn btn-danger" style="padding: 5px 10px; font-size: 11px;" onclick="deleteStudent('${student.code}')">🗑️</button>
                     </td>
@@ -926,6 +1015,38 @@
         tbody.innerHTML = html;
 
         renderPagination();
+        updatePrintInfo();
+    }
+
+    function updatePrintInfo() {
+        const searchAll = document.getElementById('searchAll').value;
+        const filterStatus = document.getElementById('filterStatus').value;
+        const filterObject = document.getElementById('filterObject').value;
+        
+        let printInfo = '';
+        
+        if (!searchAll && !filterStatus && !filterObject) {
+            // Không có lọc - hiển thị tổng số và phân loại
+            const countByObj = {};
+            allStudents.forEach(s => {
+                countByObj[s.object] = (countByObj[s.object] || 0) + 1;
+            });
+            
+            printInfo = `Tổng số: ${allStudents.length} học viên`;
+            if (countByObj['Sĩ quan']) printInfo += `, Sĩ quan: ${String(countByObj['Sĩ quan']).padStart(2, '0')}`;
+            if (countByObj['Chuyên nghiệp']) printInfo += `, Chuyên nghiệp: ${String(countByObj['Chuyên nghiệp']).padStart(2, '0')}`;
+            if (countByObj['Học viên']) printInfo += `, Học viên: ${String(countByObj['Học viên']).padStart(2, '0')}`;
+        } else {
+            // Có lọc - hiển thị điều kiện lọc
+            const filters = [];
+            if (searchAll) filters.push(`Tìm kiếm: "${searchAll}"`);
+            if (filterStatus) filters.push(`Trạng thái: ${filterStatus === 'active' ? 'Đang hoạt động' : 'Đã khóa'}`);
+            if (filterObject) filters.push(`Đối tượng: ${filterObject}`);
+            
+            printInfo = filters.join(' | ') + ` | Số lượng: ${filteredStudents.length}`;
+        }
+        
+        document.getElementById('printInfo').textContent = printInfo;
     }
 
     function renderPagination() {
@@ -939,10 +1060,8 @@
 
         let html = '';
         
-        // Previous button
         html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>«</button>`;
         
-        // Page numbers
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                 html += `<button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
@@ -951,10 +1070,7 @@
             }
         }
         
-        // Next button
         html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>»</button>`;
-        
-        // Info
         html += `<span>Trang ${currentPage}/${totalPages} (${filteredStudents.length} học viên)</span>`;
         
         pagination.innerHTML = html;
@@ -1043,7 +1159,6 @@
             }
         }
 
-        // Check duplicates
         const isDuplicate = allStudents.some(s => {
             if (currentEditingCode && s.code === currentEditingCode) return false;
             return s.name.toLowerCase() === name.toLowerCase() && 
@@ -1057,7 +1172,6 @@
 
         try {
             if (currentEditingCode) {
-                // Update
                 if (db) {
                     await db.collection('students').doc(currentEditingCode).update({
                         name, unit, dob, object, nameSearch: name.toLowerCase()
@@ -1072,7 +1186,6 @@
                 
                 alert('Cập nhật thành công!');
             } else {
-                // Add new
                 const prefix = object === 'Học viên' ? 'HV' : object === 'Sĩ quan' ? 'SQ' : object === 'Chuyên nghiệp' ? 'CN' : 'KH';
                 const maxNum = allStudents
                     .filter(s => s.code.startsWith(prefix))
@@ -1140,6 +1253,7 @@
             const student = allStudents.find(s => s.code === code);
             if (student) {
                 student.status = newStatus;
+                loadStudents();
                 loadDashboard();
             }
         } catch (error) {
@@ -1153,12 +1267,37 @@
         otherGroup.style.display = select.value === 'other' ? 'block' : 'none';
     }
 
-    // ===== IMPORT/EXPORT =====
+    // ===== IMPORT/EXPORT - CẬP NHẬT =====
     function openImportModal() {
+        document.getElementById('excelFile').value = '';
+        document.getElementById('duplicateWarning').style.display = 'none';
+        document.getElementById('importBtn').textContent = '📤 Nhập dữ liệu';
+        pendingImportData = [];
+        duplicatesFound = [];
         document.getElementById('importModal').classList.add('show');
     }
 
+    function downloadExcelTemplate() {
+        const data = [
+            ['Họ và tên', 'Đơn vị', 'Đối tượng', 'Ngày sinh'],
+            ['Nguyễn Văn A', 'Đại đội 1', 'HV', '15/03/1998'],
+            ['Trần Thị B', 'Tiểu đoàn 2', 'SQ', '20/07/1995'],
+            ['Lê Văn C', 'Phòng Kỹ thuật', 'CN', '10/01/1992']
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Danh sách học viên');
+        
+        XLSX.writeFile(wb, 'Mau_danh_sach_hoc_vien.xlsx');
+    }
+
     async function processExcelImport() {
+        if (pendingImportData.length > 0 && duplicatesFound.length > 0) {
+            await confirmImportWithDuplicates();
+            return;
+        }
+
         const fileInput = document.getElementById('excelFile');
         if (!fileInput.files[0]) {
             alert('Vui lòng chọn file Excel!');
@@ -1175,14 +1314,9 @@
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                let counters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
-                allStudents.forEach(s => {
-                    const p = s.code.substring(0, 2);
-                    const n = parseInt(s.code.substring(2)) || 0;
-                    if (n > (counters[p] || 0)) counters[p] = n;
-                });
+                pendingImportData = [];
+                duplicatesFound = [];
 
-                let importCount = 0;
                 for (let i = 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
                     if (!row[0]) continue;
@@ -1190,6 +1324,16 @@
                     const name = row[0].toString().trim();
                     const unit = row[1] ? row[1].toString().trim() : '';
                     const objectType = row[2] ? row[2].toString().toUpperCase() : 'HV';
+                    const dobStr = row[3] ? row[3].toString().trim() : '';
+
+                    // Convert dob
+                    let dob = '';
+                    if (dobStr) {
+                        const parts = dobStr.split('/');
+                        if (parts.length === 3) {
+                            dob = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                        }
+                    }
 
                     let object = 'Học viên';
                     let prefix = 'HV';
@@ -1201,40 +1345,111 @@
                         prefix = 'CN';
                     }
 
-                    counters[prefix]++;
-                    const newCode = prefix + String(counters[prefix]).padStart(4, '0');
+                    const studentData = { name, unit, object, prefix, dob };
 
-                    const newStudent = {
-                        code: newCode,
-                        name, unit,
-                        dob: '',
-                        object,
-                        status: 'active',
-                        exams: 0,
-                        bestScore: 0,
-                        avgScore: 0,
-                        nameSearch: name.toLowerCase(),
-                        createdAt: new Date()
-                    };
+                    // Check duplicate
+                    const isDuplicate = allStudents.some(s => 
+                        s.name.toLowerCase() === name.toLowerCase() && 
+                        s.unit.toLowerCase() === unit.toLowerCase() && 
+                        s.dob === dob
+                    );
 
-                    if (db) {
-                        await db.collection('students').doc(newCode).set(newStudent);
+                    if (isDuplicate) {
+                        duplicatesFound.push(studentData);
+                    } else {
+                        pendingImportData.push(studentData);
                     }
-                    
-                    allStudents.push(newStudent);
-                    importCount++;
                 }
 
-                alert(`Đã nhập thành công ${importCount} học viên!`);
-                closeModal('importModal');
-                loadStudents();
-                loadDashboard();
+                if (duplicatesFound.length > 0) {
+                    showDuplicateWarning();
+                } else {
+                    await importStudents();
+                }
             } catch (error) {
                 alert('Lỗi khi đọc file Excel: ' + error.message);
             }
         };
 
         reader.readAsArrayBuffer(file);
+    }
+
+    function showDuplicateWarning() {
+        const warningDiv = document.getElementById('duplicateWarning');
+        const listDiv = document.getElementById('duplicateList');
+        
+        let html = '';
+        duplicatesFound.forEach((student, index) => {
+            html += `<div class="duplicate-item">${index + 1}. ${student.name} - ${student.unit} - ${formatDate(student.dob)}</div>`;
+        });
+        
+        listDiv.innerHTML = html;
+        warningDiv.style.display = 'block';
+        
+        document.getElementById('importBtn').textContent = '✓ Xác nhận nhập ' + pendingImportData.length + ' học viên';
+    }
+
+    async function confirmImportWithDuplicates() {
+        if (!confirm(`Phát hiện ${duplicatesFound.length} học viên trùng lặp.\nBạn có muốn tiếp tục nhập ${pendingImportData.length} học viên còn lại không?`)) {
+            return;
+        }
+        
+        await importStudents();
+    }
+
+    async function importStudents() {
+        if (pendingImportData.length === 0) {
+            alert('Không có học viên nào để nhập!');
+            return;
+        }
+
+        try {
+            let counters = { HV: 0, SQ: 0, CN: 0, KH: 0 };
+            allStudents.forEach(s => {
+                const p = s.code.substring(0, 2);
+                const n = parseInt(s.code.substring(2)) || 0;
+                if (n > (counters[p] || 0)) counters[p] = n;
+            });
+
+            let importCount = 0;
+            for (const studentData of pendingImportData) {
+                counters[studentData.prefix]++;
+                const newCode = studentData.prefix + String(counters[studentData.prefix]).padStart(4, '0');
+
+                const newStudent = {
+                    code: newCode,
+                    name: studentData.name,
+                    unit: studentData.unit,
+                    dob: studentData.dob,
+                    object: studentData.object,
+                    status: 'active',
+                    exams: 0,
+                    bestScore: 0,
+                    avgScore: 0,
+                    nameSearch: studentData.name.toLowerCase(),
+                    createdAt: new Date()
+                };
+
+                if (db) {
+                    await db.collection('students').doc(newCode).set(newStudent);
+                }
+                
+                allStudents.push(newStudent);
+                importCount++;
+            }
+
+            let message = `Đã nhập thành công ${importCount} học viên!`;
+            if (duplicatesFound.length > 0) {
+                message += `\nBỏ qua ${duplicatesFound.length} học viên trùng lặp.`;
+            }
+            
+            alert(message);
+            closeModal('importModal');
+            loadStudents();
+            loadDashboard();
+        } catch (error) {
+            alert('Lỗi khi nhập dữ liệu: ' + error.message);
+        }
     }
 
     function exportToExcel() {
@@ -1333,7 +1548,6 @@
         }
         button.parentElement.remove();
         
-        // Renumber groups
         const groups = container.querySelectorAll('.group-item');
         groups.forEach((group, index) => {
             const label = group.querySelector('label');
@@ -1356,13 +1570,11 @@
             return;
         }
         
-        // Check duplicate code
         if (allQuestionSets.some(s => s.code === code)) {
             alert('Mã bộ đề đã tồn tại!');
             return;
         }
         
-        // Get groups
         const groupInputs = document.querySelectorAll('.group-name');
         const groups = [];
         for (let input of groupInputs) {
@@ -1415,7 +1627,6 @@
         document.getElementById('configLietNumber').value = set.lietQuestion || '';
         toggleConfigLiet();
         
-        // Render group configuration
         const container = document.getElementById('configGroupsContainer');
         container.innerHTML = '';
         
@@ -1459,13 +1670,11 @@
             return;
         }
         
-        // Validate liet question
         if (hasLiet && (lietNumber <= 0 || lietNumber > totalQuestions)) {
             alert(`Câu hỏi liệt phải từ 1 đến ${totalQuestions}!`);
             return;
         }
         
-        // Validate group counts
         const groupCounts = document.querySelectorAll('.group-count');
         let totalCount = 0;
         for (let input of groupCounts) {
@@ -1506,7 +1715,6 @@
         
         document.getElementById('addQSetName').textContent = set.name;
         
-        // Populate group dropdown
         const groupSelect = document.getElementById('qGroup');
         groupSelect.innerHTML = '<option value="">-- Chọn nhóm --</option>';
         if (set.groupDetails && set.groupDetails.length > 0) {
@@ -1582,7 +1790,6 @@
                 await batch.commit();
             }
             
-            // Update question count
             const set = allQuestionSets.find(s => s.code === setCode);
             if (set) {
                 set.totalQuestions = (set.totalQuestions || 0) + tempQuestions.length;
@@ -1782,7 +1989,6 @@
         return `${day}/${month}/${year} ${hours}:${minutes}`;
     }
 
-    // Click outside modal to close
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.classList.remove('show');
