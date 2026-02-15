@@ -122,6 +122,39 @@
         .group-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #f8f9fa; position: relative; }
         .group-item .remove-btn { position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
         
+        /* ===== IMPROVED QUESTION SET FORM ===== */
+        .section-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .section-card .section-title { font-size: 15px; font-weight: 700; color: #1d3557; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 2px solid #0d6efd; }
+        .section-card .section-title::before { content: '●'; color: #0d6efd; font-size: 12px; }
+        
+        .info-section { background: white; border-left: 4px solid #0d6efd; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .groups-section { background: white; border-left: 4px solid #198754; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .liet-section { background: white; border-left: 4px solid #ffc107; padding: 15px; border-radius: 6px; }
+        
+        .group-card { background: white; border: 2px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
+        .group-card:hover { border-color: #0d6efd; box-shadow: 0 2px 8px rgba(13,110,253,0.1); }
+        .group-card .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .group-card .group-number { background: #0d6efd; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .group-card .group-actions { display: flex; gap: 5px; }
+        .group-card input { margin-bottom: 8px; }
+        .group-card .upload-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #dee2e6; }
+        
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .file-input-wrapper { position: relative; display: inline-block; width: 100%; }
+        .file-input-wrapper input[type="file"] { display: none; }
+        .file-input-label { display: block; padding: 8px 12px; background: #f8f9fa; border: 1px dashed #ced4da; border-radius: 6px; cursor: pointer; text-align: center; font-size: 12px; color: #6c757d; transition: all 0.2s; }
+        .file-input-label:hover { background: #e9ecef; border-color: #0d6efd; color: #0d6efd; }
+        .file-input-label i { margin-right: 5px; }
+        
+        .summary-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .summary-box .summary-item { display: flex; justify-content: space-between; padding: 5px 0; }
+        .summary-box .summary-item .label { opacity: 0.9; }
+        .summary-box .summary-item .value { font-weight: 700; font-size: 18px; }
+        
+        .liet-checkbox { display: flex; align-items: center; gap: 10px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin-bottom: 10px; }
+        .liet-checkbox input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .liet-checkbox label { margin: 0; cursor: pointer; font-weight: 600; color: #856404; }
+        
         .warning-box { background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
         .warning-box .warning-title { font-weight: bold; color: #856404; margin-bottom: 5px; }
         .warning-box .warning-text { font-size: 12px; color: #856404; }
@@ -412,88 +445,198 @@
             </div>
         </div>
 
-        <!-- ADD QUESTION SET PAGE -->
+        <!-- ADD QUESTION SET PAGE - IMPROVED -->
         <div id="add_set_page" class="page">
             <div class="back-btn">
-                <button class="btn btn-secondary" onclick="backToQuestionSets()">⬅ Quay lại</button>
+                <button class="btn btn-secondary" onclick="backToQuestionSets()">⬅ Quay lại danh sách đề thi</button>
             </div>
+            
             <div class="box">
-                <h3>Thêm bộ đề thi mới</h3>
+                <h3 style="margin-bottom: 20px;">
+                    <span style="color: #0d6efd;">📝</span> Thêm bộ đề thi mới
+                </h3>
                 
-                <div class="form-row">
-                    <div>
-                        <label>Tên bộ đề thi *</label>
-                        <input type="text" id="setName" placeholder="VD: Bộ đề thi A1">
+                <!-- SECTION 1: THÔNG TIN CƠ BẢN -->
+                <div class="info-section">
+                    <div class="section-card">
+                        <div class="section-title">Thông tin cơ bản</div>
+                        
+                        <div class="form-row" style="margin-bottom: 15px;">
+                            <div>
+                                <label>Tên bộ đề thi *</label>
+                                <input type="text" id="setName" placeholder="VD: Bộ đề thi A1 - Lý thuyết cơ bản">
+                            </div>
+                            <div>
+                                <label>Mã bộ đề *</label>
+                                <input type="text" id="setCode" placeholder="VD: DE001" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                        
+                        <label>Mô tả chi tiết</label>
+                        <textarea id="setDescription" placeholder="Mô tả về nội dung, đối tượng áp dụng, mục đích của bộ đề thi..." rows="3"></textarea>
                     </div>
-                    <div>
-                        <label>Mã bộ đề *</label>
-                        <input type="text" id="setCode" placeholder="VD: DE001">
+                </div>
+                
+                <!-- SECTION 2: TẠO NHÓM CÂU HỎI -->
+                <div class="groups-section">
+                    <div class="section-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div class="section-title" style="margin-bottom: 0; border-bottom: none;">Cấu trúc đề thi - Nhóm câu hỏi</div>
+                            <button class="btn btn-success btn-sm" onclick="addGroupInput()">
+                                ➕ Thêm nhóm mới
+                            </button>
+                        </div>
+                        
+                        <p style="color: #6c757d; font-size: 13px; margin-bottom: 15px; font-style: italic;">
+                            💡 Mỗi nhóm câu hỏi tương ứng với một chủ đề hoặc phần kiến thức trong đề thi
+                        </p>
+                        
+                        <div id="groupsContainer"></div>
                     </div>
                 </div>
                 
-                <label>Mô tả</label>
-                <textarea id="setDescription" placeholder="Mô tả về bộ đề thi..."></textarea>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="margin: 0;">Tạo nhóm câu hỏi</h4>
-                    <button class="btn btn-primary" onclick="addGroupInput()">➕ Thêm nhóm</button>
+                <!-- SECTION 3: CÂU HỎI LIỆT -->
+                <div class="liet-section">
+                    <div class="section-card">
+                        <div class="section-title">Câu hỏi liệt (Câu điểm liệt)</div>
+                        
+                        <div class="liet-checkbox">
+                            <input type="checkbox" id="hasLietQuestion" onchange="toggleAddSetLiet()">
+                            <label for="hasLietQuestion">
+                                ⚠️ Đề thi này có câu hỏi liệt (câu bắt buộc phải trả lời đúng)
+                            </label>
+                        </div>
+                        
+                        <div id="lietNoteAdd" style="display: none; margin-top: 10px; padding: 10px; background: white; border-radius: 6px; font-size: 12px; color: #666;">
+                            <b>Lưu ý:</b> Số thứ tự câu hỏi liệt sẽ được thiết lập ở phần <b>"Cài đặt đề thi"</b> sau khi hoàn tất thêm câu hỏi.
+                        </div>
+                    </div>
                 </div>
                 
-                <div id="groupsContainer"></div>
-                
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="hasLietQuestion" onchange="toggleLietInput()">
-                        <span>Có câu hỏi liệt</span>
-                    </label>
+                <!-- SUMMARY BOX -->
+                <div class="summary-box" id="summaryBox" style="display: none;">
+                    <div style="font-weight: 700; margin-bottom: 10px; font-size: 16px;">📊 Tổng quan bộ đề</div>
+                    <div class="summary-item">
+                        <span class="label">Số nhóm câu hỏi:</span>
+                        <span class="value" id="summaryGroups">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Có câu hỏi liệt:</span>
+                        <span class="value" id="summaryLiet">Không</span>
+                    </div>
                 </div>
                 
-                <div class="toolbar" style="justify-content: flex-end; margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="backToQuestionSets()">Hủy</button>
-                    <button class="btn btn-success" onclick="saveNewQuestionSet()">💾 Lưu đề thi</button>
+                <!-- ACTION BUTTONS -->
+                <div class="toolbar" style="justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 2px solid #dee2e6;">
+                    <button class="btn btn-secondary" onclick="backToQuestionSets()">✕ Hủy bỏ</button>
+                    <button class="btn btn-success" onclick="saveNewQuestionSet()">💾 Lưu bộ đề thi</button>
                 </div>
             </div>
         </div>
 
-        <!-- QUESTION SET CONFIG PAGE -->
+        <!-- QUESTION SET CONFIG PAGE - IMPROVED -->
         <div id="set_config_page" class="page">
             <div class="back-btn">
-                <button class="btn btn-secondary" onclick="backToQuestionSets()">⬅ Quay lại</button>
+                <button class="btn btn-secondary" onclick="backToQuestionSets()">⬅ Quay lại danh sách đề thi</button>
             </div>
+            
             <div class="box">
-                <h3>Cài đặt đề thi: <span id="configSetName"></span></h3>
+                <h3 style="margin-bottom: 20px;">
+                    <span style="color: #0d6efd;">⚙️</span> Cài đặt đề thi: <span id="configSetName" style="color: #198754;"></span>
+                </h3>
                 
-                <div class="form-row">
-                    <div>
-                        <label>Tên bộ đề</label>
-                        <input type="text" id="configName" readonly style="background: #f0f0f0;">
+                <!-- SECTION 1: THÔNG TIN ĐỀ THI -->
+                <div class="info-section">
+                    <div class="section-card">
+                        <div class="section-title">Thông tin đề thi</div>
+                        
+                        <div class="form-row" style="margin-bottom: 15px;">
+                            <div>
+                                <label>Tên bộ đề</label>
+                                <input type="text" id="configName" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                            </div>
+                            <div>
+                                <label>Mã bộ đề</label>
+                                <input type="text" id="configCode" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                            </div>
+                        </div>
+                        
+                        <label>Tổng số lượng câu hỏi trong đề thi *</label>
+                        <input type="number" id="configTotalQuestions" min="1" max="200" placeholder="VD: 30" 
+                               onchange="updateConfigSummary()" style="font-size: 16px; font-weight: 600; color: #0d6efd;">
+                        <small style="color: #6c757d; display: block; margin-top: 5px;">
+                            💡 Nhập tổng số câu hỏi mà đề thi sẽ có
+                        </small>
                     </div>
-                    <div>
-                        <label>Mã bộ đề</label>
-                        <input type="text" id="configCode" readonly style="background: #f0f0f0;">
+                </div>
+                
+                <!-- SECTION 2: CẤU TRÚC NHÓM CÂU HỎI -->
+                <div class="groups-section">
+                    <div class="section-card">
+                        <div class="section-title">Cấu trúc đề thi - Phân bổ câu hỏi theo nhóm</div>
+                        
+                        <p style="color: #6c757d; font-size: 13px; margin-bottom: 15px; font-style: italic;">
+                            💡 Phân bổ số lượng câu hỏi cho từng nhóm. Tổng số câu hỏi các nhóm không được vượt quá tổng số câu hỏi đã đặt.
+                        </p>
+                        
+                        <div id="configGroupsContainer"></div>
+                        
+                        <div style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-left: 4px solid #0d6efd; border-radius: 4px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; color: #0d6efd;">Tổng câu hỏi đã phân bổ:</span>
+                                <span id="totalAllocated" style="font-size: 20px; font-weight: 700; color: #0d6efd;">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                <span style="font-size: 13px; color: #666;">Còn lại:</span>
+                                <span id="remainingQuestions" style="font-size: 16px; font-weight: 600; color: #198754;">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <label>Tổng số lượng câu hỏi trong đề thi *</label>
-                <input type="number" id="configTotalQuestions" min="1" placeholder="VD: 30">
-                
-                <h4 style="margin: 20px 0 10px 0;">Thứ tự câu hỏi trong bộ đề</h4>
-                <div id="configGroupsContainer"></div>
-                
-                <div style="margin-top: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
-                        <span>Câu hỏi liệt</span>
-                    </label>
+                <!-- SECTION 3: CÂU HỎI LIỆT -->
+                <div class="liet-section">
+                    <div class="section-card">
+                        <div class="section-title">Câu hỏi liệt (Câu điểm liệt)</div>
+                        
+                        <div class="liet-checkbox">
+                            <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
+                            <label for="configHasLiet">
+                                ⚠️ Đề thi này có câu hỏi liệt
+                            </label>
+                        </div>
+                        
+                        <div id="configLietContainer" style="display: none; margin-top: 12px;">
+                            <label>Câu hỏi liệt là câu số: *</label>
+                            <input type="number" id="configLietNumber" min="1" placeholder="VD: 1" 
+                                   style="max-width: 150px; font-size: 16px; font-weight: 600; color: #ffc107;">
+                            <small style="color: #856404; display: block; margin-top: 5px;">
+                                ⚠️ Thí sinh phải trả lời đúng câu này để đạt yêu cầu
+                            </small>
+                        </div>
+                    </div>
                 </div>
                 
-                <div id="configLietContainer" style="display: none; margin-top: 10px;">
-                    <label>Là câu số:</label>
-                    <input type="number" id="configLietNumber" min="1" placeholder="VD: 1">
+                <!-- SUMMARY -->
+                <div class="summary-box">
+                    <div style="font-weight: 700; margin-bottom: 10px; font-size: 16px;">📊 Tổng quan cấu hình</div>
+                    <div class="summary-item">
+                        <span class="label">Tổng số câu hỏi:</span>
+                        <span class="value" id="configSummaryTotal">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Số nhóm:</span>
+                        <span class="value" id="configSummaryGroups">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Câu hỏi liệt:</span>
+                        <span class="value" id="configSummaryLiet">Không</span>
+                    </div>
                 </div>
                 
-                <div class="toolbar" style="justify-content: flex-end; margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="backToQuestionSets()">Hủy</button>
+                <!-- ACTION BUTTONS -->
+                <div class="toolbar" style="justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 2px solid #dee2e6;">
+                    <button class="btn btn-secondary" onclick="backToQuestionSets()">✕ Hủy bỏ</button>
                     <button class="btn btn-success" onclick="saveQuestionSetConfig()">💾 Lưu cài đặt</button>
                 </div>
             </div>
@@ -1530,14 +1673,38 @@
         const index = container.children.length + 1;
         
         const groupDiv = document.createElement('div');
-        groupDiv.className = 'group-item';
+        groupDiv.className = 'group-card';
         groupDiv.innerHTML = `
-            <button class="remove-btn" onclick="removeGroup(this)">✕ Xóa</button>
-            <label>Tên nhóm câu hỏi ${index} *</label>
-            <input type="text" class="group-name" placeholder="VD: Khái niệm và quy tắc" required>
+            <div class="group-header">
+                <span class="group-number">Nhóm ${index}</span>
+                <div class="group-actions">
+                    <button class="btn btn-danger btn-sm" onclick="removeGroup(this)" title="Xóa nhóm này">
+                        🗑️ Xóa
+                    </button>
+                </div>
+            </div>
+            
+            <label style="font-weight: 600; color: #495057;">Tên nhóm câu hỏi *</label>
+            <input type="text" class="group-name" placeholder="VD: Khái niệm và quy tắc giao thông" required>
+            
+            <div class="upload-section">
+                <label style="font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">
+                    📁 Tải lên câu hỏi cho nhóm này (Excel)
+                </label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="groupFile${index}" accept=".xlsx,.xls" class="group-file" onchange="handleGroupFileUpload(this, ${index})">
+                    <label for="groupFile${index}" class="file-input-label">
+                        📤 Chọn file Excel chứa câu hỏi
+                    </label>
+                </div>
+                <div class="file-status" id="fileStatus${index}" style="font-size: 11px; color: #198754; margin-top: 5px; display: none;">
+                    ✓ Đã chọn file: <span class="file-name"></span>
+                </div>
+            </div>
         `;
         
         container.appendChild(groupDiv);
+        updateAddSetSummary();
     }
 
     function removeGroup(button) {
@@ -1546,17 +1713,105 @@
             alert('Phải có ít nhất 1 nhóm câu hỏi!');
             return;
         }
-        button.parentElement.remove();
+        button.closest('.group-card').remove();
         
-        const groups = container.querySelectorAll('.group-item');
+        // Renumber groups
+        const groups = container.querySelectorAll('.group-card');
         groups.forEach((group, index) => {
-            const label = group.querySelector('label');
-            label.textContent = `Tên nhóm câu hỏi ${index + 1} *`;
+            const numberSpan = group.querySelector('.group-number');
+            numberSpan.textContent = `Nhóm ${index + 1}`;
+            
+            // Update file input IDs
+            const fileInput = group.querySelector('input[type="file"]');
+            const fileLabel = group.querySelector('.file-input-label');
+            const fileStatus = group.querySelector('.file-status');
+            
+            if (fileInput) {
+                const newId = `groupFile${index + 1}`;
+                fileInput.id = newId;
+                fileInput.setAttribute('onchange', `handleGroupFileUpload(this, ${index + 1})`);
+                fileLabel.setAttribute('for', newId);
+                fileStatus.id = `fileStatus${index + 1}`;
+            }
         });
+        
+        updateAddSetSummary();
+    }
+
+    function handleGroupFileUpload(input, groupIndex) {
+        const file = input.files[0];
+        const statusDiv = document.getElementById(`fileStatus${groupIndex}`);
+        const fileNameSpan = statusDiv.querySelector('.file-name');
+        
+        if (file) {
+            fileNameSpan.textContent = file.name;
+            statusDiv.style.display = 'block';
+        } else {
+            statusDiv.style.display = 'none';
+        }
+    }
+
+    function toggleAddSetLiet() {
+        const checkbox = document.getElementById('hasLietQuestion');
+        const noteDiv = document.getElementById('lietNoteAdd');
+        noteDiv.style.display = checkbox.checked ? 'block' : 'none';
+        updateAddSetSummary();
+    }
+
+    function updateAddSetSummary() {
+        const container = document.getElementById('groupsContainer');
+        const groupCount = container.children.length;
+        const hasLiet = document.getElementById('hasLietQuestion').checked;
+        
+        const summaryBox = document.getElementById('summaryBox');
+        const summaryGroups = document.getElementById('summaryGroups');
+        const summaryLiet = document.getElementById('summaryLiet');
+        
+        if (groupCount > 0) {
+            summaryBox.style.display = 'block';
+            summaryGroups.textContent = groupCount;
+            summaryLiet.textContent = hasLiet ? 'Có' : 'Không';
+        } else {
+            summaryBox.style.display = 'none';
+        }
+    }
+
+    function updateConfigSummary() {
+        const total = parseInt(document.getElementById('configTotalQuestions').value) || 0;
+        const groupInputs = document.querySelectorAll('.group-count');
+        const hasLiet = document.getElementById('configHasLiet').checked;
+        const lietNumber = document.getElementById('configLietNumber').value;
+        
+        let allocated = 0;
+        groupInputs.forEach(input => {
+            allocated += parseInt(input.value) || 0;
+        });
+        
+        const remaining = total - allocated;
+        
+        // Update real-time counters
+        document.getElementById('totalAllocated').textContent = allocated;
+        document.getElementById('remainingQuestions').textContent = remaining;
+        
+        // Update remaining color
+        const remainingSpan = document.getElementById('remainingQuestions');
+        if (remaining < 0) {
+            remainingSpan.style.color = '#dc3545';
+        } else if (remaining === 0) {
+            remainingSpan.style.color = '#198754';
+        } else {
+            remainingSpan.style.color = '#ffc107';
+        }
+        
+        // Update summary box
+        document.getElementById('configSummaryTotal').textContent = total;
+        document.getElementById('configSummaryGroups').textContent = groupInputs.length;
+        document.getElementById('configSummaryLiet').textContent = hasLiet ? `Có (Câu ${lietNumber || '?'})` : 'Không';
     }
 
     function toggleLietInput() {
-        // Not used in add set page
+        // Old function - deprecated but kept for compatibility
+        toggleAddSetLiet();
     }
 
     async function saveNewQuestionSet() {
@@ -1633,21 +1888,31 @@
         if (set.groupDetails && set.groupDetails.length > 0) {
             set.groupDetails.forEach((group, index) => {
                 const groupDiv = document.createElement('div');
-                groupDiv.className = 'form-row';
-                groupDiv.style.marginBottom = '10px';
+                groupDiv.className = 'group-card';
                 groupDiv.innerHTML = `
-                    <div>
-                        <label>Nhóm câu hỏi ${index + 1}: ${group.name}</label>
-                        <input type="text" value="${group.name}" readonly style="background: #f0f0f0;">
+                    <div class="group-header">
+                        <span class="group-number">Nhóm ${index + 1}</span>
                     </div>
-                    <div>
-                        <label>Số lượng câu hỏi</label>
-                        <input type="number" class="group-count" min="0" placeholder="0" value="${group.questions ? group.questions.length : 0}">
+                    
+                    <div class="form-row" style="margin-bottom: 0;">
+                        <div>
+                            <label style="font-weight: 600; color: #495057;">Tên nhóm</label>
+                            <input type="text" value="${group.name}" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; color: #0d6efd;">Số lượng câu hỏi *</label>
+                            <input type="number" class="group-count" min="0" max="200" placeholder="0" 
+                                   value="${group.questions ? group.questions.length : 0}"
+                                   onchange="updateConfigSummary()"
+                                   style="font-size: 16px; font-weight: 600; color: #0d6efd;">
+                        </div>
                     </div>
                 `;
                 container.appendChild(groupDiv);
             });
         }
+        
+        updateConfigSummary();
     }
 
     function toggleConfigLiet() {
@@ -1666,24 +1931,37 @@
         const lietNumber = hasLiet ? parseInt(document.getElementById('configLietNumber').value) || 0 : 0;
         
         if (totalQuestions <= 0) {
-            alert('Vui lòng nhập tổng số câu hỏi!');
+            alert('⚠️ Vui lòng nhập tổng số câu hỏi!');
             return;
         }
         
+        // Validate liet question
         if (hasLiet && (lietNumber <= 0 || lietNumber > totalQuestions)) {
-            alert(`Câu hỏi liệt phải từ 1 đến ${totalQuestions}!`);
+            alert(`⚠️ Câu hỏi liệt phải từ 1 đến ${totalQuestions}!`);
             return;
         }
         
+        // Validate group counts
         const groupCounts = document.querySelectorAll('.group-count');
         let totalCount = 0;
+        const groupValues = [];
+        
         for (let input of groupCounts) {
-            totalCount += parseInt(input.value) || 0;
+            const val = parseInt(input.value) || 0;
+            totalCount += val;
+            groupValues.push(val);
         }
         
         if (totalCount > totalQuestions) {
-            alert(`Tổng số câu hỏi trong các nhóm (${totalCount}) vượt quá tổng số câu hỏi (${totalQuestions})!`);
+            alert(`⚠️ CẢNH BÁO!\n\nTổng số câu hỏi trong các nhóm (${totalCount}) vượt quá tổng số câu hỏi đã đặt (${totalQuestions})!\n\nVui lòng điều chỉnh lại phân bổ.`);
             return;
+        }
+        
+        if (totalCount < totalQuestions) {
+            const remaining = totalQuestions - totalCount;
+            if (!confirm(`💡 THÔNG BÁO\n\nBạn đã phân bổ ${totalCount}/${totalQuestions} câu hỏi.\nCòn lại ${remaining} câu hỏi chưa được phân bổ.\n\nBạn có muốn tiếp tục lưu không?`)) {
+                return;
+            }
         }
         
         try {
@@ -1697,11 +1975,11 @@
                 });
             }
             
-            alert('✓ Đã lưu cài đặt thành công!');
+            alert('✅ Đã lưu cài đặt thành công!');
             backToQuestionSets();
             loadQuestionSets();
         } catch (error) {
-            alert('Lỗi: ' + error.message);
+            alert('❌ Lỗi: ' + error.message);
         }
     }
 
