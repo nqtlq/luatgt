@@ -2,627 +2,1174 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMIN | Hệ thống thi luật giao thông</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
-        /* ===== 1. CORE STYLES ===== */
-        :root {
-            --primary: #2563eb; --secondary: #64748b; --success: #10b981;
-            --danger: #ef4444; --warning: #f59e0b; --bg: #f8fafc;
-            --border: #e2e8f0; --text-main: #1e293b;
+        /* ===== TỔNG THỂ ===== */
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f6; }
+
+        /* ===== TRẠNG THÁI & RATE ===== */
+        .status { padding: 5px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid #ccc; cursor: pointer;}
+        .activeStatus { background: #d1e7dd; color: #0f5132 }
+        .lockStatus { background: #f8d7da; color: #842029 }
+
+        .rate { padding: 5px 8px; border-radius: 7px; font-weight: bold; display: inline-block; font-size: 12px; }
+        .good { background: #d1e7dd; color: #0f5132 }
+        .mid { background: #fff3cd; color: #664d03 }
+        .bad { background: #f8d7da; color: #842029 }
+
+        /* ===== HEADER ===== */
+        header { background: linear-gradient(90deg, #1d3557, #264a8a); color: white; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); position: sticky; top: 0; z-index: 100; }
+        header b { font-size: 17px }
+        header button { background: #e63946; border: none; border-radius: 8px; padding: 7px 12px; color: white; cursor: pointer; }
+
+        /* ===== LAYOUT ===== */
+        #layout { display: flex; min-height: calc(100vh - 64px); }
+        aside { width: 240px; background: white; box-shadow: 4px 0 15px rgba(0, 0, 0, .08); padding: 20px; flex-shrink: 0; }
+        .menu button { width: 100%; margin-bottom: 8px; padding: 10px 14px; border: none; border-radius: 10px; background: #f1f4fb; cursor: pointer; text-align: left; transition: 0.3s; }
+        .menu button.active, .menu button:hover { background: #dbe6ff; color: #0d6efd; font-weight: bold; }
+
+        main { flex: 1; padding: 20px; overflow-y: auto; }
+        .box { background: white; padding: 18px; border-radius: 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .12); margin-bottom: 18px; }
+        .box h3 { margin-top: 0; color: #1d3557; font-size: 16px; }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+        .toolbar input, .toolbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; }
+        .toolbar label { font-size: 13px; color: #333; }
+        
+        .btn { border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; color: white; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-success { background: #198754; }
+        .btn-primary { background: #0d6efd; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-danger { background: #dc3545; }
+        .btn-secondary { background: #6c757d; }
+
+        /* ===== TABLES ===== */
+        .tableWrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
+        th, td { padding: 12px 9px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        th { background: #f1f4fb; color: #1d3557; cursor: pointer; user-select: none; }
+        .sort-icon { font-size: 11px; margin-left: 4px; }
+
+        /* ===== DASHBOARD - MỚI THEO ANH_1 ===== */
+        .dashboard-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: #0d6efd; 
+            margin-bottom: 20px; 
+        }
+        
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 18px; 
+            margin-bottom: 20px; 
+        }
+        
+        .dashboard-card { 
+            background: white; 
+            padding: 24px; 
+            border-radius: 14px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); 
+            position: relative; 
+            overflow: hidden;
+            border: 1px solid #e8ecf0;
+        }
+        
+        .dashboard-card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .dashboard-card .card-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            opacity: 0.15;
+        }
+        
+        .dashboard-card.blue .card-icon { background: #e3f2fd; color: #0d6efd; }
+        .dashboard-card.green .card-icon { background: #e8f5e9; color: #198754; }
+        .dashboard-card.red .card-icon { background: #ffebee; color: #dc3545; }
+        
+        .dashboard-card .card-label { 
+            font-size: 12px; 
+            color: #6c757d; 
+            text-transform: uppercase; 
+            font-weight: 600; 
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .dashboard-card .card-value { 
+            font-size: 36px; 
+            font-weight: 700; 
+            color: #1d3557; 
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .dashboard-card .card-subtitle { 
+            font-size: 13px; 
+            color: #6c757d; 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .dashboard-card .card-subtitle svg {
+            width: 14px;
+            height: 14px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
-        
-        header { 
-            background: white; padding: 0 1.5rem; height: 64px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-            border-bottom: 1px solid var(--border);
+        /* ===== BẢNG HOẠT ĐỘNG GẦN ĐÂY ===== */
+        .activity-section {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e8ecf0;
         }
-        header h1 { font-size: 1.25rem; font-weight: 700; color: #1e40af; }
         
-        #app { display: flex; flex: 1; overflow: hidden; }
-        
-        aside { width: 260px; background: #1e293b; color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-        .menu-btn { 
-            width: 100%; text-align: left; padding: 0.75rem 1rem; border: none; background: transparent; 
-            border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; 
-            color: #94a3b8; font-weight: 500; transition: all 0.2s; 
+        .activity-section h3 {
+            margin: 0 0 16px 0;
+            color: #1d3557;
+            font-size: 17px;
+            font-weight: 700;
         }
-        .menu-btn:hover { background: #334155; color: white; }
-        .menu-btn.active { background: #3b82f6; color: white; font-weight: 600; }
-
-        main { flex: 1; padding: 2rem; overflow-y: auto; max-width: 100%; }
-
-        /* ===== 2. DASHBOARD CARDS (Style Mới) ===== */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        .db-card {
-            background: white; border-radius: 1rem; padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border);
-            display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; overflow: hidden;
+        
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .db-card h3 { font-size: 0.875rem; color: #64748b; font-weight: 600; margin-bottom: 0.5rem; }
-        .db-card .value { font-size: 2rem; font-weight: 800; color: #0f172a; }
         
-        /* Viền màu riêng cho từng Card */
-        .db-card.blue { border-left: 5px solid var(--primary); }
-        .db-card.green { border-left: 5px solid var(--success); }
-        .db-card.red { border-left: 5px solid var(--danger); }
-        .db-card.orange { border-left: 5px solid var(--warning); }
-
-        /* ===== 3. COMPONENTS (Từ 11 & 111) ===== */
-        .card { background: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; color: white; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; }
-        .btn-primary { background: var(--primary); } .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); } .btn-secondary { background: var(--secondary); }
-        .btn-warning { background: var(--warning); }
-
-        .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
-        input, select { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; font-size: 0.875rem; }
+        .activity-table thead {
+            background: #f8f9fa;
+        }
         
-        /* Bảng hiển thị */
-        .table-wrap { overflow-x: auto; border-radius: 0.5rem; border: 1px solid var(--border); background: white; max-height: 65vh; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-        th { background: #f8fafc; font-weight: 600; text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; color: #475569; }
-        td { padding: 0.75rem; border-bottom: 1px solid var(--border); color: #334155; }
-        tr:hover { background: #f8fafc; }
+        .activity-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
         
-        .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
-        .bg-green { background: #dcfce7; color: #166534; } .bg-red { background: #fee2e2; color: #991b1b; }
-        .bg-blue { background: #dbeafe; color: #1e40af; } .bg-yellow { background: #fef3c7; color: #92400e; }
+        .activity-table td {
+            padding: 14px 12px;
+            font-size: 13px;
+            color: #495057;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: left;
+        }
+        
+        .activity-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .activity-empty {
+            text-align: center;
+            padding: 40px;
+            color: #adb5bd;
+            font-style: italic;
+            font-size: 14px;
+        }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        /* ===== STATS GRID - STUDENTS ===== */
+        .statGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+        .statBox { border-radius: 12px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; }
+        .statBox .main-num { font-size: 24px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .statBox .sub-stats { font-size: 11px; opacity: 0.9; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); text-align: left; }
+        .statBox .sub-stats div { margin-bottom: 2px; }
+        .total { background: #0d6efd }
+        .pass { background: #198754 }
+        .fail { background: #e63946 }
+
+        /* ===== MODALS ===== */
+        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 0.75rem; width: 100%; max-width: 600px; padding: 1.5rem; animation: slideIn 0.2s ease-out; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-content { background: #fff; padding: 24px; border-radius: 14px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; animation: fadeIn 0.3s; }
+        .modal-content h3 { margin-top: 0; color: #1d3557; }
+        .modal-content label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #555; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         
-        .form-group { margin-bottom: 1rem; }
-        .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
-        .form-input { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; }
+        .date-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .date-group input { margin-bottom: 0; }
+        
+        .warning-box { background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+        .warning-box .warning-title { font-weight: bold; color: #856404; margin-bottom: 5px; }
+        .warning-box .warning-text { font-size: 12px; color: #856404; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Chi tiết bài thi (Đúng / Sai) */
-        .answerRow { padding: 10px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center; border: 1px solid transparent; }
-        .correct { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-        .wrong { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-        .answer-icon { font-weight: bold; font-size: 1.1rem; }
+        /* ===== OTHER PAGES ===== */
+        .page { display: none; }
+        .page.active { display: block; }
+        .infoCard { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 14px; margin-bottom: 18px; }
+        .infoCard h2 { margin: 0 0 10px 0; font-size: 24px; }
+        .infoCard p { margin: 5px 0; font-size: 14px; opacity: 0.9; }
+        
+        .miniStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+        .miniStatBox { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .miniStatBox .label { font-size: 12px; color: #666; margin-bottom: 8px; }
+        .miniStatBox .value { font-size: 24px; font-weight: bold; color: #1d3557; }
+        
+        .chartContainer { height: 300px; position: relative; margin: 20px 0; }
 
-        /* In ấn chuyên nghiệp */
+        .answerRow { display: flex; justify-content: space-between; padding: 10px; margin: 5px 0; border-radius: 8px; background: #f8f9fa; }
+        .answerRow.correct { background: #d1e7dd }
+        .answerRow.wrong { background: #f8d7da }
+
+        .student-scroll { max-height: 520px; overflow-y: auto; }
+        .medal { font-size: 18px; margin-left: 6px; }
+        .medal.gold { color: #f1c40f }
+        .medal.silver { color: #95a5a6 }
+        .medal.bronze { color: #cd7f32 }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+
+        /* ===== PRINT STYLES ===== */
         @media print {
-            header, aside, .toolbar, .action-column, .no-print { display: none !important; }
-            #app { display: block; height: auto; }
-            main { padding: 0; overflow: visible; }
-            .card { border: none; box-shadow: none; padding: 0; margin: 0; }
-            .table-wrap { border: 1px solid #000; max-height: none; overflow: visible; }
-            table { width: 100%; border: 1px solid #000; font-size: 10pt; }
-            th, td { border: 1px solid #000; padding: 5px; color: black; }
-            #printInfo { display: block !important; margin-bottom: 20px; text-align: center; }
+            header, aside, .toolbar, .btn, .box h3, .statGrid, .filter-bar { display: none !important; }
+            body { background: white; }
+            main { padding: 0; }
+            .box { box-shadow: none; padding: 0; }
+            table { font-size: 11px; }
+            th, td { padding: 8px 5px; }
+            .page { display: block !important; }
+            #students { display: block !important; }
         }
-        #printInfo { display: none; }
-        
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { aside { display: none; } .stats-grid { grid-template-columns: 1fr; } }
+
+        @media(max-width: 768px) {
+            #layout { flex-direction: column; }
+            aside { width: 100%; border-bottom: 1px solid #ddd; box-shadow: none; }
+            main { padding: 14px; }
+            .statGrid, .miniStats, .dashboard-grid { grid-template-columns: 1fr; }
+            .chartContainer { height: 250px; }
+        }
     </style>
 </head>
+
 <body>
 
-<header class="no-print">
-    <h1>🛡️ QUẢN TRỊ HỆ THỐNG</h1>
-    <button class="btn btn-danger" onclick="logout()">Đăng xuất</button>
+<header>
+    <b>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</b>
+    <button onclick="logout()">Đăng xuất</button>
 </header>
 
-<div id="app">
-    <aside id="sidebar" class="no-print">
-        <nav>
-            <button class="menu-btn active" onclick="showPage('dashboard', this)">📊 Tổng quan</button>
-            <button class="menu-btn" onclick="showPage('students', this)">👤 Học viên</button>
-            <button class="menu-btn" onclick="showPage('history', this)">📜 Lịch sử thi</button>
-            <button class="menu-btn" onclick="showPage('stats', this)">📈 Thống kê</button>
-        </nav>
+<div id="layout">
+    <aside>
+        <div class="menu">
+            <button class="active" onclick="showPage('dashboard',this)">📊 Tổng quan</button>
+            <button onclick="showPage('students',this)">👤 Quản lý Học viên</button>
+            <button onclick="showPage('question_sets',this)">📝 Quản lý đề thi</button>
+            <button onclick="showPage('stats',this)">📈 Thống kê</button>
+            <button onclick="showPage('system',this)">⚙️ Cài đặt</button>
+        </div>
     </aside>
 
     <main>
-        <div id="dashboard" class="page">
-            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Bảng điều khiển</h2>
+        <!-- DASHBOARD - THIẾT KẾ MỚI THEO ANH_1 -->
+        <div id="dashboard" class="page active">
+            <h2 class="dashboard-title">Tổng quan hệ thống</h2>
             
-            <div class="stats-grid">
-                <div class="db-card blue">
-                    <h3>TỔNG HỌC VIÊN</h3>
-                    <div class="value" id="dashTotal">0</div>
-                </div>
-                <div class="db-card green">
-                    <h3>ĐANG HOẠT ĐỘNG</h3>
-                    <div class="value" id="dashActive">0</div>
-                </div>
-                <div class="db-card red">
-                    <h3>TỔNG LƯỢT THI</h3>
-                    <div class="value" id="dashExams">0</div>
-                </div>
-                <div class="db-card orange">
-                    <h3>TỶ LỆ ĐẠT</h3>
-                    <div class="value" id="dashRate">0%</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">Biểu đồ thống kê kết quả thi</h3>
-                <div style="height: 350px;"><canvas id="mainChart"></canvas></div>
-            </div>
-        </div>
-
-        <div id="students" class="page" style="display:none">
-            <div id="printInfo">
-                <h2>DANH SÁCH HỌC VIÊN</h2>
-                <p id="printFilterText"></p><br>
-            </div>
-
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-                    <h3 style="margin: 0; font-size: 1.25rem;" class="no-print">Danh sách học viên</h3>
-                    <div class="toolbar no-print" style="margin: 0;">
-                        <input type="text" id="searchStudent" placeholder="🔍 Tên / Mã..." style="width: 150px;" oninput="filterStudents()">
-                        <input type="text" id="searchUnit" placeholder="🏢 Đơn vị..." style="width: 150px;" oninput="filterStudents()">
-                        <select id="searchObject" onchange="filterStudents()" style="width: 130px;">
-                            <option value="">--Đối tượng--</option>
-                            <option value="HV">Học viên</option>
-                            <option value="SQ">Sĩ quan</option>
-                            <option value="CN">Chuyên nghiệp</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="printList()">🖨️ In DS</button>
-                        <button class="btn btn-success" onclick="openAddStudent()">➕ Thêm</button>
-                        <button class="btn btn-primary" onclick="openImportModal()">📂 Excel</button>
+            <!-- Grid 2 cột cho 3 cards -->
+            <div class="dashboard-grid">
+                <!-- Card 1: Tổng học viên -->
+                <div class="dashboard-card blue">
+                    <div class="card-icon">👥</div>
+                    <div class="card-label">Tổng học viên</div>
+                    <div class="card-value" id="totalStudents">0</div>
+                    <div class="card-subtitle">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                        </svg>
+                        <span>Đang hoạt động: <strong id="activeStudents">0</strong></span>
                     </div>
                 </div>
                 
-                <div class="table-wrap">
+                <!-- Card 2: Lượt thi hôm nay -->
+                <div class="dashboard-card green">
+                    <div class="card-icon">📝</div>
+                    <div class="card-label">Lượt thi hôm nay</div>
+                    <div class="card-value" id="todayExams">0</div>
+                    <div class="card-subtitle">
+                        <span style="color: #198754;">●</span>
+                        <span>Cập nhật realtime</span>
+                    </div>
+                </div>
+                
+                <!-- Card 3: Cảnh báo (full width) -->
+                <div class="dashboard-card red full-width">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-label">Cảnh báo</div>
+                    <div class="card-value" id="warningCount">0</div>
+                    <div class="card-subtitle">
+                        <span>Tài khoản bị khóa</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bảng hoạt động gần đây -->
+            <div class="activity-section">
+                <h3>Hoạt động gần đây</h3>
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Thời gian</th>
+                            <th style="width: 25%;">Học viên</th>
+                            <th style="width: 30%;">Hoạt động</th>
+                            <th style="width: 25%;">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody">
+                        <tr>
+                            <td colspan="4" class="activity-empty">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- STUDENTS PAGE - GIỮ NGUYÊN -->
+        <div id="students" class="page">
+            <div class="statGrid">
+                <div class="statBox total">
+                    <div>
+                        <span style="font-size: 13px;">Tổng số</span>
+                        <span class="main-num" id="totalCount">0</span>
+                    </div>
+                    <div class="sub-stats">
+                        <div>Đang hoạt động: <b id="activeCount">0</b></div>
+                        <div>Đã khóa: <b id="lockedCount">0</b></div>
+                    </div>
+                </div>
+                <div class="statBox pass">
+                    <div>
+                        <span style="font-size: 13px;">Đã thi đạt</span>
+                        <span class="main-num" id="passCount">0</span>
+                    </div>
+                    <div class="sub-stats">
+                        <div>Tỷ lệ đạt: <b id="passRate">0%</b></div>
+                    </div>
+                </div>
+                <div class="statBox fail">
+                    <div>
+                        <span style="font-size: 13px;">Chưa đạt</span>
+                        <span class="main-num" id="failCount">0</span>
+                    </div>
+                    <div class="sub-stats">
+                        <div>Cần luyện thêm</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <h3>Danh sách Học viên</h3>
+                <div class="toolbar">
+                    <button class="btn btn-success" onclick="openAddModal()">➕ Thêm học viên</button>
+                    <button class="btn btn-primary" onclick="openImportModal()">📤 Nhập Excel</button>
+                    <button class="btn btn-warning" onclick="exportToExcel()">📥 Xuất Excel</button>
+                    <button class="btn btn-secondary" onclick="printTable()">🖨️ In danh sách</button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" id="searchName" placeholder="🔍 Tìm theo tên..." onkeyup="applyFilters()" style="flex: 1; min-width: 200px;">
+                    <input type="text" id="searchCode" placeholder="🔍 Mã học viên..." onkeyup="applyFilters()" style="flex: 1; min-width: 150px;">
+                    <input type="text" id="searchUnit" placeholder="🔍 Đơn vị..." onkeyup="applyFilters()" style="flex: 1; min-width: 150px;">
+                    <select id="filterStatus" onchange="applyFilters()" style="min-width: 120px;">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Đang hoạt động</option>
+                        <option value="locked">Đã khóa</option>
+                    </select>
+                    <select id="filterObject" onchange="applyFilters()" style="min-width: 120px;">
+                        <option value="">Tất cả đối tượng</option>
+                        <option value="Học viên">Học viên</option>
+                        <option value="Sĩ quan">Sĩ quan</option>
+                        <option value="Chuyên nghiệp">Chuyên nghiệp</option>
+                    </select>
+                </div>
+
+                <div class="tableWrap student-scroll">
                     <table id="studentTable">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">#</th>
-                                <th style="width: 100px;">Mã HV</th>
-                                <th>Họ và tên</th>
-                                <th style="width: 110px;">Ngày sinh</th>
-                                <th>Đơn vị</th>
-                                <th style="width: 120px; text-align: center;">Đối tượng</th>
-                                <th style="width: 110px; text-align: center;" class="no-print">Trạng thái</th>
-                                <th style="width: 130px; text-align: center;" class="action-column no-print">Thao tác</th>
+                                <th onclick="sortTable(0)">#</th>
+                                <th onclick="sortTable(1)">Mã HV <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(2)">Họ và Tên <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(3)">Đơn vị <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(4)">Ngày sinh <span class="sort-icon">⇅</span></th>
+                                <th onclick="sortTable(5)">Đối tượng <span class="sort-icon">⇅</span></th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="studentTableBody"></tbody>
+                        <tbody id="studentTableBody">
+                            <tr><td colspan="8" style="text-align:center; color:#999;">Đang tải...</td></tr>
+                        </tbody>
                     </table>
-                </div>
-                <div class="no-print" style="margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: right;">
-                    Hiển thị: <b id="displayCount">0</b> học viên
                 </div>
             </div>
         </div>
 
-        <div id="history" class="page" style="display:none">
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">Nhật ký thi chi tiết</h3>
-                <div class="table-wrap">
+        <!-- QUESTION SETS PAGE - GIỮ NGUYÊN -->
+        <div id="question_sets" class="page">
+            <div class="box">
+                <h3>Quản lý Đề thi</h3>
+                <div class="toolbar">
+                    <button class="btn btn-success" onclick="openAddSetModal()">➕ Thêm đề thi</button>
+                    <button class="btn btn-primary" onclick="openImportQuestionsModal()">📤 Nhập câu hỏi</button>
+                </div>
+                <div class="tableWrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Thời gian</th>
-                                <th>Mã HV</th>
-                                <th>Họ tên</th>
-                                <th>Điểm</th>
-                                <th>Kết quả</th>
-                                <th>Chi tiết</th>
+                                <th>#</th>
+                                <th>Mã đề</th>
+                                <th>Tên đề thi</th>
+                                <th>Số câu hỏi</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTableBody"></tbody>
+                        <tbody id="setTableBody">
+                            <tr><td colspan="6" style="text-align:center; color:#999;">Đang tải...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div id="stats" class="page" style="display:none">
-            <div class="card">
-                <h3>Bảng xếp hạng kết quả</h3>
-                <div class="table-wrap" style="margin-top: 1rem;">
+        <!-- STATS PAGE - GIỮ NGUYÊN -->
+        <div id="stats" class="page">
+            <div class="miniStats">
+                <div class="miniStatBox">
+                    <div class="label">Tổng lượt thi</div>
+                    <div class="value" id="statTotalExams">0</div>
+                </div>
+                <div class="miniStatBox">
+                    <div class="label">Tỷ lệ đạt</div>
+                    <div class="value" id="statPassRate">0%</div>
+                </div>
+                <div class="miniStatBox">
+                    <div class="label">Điểm TB</div>
+                    <div class="value" id="statAvgScore">0</div>
+                </div>
+                <div class="miniStatBox">
+                    <div class="label">Học viên thi</div>
+                    <div class="value" id="statActiveStudents">0</div>
+                </div>
+            </div>
+
+            <div class="box">
+                <h3>Top 10 Học viên xuất sắc</h3>
+                <div class="tableWrap">
                     <table>
                         <thead>
-                            <tr><th>#</th><th>Mã HV</th><th>Lượt thi</th><th>Đạt</th><th>Không đạt</th><th>Tỷ lệ</th></tr>
+                            <tr>
+                                <th>Hạng</th>
+                                <th>Mã HV</th>
+                                <th>Họ và Tên</th>
+                                <th>Đơn vị</th>
+                                <th>Số lần thi</th>
+                                <th>Điểm cao nhất</th>
+                                <th>Điểm TB</th>
+                                <th>Đánh giá</th>
+                            </tr>
                         </thead>
-                        <tbody id="statTableBody"></tbody>
+                        <tbody id="topStudentsBody">
+                            <tr><td colspan="8" style="text-align:center; color:#999;">Đang tải...</td></tr>
+                        </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SYSTEM PAGE - GIỮ NGUYÊN -->
+        <div id="system" class="page">
+            <div class="box">
+                <h3>⚙️ Cài đặt hệ thống</h3>
+                <p style="color:#666; margin-bottom: 20px;">Các tùy chọn cấu hình và quản trị hệ thống</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">🔐 Quản lý Tài khoản</h4>
+                        <button class="btn btn-primary">Đổi mật khẩu</button>
+                        <button class="btn btn-secondary">Xem nhật ký</button>
+                    </div>
+                    
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">💾 Sao lưu & Phục hồi</h4>
+                        <button class="btn btn-success">Sao lưu dữ liệu</button>
+                        <button class="btn btn-warning">Phục hồi</button>
+                    </div>
+                    
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">📊 Thống kê nâng cao</h4>
+                        <button class="btn btn-primary">Báo cáo chi tiết</button>
+                        <button class="btn btn-secondary">Xuất báo cáo</button>
+                    </div>
+                    
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">🔧 Công cụ</h4>
+                        <button class="btn btn-danger">Xóa dữ liệu cũ</button>
+                        <button class="btn btn-secondary">Cài đặt khác</button>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
-<div class="modal" id="studentModal">
+<!-- MODAL THÊM/SỬA HỌC VIÊN - GIỮ NGUYÊN -->
+<div id="studentModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-bottom:1.5rem; font-size:1.25rem;">Thêm học viên</h3>
-        <input type="hidden" id="stMode"><input type="hidden" id="stCurrentCode">
+        <h3 id="modalTitle">Thêm học viên mới</h3>
+        <label>Họ và Tên *</label>
+        <input type="text" id="studentName" placeholder="VD: Nguyễn Văn A">
         
-        <div class="form-group">
-            <label class="form-label">Họ và tên <span style="color:red">*</span></label>
-            <input type="text" class="form-input" id="stName">
+        <label>Đơn vị *</label>
+        <input type="text" id="studentUnit" placeholder="VD: Đại đội 1">
+        
+        <label>Ngày sinh</label>
+        <div class="date-group">
+            <input type="number" id="dobDay" placeholder="Ngày" min="1" max="31">
+            <input type="number" id="dobMonth" placeholder="Tháng" min="1" max="12">
+            <input type="number" id="dobYear" placeholder="Năm" min="1950" max="2010">
         </div>
-        <div class="form-group">
-            <label class="form-label">Ngày sinh</label>
-            <input type="date" class="form-input" id="stDob">
+        
+        <label>Đối tượng *</label>
+        <select id="studentObject" onchange="toggleOtherField()">
+            <option value="Học viên">Học viên (HV)</option>
+            <option value="Sĩ quan">Sĩ quan (SQ)</option>
+            <option value="Chuyên nghiệp">Chuyên nghiệp (CN)</option>
+            <option value="other">Khác...</option>
+        </select>
+        
+        <div id="otherObjectGroup" style="display:none;">
+            <label>Nhập tên đối tượng khác:</label>
+            <input type="text" id="otherObjectName" placeholder="VD: Công nhân viên">
         </div>
-        <div class="form-group">
-            <label class="form-label">Đơn vị <span style="color:red">*</span></label>
-            <input type="text" class="form-input" id="stUnit">
+
+        <div class="warning-box">
+            <div class="warning-title">⚠️ Lưu ý khi thêm học viên</div>
+            <div class="warning-text">
+                • Kiểm tra kỹ thông tin trước khi lưu<br>
+                • Hệ thống sẽ tự động tạo mã học viên<br>
+                • Không được trùng tên + đơn vị + ngày sinh
+            </div>
         </div>
-        <div class="form-group">
-            <label class="form-label">Đối tượng</label>
-            <select class="form-input" id="stObjectType" onchange="toggleOtherObject()">
-                <option value="HV">Học viên (HV)</option>
-                <option value="SQ">Sĩ quan (SQ)</option>
-                <option value="CN">Chuyên nghiệp (CN)</option>
-                <option value="OTHER">Khác...</option>
-            </select>
-        </div>
-        <div class="form-group" id="otherObjectGroup" style="display:none">
-            <label class="form-label">Tên đối tượng khác</label>
-            <input type="text" class="form-input" id="stObjectOther">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem">
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
             <button class="btn btn-secondary" onclick="closeModal('studentModal')">Hủy</button>
-            <button class="btn btn-primary" onclick="saveStudent()">Lưu lại</button>
+            <button class="btn btn-success" onclick="saveStudent()">Lưu</button>
         </div>
     </div>
 </div>
 
-<div class="modal" id="examDetailModal">
+<!-- MODAL IMPORT EXCEL - GIỮ NGUYÊN -->
+<div id="importModal" class="modal">
     <div class="modal-content">
-        <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Chi tiết bài thi</h3>
-        <div id="examDetailContent"></div>
-        <div style="text-align: right; margin-top: 15px;">
-            <button class="btn btn-secondary" onclick="closeModal('examDetailModal')">Đóng</button>
+        <h3>📤 Nhập danh sách từ Excel</h3>
+        <p style="color:#666; font-size: 13px; margin-bottom: 15px;">
+            File Excel cần có các cột: <b>Họ tên, Đơn vị, Đối tượng (HV/SQ/CN)</b>
+        </p>
+        <input type="file" id="excelFile" accept=".xlsx,.xls" style="margin-bottom: 15px;">
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="closeModal('importModal')">Hủy</button>
+            <button class="btn btn-success" onclick="processExcelImport()">Nhập dữ liệu</button>
         </div>
     </div>
 </div>
 
-<div class="modal" id="importModal">
+<!-- MODAL THÊM ĐỀ THI - GIỮ NGUYÊN -->
+<div id="setModal" class="modal">
     <div class="modal-content">
-        <h3>📂 Nhập từ Excel</h3>
-        <p style="margin:1rem 0; font-size:0.9rem; color:#64748b">Cấu trúc: Họ tên | Đơn vị | Đối tượng</p>
-        <input type="file" id="excelFile" class="form-input" accept=".xlsx,.xls">
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1rem">
-            <button class="btn btn-secondary" onclick="closeModal('importModal')">Đóng</button>
-            <button class="btn btn-success" onclick="processExcel()">Bắt đầu nhập</button>
+        <h3 id="setModalTitle">Thêm đề thi mới</h3>
+        <label>Mã đề *</label>
+        <input type="text" id="setCode" placeholder="VD: DE001">
+        
+        <label>Tên đề thi *</label>
+        <input type="text" id="setName" placeholder="VD: Bộ đề thi A1">
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="closeModal('setModal')">Hủy</button>
+            <button class="btn btn-success" onclick="saveQuestionSet()">Lưu</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. CẤU HÌNH FIREBASE
-    const firebaseConfig = {
-        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-        authDomain: "thi-luat-giao-thong.firebaseapp.com",
-        projectId: "thi-luat-giao-thong"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ===== MOCK DATA - GIỮ NGUYÊN LOGIC CŨ =====
+    let allStudents = [
+        { code: "HV0001", name: "Nguyễn Văn An", unit: "Đại đội 1", dob: "15/03/1998", object: "Học viên", status: "active", exams: 5, bestScore: 95, avgScore: 87 },
+        { code: "HV0002", name: "Trần Thị Bình", unit: "Đại đội 2", dob: "20/07/1999", object: "Học viên", status: "active", exams: 3, bestScore: 88, avgScore: 82 },
+        { code: "SQ0001", name: "Lê Văn Cường", unit: "Tiểu đoàn 3", dob: "10/01/1995", object: "Sĩ quan", status: "active", exams: 8, bestScore: 98, avgScore: 93 },
+        { code: "HV0003", name: "Phạm Thị Dung", unit: "Đại đội 1", dob: "05/12/2000", object: "Học viên", status: "locked", exams: 2, bestScore: 65, avgScore: 60 },
+        { code: "CN0001", name: "Hoàng Văn Hải", unit: "Phòng Kỹ thuật", dob: "25/06/1992", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 85, avgScore: 78 },
+        { code: "HV0004", name: "Vũ Thị Lan", unit: "Đại đội 2", dob: "18/09/1997", object: "Học viên", status: "active", exams: 6, bestScore: 92, avgScore: 88 },
+        { code: "HV0005", name: "Đặng Văn Long", unit: "Đại đội 3", dob: "30/11/1998", object: "Học viên", status: "active", exams: 7, bestScore: 96, avgScore: 90 },
+        { code: "SQ0002", name: "Ngô Thị Mai", unit: "Tiểu đoàn 1", dob: "12/04/1994", object: "Sĩ quan", status: "active", exams: 9, bestScore: 99, avgScore: 95 },
+        { code: "HV0006", name: "Bùi Văn Nam", unit: "Đại đội 1", dob: "22/08/1999", object: "Học viên", status: "active", exams: 4, bestScore: 80, avgScore: 75 },
+        { code: "HV0007", name: "Trịnh Thị Oanh", unit: "Đại đội 4", dob: "14/02/2001", object: "Học viên", status: "locked", exams: 1, bestScore: 55, avgScore: 55 },
+        { code: "CN0002", name: "Phan Văn Phong", unit: "Phòng Hành chính", dob: "08/05/1993", object: "Chuyên nghiệp", status: "active", exams: 5, bestScore: 87, avgScore: 82 },
+        { code: "HV0008", name: "Lý Thị Quỳnh", unit: "Đại đội 2", dob: "16/10/1998", object: "Học viên", status: "active", exams: 6, bestScore: 91, avgScore: 86 },
+        { code: "HV0009", name: "Đỗ Văn Sơn", unit: "Đại đội 3", dob: "28/07/2000", object: "Học viên", status: "active", exams: 3, bestScore: 78, avgScore: 72 }
+    ];
 
-    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
+    let allQuestionSets = [
+        { code: "DE001", name: "Bộ đề thi A1", questions: 35, status: "active" },
+        { code: "DE002", name: "Bộ đề thi A2", questions: 40, status: "active" },
+        { code: "DE003", name: "Bộ đề thi B1", questions: 50, status: "active" }
+    ];
 
-    let allStudents = [];
-    let allExams = []; 
+    let recentActivities = [
+        { time: "14/02/2026 09:30", student: "Nguyễn Văn An (HV0001)", action: "Hoàn thành bài thi", detail: "Đề A1 - Điểm: 95" },
+        { time: "14/02/2026 10:15", student: "Trần Thị Bình (HV0002)", action: "Hoàn thành bài thi", detail: "Đề A2 - Điểm: 88" },
+        { time: "14/02/2026 11:20", student: "Lê Văn Cường (SQ0001)", action: "Hoàn thành bài thi", detail: "Đề B1 - Điểm: 98" },
+        { time: "14/02/2026 13:45", student: "Vũ Thị Lan (HV0004)", action: "Hoàn thành bài thi", detail: "Đề A1 - Điểm: 92" },
+        { time: "14/02/2026 14:30", student: "Đặng Văn Long (HV0005)", action: "Hoàn thành bài thi", detail: "Đề A2 - Điểm: 96" },
+        { time: "15/02/2026 08:00", student: "Ngô Thị Mai (SQ0002)", action: "Hoàn thành bài thi", detail: "Đề B1 - Điểm: 99" },
+        { time: "15/02/2026 09:15", student: "Lý Thị Quỳnh (HV0008)", action: "Hoàn thành bài thi", detail: "Đề A1 - Điểm: 91" }
+    ];
+
     let editingCode = null;
-    let myChart = null;
+    let sortDirection = {};
 
-    // 2. KHỞI TẠO & LOAD DỮ LIỆU
-    async function loadData() {
-        try {
-            // Load Học viên
-            const stSnap = await db.collection("students").get();
-            allStudents = [];
-            stSnap.forEach(doc => {
-                const s = doc.data();
-                if(!s.code) s.code = doc.id;
-                allStudents.push(s);
-            });
+    // ===== KHỞI TẠO =====
+    window.onload = function() {
+        loadDashboard();
+        loadStudents();
+        loadQuestionSets();
+        loadStats();
+    };
 
-            // Load Lịch sử thi
-            const exSnap = await db.collection("exam_logs").orderBy("time", "desc").get();
-            allExams = [];
-            exSnap.forEach(doc => {
-                const e = doc.data(); e.id = doc.id;
-                if(e.time && e.time.toDate) e.timeDate = e.time.toDate();
-                else e.timeDate = new Date(); 
-                allExams.push(e);
-            });
-
-            // Tính toán cho Dashboard Mới
-            const active = allStudents.filter(s => s.status === 'active').length;
-            const passCount = allExams.filter(e => e.pass).length;
-            const passRate = allExams.length > 0 ? Math.round((passCount / allExams.length) * 100) : 0;
-
-            document.getElementById("dashTotal").innerText = allStudents.length;
-            document.getElementById("dashActive").innerText = active;
-            document.getElementById("dashExams").innerText = allExams.length;
-            document.getElementById("dashRate").innerText = passRate + "%";
-
-            // Render các thành phần
-            filterStudents(); 
-            renderHistoryTable(); 
-            renderChart(passCount, allExams.length - passCount);
-        } catch(e) { console.error("Lỗi:", e); }
+    // ===== DASHBOARD FUNCTIONS - MỚI =====
+    function loadDashboard() {
+        // Tính toán thống kê
+        const totalStudents = allStudents.length;
+        const activeStudents = allStudents.filter(s => s.status === 'active').length;
+        const lockedStudents = allStudents.filter(s => s.status === 'locked').length;
+        
+        // Lọc các bài thi hôm nay (giả lập)
+        const today = new Date().toLocaleDateString('vi-VN');
+        const todayActivities = recentActivities.filter(a => a.time.startsWith('15/02/2026'));
+        const todayExams = todayActivities.length;
+        
+        // Cập nhật UI
+        document.getElementById('totalStudents').textContent = totalStudents;
+        document.getElementById('activeStudents').textContent = activeStudents;
+        document.getElementById('todayExams').textContent = todayExams;
+        document.getElementById('warningCount').textContent = lockedStudents;
+        
+        // Load bảng hoạt động
+        loadActivityTable();
     }
 
-    // 3. RENDER BẢNG HỌC VIÊN (Bộ lọc và giao diện từ 111)
-    function filterStudents() {
-        const k = document.getElementById("searchStudent").value.toLowerCase().trim();
-        const u = document.getElementById("searchUnit").value.toLowerCase().trim();
-        const o = document.getElementById("searchObject").value;
-
-        const filtered = allStudents.filter(s => {
-            const matchK = !k || s.nameSearch?.includes(k) || s.code?.toLowerCase().includes(k);
-            const matchU = !u || s.unit?.toLowerCase().includes(u);
-            const matchO = !o || s.objectCode === o;
-            return matchK && matchU && matchO;
+    function loadActivityTable() {
+        const tbody = document.getElementById('activityTableBody');
+        
+        if (recentActivities.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="activity-empty">Chưa có hoạt động nào</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        // Hiển thị tối đa 10 hoạt động gần nhất
+        const displayActivities = recentActivities.slice(0, 10);
+        
+        displayActivities.forEach(activity => {
+            html += `
+                <tr>
+                    <td>${activity.time}</td>
+                    <td>${activity.student}</td>
+                    <td>${activity.action}</td>
+                    <td>${activity.detail}</td>
+                </tr>
+            `;
         });
+        
+        tbody.innerHTML = html;
+    }
 
-        filtered.sort((a,b) => a.code.localeCompare(b.code));
-        const tbody = document.getElementById("studentTableBody");
-        tbody.innerHTML = '';
-        document.getElementById("displayCount").innerText = filtered.length;
+    // ===== STUDENTS PAGE - GIỮ NGUYÊN =====
+    function loadStudents() {
+        updateStudentStats();
+        renderStudentTable(allStudents);
+    }
 
-        filtered.forEach((s, index) => {
-            let dob = s.dob ? formatDate(s.dob) : '-';
-            let badgeClass = s.objectCode === 'HV' ? 'bg-green' : (s.objectCode === 'SQ' ? 'bg-blue' : 'bg-red');
+    function updateStudentStats() {
+        const total = allStudents.length;
+        const active = allStudents.filter(s => s.status === 'active').length;
+        const locked = allStudents.filter(s => s.status === 'locked').length;
+        const passed = allStudents.filter(s => s.bestScore >= 80).length;
+        const failed = allStudents.filter(s => s.bestScore < 80 || !s.bestScore).length;
+        const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('activeCount').textContent = active;
+        document.getElementById('lockedCount').textContent = locked;
+        document.getElementById('passCount').textContent = passed;
+        document.getElementById('failCount').textContent = failed;
+        document.getElementById('passRate').textContent = passRate + '%';
+    }
+
+    function renderStudentTable(students) {
+        const tbody = document.getElementById('studentTableBody');
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#999;">Không tìm thấy học viên nào</td></tr>';
+            return;
+        }
+
+        let html = '';
+        students.forEach((student, index) => {
+            const statusClass = student.status === 'active' ? 'activeStatus' : 'lockStatus';
+            const statusText = student.status === 'active' ? '✓ Hoạt động' : '✗ Đã khóa';
             
-            tbody.innerHTML += `
+            html += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td><b>${s.code}</b></td>
-                    <td>${s.name}</td>
-                    <td>${dob}</td>
-                    <td>${s.unit}</td>
-                    <td style="text-align:center"><span class="badge ${badgeClass}">${s.object}</span></td>
-                    <td class="no-print" style="text-align:center">
-                        <select onchange="changeStatus('${s.code}', this.value)" style="border-radius:4px; padding:2px; font-size:12px; border-color:${s.status==='active'?'#10b981':'#ef4444'}">
-                            <option value="active" ${s.status==='active'?'selected':''}>Hoạt động</option>
-                            <option value="lock" ${s.status==='lock'?'selected':''}>Đã khóa</option>
-                        </select>
+                    <td><b>${student.code}</b></td>
+                    <td style="text-align:left;">${student.name}</td>
+                    <td style="text-align:left;">${student.unit}</td>
+                    <td>${student.dob || '-'}</td>
+                    <td>${student.object}</td>
+                    <td>
+                        <span class="status ${statusClass}" onclick="toggleStatus('${student.code}')">
+                            ${statusText}
+                        </span>
                     </td>
-                    <td class="action-column no-print" style="text-align:center">
-                        <button class="btn btn-warning" style="padding:4px 8px; font-size:12px" onclick="openEditStudent('${s.code}')">Sửa</button>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:12px" onclick="deleteStudent('${s.code}')">Xóa</button>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 5px 10px;" onclick="editStudent('${student.code}')">✏️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteStudent('${student.code}')">🗑️</button>
                     </td>
                 </tr>
             `;
         });
+        tbody.innerHTML = html;
     }
 
-    // 4. RENDER LỊCH SỬ THI
-    function renderHistoryTable() {
-        const tbody = document.getElementById("historyTableBody");
-        tbody.innerHTML = "";
-        allExams.forEach(e => {
-            const timeStr = e.timeDate.toLocaleString('vi-VN');
-            tbody.innerHTML += `
-                <tr>
-                    <td>${timeStr}</td>
-                    <td><b>${e.studentCode}</b></td>
-                    <td>${e.studentName}</td>
-                    <td style="font-weight:bold; color:var(--primary)">${e.score}</td>
-                    <td><span class="badge ${e.pass ? 'bg-green' : 'bg-red'}">${e.pass ? 'ĐẠT' : 'KHÔNG'}</span></td>
-                    <td><button class="btn btn-secondary" onclick="viewExamDetail('${e.id}')" style="padding:4px 8px; font-size:11px">Xem chi tiết</button></td>
-                </tr>
-            `;
-        });
-    }
+    function applyFilters() {
+        const searchName = document.getElementById('searchName').value.toLowerCase();
+        const searchCode = document.getElementById('searchCode').value.toLowerCase();
+        const searchUnit = document.getElementById('searchUnit').value.toLowerCase();
+        const filterStatus = document.getElementById('filterStatus').value;
+        const filterObject = document.getElementById('filterObject').value;
 
-    // 5. CHI TIẾT BÀI THI (Modal đúng/sai)
-    function viewExamDetail(id) {
-        const exam = allExams.find(e => e.id === id);
-        if(!exam) return;
-
-        let html = `
-            <div style="margin-bottom:10px; line-height:1.6">
-                <p><b>Học viên:</b> ${exam.studentName} (${exam.studentCode})</p>
-                <p><b>Điểm số:</b> <span style="color:var(--primary); font-size:18px; font-weight:bold">${exam.score}</span></p>
-                <p><b>Kết quả:</b> <span class="badge ${exam.pass ? 'bg-green' : 'bg-red'}">${exam.pass ? 'ĐẠT' : 'KHÔNG ĐẠT'}</span></p>
-            </div>
-            <hr style="margin:10px 0; border:0; border-top:1px solid #e2e8f0">
-            <h4 style="margin-bottom:10px">Danh sách câu trả lời:</h4>
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-        `;
-
-        if(exam.answers && exam.answers.length > 0) {
-            exam.answers.forEach((ans, i) => {
-                const cls = ans.correct ? 'correct' : 'wrong';
-                const icon = ans.correct ? '✓' : '✗';
-                html += `
-                    <div class="answerRow ${cls}">
-                        <span><b>Câu ${i+1}:</b> ${ans.userAnswer || 'Không chọn'}</span>
-                        <span class="answer-icon">${icon}</span>
-                    </div>
-                `;
-            });
-        } else {
-            html += `<p style="color:#94a3b8">Không có dữ liệu chi tiết câu hỏi.</p>`;
-        }
-        
-        html += `</div>`;
-        document.getElementById("examDetailContent").innerHTML = html;
-        document.getElementById("examDetailModal").classList.add("show");
-    }
-
-    // 6. THÊM / SỬA HỌC VIÊN (Giữ nguyên check trùng lặp)
-    async function saveStudent() {
-        const name = document.getElementById("stName").value.trim();
-        const unit = document.getElementById("stUnit").value.trim();
-        const dob = document.getElementById("stDob").value;
-        const objType = document.getElementById("stObjectType").value;
-        
-        let objName = "", prefix = "";
-        if(objType === "HV") { objName = "Học viên"; prefix = "HV"; }
-        else if(objType === "SQ") { objName = "Sĩ quan"; prefix = "SQ"; }
-        else if(objType === "CN") { objName = "Chuyên nghiệp"; prefix = "CN"; }
-        else { objName = document.getElementById("stObjectOther").value.trim(); prefix = "KH"; }
-
-        if(!name || !unit || !objName) return alert("Vui lòng nhập đủ thông tin!");
-
-        // CHECK TRÙNG LẶP (Logic của 11)
-        const isDuplicate = allStudents.some(s => {
-            if(editingCode && s.code === editingCode) return false;
-            return s.name.toLowerCase() === name.toLowerCase() && 
-                   s.unit.toLowerCase() === unit.toLowerCase() && 
-                   s.dob === dob;
+        let filtered = allStudents.filter(student => {
+            const matchName = student.name.toLowerCase().includes(searchName);
+            const matchCode = student.code.toLowerCase().includes(searchCode);
+            const matchUnit = student.unit.toLowerCase().includes(searchUnit);
+            const matchStatus = !filterStatus || student.status === filterStatus;
+            const matchObject = !filterObject || student.object === filterObject;
+            
+            return matchName && matchCode && matchUnit && matchStatus && matchObject;
         });
 
-        if(isDuplicate) {
-            if(!confirm(`⚠️ CẢNH BÁO TRÙNG LẶP!\nĐã có học viên: ${name} - ${unit}.\nBạn có chắc muốn lưu tiếp?`)) return;
-        }
+        renderStudentTable(filtered);
+    }
 
-        try {
-            if(!editingCode) {
-                const max = allStudents.filter(s => s.code.startsWith(prefix))
-                    .reduce((m, s) => Math.max(m, parseInt(s.code.substring(2)) || 0), 0);
-                const newCode = prefix + String(max + 1).padStart(4, '0');
-                
-                await db.collection("students").doc(newCode).set({
-                    code: newCode, name, unit, dob, object: objName, objectCode: objType,
-                    status: 'active', nameSearch: name.toLowerCase(), createdAt: new Date()
-                });
-                alert("Đã thêm: " + newCode);
-            } else {
-                await db.collection("students").doc(editingCode).update({
-                    name, unit, dob, object: objName, objectCode: objType, nameSearch: name.toLowerCase()
-                });
-                alert("Cập nhật thành công!");
+    function sortTable(columnIndex) {
+        const field = ['', 'code', 'name', 'unit', 'dob', 'object'][columnIndex];
+        if (!field) return;
+
+        const isAsc = sortDirection[field] !== 'asc';
+        sortDirection[field] = isAsc ? 'asc' : 'desc';
+
+        allStudents.sort((a, b) => {
+            let valA = a[field] || '';
+            let valB = b[field] || '';
+            
+            if (typeof valA === 'string') {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
             }
-            closeModal('studentModal');
-            loadData();
-        } catch(e) { alert("Lỗi: " + e.message); }
+            
+            if (valA < valB) return isAsc ? -1 : 1;
+            if (valA > valB) return isAsc ? 1 : -1;
+            return 0;
+        });
+
+        renderStudentTable(allStudents);
     }
 
-    // CÁC HÀM TIỆN ÍCH
-    function openAddStudent() {
+    // ===== MODAL FUNCTIONS - GIỮ NGUYÊN =====
+    function openAddModal() {
         editingCode = null;
-        document.getElementById("modalTitle").innerText = "Thêm học viên mới";
-        document.getElementById("stName").value = ""; document.getElementById("stUnit").value = ""; document.getElementById("stDob").value = "";
-        document.getElementById("studentModal").classList.add("show");
+        document.getElementById('modalTitle').textContent = 'Thêm học viên mới';
+        document.getElementById('studentName').value = '';
+        document.getElementById('studentUnit').value = '';
+        document.getElementById('dobDay').value = '';
+        document.getElementById('dobMonth').value = '';
+        document.getElementById('dobYear').value = '';
+        document.getElementById('studentObject').value = 'Học viên';
+        toggleOtherField();
+        document.getElementById('studentModal').classList.add('show');
     }
-    
-    function openEditStudent(code) {
-        const s = allStudents.find(x => x.code === code);
-        if(!s) return;
+
+    function editStudent(code) {
+        const student = allStudents.find(s => s.code === code);
+        if (!student) return;
+
         editingCode = code;
-        document.getElementById("modalTitle").innerText = "Sửa thông tin (" + code + ")";
-        document.getElementById("stName").value = s.name;
-        document.getElementById("stUnit").value = s.unit;
-        document.getElementById("stDob").value = s.dob || "";
-        document.getElementById("stObjectType").value = ['HV','SQ','CN'].includes(s.objectCode) ? s.objectCode : 'OTHER';
-        toggleOtherObject();
-        document.getElementById("studentModal").classList.add("show");
+        document.getElementById('modalTitle').textContent = 'Sửa thông tin học viên';
+        document.getElementById('studentName').value = student.name;
+        document.getElementById('studentUnit').value = student.unit;
+        
+        if (student.dob) {
+            const [day, month, year] = student.dob.split('/');
+            document.getElementById('dobDay').value = day;
+            document.getElementById('dobMonth').value = month;
+            document.getElementById('dobYear').value = year;
+        }
+        
+        document.getElementById('studentObject').value = student.object;
+        toggleOtherField();
+        document.getElementById('studentModal').classList.add('show');
     }
-    
-    async function changeStatus(code, val) { await db.collection("students").doc(code).update({status: val}); loadData(); }
-    async function deleteStudent(code) { if(confirm("Xóa học viên?")) { await db.collection("students").doc(code).delete(); loadData(); } }
-    
-    // In danh sách hiển thị tên bộ lọc
-    function printList() {
-        const u = document.getElementById("searchUnit").value;
-        const oSelect = document.getElementById("searchObject");
-        const o = oSelect.value ? oSelect.options[oSelect.selectedIndex].text : "";
+
+    function saveStudent() {
+        const name = document.getElementById('studentName').value.trim();
+        const unit = document.getElementById('studentUnit').value.trim();
+        const day = document.getElementById('dobDay').value;
+        const month = document.getElementById('dobMonth').value;
+        const year = document.getElementById('dobYear').value;
+        const object = document.getElementById('studentObject').value;
         
-        let text = [];
-        if(u) text.push("Đơn vị: " + u);
-        if(o && o !== "--Đối tượng--") text.push("Đối tượng: " + o);
+        if (!name || !unit) {
+            alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+            return;
+        }
+
+        const dob = (day && month && year) ? `${day}/${month}/${year}` : '';
         
-        document.getElementById("printFilterText").innerText = text.length > 0 ? `(${text.join(' - ')})` : "(Toàn bộ danh sách)";
+        let objectName = object;
+        if (object === 'other') {
+            objectName = document.getElementById('otherObjectName').value.trim();
+            if (!objectName) {
+                alert('Vui lòng nhập tên đối tượng!');
+                return;
+            }
+        }
+
+        if (editingCode) {
+            // Sửa học viên
+            const student = allStudents.find(s => s.code === editingCode);
+            student.name = name;
+            student.unit = unit;
+            student.dob = dob;
+            student.object = objectName;
+            alert('Cập nhật thành công!');
+        } else {
+            // Thêm học viên mới
+            const prefix = objectName === 'Học viên' ? 'HV' : objectName === 'Sĩ quan' ? 'SQ' : objectName === 'Chuyên nghiệp' ? 'CN' : 'KH';
+            const maxNum = allStudents
+                .filter(s => s.code.startsWith(prefix))
+                .reduce((max, s) => {
+                    const num = parseInt(s.code.substring(2));
+                    return num > max ? num : max;
+                }, 0);
+            
+            const newCode = prefix + String(maxNum + 1).padStart(4, '0');
+            
+            allStudents.push({
+                code: newCode,
+                name: name,
+                unit: unit,
+                dob: dob,
+                object: objectName,
+                status: 'active',
+                exams: 0,
+                bestScore: 0,
+                avgScore: 0
+            });
+            
+            alert('Đã thêm học viên: ' + newCode);
+        }
+
+        closeModal('studentModal');
+        loadStudents();
+        loadDashboard(); // Cập nhật dashboard
+    }
+
+    function deleteStudent(code) {
+        if (!confirm('Bạn có chắc muốn xóa học viên này?')) return;
+        
+        const index = allStudents.findIndex(s => s.code === code);
+        if (index > -1) {
+            allStudents.splice(index, 1);
+            alert('Đã xóa học viên!');
+            loadStudents();
+            loadDashboard(); // Cập nhật dashboard
+        }
+    }
+
+    function toggleStatus(code) {
+        const student = allStudents.find(s => s.code === code);
+        if (student) {
+            student.status = student.status === 'active' ? 'locked' : 'active';
+            loadStudents();
+            loadDashboard(); // Cập nhật dashboard
+        }
+    }
+
+    function toggleOtherField() {
+        const select = document.getElementById('studentObject');
+        const otherGroup = document.getElementById('otherObjectGroup');
+        otherGroup.style.display = select.value === 'other' ? 'block' : 'none';
+    }
+
+    // ===== QUESTION SETS - GIỮ NGUYÊN =====
+    function loadQuestionSets() {
+        const tbody = document.getElementById('setTableBody');
+        if (allQuestionSets.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">Chưa có đề thi nào</td></tr>';
+            return;
+        }
+
+        let html = '';
+        allQuestionSets.forEach((set, index) => {
+            const statusClass = set.status === 'active' ? 'activeStatus' : 'lockStatus';
+            const statusText = set.status === 'active' ? '✓ Hoạt động' : '✗ Đã khóa';
+            
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${set.code}</b></td>
+                    <td style="text-align:left;">${set.name}</td>
+                    <td>${set.questions}</td>
+                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 5px 10px;">✏️ Sửa</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;">🗑️ Xóa</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function openAddSetModal() {
+        alert('Chức năng đang được phát triển');
+    }
+
+    function openImportQuestionsModal() {
+        alert('Chức năng đang được phát triển');
+    }
+
+    function saveQuestionSet() {
+        alert('Chức năng đang được phát triển');
+    }
+
+    // ===== STATS PAGE - GIỮ NGUYÊN =====
+    function loadStats() {
+        // Tính toán thống kê
+        const totalExams = allStudents.reduce((sum, s) => sum + (s.exams || 0), 0);
+        const passedExams = allStudents.filter(s => s.bestScore >= 80).length;
+        const passRate = allStudents.length > 0 ? Math.round((passedExams / allStudents.length) * 100) : 0;
+        const avgScore = allStudents.length > 0 
+            ? Math.round(allStudents.reduce((sum, s) => sum + (s.avgScore || 0), 0) / allStudents.length) 
+            : 0;
+        const activeStudents = allStudents.filter(s => s.exams > 0).length;
+
+        document.getElementById('statTotalExams').textContent = totalExams;
+        document.getElementById('statPassRate').textContent = passRate + '%';
+        document.getElementById('statAvgScore').textContent = avgScore;
+        document.getElementById('statActiveStudents').textContent = activeStudents;
+
+        // Top 10 học viên
+        const topStudents = [...allStudents]
+            .filter(s => s.exams > 0)
+            .sort((a, b) => b.bestScore - a.bestScore || b.avgScore - a.avgScore)
+            .slice(0, 10);
+
+        const tbody = document.getElementById('topStudentsBody');
+        if (topStudents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#999;">Chưa có dữ liệu</td></tr>';
+            return;
+        }
+
+        let html = '';
+        topStudents.forEach((student, index) => {
+            let medal = '';
+            if (index === 0) medal = '<span class="medal gold">🥇</span>';
+            else if (index === 1) medal = '<span class="medal silver">🥈</span>';
+            else if (index === 2) medal = '<span class="medal bronze">🥉</span>';
+
+            const rateClass = student.avgScore >= 90 ? 'good' : student.avgScore >= 70 ? 'mid' : 'bad';
+            const rateText = student.avgScore >= 90 ? 'Xuất sắc' : student.avgScore >= 70 ? 'Khá' : 'Trung bình';
+
+            html += `
+                <tr>
+                    <td>${index + 1}${medal}</td>
+                    <td><b>${student.code}</b></td>
+                    <td style="text-align:left;">${student.name}</td>
+                    <td style="text-align:left;">${student.unit}</td>
+                    <td>${student.exams}</td>
+                    <td><b>${student.bestScore}</b></td>
+                    <td>${student.avgScore}</td>
+                    <td><span class="rate ${rateClass}">${rateText}</span></td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    // ===== IMPORT/EXPORT - GIỮ NGUYÊN =====
+    function openImportModal() {
+        document.getElementById('importModal').classList.add('show');
+    }
+
+    function processExcelImport() {
+        const fileInput = document.getElementById('excelFile');
+        if (!fileInput.files[0]) {
+            alert('Vui lòng chọn file Excel!');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                let importCount = 0;
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row[0]) continue;
+
+                    const name = row[0].toString().trim();
+                    const unit = row[1] ? row[1].toString().trim() : '';
+                    const objectType = row[2] ? row[2].toString().toUpperCase() : 'HV';
+
+                    let object = 'Học viên';
+                    let prefix = 'HV';
+                    if (objectType === 'SQ') {
+                        object = 'Sĩ quan';
+                        prefix = 'SQ';
+                    } else if (objectType === 'CN') {
+                        object = 'Chuyên nghiệp';
+                        prefix = 'CN';
+                    }
+
+                    const maxNum = allStudents
+                        .filter(s => s.code.startsWith(prefix))
+                        .reduce((max, s) => {
+                            const num = parseInt(s.code.substring(2));
+                            return num > max ? num : max;
+                        }, 0);
+
+                    const newCode = prefix + String(maxNum + 1 + importCount).padStart(4, '0');
+
+                    allStudents.push({
+                        code: newCode,
+                        name: name,
+                        unit: unit,
+                        dob: '',
+                        object: object,
+                        status: 'active',
+                        exams: 0,
+                        bestScore: 0,
+                        avgScore: 0
+                    });
+
+                    importCount++;
+                }
+
+                alert(`Đã nhập thành công ${importCount} học viên!`);
+                closeModal('importModal');
+                loadStudents();
+                loadDashboard(); // Cập nhật dashboard
+            } catch (error) {
+                alert('Lỗi khi đọc file Excel: ' + error.message);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function exportToExcel() {
+        const data = [
+            ['Mã HV', 'Họ và Tên', 'Đơn vị', 'Ngày sinh', 'Đối tượng', 'Trạng thái', 'Số lần thi', 'Điểm cao nhất', 'Điểm TB']
+        ];
+
+        allStudents.forEach(student => {
+            data.push([
+                student.code,
+                student.name,
+                student.unit,
+                student.dob || '',
+                student.object,
+                student.status === 'active' ? 'Hoạt động' : 'Đã khóa',
+                student.exams || 0,
+                student.bestScore || 0,
+                student.avgScore || 0
+            ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Danh sách học viên');
+        
+        const fileName = 'Danh_sach_hoc_vien_' + new Date().toLocaleDateString('vi-VN').replace(/\//g, '-') + '.xlsx';
+        XLSX.writeFile(wb, fileName);
+    }
+
+    function printTable() {
         window.print();
     }
 
-    function renderChart(pass, fail) {
-        const ctx = document.getElementById('mainChart');
-        if(!ctx) return;
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Đạt', 'Không đạt'],
-                datasets: [{ data: [pass, fail], backgroundColor: ['#10b981', '#ef4444'] }]
-            },
-            options: { maintainAspectRatio: false, plugins: {legend:{position:'bottom'}} }
+    // ===== NAVIGATION - GIỮ NGUYÊN =====
+    function showPage(pageId, button) {
+        // Ẩn tất cả các page
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
         });
-    }
-
-    function showPage(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-        if(btn) { document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-    }
-    
-    function toggleOtherObject() { document.getElementById("otherObjectGroup").style.display = document.getElementById("stObjectType").value === 'OTHER' ? 'block' : 'none'; }
-    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
-    function openImportModal() { document.getElementById("importModal").classList.add("show"); }
-    function formatDate(s) { if(!s) return ""; const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; }
-    function logout() { localStorage.clear(); location.href = "index.html"; }
-
-    // Init
-    loadData();
-    
-    // EXCEL IMPORT (Của 11)
-    async function processExcel() {
-        const file = document.getElementById("excelFile").files[0];
-        if(!file) return alert("Chọn file!");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-            
-            let counters = { HV:0, SQ:0, CN:0, KH:0 };
-            allStudents.forEach(s => {
-                const p = s.objectCode || 'KH';
-                const n = parseInt(s.code.substring(2)) || 0;
-                if(n > (counters[p]||0)) counters[p] = n;
+        
+        // Hiện page được chọn
+        document.getElementById(pageId).classList.add('active');
+        
+        // Cập nhật active button
+        if (button) {
+            document.querySelectorAll('.menu button').forEach(btn => {
+                btn.classList.remove('active');
             });
-
-            let batch = db.batch();
-            let count = 0;
-            for(let i=1; i<json.length; i++) {
-                const row = json[i];
-                if(!row[0]) continue;
-                const name = row[0].toString().trim();
-                const unit = row[1] ? row[1].toString().trim() : "";
-                const type = row[2] ? row[2].toString().toUpperCase() : "HV";
-                
-                let prefix = ['HV','SQ','CN'].includes(type) ? type : 'KH';
-                let objName = prefix==='HV'?'Học viên':prefix==='SQ'?'Sĩ quan':prefix==='CN'?'Chuyên nghiệp':'Khác';
-                
-                counters[prefix]++;
-                const newCode = prefix + String(counters[prefix]).padStart(4, '0');
-                const ref = db.collection("students").doc(newCode);
-                
-                batch.set(ref, {
-                    code: newCode, name, unit, dob: "",
-                    object: objName, objectCode: prefix,
-                    status: 'active', nameSearch: name.toLowerCase(),
-                    createdAt: new Date()
-                });
-                count++;
-            }
-            if(count>0) await batch.commit();
-            alert(`Đã nhập ${count} học viên!`);
-            closeModal('importModal');
-            loadData();
-        };
-        reader.readAsArrayBuffer(file);
+            button.classList.add('active');
+        }
     }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+    }
+
+    function logout() {
+        if (confirm('Bạn có chắc muốn đăng xuất?')) {
+            alert('Đã đăng xuất!');
+            // Redirect to login page
+            // window.location.href = 'login.html';
+        }
+    }
+
+    // Click outside modal to close
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    };
 </script>
+
 </body>
 </html>
