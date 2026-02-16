@@ -12,6 +12,302 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
+        /* ===== ANSWER GRID ===== */
+.answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.answer-item {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    transition: var(--transition);
+    position: relative;
+}
+
+.answer-item:hover {
+    border-color: var(--accent);
+}
+
+.answer-item.correct {
+    border-color: var(--success);
+    background: var(--success-light);
+}
+
+.answer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.answer-label {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--text-primary);
+    width: 24px;
+}
+
+.answer-required {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.answer-radio {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.answer-radio input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.answer-radio input[type="radio"]:checked + .radio-custom {
+    border-color: var(--success);
+    background: var(--success);
+}
+
+.answer-radio input[type="radio"]:checked + .radio-custom::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.answer-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    resize: none;
+    min-height: 48px;
+    transition: var(--transition);
+    line-height: 1.5;
+}
+
+.answer-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+}
+
+/* ===== IMAGE UPLOAD ===== */
+.image-upload-area {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.image-tabs {
+    display: flex;
+    background: var(--bg-table-head);
+    border-bottom: 1px solid var(--border);
+}
+
+.img-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: var(--transition);
+    border-bottom: 3px solid transparent;
+}
+
+.img-tab:hover {
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.img-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--bg-card);
+}
+
+.img-tab-content {
+    display: none;
+    padding: 16px;
+}
+
+.img-tab-content.active {
+    display: block;
+}
+
+.drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.drop-zone-content p {
+    margin: 6px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.paste-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    outline: none;
+}
+
+.paste-zone:focus {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+}
+
+.paste-zone p {
+    margin: 6px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ===== GROUP TABS ===== */
+.group-tab-btn {
+    padding: 6px 16px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-card);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.group-tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.group-tab-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ===== IMPROVED QUESTION LIST ===== */
+.q-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.q-item:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.q-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-table-head);
+    cursor: pointer;
+    user-select: none;
+}
+
+.q-item-header:hover {
+    background: var(--bg-hover);
+}
+
+.q-item-num {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.q-num-badge {
+    background: var(--accent);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.q-item-body {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-light);
+}
+
+.q-item-body.collapsed {
+    display: none;
+}
+
+.q-answer-list {
+    margin: 8px 0 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.q-answer-list li {
+    padding: 6px 10px;
+    margin: 3px 0;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.q-answer-list li.correct {
+    background: var(--success-light);
+    color: var(--success);
+    font-weight: 600;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .answers-grid {
+        grid-template-columns: 1fr;
+    }
+}
         :root {
             --bg-main: #f0f2f5;
             --bg-card: #ffffff;
@@ -1244,27 +1540,310 @@
                 </div>
             </div>
 
-            <!-- ========== ADD QUESTIONS PAGE ========== -->
-            <div id="add_questions_page" class="page">
-                <div class="back-btn"><button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button></div>
-                <div class="box">
-                    <h3>➕ Thêm câu hỏi: <span id="addQSetName"></span></h3>
-                    <label>Nội dung câu hỏi *</label><textarea id="qContent" rows="3" placeholder="Nhập câu hỏi..."></textarea>
-                    <div class="form-row"><div><label>Đáp án 1 *</label><input type="text" id="qAnswer1"></div><div><label>Đáp án 2 *</label><input type="text" id="qAnswer2"></div></div>
-                    <div class="form-row"><div><label>Đáp án 3</label><input type="text" id="qAnswer3"></div><div><label>Đáp án 4</label><input type="text" id="qAnswer4"></div></div>
-                    <div class="form-row">
-                        <div><label>Đáp án đúng *</label><select id="qCorrectAnswer"><option value="">-- Chọn --</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
-                        <div><label>Nhóm *</label><select id="qGroup"></select></div>
-                    </div>
-                    <label>Link ảnh</label><input type="text" id="qImageUrl" placeholder="https://...">
-                    <div class="toolbar" style="justify-content:flex-end;margin-top:16px">
-                        <button class="btn btn-outline" onclick="clearQuestionForm()">🔄 Xóa</button>
-                        <button class="btn btn-success" onclick="addQuestion()">➕ Thêm tiếp</button>
-                        <button class="btn btn-primary" onclick="saveAndClose()">💾 Lưu & Đóng</button>
-                    </div>
-                    <div class="question-list" id="questionsList"></div>
+            <!-- ========== THAY THẾ PHẦN ADD QUESTIONS PAGE ========== -->
+<!-- Tìm div id="add_questions_page" và thay toàn bộ bằng code dưới -->
+
+<div id="add_questions_page" class="page">
+    <div class="back-btn" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openImportQuestionsModal()">📤 Nhập từ Excel</button>
+            <button class="btn btn-info" onclick="openImportWordModal()">📄 Nhập từ Word</button>
+            <button class="btn btn-outline" onclick="downloadQuestionTemplate()">📥 Tải mẫu Excel</button>
+        </div>
+    </div>
+
+    <!-- HEADER INFO -->
+    <div class="box" style="background: linear-gradient(135deg, var(--accent), #0a58ca); color:white; border:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <div style="font-size:12px; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">Đang thêm câu hỏi vào</div>
+                <div style="font-size:20px; font-weight:800;" id="addQSetName2"></div>
+            </div>
+            <div style="display:flex; gap:16px; text-align:center;">
+                <div>
+                    <div style="font-size:28px; font-weight:800;" id="addedCount">0</div>
+                    <div style="font-size:11px; opacity:0.8;">Đã thêm</div>
+                </div>
+                <div style="width:1px; background:rgba(255,255,255,0.3);"></div>
+                <div>
+                    <div style="font-size:28px; font-weight:800;" id="targetCount">0</div>
+                    <div style="font-size:11px; opacity:0.8;">Mục tiêu</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- FORM NHẬP CÂU HỎI -->
+    <div class="box" style="padding:0; overflow:hidden;">
+        <!-- Tab chọn nhóm -->
+        <div style="background:var(--bg-table-head); padding:12px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-weight:700; font-size:13px; color:var(--text-secondary);">Nhóm câu hỏi:</span>
+            <div id="groupTabsContainer" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+        </div>
+
+        <div style="padding:24px;">
+            <!-- Nội dung câu hỏi -->
+            <div style="margin-bottom:20px;">
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:700; font-size:14px; color:var(--text-primary);">
+                    📝 Nội dung câu hỏi <span style="color:var(--danger)">*</span>
+                </label>
+                <textarea id="qContent" rows="4" placeholder="Nhập nội dung câu hỏi tại đây...
+
+VD: Khi điều khiển xe trên đường mà muốn chuyển hướng, người lái xe cần phải làm gì?"
+                    style="width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:var(--radius-md); font-size:15px; font-family:inherit; background:var(--bg-input); color:var(--text-primary); resize:vertical; min-height:100px; transition:var(--transition); line-height:1.6;"
+                    onfocus="this.style.borderColor='var(--accent)'"
+                    onblur="this.style.borderColor='var(--border)'"
+                ></textarea>
+            </div>
+
+            <!-- Đáp án -->
+            <div style="margin-bottom:20px;">
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:12px; font-weight:700; font-size:14px; color:var(--text-primary);">
+                    📋 Các đáp án
+                </label>
+                <div class="answers-grid">
+                    <div class="answer-item" id="answerItem1">
+                        <div class="answer-header">
+                            <label class="answer-radio">
+                                <input type="radio" name="correctAnswer" value="1" onchange="updateAnswerHighlight()">
+                                <span class="radio-custom"></span>
+                            </label>
+                            <span class="answer-label">A</span>
+                            <span class="answer-required">*</span>
+                        </div>
+                        <textarea id="qAnswer1" rows="2" placeholder="Nhập đáp án A..." class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+                    </div>
+                    <div class="answer-item" id="answerItem2">
+                        <div class="answer-header">
+                            <label class="answer-radio">
+                                <input type="radio" name="correctAnswer" value="2" onchange="updateAnswerHighlight()">
+                                <span class="radio-custom"></span>
+                            </label>
+                            <span class="answer-label">B</span>
+                            <span class="answer-required">*</span>
+                        </div>
+                        <textarea id="qAnswer2" rows="2" placeholder="Nhập đáp án B..." class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+                    </div>
+                    <div class="answer-item" id="answerItem3">
+                        <div class="answer-header">
+                            <label class="answer-radio">
+                                <input type="radio" name="correctAnswer" value="3" onchange="updateAnswerHighlight()">
+                                <span class="radio-custom"></span>
+                            </label>
+                            <span class="answer-label">C</span>
+                        </div>
+                        <textarea id="qAnswer3" rows="2" placeholder="Đáp án C (không bắt buộc)" class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+                    </div>
+                    <div class="answer-item" id="answerItem4">
+                        <div class="answer-header">
+                            <label class="answer-radio">
+                                <input type="radio" name="correctAnswer" value="4" onchange="updateAnswerHighlight()">
+                                <span class="radio-custom"></span>
+                            </label>
+                            <span class="answer-label">D</span>
+                        </div>
+                        <textarea id="qAnswer4" rows="2" placeholder="Đáp án D (không bắt buộc)" class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:8px; font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                    💡 Chọn nút tròn bên trái để đánh dấu đáp án đúng
+                </div>
+            </div>
+
+            <!-- Hình ảnh -->
+            <div style="margin-bottom:20px;">
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; font-weight:700; font-size:14px; color:var(--text-primary);">
+                    🖼️ Hình ảnh minh họa <span style="font-weight:400; font-size:12px; color:var(--text-muted)">(không bắt buộc)</span>
+                </label>
+
+                <div class="image-upload-area" id="imageUploadArea">
+                    <!-- Tab chọn cách nhập ảnh -->
+                    <div class="image-tabs">
+                        <button type="button" class="img-tab active" onclick="switchImageTab('file', this)">📁 Chọn file</button>
+                        <button type="button" class="img-tab" onclick="switchImageTab('url', this)">🔗 Nhập URL</button>
+                        <button type="button" class="img-tab" onclick="switchImageTab('paste', this)">📋 Dán ảnh</button>
+                    </div>
+
+                    <!-- Tab File -->
+                    <div class="img-tab-content active" id="imgTabFile">
+                        <div class="drop-zone" id="dropZone"
+                             ondragover="event.preventDefault(); this.classList.add('dragover')"
+                             ondragleave="this.classList.remove('dragover')"
+                             ondrop="handleImageDrop(event)">
+                            <input type="file" id="qImageFile" accept="image/*" style="display:none" onchange="handleImageFileSelect(event)">
+                            <div class="drop-zone-content">
+                                <span style="font-size:36px;">📤</span>
+                                <p><b>Kéo thả ảnh vào đây</b></p>
+                                <p style="font-size:12px; color:var(--text-muted)">hoặc</p>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('qImageFile').click()">Chọn file từ máy</button>
+                                <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">PNG, JPG, GIF • Tối đa 5MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab URL -->
+                    <div class="img-tab-content" id="imgTabUrl">
+                        <input type="text" id="qImageUrl" placeholder="https://example.com/hinh-anh.jpg"
+                               style="width:100%; padding:12px; border:2px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg-input); color:var(--text-primary);"
+                               oninput="previewImageUrl(this.value)">
+                        <div style="margin-top:8px; font-size:12px; color:var(--text-muted);">
+                            💡 <b>Mẹo:</b> Upload ảnh lên <a href="https://imgbb.com/" target="_blank" style="color:var(--accent)">imgbb.com</a> (miễn phí) → copy link → dán vào đây
+                        </div>
+                    </div>
+
+                    <!-- Tab Paste -->
+                    <div class="img-tab-content" id="imgTabPaste">
+                        <div class="paste-zone" id="pasteZone" contenteditable="false"
+                             tabindex="0"
+                             onclick="this.focus()"
+                             onpaste="handleImagePaste(event)">
+                            <span style="font-size:36px;">📋</span>
+                            <p><b>Click vào đây rồi nhấn Ctrl+V</b></p>
+                            <p style="font-size:12px; color:var(--text-muted);">để dán ảnh từ clipboard</p>
+                        </div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="imagePreviewContainer" style="display:none; margin-top:12px;">
+                        <div style="position:relative; display:inline-block;">
+                            <img id="imagePreview" src="" alt="Preview" style="max-width:100%; max-height:200px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                            <button type="button" onclick="clearImagePreview()" style="position:absolute; top:4px; right:4px; background:var(--danger); color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:12px;">✕</button>
+                        </div>
+                        <div style="margin-top:6px; font-size:12px; color:var(--success);" id="imageFileName">✓ Ảnh đã sẵn sàng</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:16px; border-top:2px solid var(--border);">
+                <button class="btn btn-outline" onclick="clearQuestionForm()" style="padding:12px 20px;">🔄 Xóa form</button>
+                <button class="btn btn-success" onclick="addQuestion()" style="padding:12px 24px; font-size:14px;">➕ Thêm câu hỏi</button>
+                <button class="btn btn-primary" onclick="saveAndClose()" style="padding:12px 24px; font-size:14px;">💾 Lưu tất cả & Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DANH SÁCH CÂU HỎI ĐÃ THÊM -->
+    <div class="box" id="questionsListBox">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="margin:0;">📋 Câu hỏi đã thêm (<span id="questionsCount">0</span>)</h3>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="collapseAllQuestions()">📂 Thu gọn</button>
+                <button class="btn btn-outline btn-sm" onclick="expandAllQuestions()">📂 Mở rộng</button>
+            </div>
+        </div>
+        <div class="question-list" id="questionsList">
+            <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                <span style="font-size:48px;">📝</span>
+                <p style="margin-top:12px; font-size:14px;">Chưa có câu hỏi nào</p>
+                <p style="font-size:12px;">Nhập câu hỏi ở trên hoặc import từ Excel/Word</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL IMPORT CÂU HỎI TỪ EXCEL ========== -->
+<div id="importQuestionsModal" class="modal">
+    <div class="modal-content" style="max-width:700px;">
+        <h3>📤 Nhập câu hỏi từ Excel</h3>
+
+        <div class="warning-box" style="background:var(--accent-light); border-color:var(--accent); margin-bottom:16px;">
+            <div class="warning-title" style="color:var(--accent);">📋 Cấu trúc file Excel</div>
+            <div class="warning-text" style="color:var(--text-secondary);">
+                File cần có các cột theo đúng thứ tự:<br>
+                <b>Câu hỏi | Đáp án 1 | Đáp án 2 | Đáp án 3 | Đáp án 4 | Đáp án đúng (1-4) | Tên file ảnh</b><br><br>
+                💡 Cột "Tên file ảnh" có thể là:<br>
+                • Tên file: <code>cauhoi_01.jpg</code> (ảnh đặt trong thư mục images/)<br>
+                • URL đầy đủ: <code>https://i.ibb.co/xxx/hinh.jpg</code><br>
+                • Để trống nếu không có ảnh
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <button class="btn btn-info btn-sm" onclick="downloadQuestionTemplate()">📥 Tải file mẫu</button>
+            <button class="btn btn-outline btn-sm" onclick="window.open('https://imgbb.com/','_blank')">🖼️ Upload ảnh (imgbb.com)</button>
+        </div>
+
+        <label style="font-weight:700; font-size:13px; color:var(--text-secondary); margin-bottom:8px; display:block;">Chọn nhóm câu hỏi:</label>
+        <select id="importGroupSelect" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px; background:var(--bg-input); color:var(--text-primary);">
+        </select>
+
+        <label style="font-weight:700; font-size:13px; color:var(--text-secondary); margin-bottom:8px; display:block;">Chọn file Excel:</label>
+        <input type="file" id="questionExcelFile" accept=".xlsx,.xls" style="margin-bottom:14px; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary);">
+
+        <div id="importPreview" style="display:none; margin-bottom:14px;">
+            <div style="background:var(--success-light); padding:10px; border-radius:var(--radius-sm); font-size:13px; color:var(--success);">
+                ✓ Đã đọc <b><span id="importPreviewCount">0</span></b> câu hỏi từ file
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn btn-secondary" onclick="closeModal('importQuestionsModal')">Hủy</button>
+            <button class="btn btn-success" onclick="processQuestionExcelImport()">📤 Nhập câu hỏi</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL IMPORT TỪ WORD ========== -->
+<div id="importWordModal" class="modal">
+    <div class="modal-content" style="max-width:800px;">
+        <h3>📄 Nhập câu hỏi từ Word / Text</h3>
+
+        <div class="warning-box" style="background:var(--accent-light); border-color:var(--accent);">
+            <div class="warning-title" style="color:var(--accent);">📋 Định dạng nhập</div>
+            <div class="warning-text" style="color:var(--text-secondary);">
+                Dán nội dung từ file Word theo định dạng sau (mỗi câu cách nhau 1 dòng trống):<br><br>
+                <code style="background:var(--bg-hover); padding:8px 12px; border-radius:6px; display:block; white-space:pre-wrap; font-size:12px; line-height:1.8; margin-top:8px;">Câu 1: Nội dung câu hỏi ở đây?
+A. Đáp án A
+B. Đáp án B
+C. Đáp án C
+D. Đáp án D
+Đáp án: A
+
+Câu 2: Nội dung câu hỏi tiếp theo?
+A. Đáp án A
+B. Đáp án B
+C. Đáp án C
+Đáp án: B</code>
+            </div>
+        </div>
+
+        <label style="font-weight:700; font-size:13px; color:var(--text-secondary); margin-bottom:8px; display:block;">Chọn nhóm câu hỏi:</label>
+        <select id="wordImportGroupSelect" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px; background:var(--bg-input); color:var(--text-primary);">
+        </select>
+
+        <label style="font-weight:700; font-size:13px; color:var(--text-secondary); margin-bottom:8px; display:block;">Dán nội dung Word vào đây:</label>
+        <textarea id="wordContent" rows="15" placeholder="Dán nội dung câu hỏi từ Word vào đây...
+
+Câu 1: Khi gặp đèn đỏ người lái xe phải làm gì?
+A. Dừng xe trước vạch dừng
+B. Giảm tốc độ và đi tiếp
+C. Tăng tốc vượt qua
+D. Nhấn còi và đi tiếp
+Đáp án: A
+
+Câu 2: Biển báo hình tròn viền đỏ là biển gì?
+A. Biển cấm
+B. Biển chỉ dẫn
+C. Biển nguy hiểm
+Đáp án: A"
+            style="width:100%; padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); font-size:14px; font-family:'Consolas', monospace; background:var(--bg-input); color:var(--text-primary); resize:vertical; min-height:250px; line-height:1.6;"
+        ></textarea>
+
+        <div id="wordPreview" style="display:none; margin-top:14px;">
+            <div style="background:var(--success-light); padding:10px; border-radius:var(--radius-sm); font-size:13px; color:var(--success);">
+                ✓ Đã nhận dạng <b><span id="wordPreviewCount">0</span></b> câu hỏi
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+            <button class="btn btn-outline" onclick="previewWordImport()">👁️ Xem trước</button>
+            <button class="btn btn-secondary" onclick="closeModal('importWordModal')">Hủy</button>
+            <button class="btn btn-success" onclick="processWordImport()">📤 Nhập câu hỏi</button>
+        </div>
+    </div>
+</div>
 
             <!-- ========== RESULTS PAGE ========== -->
             <div id="results" class="page">
@@ -1377,6 +1956,598 @@
     </div>
 
     <script>
+        // =====================================================================
+// NÂNG CẤP: TRANG THÊM CÂU HỎI
+// =====================================================================
+
+// Biến lưu ảnh hiện tại
+let currentImageData = null; // { type: 'url'|'base64'|'filename', value: '...' }
+let selectedGroupIndex = 0;
+
+// --- Hiển thị trang thêm câu hỏi ---
+function showAddQuestionsPage(c) {
+    const s = allQuestionSets.find(x => x.code === c);
+    if (!s) return;
+    currentSetForQuestions = c;
+    tempQuestions = [];
+    selectedGroupIndex = 0;
+    showPage('add_questions_page');
+
+    document.getElementById('addQSetName2').textContent = s.name;
+    document.getElementById('targetCount').textContent = s.totalQuestions || '∞';
+    document.getElementById('addedCount').textContent = '0';
+
+    // Render group tabs
+    const tabContainer = document.getElementById('groupTabsContainer');
+    tabContainer.innerHTML = '';
+    if (s.groupDetails) {
+        s.groupDetails.forEach((g, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `group-tab-btn ${i === 0 ? 'active' : ''}`;
+            btn.textContent = g.name;
+            btn.onclick = function () {
+                selectedGroupIndex = i;
+                tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            tabContainer.appendChild(btn);
+        });
+    }
+
+    clearQuestionForm();
+    renderQuestionsList();
+}
+
+// --- Xóa form ---
+function clearQuestionForm() {
+    document.getElementById('qContent').value = '';
+    ['qAnswer1', 'qAnswer2', 'qAnswer3', 'qAnswer4'].forEach(id => {
+        document.getElementById(id).value = '';
+        autoResizeTextarea(document.getElementById(id));
+    });
+    document.querySelectorAll('input[name="correctAnswer"]').forEach(r => r.checked = false);
+    document.getElementById('qImageUrl').value = '';
+    clearImagePreview();
+    updateAnswerHighlight();
+    document.getElementById('qContent').focus();
+}
+
+// --- Auto resize textarea ---
+function autoResizeTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.max(48, el.scrollHeight) + 'px';
+}
+
+// --- Highlight đáp án đúng ---
+function updateAnswerHighlight() {
+    const selected = document.querySelector('input[name="correctAnswer"]:checked');
+    for (let i = 1; i <= 4; i++) {
+        const item = document.getElementById('answerItem' + i);
+        item.classList.toggle('correct', selected && selected.value == i);
+    }
+}
+
+// --- Image tabs ---
+function switchImageTab(tab, btn) {
+    document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.img-tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('imgTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+// --- Handle image file ---
+function handleImageFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    processImageFile(file);
+}
+
+function handleImageDrop(event) {
+    event.preventDefault();
+    document.getElementById('dropZone').classList.remove('dragover');
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        processImageFile(file);
+    } else {
+        showToast('Chỉ chấp nhận file ảnh!', 'warning');
+    }
+}
+
+function handleImagePaste(event) {
+    event.preventDefault();
+    const items = event.clipboardData.items;
+    for (let item of items) {
+        if (item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            processImageFile(file);
+            return;
+        }
+    }
+    showToast('Không tìm thấy ảnh trong clipboard!', 'warning');
+}
+
+function processImageFile(file) {
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Ảnh quá lớn! Tối đa 5MB', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        currentImageData = { type: 'base64', value: e.target.result, fileName: file.name };
+        showImagePreview(e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+}
+
+function previewImageUrl(url) {
+    if (!url) { clearImagePreview(); return; }
+    if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i) || url.startsWith('https://')) {
+        currentImageData = { type: 'url', value: url };
+        showImagePreview(url, 'URL ảnh');
+    }
+}
+
+function showImagePreview(src, name) {
+    const container = document.getElementById('imagePreviewContainer');
+    const img = document.getElementById('imagePreview');
+    const fileName = document.getElementById('imageFileName');
+    img.src = src;
+    fileName.textContent = '✓ ' + (name || 'Ảnh đã sẵn sàng');
+    container.style.display = 'block';
+    img.onerror = function () {
+        fileName.textContent = '⚠️ Không tải được ảnh';
+        fileName.style.color = 'var(--danger)';
+    };
+}
+
+function clearImagePreview() {
+    currentImageData = null;
+    document.getElementById('imagePreviewContainer').style.display = 'none';
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('qImageFile').value = '';
+    const fn = document.getElementById('imageFileName');
+    fn.textContent = '';
+    fn.style.color = 'var(--success)';
+}
+
+// --- Thêm câu hỏi ---
+function addQuestion() {
+    const content = document.getElementById('qContent').value.trim();
+    const a1 = document.getElementById('qAnswer1').value.trim();
+    const a2 = document.getElementById('qAnswer2').value.trim();
+    const a3 = document.getElementById('qAnswer3').value.trim();
+    const a4 = document.getElementById('qAnswer4').value.trim();
+    const correctRadio = document.querySelector('input[name="correctAnswer"]:checked');
+    const correct = correctRadio ? parseInt(correctRadio.value) : 0;
+
+    if (!content) { showToast('Nhập nội dung câu hỏi!', 'error'); document.getElementById('qContent').focus(); return; }
+    if (!a1 || !a2) { showToast('Cần ít nhất 2 đáp án!', 'error'); return; }
+    if (!correct) { showToast('Chọn đáp án đúng!', 'error'); return; }
+
+    const answers = [a1, a2, a3, a4].filter(a => a);
+    if (correct > answers.length) { showToast('Đáp án đúng không hợp lệ!', 'error'); return; }
+
+    let imageUrl = null;
+    if (currentImageData) {
+        imageUrl = currentImageData.type === 'url' ? currentImageData.value :
+                   currentImageData.type === 'base64' ? currentImageData.value :
+                   currentImageData.value;
+    }
+
+    tempQuestions.push({
+        content,
+        answers,
+        correctAnswer: correct,
+        groupIndex: selectedGroupIndex,
+        imageUrl
+    });
+
+    clearQuestionForm();
+    renderQuestionsList();
+    document.getElementById('addedCount').textContent = tempQuestions.length;
+    showToast(`Câu #${tempQuestions.length} đã thêm!`, 'success', 1500);
+}
+
+// --- Render danh sách câu hỏi ---
+function renderQuestionsList() {
+    const c = document.getElementById('questionsList');
+    document.getElementById('questionsCount').textContent = tempQuestions.length;
+
+    if (!tempQuestions.length) {
+        c.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">
+            <span style="font-size:48px;">📝</span>
+            <p style="margin-top:12px; font-size:14px;">Chưa có câu hỏi nào</p>
+            <p style="font-size:12px;">Nhập câu hỏi ở trên hoặc import từ Excel/Word</p>
+        </div>`;
+        return;
+    }
+
+    const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+    const labels = ['A', 'B', 'C', 'D'];
+    let h = '';
+
+    tempQuestions.forEach((q, i) => {
+        const gn = s?.groupDetails?.[q.groupIndex]?.name || '?';
+        const preview = q.content.length > 80 ? q.content.substring(0, 80) + '...' : q.content;
+
+        h += `<div class="q-item">
+            <div class="q-item-header" onclick="toggleQuestionItem(this)">
+                <div class="q-item-num">
+                    <div class="q-num-badge">${i + 1}</div>
+                    <div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary);">${escapeHtml(preview)}</div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                            ${escapeHtml(gn)} • ${q.answers.length} đáp án ${q.imageUrl ? '• 🖼️' : ''}
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span style="font-size:14px; color:var(--text-muted);">▼</span>
+                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); removeQuestion(${i})" style="padding:4px 8px;">✕</button>
+                </div>
+            </div>
+            <div class="q-item-body collapsed">
+                <div style="font-size:14px; color:var(--text-primary); line-height:1.6; margin-bottom:10px;">${escapeHtml(q.content)}</div>
+                ${q.imageUrl ? `<img src="${q.imageUrl}" style="max-width:200px; max-height:120px; border-radius:6px; margin-bottom:10px; border:1px solid var(--border);" onerror="this.style.display='none'">` : ''}
+                <ul class="q-answer-list">
+                    ${q.answers.map((a, j) => `<li class="${j + 1 === q.correctAnswer ? 'correct' : ''}">${labels[j]}. ${escapeHtml(a)} ${j + 1 === q.correctAnswer ? '✅' : ''}</li>`).join('')}
+                </ul>
+            </div>
+        </div>`;
+    });
+
+    c.innerHTML = h;
+}
+
+function toggleQuestionItem(header) {
+    const body = header.nextElementSibling;
+    body.classList.toggle('collapsed');
+    const arrow = header.querySelector('span');
+    arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+}
+
+function collapseAllQuestions() {
+    document.querySelectorAll('.q-item-body').forEach(b => b.classList.add('collapsed'));
+}
+
+function expandAllQuestions() {
+    document.querySelectorAll('.q-item-body').forEach(b => b.classList.remove('collapsed'));
+}
+
+function removeQuestion(i) {
+    tempQuestions.splice(i, 1);
+    renderQuestionsList();
+    document.getElementById('addedCount').textContent = tempQuestions.length;
+    showToast('Đã xóa câu hỏi', 'info', 1500);
+}
+
+// =====================================================================
+// IMPORT CÂU HỎI TỪ EXCEL
+// =====================================================================
+
+function downloadQuestionTemplate() {
+    const data = [
+        ['Câu hỏi', 'Đáp án 1', 'Đáp án 2', 'Đáp án 3', 'Đáp án 4', 'Đáp án đúng (1-4)', 'Ảnh (tên file hoặc URL)'],
+        ['Khi gặp đèn đỏ, người lái xe phải làm gì?', 'Dừng xe trước vạch dừng', 'Giảm tốc độ và đi tiếp', 'Tăng tốc vượt qua nhanh', 'Nhấn còi rồi đi', '1', 'den_do.jpg'],
+        ['Biển báo hình tròn viền đỏ là biển gì?', 'Biển cấm', 'Biển chỉ dẫn', 'Biển nguy hiểm', 'Biển phụ', '1', 'https://i.ibb.co/xxx/bien_cam.jpg'],
+        ['Tốc độ tối đa trong khu dân cư?', '50 km/h', '60 km/h', '40 km/h', '', '1', ''],
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [
+        { wch: 45 }, { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 18 }, { wch: 35 }
+    ];
+
+    // Style header (chỉ đặt bold cho row 1)
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Câu hỏi');
+    XLSX.writeFile(wb, 'Mau_cau_hoi.xlsx');
+    showToast('Đã tải file mẫu!', 'success');
+}
+
+function openImportQuestionsModal() {
+    const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+    if (!s) return;
+
+    const select = document.getElementById('importGroupSelect');
+    select.innerHTML = '';
+    if (s.groupDetails) {
+        s.groupDetails.forEach((g, i) => {
+            select.innerHTML += `<option value="${i}">${g.name}</option>`;
+        });
+    }
+    select.value = selectedGroupIndex;
+
+    document.getElementById('questionExcelFile').value = '';
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importQuestionsModal').classList.add('show');
+}
+
+function processQuestionExcelImport() {
+    const fileInput = document.getElementById('questionExcelFile');
+    const groupIdx = parseInt(document.getElementById('importGroupSelect').value) || 0;
+
+    if (!fileInput.files[0]) {
+        showToast('Chọn file Excel!', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const ws = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+            let imported = 0;
+            let errors = 0;
+
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row[0] || !row[0].toString().trim()) continue;
+
+                const content = row[0].toString().trim();
+                const a1 = row[1] ? row[1].toString().trim() : '';
+                const a2 = row[2] ? row[2].toString().trim() : '';
+                const a3 = row[3] ? row[3].toString().trim() : '';
+                const a4 = row[4] ? row[4].toString().trim() : '';
+                const correct = parseInt(row[5]) || 0;
+                const imageRef = row[6] ? row[6].toString().trim() : '';
+
+                if (!a1 || !a2 || !correct) {
+                    errors++;
+                    continue;
+                }
+
+                const answers = [a1, a2, a3, a4].filter(a => a);
+                if (correct > answers.length || correct < 1) {
+                    errors++;
+                    continue;
+                }
+
+                // Xử lý ảnh: nếu là URL thì giữ nguyên, nếu là tên file thì thêm prefix
+                let imageUrl = null;
+                if (imageRef) {
+                    if (imageRef.startsWith('http://') || imageRef.startsWith('https://')) {
+                        imageUrl = imageRef;
+                    } else {
+                        imageUrl = 'images/' + imageRef; // Relative path
+                    }
+                }
+
+                tempQuestions.push({
+                    content,
+                    answers,
+                    correctAnswer: correct,
+                    groupIndex: groupIdx,
+                    imageUrl
+                });
+                imported++;
+            }
+
+            renderQuestionsList();
+            document.getElementById('addedCount').textContent = tempQuestions.length;
+            closeModal('importQuestionsModal');
+
+            let msg = `Đã nhập ${imported} câu hỏi!`;
+            if (errors > 0) msg += ` (${errors} dòng lỗi bị bỏ qua)`;
+            showToast(msg, imported > 0 ? 'success' : 'warning', 5000);
+
+        } catch (error) {
+            showToast('Lỗi đọc file: ' + error.message, 'error');
+        }
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+// =====================================================================
+// IMPORT CÂU HỎI TỪ WORD/TEXT
+// =====================================================================
+
+function openImportWordModal() {
+    const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+    if (!s) return;
+
+    const select = document.getElementById('wordImportGroupSelect');
+    select.innerHTML = '';
+    if (s.groupDetails) {
+        s.groupDetails.forEach((g, i) => {
+            select.innerHTML += `<option value="${i}">${g.name}</option>`;
+        });
+    }
+    select.value = selectedGroupIndex;
+
+    document.getElementById('wordContent').value = '';
+    document.getElementById('wordPreview').style.display = 'none';
+    document.getElementById('importWordModal').classList.add('show');
+}
+
+function parseWordContent(text) {
+    const questions = [];
+    // Tách theo "Câu" hoặc dòng trống
+    const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
+
+    for (const block of blocks) {
+        const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length < 3) continue;
+
+        // Dòng đầu: câu hỏi (bỏ prefix "Câu X:" nếu có)
+        let questionText = lines[0].replace(/^(Câu\s*\d+[\s:.)\-]*)/i, '').trim();
+        if (!questionText) questionText = lines[0];
+
+        // Các dòng đáp án
+        const answers = [];
+        let correctAnswer = 0;
+        let answerLine = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+
+            // Kiểm tra dòng đáp án đúng
+            const correctMatch = line.match(/^(?:Đáp\s*án|ĐA|Correct|Answer)\s*[:\s]*([A-Da-d1-4])/i);
+            if (correctMatch) {
+                const val = correctMatch[1].toUpperCase();
+                if ('ABCD'.includes(val)) {
+                    correctAnswer = 'ABCD'.indexOf(val) + 1;
+                } else {
+                    correctAnswer = parseInt(val) || 0;
+                }
+                continue;
+            }
+
+            // Kiểm tra dòng đáp án A. B. C. D.
+            const ansMatch = line.match(/^([A-Da-d])[.\s)\-:]+(.+)/);
+            if (ansMatch) {
+                answers.push(ansMatch[2].trim());
+                answerLine++;
+                continue;
+            }
+
+            // Kiểm tra dòng đáp án 1. 2. 3. 4.
+            const numMatch = line.match(/^([1-4])[.\s)\-:]+(.+)/);
+            if (numMatch) {
+                answers.push(numMatch[2].trim());
+                answerLine++;
+                continue;
+            }
+
+            // Nếu không match gì, coi như phần tiếp của câu hỏi
+            if (answerLine === 0) {
+                questionText += ' ' + line;
+            }
+        }
+
+        if (answers.length >= 2 && questionText) {
+            // Nếu chưa tìm được đáp án đúng, mặc định = 1
+            if (correctAnswer === 0 || correctAnswer > answers.length) {
+                correctAnswer = 1;
+            }
+
+            questions.push({
+                content: questionText,
+                answers,
+                correctAnswer
+            });
+        }
+    }
+
+    return questions;
+}
+
+function previewWordImport() {
+    const text = document.getElementById('wordContent').value.trim();
+    if (!text) {
+        showToast('Chưa có nội dung!', 'warning');
+        return;
+    }
+
+    const parsed = parseWordContent(text);
+    document.getElementById('wordPreviewCount').textContent = parsed.length;
+    document.getElementById('wordPreview').style.display = 'block';
+
+    if (parsed.length === 0) {
+        showToast('Không nhận dạng được câu hỏi nào. Kiểm tra lại định dạng!', 'error');
+    } else {
+        showToast(`Nhận dạng ${parsed.length} câu hỏi`, 'success');
+    }
+}
+
+function processWordImport() {
+    const text = document.getElementById('wordContent').value.trim();
+    const groupIdx = parseInt(document.getElementById('wordImportGroupSelect').value) || 0;
+
+    if (!text) {
+        showToast('Chưa có nội dung!', 'warning');
+        return;
+    }
+
+    const parsed = parseWordContent(text);
+    if (parsed.length === 0) {
+        showToast('Không nhận dạng được câu hỏi! Kiểm tra định dạng.', 'error');
+        return;
+    }
+
+    let imported = 0;
+    for (const q of parsed) {
+        tempQuestions.push({
+            content: q.content,
+            answers: q.answers,
+            correctAnswer: q.correctAnswer,
+            groupIndex: groupIdx,
+            imageUrl: null
+        });
+        imported++;
+    }
+
+    renderQuestionsList();
+    document.getElementById('addedCount').textContent = tempQuestions.length;
+    closeModal('importWordModal');
+    showToast(`Đã nhập ${imported} câu hỏi từ Word!`, 'success', 5000);
+}
+
+// =====================================================================
+// LƯU CÂU HỎI VÀO FIREBASE (giữ nguyên, cải thiện nhỏ)
+// =====================================================================
+
+async function saveAndClose() {
+    if (!tempQuestions.length) {
+        showToast('Chưa có câu hỏi nào!', 'warning');
+        return;
+    }
+
+    const confirmed = await showConfirm(
+        'Lưu câu hỏi',
+        `Bạn sắp lưu ${tempQuestions.length} câu hỏi vào bộ đề. Tiếp tục?`,
+        '💾'
+    );
+    if (!confirmed) return;
+
+    showLoading(`Đang lưu ${tempQuestions.length} câu hỏi...`);
+
+    try {
+        for (let i = 0; i < tempQuestions.length; i += 500) {
+            const batch = db.batch();
+            tempQuestions.slice(i, i + 500).forEach((q, idx) => {
+                const docData = {
+                    content: q.content,
+                    answers: q.answers,
+                    correctAnswer: q.correctAnswer,
+                    groupIndex: q.groupIndex,
+                    imageUrl: q.imageUrl || null,
+                    setCode: currentSetForQuestions,
+                    order: i + idx + 1,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                batch.set(db.collection('questions').doc(), docData);
+            });
+            await batch.commit();
+        }
+
+        // Cập nhật tổng số câu hỏi
+        const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+        if (s) {
+            s.totalQuestions = (s.totalQuestions || 0) + tempQuestions.length;
+            await db.collection('questionSets').doc(currentSetForQuestions).update({
+                totalQuestions: s.totalQuestions,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        showToast(`✅ Đã lưu ${tempQuestions.length} câu hỏi thành công!`, 'success', 5000);
+        tempQuestions = [];
+        backToQuestionSets();
+        loadQuestionSets();
+
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+        console.error('Save error:', e);
+    } finally {
+        hideLoading();
+    }
+}
     // =====================================================================
     // FIREBASE + AUTH
     // =====================================================================
