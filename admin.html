@@ -1953,4 +1953,72 @@ async function loadExamResults(direction='first'){
 function renderResultsTableServer(){
   const tb=document.getElementById('resultsTableBody');
   if(!currentResultsRows.length){
-    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Không có kết 
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Không có kết quả</td></tr>';
+    return;
+  }
+  let h='';
+  currentResultsRows.forEach((r,i)=>{
+    const pass=(r.score||0)>=80;
+    h+=`<tr>
+      <td>${(resultsPage-1)*resultsPerPage+i+1}</td>
+      <td>${escapeHtml(r.timestamp.toLocaleString('vi-VN'))}</td>
+      <td><b>${escapeHtml(r.studentCode||'')}</b></td>
+      <td style="text-align:left">${escapeHtml(r.studentName||'')}</td>
+      <td>${escapeHtml(r.setName||r.setCode||'')}</td>
+      <td><b>${r.score||0}</b></td>
+      <td><span class="rate ${pass?'good':'bad'}">${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span></td>
+    </tr>`;
+  });
+  tb.innerHTML=h;
+}
+function exportCurrentResultsPage(){
+  if(!currentResultsRows.length){ showToast('Không có dữ liệu','warning'); return; }
+  const d=[['STT','Thời gian','Mã HV','Họ tên','Đề','Điểm','KQ']];
+  currentResultsRows.forEach((r,i)=> d.push([i+1,r.timestamp.toLocaleString('vi-VN'),r.studentCode||'',r.studentName||'',r.setName||r.setCode||'',r.score||0,(r.score||0)>=80?'Đạt':'Trượt']));
+  const ws=XLSX.utils.aoa_to_sheet(d);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'KetQua');
+  XLSX.writeFile(wb,`KetQua_Trang_${resultsPage}.xlsx`);
+  showToast('Đã xuất Excel (trang hiện tại)','success');
+}
+
+/* ============================================================
+   NAV
+============================================================ */
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn){
+    document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  if(id==='students') fetchStudentsPage('first');
+  if(id==='question_sets') loadQuestionSets();
+  if(id==='dashboard') loadDashboardFromSummary();
+  if(id==='stats') refreshStats();
+}
+function backToQuestionSets(){
+  if(tempQuestions.length && !confirm('Có câu chưa lưu. Thoát?')) return;
+  tempQuestions=[];
+  showPage('question_sets');
+  loadQuestionSets();
+  document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.menu button')[2].classList.add('active');
+}
+function logout(){
+  showConfirm('Đăng xuất','Bạn muốn đăng xuất?').then(ok=>{
+    if(ok){
+      localStorage.removeItem('userType');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminName');
+      location.href='index.html';
+    }
+  });
+}
+
+window.onclick=function(e){ if(e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show'); };
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show')); if(document.getElementById('confirmDialog').classList.contains('show')) closeConfirmDialog(false); } });
+</script>
+</body>
+</html>
