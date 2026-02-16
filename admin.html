@@ -256,7 +256,12 @@
 <body>
 
 <header>
-    <b>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</b>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <b>🛠️ ADMIN – HỆ THỐNG THI LUẬT GIAO THÔNG</b>
+        <span id="firebaseStatus" style="font-size: 11px; padding: 3px 8px; border-radius: 12px; background: rgba(255,255,255,0.2);">
+            Đang kết nối...
+        </span>
+    </div>
     <button onclick="logout()">Đăng xuất</button>
 </header>
 
@@ -901,24 +906,16 @@
 <script>
     // ===== FIREBASE CONFIG =====
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+        authDomain: "thi-luat-giao-thong.firebaseapp.com",
+        projectId: "thi-luat-giao-thong"
     };
-
-    // Initialize Firebase
-    let db;
-    try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-        console.log("Firebase initialized successfully");
-    } catch (error) {
-        console.warn("Firebase not configured, using mock data");
-        db = null;
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    if(localStorage.getItem("userType") !== "admin") location.href = "index.html";
+    
+    console.log("✅ Firebase đã được khởi tạo");
+    console.log("📊 Project ID:", firebaseConfig.projectId);
 
     // ===== GLOBAL VARIABLES =====
     let allStudents = [];
@@ -939,53 +936,123 @@
     };
 
     async function initializeSystem() {
-        if (db) {
-            await loadStudentsFromDB();
-            await loadQuestionSetsFromDB();
-            await loadActivitiesFromDB();
-        } else {
-            loadMockData();
-        }
+        console.log("🚀 Khởi động hệ thống Admin...");
+        console.log("📡 Kết nối với Firebase...");
         
+        // Cập nhật trạng thái
+        const statusEl = document.getElementById('firebaseStatus');
+        statusEl.style.background = 'rgba(25, 135, 84, 0.8)';
+        statusEl.textContent = '🟢 Firebase Connected';
+        
+        // Load dữ liệu từ Firebase
+        await loadStudentsFromDB();
+        await loadQuestionSetsFromDB();
+        await loadActivitiesFromDB();
+        
+        // Load các trang
         loadDashboard();
         loadStudents();
         loadQuestionSets();
         loadStats();
         
+        // Auto refresh activities mỗi 30s
         setInterval(loadActivitiesFromDB, 30000);
+        
+        console.log("✅ Hệ thống đã sẵn sàng");
+        console.log("📊 Số học viên:", allStudents.length);
+        console.log("📝 Số đề thi:", allQuestionSets.length);
     }
 
     // ===== DATABASE FUNCTIONS =====
     async function loadStudentsFromDB() {
-        if (!db) return;
-        
         try {
-            const snapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
-            allStudents = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                dob: doc.data().dob || '',
-                exams: doc.data().exams || 0,
-                bestScore: doc.data().bestScore || 0,
-                avgScore: doc.data().avgScore || 0
-            }));
+            console.log("📥 Đang tải danh sách học viên từ Firebase...");
+            
+            // Load students từ Firestore
+            const snapshot = await db.collection('students').get();
+            
+            if (snapshot.empty) {
+                console.warn("⚠️ Database trống, sử dụng dữ liệu mock");
+                loadMockData();
+                return;
+            }
+            
+            allStudents = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    code: data.code || doc.id,
+                    name: data.name || '',
+                    unit: data.unit || '',
+                    dob: data.dob || '',
+                    object: data.object || 'Học viên',
+                    status: data.status || 'active',
+                    exams: data.exams || 0,
+                    bestScore: data.bestScore || 0,
+                    avgScore: data.avgScore || 0,
+                    nameSearch: data.nameSearch || '',
+                    createdAt: data.createdAt || new Date()
+                };
+            });
+            
+            // Sắp xếp theo mã học viên
+            allStudents.sort((a, b) => {
+                if (a.code < b.code) return -1;
+                if (a.code > b.code) return 1;
+                return 0;
+            });
+            
+            console.log(`✅ Đã tải ${allStudents.length} học viên từ Firebase`);
+            console.table(allStudents.slice(0, 5)); // Hiển thị 5 học viên đầu
         } catch (error) {
-            console.error("Error loading students:", error);
+            console.error("❌ Lỗi khi tải học viên từ Firebase:", error);
+            console.error("Chi tiết lỗi:", error.message);
+            console.log("📦 Chuyển sang sử dụng dữ liệu mock");
             loadMockData();
         }
     }
 
     async function loadQuestionSetsFromDB() {
-        if (!db) return;
-        
         try {
-            const snapshot = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
-            allQuestionSets = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            console.log("📥 Đang tải danh sách đề thi từ Firebase...");
+            
+            const snapshot = await db.collection('questionSets').get();
+            
+            if (snapshot.empty) {
+                console.warn("⚠️ Chưa có đề thi nào trong database");
+                allQuestionSets = [];
+                return;
+            }
+            
+            allQuestionSets = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    code: data.code || doc.id,
+                    name: data.name || '',
+                    description: data.description || '',
+                    totalQuestions: data.totalQuestions || 0,
+                    timeLimit: data.timeLimit || 0,
+                    passQuestions: data.passQuestions || 0,
+                    lietQuestion: data.lietQuestion || 0,
+                    status: data.status || 'active',
+                    groups: data.groups || 0,
+                    groupDetails: data.groupDetails || [],
+                    createdAt: data.createdAt || new Date()
+                };
+            });
+            
+            // Sắp xếp theo mã đề
+            allQuestionSets.sort((a, b) => {
+                if (a.code < b.code) return -1;
+                if (a.code > b.code) return 1;
+                return 0;
+            });
+            
+            console.log(`✅ Đã tải ${allQuestionSets.length} đề thi từ Firebase`);
         } catch (error) {
-            console.error("Error loading question sets:", error);
+            console.error("❌ Lỗi khi tải đề thi từ Firebase:", error);
+            allQuestionSets = [];
         }
     }
 
@@ -999,43 +1066,120 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            const snapshot = await db.collection('examResults')
-                .where('timestamp', '>=', today)
-                .orderBy('timestamp', 'desc')
-                .limit(50)
-                .get();
+            let snapshot;
+            try {
+                snapshot = await db.collection('examResults')
+                    .where('timestamp', '>=', today)
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
+            } catch (error) {
+                // Nếu không có index hoặc lỗi query, lấy tất cả và filter
+                console.warn("⚠️ Không thể query theo timestamp, lấy tất cả");
+                snapshot = await db.collection('examResults').limit(50).get();
+            }
+            
+            if (snapshot.empty) {
+                console.log("ℹ️ Chưa có hoạt động nào hôm nay");
+                loadMockActivities();
+                return;
+            }
             
             const activities = [];
             for (const doc of snapshot.docs) {
                 const data = doc.data();
+                
+                // Tìm học viên
                 const student = allStudents.find(s => s.code === data.studentCode);
+                
                 if (student) {
+                    // Xử lý timestamp
+                    let timeStr = '';
+                    if (data.timestamp) {
+                        if (data.timestamp.toDate) {
+                            timeStr = formatDateTime(data.timestamp.toDate());
+                        } else if (data.timestamp instanceof Date) {
+                            timeStr = formatDateTime(data.timestamp);
+                        } else {
+                            timeStr = formatDateTime(new Date(data.timestamp));
+                        }
+                    } else {
+                        timeStr = formatDateTime(new Date());
+                    }
+                    
                     activities.push({
-                        time: formatDateTime(data.timestamp.toDate()),
+                        time: timeStr,
                         student: `${student.name} (${student.code})`,
                         action: 'Hoàn thành bài thi',
-                        detail: `${data.setName} - Điểm: ${data.score}`
+                        detail: `${data.setName || data.setCode || 'Đề thi'} - Điểm: ${data.score || 0}`
                     });
                 }
             }
             
-            renderActivityTable(activities);
+            if (activities.length === 0) {
+                loadMockActivities();
+            } else {
+                renderActivityTable(activities);
+                console.log(`✅ Đã tải ${activities.length} hoạt động`);
+            }
         } catch (error) {
-            console.error("Error loading activities:", error);
+            console.error("❌ Lỗi khi tải hoạt động:", error);
             loadMockActivities();
         }
     }
 
     function loadMockData() {
         allStudents = [
+            // Học viên - Đại đội 1
             { code: "HV0001", name: "Nguyễn Văn An", unit: "Đại đội 1", dob: "1998-03-15", object: "Học viên", status: "active", exams: 5, bestScore: 95, avgScore: 87 },
-            { code: "HV0002", name: "Trần Thị Bình", unit: "Đại đội 2", dob: "1999-07-20", object: "Học viên", status: "active", exams: 3, bestScore: 88, avgScore: 82 },
-            { code: "SQ0001", name: "Lê Văn Cường", unit: "Tiểu đoàn 3", dob: "1995-01-10", object: "Sĩ quan", status: "active", exams: 8, bestScore: 98, avgScore: 93 },
+            { code: "HV0002", name: "Trần Thị Bình", unit: "Đại đội 1", dob: "1999-07-20", object: "Học viên", status: "active", exams: 3, bestScore: 88, avgScore: 82 },
             { code: "HV0003", name: "Phạm Thị Dung", unit: "Đại đội 1", dob: "2000-12-05", object: "Học viên", status: "locked", exams: 2, bestScore: 65, avgScore: 60 },
-            { code: "CN0001", name: "Hoàng Văn Hải", unit: "Phòng Kỹ thuật", dob: "1992-06-25", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 85, avgScore: 78 },
+            { code: "HV0004", name: "Vũ Thị Lan", unit: "Đại đội 1", dob: "1997-09-18", object: "Học viên", status: "active", exams: 6, bestScore: 92, avgScore: 88 },
+            { code: "HV0005", name: "Đỗ Văn Nam", unit: "Đại đội 1", dob: "1998-11-22", object: "Học viên", status: "active", exams: 4, bestScore: 78, avgScore: 72 },
+            
+            // Học viên - Đại đội 2
+            { code: "HV0006", name: "Lý Thị Hoa", unit: "Đại đội 2", dob: "1999-01-10", object: "Học viên", status: "active", exams: 7, bestScore: 90, avgScore: 85 },
+            { code: "HV0007", name: "Bùi Văn Hùng", unit: "Đại đội 2", dob: "1997-05-15", object: "Học viên", status: "active", exams: 5, bestScore: 82, avgScore: 78 },
+            { code: "HV0008", name: "Đinh Thị Thu", unit: "Đại đội 2", dob: "2000-08-20", object: "Học viên", status: "active", exams: 3, bestScore: 88, avgScore: 83 },
+            { code: "HV0009", name: "Võ Văn Tài", unit: "Đại đội 2", dob: "1998-12-03", object: "Học viên", status: "locked", exams: 1, bestScore: 55, avgScore: 55 },
+            { code: "HV0010", name: "Dương Thị Lan", unit: "Đại đội 2", dob: "1999-03-28", object: "Học viên", status: "active", exams: 8, bestScore: 94, avgScore: 89 },
+            
+            // Học viên - Đại đội 3
+            { code: "HV0011", name: "Trịnh Văn Đức", unit: "Đại đội 3", dob: "1997-07-12", object: "Học viên", status: "active", exams: 4, bestScore: 86, avgScore: 80 },
+            { code: "HV0012", name: "Ngô Thị Hồng", unit: "Đại đội 3", dob: "2000-02-14", object: "Học viên", status: "active", exams: 6, bestScore: 91, avgScore: 87 },
+            { code: "HV0013", name: "Mai Văn Thắng", unit: "Đại đội 3", dob: "1998-09-09", object: "Học viên", status: "active", exams: 5, bestScore: 79, avgScore: 74 },
+            { code: "HV0014", name: "Chu Thị Nga", unit: "Đại đội 3", dob: "1999-11-30", object: "Học viên", status: "locked", exams: 2, bestScore: 68, avgScore: 65 },
+            { code: "HV0015", name: "Tô Văn Bình", unit: "Đại đội 3", dob: "1997-04-25", object: "Học viên", status: "active", exams: 7, bestScore: 93, avgScore: 88 },
+            
+            // Sĩ quan - Tiểu đoàn 1
+            { code: "SQ0001", name: "Lê Văn Cường", unit: "Tiểu đoàn 1", dob: "1995-01-10", object: "Sĩ quan", status: "active", exams: 8, bestScore: 98, avgScore: 93 },
             { code: "SQ0002", name: "Ngô Thị Mai", unit: "Tiểu đoàn 1", dob: "1994-04-12", object: "Sĩ quan", status: "active", exams: 9, bestScore: 99, avgScore: 95 },
-            { code: "HV0004", name: "Vũ Thị Lan", unit: "Đại đội 2", dob: "1997-09-18", object: "Học viên", status: "active", exams: 6, bestScore: 92, avgScore: 88 },
-            { code: "CN0002", name: "Phan Văn Phong", unit: "Phòng Hành chính", dob: "1993-05-08", object: "Chuyên nghiệp", status: "locked", exams: 5, bestScore: 87, avgScore: 82 }
+            { code: "SQ0003", name: "Hồ Văn Tuấn", unit: "Tiểu đoàn 1", dob: "1993-08-18", object: "Sĩ quan", status: "active", exams: 10, bestScore: 97, avgScore: 94 },
+            { code: "SQ0004", name: "Phạm Thị Linh", unit: "Tiểu đoàn 1", dob: "1995-06-22", object: "Sĩ quan", status: "active", exams: 7, bestScore: 96, avgScore: 92 },
+            { code: "SQ0005", name: "Đặng Văn Hải", unit: "Tiểu đoàn 1", dob: "1994-12-05", object: "Sĩ quan", status: "locked", exams: 3, bestScore: 75, avgScore: 70 },
+            
+            // Sĩ quan - Tiểu đoàn 2
+            { code: "SQ0006", name: "Lưu Văn Phong", unit: "Tiểu đoàn 2", dob: "1992-03-15", object: "Sĩ quan", status: "active", exams: 11, bestScore: 98, avgScore: 94 },
+            { code: "SQ0007", name: "Thái Thị Hương", unit: "Tiểu đoàn 2", dob: "1993-07-20", object: "Sĩ quan", status: "active", exams: 8, bestScore: 95, avgScore: 91 },
+            { code: "SQ0008", name: "Cao Văn Long", unit: "Tiểu đoàn 2", dob: "1994-11-11", object: "Sĩ quan", status: "active", exams: 9, bestScore: 97, avgScore: 93 },
+            
+            // Sĩ quan - Tiểu đoàn 3
+            { code: "SQ0009", name: "Bạch Văn Kiên", unit: "Tiểu đoàn 3", dob: "1995-02-28", object: "Sĩ quan", status: "active", exams: 6, bestScore: 94, avgScore: 90 },
+            { code: "SQ0010", name: "Âu Thị Thảo", unit: "Tiểu đoàn 3", dob: "1993-09-14", object: "Sĩ quan", status: "active", exams: 8, bestScore: 96, avgScore: 92 },
+            
+            // Chuyên nghiệp - Phòng Kỹ thuật
+            { code: "CN0001", name: "Hoàng Văn Hải", unit: "Phòng Kỹ thuật", dob: "1992-06-25", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 85, avgScore: 78 },
+            { code: "CN0002", name: "Phan Văn Phong", unit: "Phòng Kỹ thuật", dob: "1993-05-08", object: "Chuyên nghiệp", status: "locked", exams: 5, bestScore: 87, avgScore: 82 },
+            { code: "CN0003", name: "Trương Thị Vân", unit: "Phòng Kỹ thuật", dob: "1991-10-30", object: "Chuyên nghiệp", status: "active", exams: 6, bestScore: 90, avgScore: 85 },
+            
+            // Chuyên nghiệp - Phòng Hành chính
+            { code: "CN0004", name: "Lâm Văn Tâm", unit: "Phòng Hành chính", dob: "1990-12-12", object: "Chuyên nghiệp", status: "active", exams: 5, bestScore: 88, avgScore: 83 },
+            { code: "CN0005", name: "Đoàn Thị Bích", unit: "Phòng Hành chính", dob: "1992-08-07", object: "Chuyên nghiệp", status: "active", exams: 7, bestScore: 91, avgScore: 86 },
+            
+            // Chuyên nghiệp - Phòng Tài chính
+            { code: "CN0006", name: "Ông Văn Minh", unit: "Phòng Tài chính", dob: "1989-04-18", object: "Chuyên nghiệp", status: "active", exams: 4, bestScore: 84, avgScore: 79 },
+            { code: "CN0007", name: "Khương Thị Ngọc", unit: "Phòng Tài chính", dob: "1991-11-25", object: "Chuyên nghiệp", status: "locked", exams: 2, bestScore: 70, avgScore: 68 },
+            { code: "CN0008", name: "Vương Văn Đạt", unit: "Phòng Tài chính", dob: "1990-07-03", object: "Chuyên nghiệp", status: "active", exams: 6, bestScore: 89, avgScore: 84 }
         ];
         
         allQuestionSets = [
