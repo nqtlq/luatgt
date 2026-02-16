@@ -2557,16 +2557,16 @@ async function saveAndClose() {
     if(localStorage.getItem("userType")!=="admin")location.href="index.html";
 
     // =====================================================================
-    // GLOBALS
-    // =====================================================================
-    let allStudents=[],filteredStudents=[],allQuestionSets=[],allResults=[];
-    let currentEditingCode=null,currentPage=1,currentSetForQuestions=null;
-    const itemsPerPage=20;
-    let sortDirection={},tempQuestions=[],pendingImportData=[],duplicatesFound=[];
-    let filterTimeout=null,confirmResolve=null;
-    let chartInstances={};
-
-    // =====================================================================
+        // --- GLOBALS (PATCHED) ---
+    let currentStudentsList = []; // Chỉ chứa 20 học viên đang hiển thị
+    let lastVisibleDoc = null;    // Con trỏ đến cuối trang hiện tại
+    let paginationStack = [];     // Lưu lịch sử để quay lại trang trước
+    let isSearching = false;      // Trạng thái đang tìm kiếm hay không
+    let currentPage = 1;
+    const itemsPerPage = 20;
+    
+    // Biến lưu tổng số lượng (để hiển thị dashboard mà không cần tải hết doc)
+    let totalDocsCount = 0; 
     // INIT
     // =====================================================================
     window.onload=function(){initializeSystem();updateClock();setInterval(updateClock,60000);
@@ -2577,16 +2577,23 @@ async function saveAndClose() {
 
     function updateClock(){const n=new Date();document.getElementById('currentTime').textContent=n.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 
-    async function initializeSystem(){
-        showLoading('Đang kết nối Firebase...');
-        try{
-            await db.collection('students').limit(1).get();
-            await loadStudentsFromDB();await loadQuestionSetsFromDB();await loadTodayExamsFromDB();await loadActivitiesFromDB();
-            loadDashboard();loadStudents();loadQuestionSets();loadStats();renderDashboardCharts();
-            showToast('Kết nối thành công!','success',2000);
-            setInterval(async()=>{await loadActivitiesFromDB();await loadTodayExamsFromDB();loadDashboard();},30000);
-        }catch(e){console.error(e);showToast('Lỗi: '+e.message,'error',8000);}
-        finally{hideLoading();}
+       async function updateDashboardCounts() {
+        // 1. Đếm người online (Đã có ở câu trả lời trước) - Giữ nguyên logic đó.
+        
+        // 2. Đếm tổng số học viên (Cách tối ưu chi phí: Không đếm real-time 50k docs)
+        // Ta sẽ dùng một thủ thuật: Đếm số lượng trong lần tải trang đầu tiên (nếu < 1000)
+        // Hoặc hiển thị "5000+"
+        
+        // Ở đây ta giả lập hoặc query count active users (thường < 1000)
+        try {
+            const activeSnapshot = await db.collection('students')
+                .where('status', '==', 'active')
+                .get();
+            
+            document.getElementById('dashTotalStudents').textContent = activeSnapshot.size + " (Đang học)";
+        } catch (e) {
+             document.getElementById('dashTotalStudents').textContent = "---";
+        }
     }
 
     // =====================================================================
@@ -2661,8 +2668,118 @@ async function saveAndClose() {
     // =====================================================================
     // STUDENTS
     // =====================================================================
-    function loadStudents(){updateStudentStats();filteredStudents=[...allStudents];currentPage=1;renderStudentTable();}
+       // 1. Tải danh sách học viên (SERVER-SIDE PAGINATION)
+    async function loadStudents(direction = 'first') {
+        showLoading('Đang tải dữ liệu...');
+        const tableBody = document.getElementById('studentsTableBody');
+        
+        try {
+            let query = db.collection('students');
 
+            // Nếu đang tìm kiếm, logic sẽ khác (xử lý ở hàm searchStudents)
+            if (isSearching) return; 
+
+            // Mặc định: Sắp xếp theo ngày tạo mới nhất
+            query = query.orderBy('createdAt', 'desc');
+
+            // Xử lý phân trang
+            if (direction === 'next' && lastVisibleDoc) {
+                paginationStack.push(lastVisibleDoc); // Lưu trang trước
+                query = query.startAfter(lastVisibleDoc);
+                currentPage++;
+            } else if (direction === 'prev' && paginationStack.length > 0) {
+                const prevDoc = paginationStack.pop();
+                // Logic quay lại hơi phức tạp với Firestore, 
+                // cách đơn giản nhất là reset stack về trang đó hoặc dùng thư viện.
+                // Ở đây ta dùng cách đơn giản: Load lại từ đầu và skip (không tối ưu lắm nhưng dễ code)
+                // Hoặc tốt nhất: Reload lại trang 1 nếu user ấn Prev quá nhiều, 
+                // hoặc lưu startAt của mỗi trang vào stack.
+                
+                // CÁCH ĐƠN GIẢN CHO ADMIN PANEL: 
+                // Khi Prev: Pop stack -> Lấy phần tử cuối cùng của stack mới làm startAfter
+                // Nếu stack rỗng -> Trang 1
+                
+                if (paginationStack.length === 0) {
+                    // Về trang 1
+                    currentPage = 1;
+                    lastVisibleDoc = null;
+                } else {
+                    const docToStartAfter = paginationStack[paginationStack.length - 1];
+                    query = query.startAfter(docToStartAfter);
+                    currentPage--;
+                }
+            } else if (direction === 'first') {
+                lastVisibleDoc = null;
+                paginationStack = [];
+                currentPage = 1;
+            }
+
+            // Giới hạn 20 item
+            query = query.limit(itemsPerPage);
+
+            const snapshot = await query.get();
+
+            if (!snapshot.empty) {
+                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+                currentStudentsList = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            } else {
+                if (direction === 'next') { 
+                    alert("Đã hết dữ liệu"); 
+                    currentPage--; // Revert page number
+                    hideLoading();
+                    return; 
+                }
+                currentStudentsList = [];
+            }
+
+                function renderStudentTable() {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '';
+        
+        if (currentStudentsList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Không có dữ liệu</td></tr>';
+            return;
+        }
+
+        currentStudentsList.forEach(s => {
+            const statusBadge = s.status === 'locked' 
+                ? '<span class="status-badge status-locked">Đã khóa</span>' 
+                : '<span class="status-badge status-active">Hoạt động</span>';
+            
+            const tr = `
+                <tr>
+                    <td><b>${s.code || s.id}</b></td>
+                    <td>${s.name}</td>
+                    <td>${s.unit}</td>
+                    <td>${s.dob || '--/--/----'}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+            tbody.innerHTML += tr;
+        });
+    }
+
+    // Hàm điều khiển phân trang mới
+    function renderPaginationControls() {
+        const container = document.getElementById('studentPagination');
+        
+        // Nút Prev chỉ hiện khi không phải trang 1
+        const prevDisabled = currentPage === 1 ? 'disabled' : '';
+        
+        container.innerHTML = `
+            <button class="btn btn-outline" onclick="loadStudents('prev')" ${prevDisabled}>❮ Trước</button>
+            <span style="padding: 0 10px; font-weight:bold;">Trang ${currentPage}</span>
+            <button class="btn btn-outline" onclick="loadStudents('next')">Sau ❯</button>
+        `;
+    }
+
+        } catch (error) {
+            console.error("Lỗi tải danh sách:", error);
+            alert("Lỗi tải dữ liệu. Hãy chắc chắn bạn đã tạo Index trong Firestore Console (xem Console log).");
+        } finally {
+            hideLoading();
+        }
+    }
     function updateStudentStats(){
         const ct=(s)=>{const c={};s.forEach(x=>{c[x.object]=(c[x.object]||0)+1;});return c;};
         const fmt=(c)=>{const o=['Sĩ quan','Chuyên nghiệp','Học viên'];let p='';o.forEach(k=>{if(c[k])p+=`<div>${k}: ${String(c[k]).padStart(2,'0')}</div>`;});Object.keys(c).forEach(k=>{if(!o.includes(k))p+=`<div>${k}: ${c[k]}</div>`;});return p||'<div>—</div>';};
