@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 
 <head>
@@ -2557,16 +2557,29 @@ async function saveAndClose() {
     if(localStorage.getItem("userType")!=="admin")location.href="index.html";
 
     // =====================================================================
-        // --- GLOBALS (PATCHED) ---
-    let currentStudentsList = []; // Chỉ chứa 20 học viên đang hiển thị
-    let lastVisibleDoc = null;    // Con trỏ đến cuối trang hiện tại
-    let paginationStack = [];     // Lưu lịch sử để quay lại trang trước
-    let isSearching = false;      // Trạng thái đang tìm kiếm hay không
-    let currentPage = 1;
-    const itemsPerPage = 20;
-    
-    // Biến lưu tổng số lượng (để hiển thị dashboard mà không cần tải hết doc)
-    let totalDocsCount = 0; 
+    // GLOBALS
+    // =====================================================================
+    let allStudents=[],filteredStudents=[],allQuestionSets=[],allResults=[];
+    let currentEditingCode=null,currentPage=1,currentSetForQuestions=null;
+    const itemsPerPage=20;
+    let sortDirection={},tempQuestions=[],pendingImportData=[],duplicatesFound=[];
+    let filterTimeout=null,confirmResolve=null;
+    let chartInstances={};
+    let systemSummary = {
+      totalStudents: 0,
+      activeStudents: 0,
+      lockedStudents: 0,
+      totalSets: 0
+    };
+        let studentPageCursor = null;
+        let studentPrevCursors = [];
+        let currentStudentRows = [];
+        let resultsCursor = null;
+        let resultsPrevCursors = [];
+        let currentResultsRows = [];
+        let resultsPage = 1;
+        const resultsPerPage = 50;
+    // =====================================================================
     // INIT
     // =====================================================================
     window.onload=function(){initializeSystem();updateClock();setInterval(updateClock,60000);
@@ -2577,24 +2590,41 @@ async function saveAndClose() {
 
     function updateClock(){const n=new Date();document.getElementById('currentTime').textContent=n.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 
-       async function updateDashboardCounts() {
-        // 1. Đếm người online (Đã có ở câu trả lời trước) - Giữ nguyên logic đó.
-        
-        // 2. Đếm tổng số học viên (Cách tối ưu chi phí: Không đếm real-time 50k docs)
-        // Ta sẽ dùng một thủ thuật: Đếm số lượng trong lần tải trang đầu tiên (nếu < 1000)
-        // Hoặc hiển thị "5000+"
-        
-        // Ở đây ta giả lập hoặc query count active users (thường < 1000)
-        try {
-            const activeSnapshot = await db.collection('students')
-                .where('status', '==', 'active')
-                .get();
-            
-            document.getElementById('dashTotalStudents').textContent = activeSnapshot.size + " (Đang học)";
-        } catch (e) {
-             document.getElementById('dashTotalStudents').textContent = "---";
-        }
-    }
+    async function initializeSystem(){
+  showLoading('Đang kết nối Firebase...');
+  try{
+    await db.collection('questionSets').limit(1).get();
+
+    // Load nhẹ
+    await loadQuestionSetsFromDB();
+    await loadSystemSummary();          // NEW: doc tổng hợp
+    await loadActivitiesFromDB();       // vẫn ok (limit 30)
+    await loadTodayExamsFromDB();       // ok
+
+    startOnlineListener();              // NEW: presence realtime
+
+    // Render theo trang
+    loadDashboardFromSummary();
+    loadQuestionSets();
+
+    // Không auto load all students/stats nữa
+    showToast('Kết nối thành công!','success',2000);
+
+    // refresh nhẹ, tránh query nặng
+    setInterval(async()=>{
+      await loadSystemSummary();
+      await loadActivitiesFromDB();
+      await loadTodayExamsFromDB();
+      loadDashboardFromSummary();
+    }, 60000);
+
+  }catch(e){
+    console.error(e);
+    showToast('Lỗi: '+e.message,'error',8000);
+  } finally {
+    hideLoading();
+  }
+}
 
     // =====================================================================
     // UTILITIES
@@ -2620,7 +2650,31 @@ async function saveAndClose() {
     async function loadQuestionSetsFromDB(){const s=await db.collection('questionSets').orderBy('createdAt','desc').get();allQuestionSets=s.docs.map(d=>({id:d.id,...d.data()}));}
     async function loadTodayExamsFromDB(){try{const t=new Date();t.setHours(0,0,0,0);const s=await db.collection('examResults').where('timestamp','>=',t).get();document.getElementById('todayExams').textContent=s.size;}catch(e){}}
     async function loadActivitiesFromDB(){try{const t=new Date();t.setHours(0,0,0,0);const s=await db.collection('examResults').where('timestamp','>=',t).orderBy('timestamp','desc').limit(30).get();const a=[];s.forEach(doc=>{const d=doc.data();const st=allStudents.find(x=>x.code===d.studentCode);const ts=d.timestamp?.toDate?d.timestamp.toDate():new Date(d.timestamp||Date.now());a.push({time:formatDateTime(ts),student:st?`${st.name} (${st.code})`:(d.studentCode||'?'),action:'Hoàn thành bài thi',detail:`${d.setName||d.setCode||''} - Điểm: ${d.score||0}`});});renderActivityTable(a);document.getElementById('todayExams').textContent=s.size;}catch(e){renderActivityTable([]);}}
+    async function loadSystemSummary(){
+  try {
+    const ref = db.collection('systemStats').doc('summary');
+    const snap = await ref.get();
+    if (snap.exists) {
+      systemSummary = { ...systemSummary, ...snap.data() };
+    } else {
+      // fallback tối thiểu nếu chưa có doc
+      systemSummary.totalSets = allQuestionSets.filter(s=>s.status==='active').length;
+    }
+  } catch (e) {
+    console.warn('loadSystemSummary error', e);
+  }
+}
 
+function loadDashboardFromSummary(){
+  // Online count lấy từ listener presence => #onlineCount
+  document.getElementById('totalStudents').textContent = systemSummary.totalStudents || 0;
+  document.getElementById('activeStudents').textContent = systemSummary.activeStudents || 0;
+  document.getElementById('warningCount').textContent = systemSummary.lockedStudents || 0;
+
+  // Nếu bạn đã thay card bộ đề -> online, thì totalSets không còn hiển thị.
+  // Nếu vẫn muốn hiển thị ở chỗ khác thì dùng:
+  // document.getElementById('totalSets').textContent = systemSummary.totalSets || 0;
+}
     // =====================================================================
     // DASHBOARD
     // =====================================================================
@@ -2668,118 +2722,113 @@ async function saveAndClose() {
     // =====================================================================
     // STUDENTS
     // =====================================================================
-       // 1. Tải danh sách học viên (SERVER-SIDE PAGINATION)
-    async function loadStudents(direction = 'first') {
-        showLoading('Đang tải dữ liệu...');
-        const tableBody = document.getElementById('studentsTableBody');
-        
-        try {
-            let query = db.collection('students');
-
-            // Nếu đang tìm kiếm, logic sẽ khác (xử lý ở hàm searchStudents)
-            if (isSearching) return; 
-
-            // Mặc định: Sắp xếp theo ngày tạo mới nhất
-            query = query.orderBy('createdAt', 'desc');
-
-            // Xử lý phân trang
-            if (direction === 'next' && lastVisibleDoc) {
-                paginationStack.push(lastVisibleDoc); // Lưu trang trước
-                query = query.startAfter(lastVisibleDoc);
-                currentPage++;
-            } else if (direction === 'prev' && paginationStack.length > 0) {
-                const prevDoc = paginationStack.pop();
-                // Logic quay lại hơi phức tạp với Firestore, 
-                // cách đơn giản nhất là reset stack về trang đó hoặc dùng thư viện.
-                // Ở đây ta dùng cách đơn giản: Load lại từ đầu và skip (không tối ưu lắm nhưng dễ code)
-                // Hoặc tốt nhất: Reload lại trang 1 nếu user ấn Prev quá nhiều, 
-                // hoặc lưu startAt của mỗi trang vào stack.
-                
-                // CÁCH ĐƠN GIẢN CHO ADMIN PANEL: 
-                // Khi Prev: Pop stack -> Lấy phần tử cuối cùng của stack mới làm startAfter
-                // Nếu stack rỗng -> Trang 1
-                
-                if (paginationStack.length === 0) {
-                    // Về trang 1
-                    currentPage = 1;
-                    lastVisibleDoc = null;
-                } else {
-                    const docToStartAfter = paginationStack[paginationStack.length - 1];
-                    query = query.startAfter(docToStartAfter);
-                    currentPage--;
-                }
-            } else if (direction === 'first') {
-                lastVisibleDoc = null;
-                paginationStack = [];
-                currentPage = 1;
-            }
-
-            // Giới hạn 20 item
-            query = query.limit(itemsPerPage);
-
-            const snapshot = await query.get();
-
-            if (!snapshot.empty) {
-                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-                currentStudentsList = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            } else {
-                if (direction === 'next') { 
-                    alert("Đã hết dữ liệu"); 
-                    currentPage--; // Revert page number
-                    hideLoading();
-                    return; 
-                }
-                currentStudentsList = [];
-            }
-
-                function renderStudentTable() {
-        const tbody = document.getElementById('studentsTableBody');
-        tbody.innerHTML = '';
-        
-        if (currentStudentsList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Không có dữ liệu</td></tr>';
-            return;
+    async function loadStudents(){
+      currentPage = 1;
+      studentPageCursor = null;
+      studentPrevCursors = [];
+      await fetchStudentsPage('first');
         }
+    async function fetchStudentsPage(direction='first'){
+  showLoading('Đang tải danh sách học viên...');
 
-        currentStudentsList.forEach(s => {
-            const statusBadge = s.status === 'locked' 
-                ? '<span class="status-badge status-locked">Đã khóa</span>' 
-                : '<span class="status-badge status-active">Hoạt động</span>';
-            
-            const tr = `
-                <tr>
-                    <td><b>${s.code || s.id}</b></td>
-                    <td>${s.name}</td>
-                    <td>${s.unit}</td>
-                    <td>${s.dob || '--/--/----'}</td>
-                    <td>${statusBadge}</td>
-                </tr>
-            `;
-            tbody.innerHTML += tr;
-        });
+  try {
+    const qText = document.getElementById('searchAll').value.toLowerCase().trim();
+    const fs = document.getElementById('filterStatus').value;
+    const fo = document.getElementById('filterObject').value;
+
+    let q = db.collection('students');
+
+    if (fs) q = q.where('status', '==', fs);
+    if (fo) q = q.where('object', '==', fo);
+
+    // Search tối ưu: ưu tiên mã HV nếu giống pattern HVxxxx / SQxxxx / CNxxxx
+    // Nếu qText ngắn hoặc không giống code -> search prefix theo nameSearch (chỉ prefix)
+    const looksLikeCode = /^[a-z]{2}\d{1,4}$/i.test(qText) || /^[a-z]{2}\d{4}$/i.test(qText);
+    if (qText) {
+      if (looksLikeCode) {
+        // code exact
+        q = q.where('code', '==', qText.toUpperCase());
+      } else {
+        // prefix theo nameSearch
+        const end = qText + '\uf8ff';
+        q = q.orderBy('nameSearch').startAt(qText).endAt(end);
+      }
+    } else {
+      q = q.orderBy('createdAt','desc');
     }
 
-    // Hàm điều khiển phân trang mới
-    function renderPaginationControls() {
-        const container = document.getElementById('studentPagination');
-        
-        // Nút Prev chỉ hiện khi không phải trang 1
-        const prevDisabled = currentPage === 1 ? 'disabled' : '';
-        
-        container.innerHTML = `
-            <button class="btn btn-outline" onclick="loadStudents('prev')" ${prevDisabled}>❮ Trước</button>
-            <span style="padding: 0 10px; font-weight:bold;">Trang ${currentPage}</span>
-            <button class="btn btn-outline" onclick="loadStudents('next')">Sau ❯</button>
-        `;
+    q = q.limit(itemsPerPage);
+
+    if (direction === 'next' && studentPageCursor) {
+      studentPrevCursors.push(studentPageCursor);
+      q = q.startAfter(studentPageCursor);
+    }
+    if (direction === 'prev') {
+      // quay lại: lấy cursor trước đó
+      const prev = studentPrevCursors.pop();
+      // Khi prev null => về first
+      studentPageCursor = prev || null;
+      return await fetchStudentsPage(prev ? 'firstFromCursor' : 'first');
+    }
+    if (direction === 'firstFromCursor' && studentPageCursor) {
+      q = q.startAfter(studentPageCursor);
     }
 
-        } catch (error) {
-            console.error("Lỗi tải danh sách:", error);
-            alert("Lỗi tải dữ liệu. Hãy chắc chắn bạn đã tạo Index trong Firestore Console (xem Console log).");
-        } finally {
-            hideLoading();
-        }
-    }
+    const snap = await q.get();
+    currentStudentRows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // cursor là doc cuối của trang hiện tại
+    studentPageCursor = snap.docs.length ? snap.docs[snap.docs.length - 1] : studentPageCursor;
+
+    renderStudentTableServer();
+  } catch (e) {
+    console.error(e);
+    showToast('Lỗi tải học viên: '+e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderStudentTableServer(){
+  const tb = document.getElementById('studentTableBody');
+  if (!currentStudentRows.length) {
+    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Không có dữ liệu</td></tr>`;
+    document.getElementById('studentPagination').innerHTML = '';
+    return;
+  }
+
+  let h = '';
+  currentStudentRows.forEach((s,i)=>{
+    const sc = s.status==='active'?'status-active':'status-locked';
+    const st2 = s.status==='active'?'● Hoạt động':'● Đã khóa';
+
+    h += `<tr>
+      <td>${(currentPage-1)*itemsPerPage + i + 1}</td>
+      <td><b>${escapeHtml(s.code||s.id||'')}</b></td>
+      <td style="text-align:left">${escapeHtml(s.name||'')}</td>
+      <td style="text-align:left">${escapeHtml(s.unit||'')}</td>
+      <td>${formatDate(s.dob)}</td>
+      <td>${escapeHtml(s.object||'')}</td>
+      <td class="no-print">
+        <span class="status-badge ${sc}" style="cursor:pointer" onclick="toggleStatus('${s.code}')">${st2}</span>
+      </td>
+      <td class="no-print">
+        <button class="btn btn-primary btn-sm" onclick="editStudent('${s.code}')">✎</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.code}')">🗑</button>
+      </td>
+    </tr>`;
+  });
+
+  tb.innerHTML = h;
+
+  // Pagination buttons đơn giản (prev/next)
+  const p = document.getElementById('studentPagination');
+  p.innerHTML = `
+    <button ${currentPage===1?'disabled':''} onclick="currentPage=Math.max(1,currentPage-1); fetchStudentsPage('prev')">⟨ Trước</button>
+    <button onclick="currentPage=currentPage+1; fetchStudentsPage('next')">Sau ⟩</button>
+    <span class="page-info">Trang ${currentPage} (tối đa ${itemsPerPage}/trang)</span>
+  `;
+}
     function updateStudentStats(){
         const ct=(s)=>{const c={};s.forEach(x=>{c[x.object]=(c[x.object]||0)+1;});return c;};
         const fmt=(c)=>{const o=['Sĩ quan','Chuyên nghiệp','Học viên'];let p='';o.forEach(k=>{if(c[k])p+=`<div>${k}: ${String(c[k]).padStart(2,'0')}</div>`;});Object.keys(c).forEach(k=>{if(!o.includes(k))p+=`<div>${k}: ${c[k]}</div>`;});return p||'<div>—</div>';};
@@ -2791,7 +2840,13 @@ async function saveAndClose() {
         document.getElementById('lockedByObject').innerHTML=fmt(ct(allStudents.filter(s=>s.status==='locked')));
     }
 
-    function applyFilters(){const q=document.getElementById('searchAll').value.toLowerCase().trim();const fs=document.getElementById('filterStatus').value;const fo=document.getElementById('filterObject').value;filteredStudents=allStudents.filter(s=>{const ms=!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)||s.unit.toLowerCase().includes(q);return ms&&(!fs||s.status===fs)&&(!fo||s.object===fo);});currentPage=1;renderStudentTable();}
+    function applyFilters(){
+      currentPage = 1;
+      studentPageCursor = null;
+      studentPrevCursors = [];
+      fetchStudentsPage('first',const courseId = document.getElementById('filterCourse')?.value || '';
+if (courseId) q = q.where('courseId', '==', courseId););
+}
 
     function renderStudentTable(){
         const tb=document.getElementById('studentTableBody');const st=(currentPage-1)*itemsPerPage;const pg=filteredStudents.slice(st,st+itemsPerPage);
@@ -2803,7 +2858,14 @@ async function saveAndClose() {
         tb.innerHTML=h;renderPagination();updatePrintInfo();
     }
 
-    async function toggleStatus(code){const s=allStudents.find(x=>x.code===code);if(!s)return;const ns=s.status==='active'?'locked':'active';try{await db.collection('students').doc(code).update({status:ns,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});s.status=ns;renderStudentTable();updateStudentStats();loadDashboard();showToast(`${s.name}: ${ns==='active'?'Mở khóa':'Khóa'}`,ns==='active'?'success':'warning');}catch(e){showToast('Lỗi: '+e.message,'error');}}
+    async function toggleStatus(code){const s=allStudents.find(x=>x.code===code);if(!s)return;const ns=s.status==='active'?'locked':'active';try{await db.collection('students').doc(code).update({status:ns,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});s.status=ns;renderStudentTable();updateStudentStats();loadDashboard();showToast(`${s.name}: ${ns==='active'?'Mở khóa':'Khóa'}`,ns==='active'?'success':'warning');}catch(e){showToast('Lỗi: '+e.message,'error');}}const incActive = (ns === 'active') ? 1 : -1;
+const incLocked = (ns === 'locked') ? 1 : -1;
+
+db.collection('systemStats').doc('summary').set({
+  activeStudents: firebase.firestore.FieldValue.increment(incActive),
+  lockedStudents: firebase.firestore.FieldValue.increment(incLocked),
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
 
     function renderPagination(){const tp=Math.ceil(filteredStudents.length/itemsPerPage);const p=document.getElementById('studentPagination');if(tp<=1){p.innerHTML=`<span class="page-info">Tổng: ${filteredStudents.length}</span>`;return;}let h=`<button onclick="changePage(1)" ${currentPage===1?'disabled':''}>⟨⟨</button><button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>⟨</button>`;let s=Math.max(1,currentPage-2),e=Math.min(tp,s+4);if(e-s<4)s=Math.max(1,e-4);if(s>1)h+='<span>...</span>';for(let i=s;i<=e;i++)h+=`<button onclick="changePage(${i})" class="${i===currentPage?'active':''}">${i}</button>`;if(e<tp)h+='<span>...</span>';h+=`<button onclick="changePage(${currentPage+1})" ${currentPage===tp?'disabled':''}>⟩</button><button onclick="changePage(${tp})" ${currentPage===tp?'disabled':''}>⟩⟩</button><span class="page-info">Trang ${currentPage}/${tp} (${filteredStudents.length})</span>`;p.innerHTML=h;}
     function changePage(p){const tp=Math.ceil(filteredStudents.length/itemsPerPage);if(p<1||p>tp)return;currentPage=p;renderStudentTable();}
@@ -2817,9 +2879,23 @@ async function saveAndClose() {
     async function saveStudent(){const nm=document.getElementById('studentName').value.trim();const un=document.getElementById('studentUnit').value.trim();const db2=document.getElementById('studentDob').value;let ob=document.getElementById('studentObject').value;if(!nm||!un){showToast('Nhập đầy đủ thông tin!','error');return;}if(ob==='other'){ob=document.getElementById('otherObjectName').value.trim();if(!ob){showToast('Nhập đối tượng!','error');return;}}
     const dup=allStudents.some(s=>{if(currentEditingCode&&s.code===currentEditingCode)return false;return s.name.toLowerCase()===nm.toLowerCase()&&s.unit.toLowerCase()===un.toLowerCase()&&s.dob===db2;});
     if(dup){const ok=await showConfirm('Trùng lặp',`"${nm}" đã tồn tại. Tiếp tục?`,'⚠️');if(!ok)return;}
-    showLoading('Đang lưu...');try{if(currentEditingCode){await db.collection('students').doc(currentEditingCode).update({name:nm,unit:un,dob:db2,object:ob,nameSearch:nm.toLowerCase(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});const s=allStudents.find(x=>x.code===currentEditingCode);if(s){s.name=nm;s.unit=un;s.dob=db2;s.object=ob;}showToast('Cập nhật OK!','success');}else{const pf=ob==='Học viên'?'HV':ob==='Sĩ quan'?'SQ':ob==='Chuyên nghiệp'?'CN':'KH';const mx=allStudents.filter(s=>s.code.startsWith(pf)).reduce((m,s)=>{const n=parseInt(s.code.substring(2));return n>m?n:m;},0);const nc=pf+String(mx+1).padStart(4,'0');const ns={code:nc,name:nm,unit:un,dob:db2,object:ob,status:'active',exams:0,bestScore:0,avgScore:0,nameSearch:nm.toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};await db.collection('students').doc(nc).set(ns);ns.createdAt=new Date();allStudents.unshift(ns);showToast(`Đã thêm: ${nc}`,'success');}closeModal('studentModal');loadStudents();loadDashboard();}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}}
+    showLoading('Đang lưu...');try{if(currentEditingCode){await db.collection('students').doc(currentEditingCode).update({name:nm,unit:un,dob:db2,object:ob,nameSearch:nm.toLowerCase(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});const s=allStudents.find(x=>x.code===currentEditingCode);if(s){s.name=nm;s.unit=un;s.dob=db2;s.object=ob;}showToast('Cập nhật OK!','success');}else{const pf=ob==='Học viên'?'HV':ob==='Sĩ quan'?'SQ':ob==='Chuyên nghiệp'?'CN':'KH';const mx=allStudents.filter(s=>s.code.startsWith(pf)).reduce((m,s)=>{const n=parseInt(s.code.substring(2));return n>m?n:m;},0);const nc=pf+String(mx+1).padStart(4,'0');const ns={code:nc,name:nm,unit:un,dob:db2,object:ob,status:'active',exams:0,bestScore:0,avgScore:0,nameSearch:nm.toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};await db.collection('students').doc(nc).set(ns);
+                                                                                                                                                                                                                                                                                                                                                                                                        // update summary (best effort)
+db.collection('systemStats').doc('summary').set({
+  totalStudents: firebase.firestore.FieldValue.increment(1),
+  activeStudents: firebase.firestore.FieldValue.increment(1),
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
+                                                                                                                                                                                                                                                                                                                                                                                                        ns.createdAt=new Date();allStudents.unshift(ns);showToast(`Đã thêm: ${nc}`,'success');}closeModal('studentModal');loadStudents();loadDashboard();}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}}
 
     async function deleteStudent(c){const s=allStudents.find(x=>x.code===c);if(!s)return;const ok=await showConfirm('Xóa học viên',`Xóa "${s.name}" (${c})?`,'🗑️');if(!ok)return;showLoading('Đang xóa...');try{await db.collection('students').doc(c).delete();const i=allStudents.findIndex(x=>x.code===c);if(i>-1)allStudents.splice(i,1);showToast(`Đã xóa ${c}`,'success');loadStudents();loadDashboard();}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}}
+        const wasActive = s.status === 'active';
+db.collection('systemStats').doc('summary').set({
+  totalStudents: firebase.firestore.FieldValue.increment(-1),
+  activeStudents: firebase.firestore.FieldValue.increment(wasActive ? -1 : 0),
+  lockedStudents: firebase.firestore.FieldValue.increment(wasActive ? 0 : -1),
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
 
     function toggleOtherField(){document.getElementById('otherObjectGroup').style.display=document.getElementById('studentObject').value==='other'?'block':'none';}
 
@@ -2831,7 +2907,11 @@ async function saveAndClose() {
     async function processExcelImport(){if(pendingImportData.length>0&&duplicatesFound.length>0){await importStudents();return;}const fi=document.getElementById('excelFile');if(!fi.files[0]){showToast('Chọn file!','error');return;}const rd=new FileReader();rd.onload=async function(e){try{const d=new Uint8Array(e.target.result);const wb=XLSX.read(d,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const jd=XLSX.utils.sheet_to_json(ws,{header:1});pendingImportData=[];duplicatesFound=[];for(let i=1;i<jd.length;i++){const r=jd[i];if(!r[0]||!r[0].toString().trim())continue;const nm=r[0].toString().trim();const un=r[1]?r[1].toString().trim():'';if(!un)continue;const ot=r[2]?r[2].toString().toUpperCase().trim():'HV';const ds=r[3]?r[3].toString().trim():'';let dob='';if(ds){const p=ds.split('/');if(p.length===3)dob=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;else if(ds.includes('-'))dob=ds;}let ob='Học viên',pf='HV';if(ot==='SQ'){ob='Sĩ quan';pf='SQ';}else if(ot==='CN'){ob='Chuyên nghiệp';pf='CN';}const sd={name:nm,unit:un,object:ob,prefix:pf,dob,row:i+1};if(allStudents.some(s=>s.name.toLowerCase()===nm.toLowerCase()&&s.unit.toLowerCase()===un.toLowerCase()&&s.dob===dob))duplicatesFound.push(sd);else pendingImportData.push(sd);}if(duplicatesFound.length>0){let h='';duplicatesFound.forEach((s,i)=>{h+=`<div class="duplicate-item"><b>Dòng ${s.row}:</b> ${s.name} - ${s.unit}</div>`;});document.getElementById('duplicateList').innerHTML=h;document.getElementById('duplicateWarning').style.display='block';document.getElementById('importBtn').textContent=`✓ Nhập ${pendingImportData.length} (bỏ ${duplicatesFound.length})`;}else if(pendingImportData.length>0)await importStudents();else showToast('Không có dữ liệu!','error');}catch(er){showToast('Lỗi: '+er.message,'error');}};rd.readAsArrayBuffer(fi.files[0]);}
 
     async function importStudents(){if(!pendingImportData.length){showToast('Không có HV!','warning');return;}showLoading(`Nhập ${pendingImportData.length} HV...`);try{let ct={};allStudents.forEach(s=>{const p=s.code.substring(0,2);const n=parseInt(s.code.substring(2))||0;if(!ct[p]||n>ct[p])ct[p]=n;});for(let i=0;i<pendingImportData.length;i+=500){const batch=db.batch();const chunk=pendingImportData.slice(i,i+500);for(const sd of chunk){ct[sd.prefix]=(ct[sd.prefix]||0)+1;const nc=sd.prefix+String(ct[sd.prefix]).padStart(4,'0');const ns={code:nc,name:sd.name,unit:sd.unit,dob:sd.dob,object:sd.object,status:'active',exams:0,bestScore:0,avgScore:0,nameSearch:sd.name.toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};batch.set(db.collection('students').doc(nc),ns);ns.createdAt=new Date();allStudents.push(ns);}await batch.commit();}showToast(`Đã nhập ${pendingImportData.length} HV!`,'success',5000);closeModal('importModal');loadStudents();loadDashboard();}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}}
-
+    db.collection('systemStats').doc('summary').set({
+  totalStudents: firebase.firestore.FieldValue.increment(pendingImportData.length),
+  activeStudents: firebase.firestore.FieldValue.increment(pendingImportData.length),
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
     function exportToExcel(){const ed=filteredStudents.length?filteredStudents:allStudents;const d=[['STT','Mã HV','Họ tên','Đơn vị','Ngày sinh','Đối tượng','Trạng thái','Lần thi','Điểm max','Điểm TB']];ed.forEach((s,i)=>{d.push([i+1,s.code,s.name,s.unit,formatDate(s.dob),s.object,s.status==='active'?'Hoạt động':'Khóa',s.exams||0,s.bestScore||0,s.avgScore||0]);});const ws=XLSX.utils.aoa_to_sheet(d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'DS');XLSX.writeFile(wb,`HocVien_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);showToast(`Xuất ${ed.length} HV`,'success');}
     function printTable(){window.print();}
 
@@ -2876,8 +2956,91 @@ async function saveAndClose() {
     // =====================================================================
     // RESULTS
     // =====================================================================
-    async function loadExamResults(){const f=document.getElementById('resultDateFrom').value;const t=document.getElementById('resultDateTo').value;if(!f){showToast('Chọn ngày bắt đầu','info');return;}showLoading('Đang tải...');try{let q=db.collection('examResults').orderBy('timestamp','desc');const fd=new Date(f);fd.setHours(0,0,0,0);q=q.where('timestamp','>=',fd);if(t){const td=new Date(t);td.setHours(23,59,59,999);q=q.where('timestamp','<=',td);}const snap=await q.limit(500).get();allResults=snap.docs.map(d=>{const dt=d.data();const st=allStudents.find(s=>s.code===dt.studentCode);return{id:d.id,...dt,studentName:st?.name||'?',timestamp:dt.timestamp?.toDate?dt.timestamp.toDate():new Date()};});renderResultsTable();}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}}
+    async function loadExamResults(direction='first'){
+  const f = document.getElementById('resultDateFrom').value;
+  const t = document.getElementById('resultDateTo').value;
+  if(!f){ showToast('Chọn ngày bắt đầu','info'); return; }
 
+  showLoading('Đang tải kết quả...');
+  try{
+    let q = db.collection('examResults').orderBy('timestamp','desc');
+
+    const fd = new Date(f); fd.setHours(0,0,0,0);
+    q = q.where('timestamp','>=', fd);
+
+    if(t){
+      const td = new Date(t); td.setHours(23,59,59,999);
+      q = q.where('timestamp','<=', td);
+    }
+
+    q = q.limit(resultsPerPage);
+
+    if(direction==='next' && resultsCursor){
+      resultsPrevCursors.push(resultsCursor);
+      q = q.startAfter(resultsCursor);
+      resultsPage++;
+    }
+    if(direction==='prev'){
+      const prev = resultsPrevCursors.pop();
+      resultsCursor = prev || null;
+      resultsPage = Math.max(1, resultsPage-1);
+      return await loadExamResults(prev ? 'firstFromCursor' : 'first');
+    }
+    if(direction==='first'){
+      resultsCursor = null;
+      resultsPrevCursors = [];
+      resultsPage = 1;
+    }
+    if(direction==='firstFromCursor' && resultsCursor){
+      q = q.startAfter(resultsCursor);
+    }
+
+    const snap = await q.get();
+    currentResultsRows = snap.docs.map(d=>{
+      const dt = d.data();
+      // KHÔNG join allStudents nữa (vì không load all)
+      return {
+        id: d.id,
+        ...dt,
+        timestamp: dt.timestamp?.toDate ? dt.timestamp.toDate() : new Date(dt.timestamp||Date.now()),
+        studentName: dt.studentName || '' // khuyến nghị lưu sẵn studentName trong examResults
+      };
+    });
+
+    resultsCursor = snap.docs.length ? snap.docs[snap.docs.length-1] : resultsCursor;
+
+    renderResultsTableServer();
+  }catch(e){
+    showToast('Lỗi: '+e.message,'error');
+  }finally{
+    hideLoading();
+  }
+}
+
+    function renderResultsTableServer(){
+  const tb=document.getElementById('resultsTableBody');
+  if(!currentResultsRows.length){
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Không có kết quả</td></tr>';
+    return;
+  }
+  let h='';
+  currentResultsRows.forEach((r,i)=>{
+    const pass = (r.score||0) >= 80;
+    h += `<tr>
+      <td>${(resultsPage-1)*resultsPerPage + i + 1}</td>
+      <td>${formatDateTime(r.timestamp)}</td>
+      <td><b>${escapeHtml(r.studentCode||'')}</b></td>
+      <td style="text-align:left">${escapeHtml(r.studentName||'')}</td>
+      <td>${escapeHtml(r.setName||r.setCode||'')}</td>
+      <td><b>${r.score||0}</b></td>
+      <td><span class="rate ${pass?'good':'bad'}">${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span></td>
+    </tr>`;
+  });
+  tb.innerHTML = h;
+
+  // thêm pagination đơn giản (bạn có thể đặt vào toolbar)
+  // (Nếu muốn, mình sẽ patch thêm html nút prev/next)
+}
     function renderResultsTable(){const tb=document.getElementById('resultsTableBody');if(!allResults.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Không có kết quả</td></tr>';return;}let h='';allResults.forEach((r,i)=>{const pass=r.score>=80;h+=`<tr><td>${i+1}</td><td>${formatDateTime(r.timestamp)}</td><td><b>${r.studentCode||''}</b></td><td style="text-align:left">${r.studentName}</td><td>${r.setName||r.setCode||''}</td><td><b>${r.score||0}</b></td><td><span class="rate ${pass?'good':'bad'}">${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span></td></tr>`;});tb.innerHTML=h;}
 
     function exportResults(){if(!allResults.length){showToast('Không có dữ liệu!','warning');return;}const d=[['STT','Thời gian','Mã HV','Họ tên','Đề','Điểm','Kết quả']];allResults.forEach((r,i)=>{d.push([i+1,formatDateTime(r.timestamp),r.studentCode,r.studentName,r.setName||'',r.score||0,r.score>=80?'Đạt':'Trượt']);});const ws=XLSX.utils.aoa_to_sheet(d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'KetQua');XLSX.writeFile(wb,`KetQua_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);showToast('Đã xuất báo cáo','success');}
