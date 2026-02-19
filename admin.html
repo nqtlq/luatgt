@@ -460,38 +460,40 @@
  #printHeader { display: none; }
  .print-letterhead, .print-date, .print-title { display: none; }
  @media print {
-   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-   header, aside, .toolbar, .btn, .statGrid, .pagination,
-   .no-print, .toast-container, .loading-overlay, .dash-grid,
-   .chart-grid, .miniStats, .sidebar-overlay,
-   .confirm-dialog, .modal { display: none !important; }
-   body { background: white !important; color: black !important; margin: 0; padding: 0; }
-   #layout { display: block; }
-   main { padding: 0 !important; margin: 0; }
-   .page { display: none !important; }
-   #students.page { display: block !important; }
-   .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
-   #printHeader { display: block !important; margin-bottom: 8px; }
-   .print-letterhead { width: 100%; border-collapse: collapse; border: none; margin-bottom: 2px; display: table !important; }
-   .print-letterhead td { border: none; padding: 0; vertical-align: top; width: 50%; }
-   .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
-   .letterhead-left div:first-child { font-size: 10pt; }
-   .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-   .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
-   .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-   .letterhead-motto { font-size: 11pt; font-weight: bold; }
-   .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
-   .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
-   .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
-   #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-   .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
-   table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
-   th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
-   th { background: #e8e8e8 !important; font-weight: bold !important; }
-   tbody tr:nth-child(even) { background: #f9f9f9 !important; }
-   .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
-   @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: .5cm; margin-right: 1.5cm; size: A4 portrait; }
- }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  header, aside, .toolbar, .btn, .statGrid, .pagination,
+  .no-print, .toast-container, .loading-overlay, .dash-grid,
+  .chart-grid, .miniStats, .sidebar-overlay,
+  .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
+  body { background: white !important; color: black !important; margin: 0; padding: 0; }
+  #layout { display: block; }
+  main { padding: 0 !important; margin: 0; }
+  .page { display: none !important; }
+  #students.page { display: block !important; }
+  .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
+  .box > h3 { display: none !important; }
+  #printHeader { display: block !important; margin-bottom: 8px; }
+  .print-letterhead { width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 2px; display: table !important; }
+  .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
+  .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
+  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
+  .letterhead-left div:first-child { font-size: 10pt; }
+  .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
+  .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .letterhead-motto { font-size: 11pt; font-weight: bold; }
+  .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
+  .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
+  .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
+  #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
+  .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+  table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
+  th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
+  th { background: #e8e8e8 !important; font-weight: bold !important; }
+  tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+  .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
+  @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
+}
 
  @media (min-width: 768px) { .header-clock { display: block; } }
  @media (max-width: 768px) {
@@ -596,6 +598,73 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
 }
+  /* ===== LIET POSITION INPUTS ===== */
+.liet-positions-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+.liet-pos-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+}
+.liet-pos-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #856404;
+  margin: 0;
+  white-space: nowrap;
+}
+.liet-pos-item input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid var(--warning);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--warning);
+  background: var(--bg-input);
+}
+.liet-pos-item input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(13,110,253,0.15);
+}
+
+/* ===== MAINTENANCE BANNER ===== */
+.maintenance-banner {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  text-align: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  animation: maintBlink 2s infinite;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 99;
+  display: none;
+}
+.maintenance-banner.show { display: block; }
+@keyframes maintBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* ===== PRINT: hide box h3 completely ===== */
+@media print {
+  .box > h3 { display: none !important; }
+  .maintenance-banner { display: none !important; }
+}
  </style>
 </head>
 <body>
@@ -624,32 +693,37 @@
 
  <!-- HEADER -->
  <header>
-   <div class="header-left">
-     <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
-     <div class="logo">
-       <div class="logo-icon">🚦</div>
-       <span>ADMIN PANEL - TRANG QUẢN TRỊ HỆ THỐNG</span>
-     </div>
-   </div>
-   <div class="header-right">
-     <div class="header-clock" id="currentTime"></div>
-     <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()" title="Đổi giao diện">🌙</button>
-     <button class="header-notif" title="Thông báo">
-       🔔
-       <span class="notif-badge" id="notifBadge">0</span>
-     </button>
-     <div class="header-user">
-       <div class="avatar" id="adminAvatar">A</div>
-       <div class="user-info">
-         <div class="user-name" id="headerAdminName">Admin</div>
-         <div class="user-role">👑 Quản trị viên</div>
-       </div>
-     </div>
-     <button class="logout-btn" onclick="logout()">
-       <span>🚪</span> Đăng xuất
-     </button>
-   </div>
- </header>
+  <div class="header-left">
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <span id="headerTitle">ADMIN PANEL</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-clock" id="currentTime"></div>
+    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()" title="Đổi giao diện">🌙</button>
+    <button class="header-notif" title="Thông báo">
+      🔔
+      <span class="notif-badge" id="notifBadge">0</span>
+    </button>
+    <div class="header-user">
+      <div class="avatar" id="adminAvatar">A</div>
+      <div class="user-info">
+        <div class="user-name" id="headerAdminName">Admin</div>
+        <div class="user-role">👑 Quản trị viên</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">
+      <span>🚪</span> Đăng xuất
+    </button>
+  </div>
+</header>
+
+<!-- MAINTENANCE BANNER -->
+<div class="maintenance-banner" id="maintenanceBanner">
+  ⚠ HỆ THỐNG ĐANG TRONG CHẾ ĐỘ BẢO TRÌ / NÂNG CẤP ⚠
+</div>
 
  <div id="layout">
    <!-- SIDEBAR -->
@@ -923,82 +997,92 @@
      </div>
 
      <!-- ========== CONFIG SET PAGE ========== -->
-     <div id="set_config_page" class="page">
-       <div class="back-btn"><button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button></div>
-       <div class="box">
-         <h3>⚙️ Cài đặt: <span id="configSetName" style="color:var(--success)"></span></h3>
-         <div class="info-section">
-           <div class="section-card">
-             <div class="section-title">📌 Thông tin</div>
-             <div class="form-row" style="margin-bottom:14px">
-               <div><label>Tên</label><input type="text" id="configName" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
-               <div><label>Mã</label><input type="text" id="configCode" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
-             </div>
-             <label>Tổng số câu hỏi *</label>
-             <input type="number" id="configTotalQuestions" min="1" max="200" placeholder="30" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
-           </div>
-         </div>
+<div id="set_config_page" class="page">
+  <div class="back-btn"><button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button></div>
+  <div class="box">
+    <h3>⚙ Cài đặt: <span id="configSetName" style="color:var(--success)"></span></h3>
+    <div class="info-section">
+      <div class="section-card">
+        <div class="section-title">📋 Thông tin</div>
+        <div class="form-row" style="margin-bottom:14px">
+          <div><label>Tên</label><input type="text" id="configName" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
+          <div><label>Mã</label><input type="text" id="configCode" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
+        </div>
+        <label>Tổng số câu hỏi *</label>
+        <input type="number" id="configTotalQuestions" min="1" max="200" placeholder="30" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
+      </div>
+    </div>
 
-         <div class="groups-section">
-           <div class="section-card">
-             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-               <div class="section-title" style="margin:0;border:none;padding:0;">📂 Phân bổ câu hỏi</div>
-               <button class="btn btn-success btn-sm" onclick="addConfigGroup()">➕ Thêm nhóm</button>
-             </div>
-             <div id="configGroupsContainer"></div>
-             <div style="margin-top:14px;padding:12px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:4px">
-               <div style="display:flex;justify-content:space-between"><span style="font-weight:600;color:var(--accent)">Đã phân bổ:</span><span id="totalAllocated" style="font-size:18px;font-weight:700;color:var(--accent)">0</span></div>
-               <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:13px;color:var(--text-muted)">Còn lại:</span><span id="remainingQuestions" style="font-size:16px;font-weight:600;color:var(--success)">0</span></div>
-             </div>
-           </div>
-         </div>
+    <div class="groups-section">
+      <div class="section-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div class="section-title" style="margin:0;border:none;padding:0;">📦 Phân bổ câu hỏi</div>
+          <button class="btn btn-success btn-sm" onclick="addConfigGroup()">➕ Thêm nhóm</button>
+        </div>
+        <div id="configGroupsContainer"></div>
+        <div style="margin-top:14px;padding:12px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:4px">
+          <div style="display:flex;justify-content:space-between"><span style="font-weight:600;color:var(--accent)">Đã phân bổ:</span><span id="totalAllocated" style="font-size:18px;font-weight:700;color:var(--accent)">0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:13px;color:var(--text-muted)">Còn lại:</span><span id="remainingQuestions" style="font-size:16px;font-weight:600;color:var(--success)">0</span></div>
+        </div>
+      </div>
+    </div>
 
-         <div class="liet-section">
-           <div class="section-card">
-             <div class="section-title">⚠️ Câu hỏi liệt</div>
-             <div class="liet-checkbox">
-               <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
-               <label for="configHasLiet">Có câu liệt</label>
-             </div>
-             <div id="configLietContainer" style="display:none;margin-top:12px">
-               <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;">
-                 <div>
-                   <label>Câu số liệt:</label>
-                   <input type="number" id="configLietNumber" min="1" placeholder="1" oninput="updateConfigSummary()" style="max-width:120px;font-size:16px;font-weight:600;color:var(--warning)">
-                 </div>
-               </div>
-               <!-- UPLOAD NHÓM CÂU HỎI LIỆT -->
-               <div class="liet-upload-area">
-                 <h5>📎 Upload nhóm câu hỏi liệt (Excel)</h5>
-                 <p style="font-size:12px;color:#856404;margin-bottom:10px;">
-                   File Excel cần có cấu trúc: <b>Câu hỏi | Đáp án 1 | Đáp án 2 | Đáp án 3 | Đáp án 4 | Đáp án đúng (1-4) | Ảnh</b>
-                 </p>
-                 <div class="file-input-wrapper">
-                   <input type="file" id="configLietFile" accept=".xlsx,.xls" onchange="handleConfigLietFileUpload(this)">
-                   <label for="configLietFile" class="file-input-label">📎 Chọn file Excel câu hỏi liệt...</label>
-                 </div>
-                 <div id="configLietFileStatus" style="display:none;margin-top:8px;padding:8px;border-radius:6px;font-size:12px;"></div>
-                 <div id="configLietPreview" style="display:none;margin-top:10px;"></div>
-                 <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="configLietActions" style="display:none;">
-                   <button class="btn btn-warning btn-sm" onclick="saveLietQuestions()" id="saveLietBtn" style="display:none;">💾 Lưu câu hỏi liệt</button>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
+    <div class="liet-section">
+      <div class="section-card">
+        <div class="section-title">⚠ Câu hỏi liệt</div>
+        <div class="liet-checkbox">
+          <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
+          <label for="configHasLiet">Có câu liệt</label>
+        </div>
+        <div id="configLietContainer" style="display:none;margin-top:12px">
+          <!-- Số lượng câu liệt -->
+          <div style="margin-bottom:14px;">
+            <label style="font-weight:700;color:#856404;">Số lượng câu hỏi liệt:</label>
+            <input type="number" id="configLietCount" min="1" max="20" value="1" placeholder="1" oninput="updateLietPositions();updateConfigSummary()" style="max-width:100px;font-size:16px;font-weight:600;color:var(--warning);margin-left:8px;">
+          </div>
 
-         <div class="summary-box">
-           <div style="font-weight:700;margin-bottom:10px">📊 Tổng quan</div>
-           <div class="summary-item"><span class="label">Tổng câu:</span><span class="value" id="configSummaryTotal">0</span></div>
-           <div class="summary-item"><span class="label">Số nhóm:</span><span class="value" id="configSummaryGroups">0</span></div>
-           <div class="summary-item"><span class="label">Câu liệt:</span><span class="value" id="configSummaryLiet">Không</span></div>
-         </div>
-         <div class="toolbar" style="justify-content:flex-end;margin-top:20px;padding-top:20px;border-top:2px solid var(--border)">
-           <button class="btn btn-secondary" onclick="backToQuestionSets()">Hủy</button>
-           <button class="btn btn-success" onclick="saveQuestionSetConfig()">💾 Lưu cài đặt</button>
-         </div>
-       </div>
-     </div>
+          <!-- Vị trí câu liệt trong đề -->
+          <div style="margin-bottom:14px;">
+            <label style="font-weight:700;color:#856404;">Vị trí câu liệt trong đề:</label>
+            <p style="font-size:11px;color:var(--text-muted);margin:4px 0 8px;">Xác định câu số mấy trong đề sẽ là câu liệt</p>
+            <div class="liet-positions-container" id="lietPositionsContainer">
+              <!-- Sẽ được tạo động -->
+            </div>
+          </div>
+
+          <!-- UPLOAD NHÓM CÂU HỎI LIỆT -->
+          <div class="liet-upload-area">
+            <h5>📁 Upload nhóm câu hỏi liệt (Excel)</h5>
+            <p style="font-size:12px;color:#856404;margin-bottom:10px;">
+              File Excel cần có cấu trúc: <b>Câu hỏi | Đáp án 1 | Đáp án 2 | Đáp án 3 | Đáp án 4 | Đáp án đúng (1-4) | Ảnh</b>
+            </p>
+            <div class="file-input-wrapper">
+              <input type="file" id="configLietFile" accept=".xlsx,.xls" onchange="handleConfigLietFileUpload(this)">
+              <label for="configLietFile" class="file-input-label">📁 Chọn file Excel câu hỏi liệt...</label>
+            </div>
+            <div id="configLietFileStatus" style="display:none;margin-top:8px;padding:8px;border-radius:6px;font-size:12px;"></div>
+            <div id="configLietPreview" style="display:none;margin-top:10px;"></div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="configLietActions">
+              <button class="btn btn-warning btn-sm" onclick="saveLietQuestions()" id="saveLietBtn" style="display:none;">💾 Lưu câu hỏi liệt</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <div style="font-weight:700;margin-bottom:10px">📊 Tổng quan</div>
+      <div class="summary-item"><span class="label">Tổng câu:</span><span class="value" id="configSummaryTotal">0</span></div>
+      <div class="summary-item"><span class="label">Số nhóm:</span><span class="value" id="configSummaryGroups">0</span></div>
+      <div class="summary-item"><span class="label">Câu liệt:</span><span class="value" id="configSummaryLiet">Không</span></div>
+    </div>
+
+    <div class="toolbar" style="justify-content:flex-end;margin-top:20px;padding-top:20px;border-top:2px solid var(--border)">
+      <button class="btn btn-secondary" onclick="backToQuestionSets()">Hủy</button>
+      <button class="btn btn-success" onclick="saveQuestionSetConfig()">💾 Lưu cài đặt</button>
+    </div>
+  </div>
+</div>
 
      <!-- ========== ADD QUESTIONS PAGE ========== -->
      <div id="add_questions_page" class="page">
@@ -1354,13 +1438,11 @@ D. Đáp án D
       <!-- Bảo trì hệ thống -->
       <div class="system-card" style="grid-column: span 2;">
         <h4>🔧 Bảo trì hệ thống</h4>
-        <p>Khi bật chế độ bảo trì, người dùng sẽ thấy trang thông báo "Hệ thống đang bảo trì, nâng cấp" thay vì trang đăng nhập.</p>
-        <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode()" style="width:20px;height:20px;cursor:pointer;">
-            <span style="font-weight:700;font-size:14px;" id="maintenanceLabel">Tắt</span>
-          </label>
-          <span id="maintenanceStatus" style="font-size:12px;color:var(--text-muted);"></span>
+        <p>Khi bật chế độ bảo trì, người dùng sẽ thấy trang thông báo "Hệ thống đang bảo trì, nâng cấp" thay vì trang đăng nhập. Tiêu đề trang Admin cũng sẽ hiển thị trạng thái bảo trì.</p>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-warning" id="btnEnableMaintenance" onclick="enableMaintenanceMode()">🔧 Bật bảo trì</button>
+          <button class="btn btn-success" id="btnDisableMaintenance" onclick="disableMaintenanceMode()" style="display:none;">✅ Tắt bảo trì</button>
+          <span id="maintenanceStatusText" style="font-size:13px;color:var(--text-muted);"></span>
         </div>
       </div>
 
@@ -1559,17 +1641,19 @@ let generatedVerifyCode = '';
 // INIT
 // =====================================================================
 window.onload = async function () {
-  // Check maintenance mode first
+  // Check maintenance mode
+  let isMaintenanceOn = false;
   try {
     const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
     if (maintDoc.exists && maintDoc.data().enabled) {
+      isMaintenanceOn = true;
       const userType = localStorage.getItem('userType');
       if (userType !== 'admin') {
         document.getElementById('maintenancePage').style.display = 'flex';
         return;
       }
     }
-  } catch(e) {}
+  } catch (e) { }
 
   initializeSystem();
   updateClock();
@@ -1583,11 +1667,7 @@ window.onload = async function () {
   const adminName = localStorage.getItem('adminName') || 'Admin';
   document.getElementById('headerAdminName').textContent = adminName;
   document.getElementById('adminAvatar').textContent = adminName.charAt(0).toUpperCase();
-
-  // Load maintenance toggle state
-  loadMaintenanceState();
 };
-
 function updateThemeIcon(theme) {
   const btn = document.getElementById('themeToggleBtn');
   if (btn) btn.textContent = theme === 'dark' ? '☀' : '🌙';
@@ -1616,6 +1696,7 @@ async function initializeSystem() {
     loadStats();
     renderDashboardCharts();
     renderStatsCharts();
+    await loadMaintenanceState();
     showToast('Kết nối thành công!', 'success', 2000);
     setInterval(async () => {
       await loadActivitiesFromDB();
@@ -2532,50 +2613,101 @@ async function confirmResetSystem() {
 }
 
 // --- Bảo trì hệ thống ---
+// =====================================================================
+// MAINTENANCE MODE
+// =====================================================================
 async function loadMaintenanceState() {
   try {
     const doc = await db.collection('systemConfig').doc('maintenance').get();
     const enabled = doc.exists && doc.data().enabled;
-    const toggle = document.getElementById('maintenanceToggle');
-    const label = document.getElementById('maintenanceLabel');
-    const status = document.getElementById('maintenanceStatus');
-    if (toggle) toggle.checked = enabled;
-    if (label) label.textContent = enabled ? 'Đang bật' : 'Tắt';
-    if (label) label.style.color = enabled ? 'var(--danger)' : 'var(--text-secondary)';
-    if (status && enabled && doc.data().enabledAt) {
-      const dt = doc.data().enabledAt.toDate ? doc.data().enabledAt.toDate() : new Date(doc.data().enabledAt);
-      status.textContent = `Bật từ: ${formatDateTime(dt)}`;
-    } else if (status) { status.textContent = ''; }
-  } catch(e) {}
+    updateMaintenanceUI(enabled, doc.exists ? doc.data() : null);
+  } catch (e) {
+    console.warn('Load maintenance state error:', e);
+  }
 }
 
-async function toggleMaintenanceMode() {
-  const toggle = document.getElementById('maintenanceToggle');
-  const enabled = toggle.checked;
-  const label = document.getElementById('maintenanceLabel');
+function updateMaintenanceUI(enabled, data) {
+  const btnEnable = document.getElementById('btnEnableMaintenance');
+  const btnDisable = document.getElementById('btnDisableMaintenance');
+  const statusText = document.getElementById('maintenanceStatusText');
+  const banner = document.getElementById('maintenanceBanner');
+  const headerTitle = document.getElementById('headerTitle');
 
-  if (enabled) {
-    const ok = await showConfirm('Bật bảo trì', 'Khi bật, tất cả người dùng (trừ Admin) sẽ thấy trang bảo trì thay vì trang đăng nhập. Tiếp tục?', '🔧');
-    if (!ok) { toggle.checked = false; return; }
+  if (btnEnable) btnEnable.style.display = enabled ? 'none' : 'inline-flex';
+  if (btnDisable) btnDisable.style.display = enabled ? 'inline-flex' : 'none';
+
+  if (statusText) {
+    if (enabled && data && data.enabledAt) {
+      const dt = data.enabledAt.toDate ? data.enabledAt.toDate() : new Date(data.enabledAt);
+      statusText.innerHTML = `<span style="color:var(--danger);font-weight:700;">🔴 Đang bảo trì</span> — Bật từ: ${formatDateTime(dt)}`;
+    } else if (enabled) {
+      statusText.innerHTML = '<span style="color:var(--danger);font-weight:700;">🔴 Đang bảo trì</span>';
+    } else {
+      statusText.innerHTML = '<span style="color:var(--success);">🟢 Hệ thống hoạt động bình thường</span>';
+    }
   }
 
+  // Banner
+  if (banner) {
+    if (enabled) {
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+
+  // Header title
+  if (headerTitle) {
+    if (enabled) {
+      headerTitle.innerHTML = 'ADMIN PANEL <span style="font-size:11px;opacity:0.9;background:rgba(220,53,69,0.3);padding:3px 8px;border-radius:10px;margin-left:8px;">⚠ ĐANG BẢO TRÌ</span>';
+    } else {
+      headerTitle.textContent = 'ADMIN PANEL';
+    }
+  }
+}
+
+async function enableMaintenanceMode() {
+  const ok = await showConfirm(
+    '🔧 Bật chế độ bảo trì',
+    'Khi bật bảo trì:\n\n• Tất cả người dùng (trừ Admin) sẽ thấy trang "Hệ thống đang bảo trì"\n• Tiêu đề Admin Panel sẽ hiển thị trạng thái bảo trì\n• Banner cảnh báo sẽ hiện trên trang Admin\n\nBạn có muốn tiếp tục?',
+    '🔧'
+  );
+  if (!ok) return;
+
+  showLoading('Đang bật chế độ bảo trì...');
   try {
     await db.collection('systemConfig').doc('maintenance').set({
-      enabled: enabled,
-      enabledAt: enabled ? firebase.firestore.FieldValue.serverTimestamp() : null,
+      enabled: true,
+      enabledAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    await loadMaintenanceState();
+    showToast('🔧 Đã bật chế độ bảo trì hệ thống', 'warning', 5000);
+  } catch (e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally { hideLoading(); }
+}
 
-    if (label) {
-      label.textContent = enabled ? 'Đang bật' : 'Tắt';
-      label.style.color = enabled ? 'var(--danger)' : 'var(--text-secondary)';
-    }
-    showToast(enabled ? '🔧 Đã bật chế độ bảo trì' : '✅ Đã tắt chế độ bảo trì', enabled ? 'warning' : 'success');
-    loadMaintenanceState();
-  } catch(e) {
-    showToast('Lỗi: '+e.message, 'error');
-    toggle.checked = !enabled;
-  }
+async function disableMaintenanceMode() {
+  const ok = await showConfirm(
+    '✅ Tắt chế độ bảo trì',
+    'Hệ thống sẽ hoạt động bình thường trở lại. Người dùng có thể đăng nhập và sử dụng.\n\nBạn có muốn tắt bảo trì?',
+    '✅'
+  );
+  if (!ok) return;
+
+  showLoading('Đang tắt chế độ bảo trì...');
+  try {
+    await db.collection('systemConfig').doc('maintenance').set({
+      enabled: false,
+      disabledAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await loadMaintenanceState();
+    showToast('✅ Đã tắt chế độ bảo trì. Hệ thống hoạt động bình thường!', 'success', 5000);
+  } catch (e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally { hideLoading(); }
 }
  // =====================================================================
  // QUESTION SETS
@@ -2687,20 +2819,69 @@ async function toggleMaintenanceMode() {
    updateConfigSummary();
  }
 
- function updateConfigSummary() {
-   const t=parseInt(document.getElementById('configTotalQuestions').value)||0;
-   const gi=document.querySelectorAll('.group-count');
-   const hl=document.getElementById('configHasLiet').checked;
-   const ln=document.getElementById('configLietNumber').value;
-   let a=0; gi.forEach(i=>{a+=parseInt(i.value)||0;});
-   const r=t-a;
-   document.getElementById('totalAllocated').textContent=a;
-   document.getElementById('remainingQuestions').textContent=r;
-   document.getElementById('remainingQuestions').style.color=r<0?'var(--danger)':r===0?'var(--success)':'var(--warning)';
-   document.getElementById('configSummaryTotal').textContent=t;
-   document.getElementById('configSummaryGroups').textContent=gi.length;
-   document.getElementById('configSummaryLiet').textContent=hl?`Có (Câu ${ln||'?'})`:'Không';
- }
+ // ===== LIET POSITIONS - DYNAMIC =====
+function updateLietPositions() {
+  const count = parseInt(document.getElementById('configLietCount').value) || 0;
+  const totalQ = parseInt(document.getElementById('configTotalQuestions').value) || 0;
+  const container = document.getElementById('lietPositionsContainer');
+  container.innerHTML = '';
+
+  if (count <= 0) return;
+
+  for (let i = 0; i < count; i++) {
+    const item = document.createElement('div');
+    item.className = 'liet-pos-item';
+    item.innerHTML = `
+      <label>Câu liệt ${count > 1 ? (i + 1) : ''} là câu số:</label>
+      <input type="number" class="liet-position-input" min="1" max="${totalQ || 200}" value="${i + 1}" oninput="updateConfigSummary()">
+    `;
+    container.appendChild(item);
+  }
+}
+
+function getLietPositions() {
+  const inputs = document.querySelectorAll('.liet-position-input');
+  const positions = [];
+  inputs.forEach(inp => {
+    const val = parseInt(inp.value) || 0;
+    if (val > 0) positions.push(val);
+  });
+  return positions;
+}
+
+function toggleConfigLiet() {
+  const checked = document.getElementById('configHasLiet').checked;
+  document.getElementById('configLietContainer').style.display = checked ? 'block' : 'none';
+  if (checked) {
+    updateLietPositions();
+  }
+  updateConfigSummary();
+}
+
+function updateConfigSummary() {
+  const t = parseInt(document.getElementById('configTotalQuestions').value) || 0;
+  const gi = document.querySelectorAll('.group-count');
+  const hl = document.getElementById('configHasLiet').checked;
+  const lietCount = hl ? (parseInt(document.getElementById('configLietCount').value) || 0) : 0;
+  const lietPositions = hl ? getLietPositions() : [];
+
+  let a = 0;
+  gi.forEach(i => { a += parseInt(i.value) || 0; });
+  const r = t - a;
+
+  document.getElementById('totalAllocated').textContent = a;
+  document.getElementById('remainingQuestions').textContent = r;
+  document.getElementById('remainingQuestions').style.color = r < 0 ? 'var(--danger)' : r === 0 ? 'var(--success)' : 'var(--warning)';
+  document.getElementById('configSummaryTotal').textContent = t;
+  document.getElementById('configSummaryGroups').textContent = gi.length;
+
+  if (hl && lietCount > 0) {
+    const posStr = lietPositions.length > 0 ? lietPositions.join(', ') : '?';
+    document.getElementById('configSummaryLiet').textContent = `${lietCount} câu (vị trí: ${posStr})`;
+  } else {
+    document.getElementById('configSummaryLiet').textContent = 'Không';
+  }
+}
 
  async function saveNewQuestionSet() {
    const nm=document.getElementById('setName').value.trim();
@@ -2724,38 +2905,53 @@ async function toggleMaintenanceMode() {
  }
 
  function showConfigPage(c) {
-   const s=allQuestionSets.find(x=>x.code===c);
-   if(!s) return;
-   currentSetForQuestions=c;
-   showPage('set_config_page');
-   document.getElementById('configSetName').textContent=s.name;
-   document.getElementById('configName').value=s.name;
-   document.getElementById('configCode').value=s.code;
-   document.getElementById('configTotalQuestions').value=s.totalQuestions||'';
-   document.getElementById('configHasLiet').checked=(s.lietQuestion||0)>0;
-   document.getElementById('configLietNumber').value=s.lietQuestion||'';
-   toggleConfigLiet();
-   const ct=document.getElementById('configGroupsContainer');
-   ct.innerHTML='';
-   if(s.groupDetails) s.groupDetails.forEach((g,i)=>{
-     const d=document.createElement('div');
-     d.className='group-card';
-     d.innerHTML=`<div class="group-header"><span class="group-number">Nhóm ${i+1}</span></div><div class="form-row" style="margin:0"><div><label>Tên</label><input value="${escapeHtml(g.name)}" readonly style="background:var(--bg-hover);cursor:not-allowed"></div><div><label style="color:var(--accent)">Số câu *</label><input type="number" class="group-count" min="0" max="200" value="${g.count||0}" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)"></div></div>`;
-     ct.appendChild(d);
-   });
-   updateConfigSummary();
-   // reset liet upload
-   document.getElementById('configLietFile').value='';
-   document.getElementById('configLietFileStatus').style.display='none';
-   document.getElementById('configLietPreview').style.display='none';
-   document.getElementById('saveLietBtn').style.display='none';
-   pendingLietQuestions=[];
- }
+  const s = allQuestionSets.find(x => x.code === c);
+  if (!s) return;
+  currentSetForQuestions = c;
+  showPage('set_config_page');
+  document.getElementById('configSetName').textContent = s.name;
+  document.getElementById('configName').value = s.name;
+  document.getElementById('configCode').value = s.code;
+  document.getElementById('configTotalQuestions').value = s.totalQuestions || '';
 
- function toggleConfigLiet() {
-   document.getElementById('configLietContainer').style.display=document.getElementById('configHasLiet').checked?'block':'none';
-   updateConfigSummary();
- }
+  // Liet config
+  const hasLiet = (s.lietCount || s.lietQuestion || 0) > 0;
+  document.getElementById('configHasLiet').checked = hasLiet;
+
+  const lietCount = s.lietCount || s.lietQuestion || 0;
+  document.getElementById('configLietCount').value = lietCount || 1;
+
+  toggleConfigLiet();
+
+  // Set liet positions
+  if (hasLiet && s.lietPositions && s.lietPositions.length > 0) {
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.liet-position-input');
+      s.lietPositions.forEach((pos, i) => {
+        if (inputs[i]) inputs[i].value = pos;
+      });
+      updateConfigSummary();
+    }, 100);
+  }
+
+  // Groups
+  const ct = document.getElementById('configGroupsContainer');
+  ct.innerHTML = '';
+  if (s.groupDetails) s.groupDetails.forEach((g, i) => {
+    const d = document.createElement('div');
+    d.className = 'group-card';
+    d.innerHTML = `<div class="group-header"><span class="group-number">Nhóm ${i + 1}</span></div><div class="form-row" style="margin:0"><div><label>Tên</label><input value="${escapeHtml(g.name)}" readonly style="background:var(--bg-hover);cursor:not-allowed"></div><div><label style="color:var(--accent)">Số câu *</label><input type="number" class="group-count" min="0" max="200" value="${g.count || 0}" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)"></div></div>`;
+    ct.appendChild(d);
+  });
+  updateConfigSummary();
+
+  // Reset liet upload
+  document.getElementById('configLietFile').value = '';
+  document.getElementById('configLietFileStatus').style.display = 'none';
+  document.getElementById('configLietPreview').style.display = 'none';
+  document.getElementById('saveLietBtn').style.display = 'none';
+  pendingLietQuestions = [];
+}
 
  // ===== HANDLE LIET FILE UPLOAD =====
  function handleConfigLietFileUpload(inp) {
@@ -2833,69 +3029,126 @@ async function toggleMaintenanceMode() {
  }
 
  async function saveQuestionSetConfig() {
-   const c=currentSetForQuestions;
-   const s=allQuestionSets.find(x=>x.code===c);
-   if(!s) return;
-   const tq=parseInt(document.getElementById('configTotalQuestions').value)||0;
-   const hl=document.getElementById('configHasLiet').checked;
-   const ln=hl?(parseInt(document.getElementById('configLietNumber').value)||0):0;
-   if(tq<=0){showToast('Nhập tổng câu!','error');return;}
-   if(hl&&(ln<=0||ln>tq)){showToast(`Câu liệt phải 1-${tq}!`,'error');return;}
-   const gc=document.querySelectorAll('.group-count');
-   let tc=0; const gv=[];
-   gc.forEach(i=>{const v=parseInt(i.value)||0;tc+=v;gv.push(v);});
-   if(tc>tq){showToast(`Tổng nhóm (${tc}) > tổng đề (${tq})!`,'error');return;}
+  const c = currentSetForQuestions;
+  const s = allQuestionSets.find(x => x.code === c);
+  if (!s) return;
+  const tq = parseInt(document.getElementById('configTotalQuestions').value) || 0;
+  const hl = document.getElementById('configHasLiet').checked;
+  const lietCount = hl ? (parseInt(document.getElementById('configLietCount').value) || 0) : 0;
+  const lietPositions = hl ? getLietPositions() : [];
 
-   // Collect new groups
-   const newGroupCards = document.querySelectorAll('.group-card[data-new="true"]');
-   const newGroups = [];
-   for (const card of newGroupCards) {
-     const nameInput = card.querySelector('.config-group-name-new');
-     const countInput = card.querySelector('.group-count');
-     const gName = nameInput ? nameInput.value.trim() : '';
-     if (!gName) { showToast('Nhập tên nhóm mới!','error'); nameInput.focus(); return; }
-     newGroups.push({ name: gName, count: parseInt(countInput?.value)||0 });
-   }
+  if (tq <= 0) { showToast('Nhập tổng câu!', 'error'); return; }
 
-   showLoading('Đang lưu...');
-   try {
-     const updatedGroupDetails = s.groupDetails ? [...s.groupDetails] : [];
-     // Update existing group counts
-     let gcIdx = 0;
-     updatedGroupDetails.forEach((g,i) => { g.count = gv[gcIdx++]||0; });
-     // Add new groups
-     newGroups.forEach((ng,i) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length]||ng.count }); });
+  if (hl) {
+    if (lietCount <= 0) { showToast('Nhập số lượng câu liệt!', 'error'); return; }
+    // Validate positions
+    for (const pos of lietPositions) {
+      if (pos < 1 || pos > tq) {
+        showToast(`Vị trí câu liệt phải từ 1 đến ${tq}!`, 'error');
+        return;
+      }
+    }
+    // Check duplicates
+    const uniquePos = new Set(lietPositions);
+    if (uniquePos.size !== lietPositions.length) {
+      showToast('Vị trí câu liệt không được trùng nhau!', 'error');
+      return;
+    }
+  }
 
-     s.totalQuestions=tq; s.lietQuestion=ln; s.groupDetails=updatedGroupDetails; s.groups=updatedGroupDetails.length;
-     await db.collection('questionSets').doc(c).update({ totalQuestions:tq, lietQuestion:ln, groupDetails:updatedGroupDetails, groups:updatedGroupDetails.length, updatedAt:firebase.firestore.FieldValue.serverTimestamp() });
-     showToast('Lưu OK!','success');
-     backToQuestionSets(); loadQuestionSets(); loadDashboard();
-   } catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}
- }
+  const gc = document.querySelectorAll('.group-count');
+  let tc = 0; const gv = [];
+  gc.forEach(i => { const v = parseInt(i.value) || 0; tc += v; gv.push(v); });
+  if (tc > tq) { showToast(`Tổng nhóm (${tc}) > tổng đề (${tq})!`, 'error'); return; }
+
+  // Collect new groups
+  const newGroupCards = document.querySelectorAll('.group-card[data-new="true"]');
+  const newGroups = [];
+  for (const card of newGroupCards) {
+    const nameInput = card.querySelector('.config-group-name-new');
+    const countInput = card.querySelector('.group-count');
+    const gName = nameInput ? nameInput.value.trim() : '';
+    if (!gName) { showToast('Nhập tên nhóm mới!', 'error'); nameInput.focus(); return; }
+    newGroups.push({ name: gName, count: parseInt(countInput?.value) || 0 });
+  }
+
+  showLoading('Đang lưu...');
+  try {
+    const updatedGroupDetails = s.groupDetails ? [...s.groupDetails] : [];
+    let gcIdx = 0;
+    updatedGroupDetails.forEach((g, i) => { g.count = gv[gcIdx++] || 0; });
+    newGroups.forEach((ng, i) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length] || ng.count }); });
+
+    s.totalQuestions = tq;
+    s.lietCount = lietCount;
+    s.lietPositions = lietPositions;
+    s.lietQuestion = lietCount; // backward compat
+    s.groupDetails = updatedGroupDetails;
+    s.groups = updatedGroupDetails.length;
+
+    await db.collection('questionSets').doc(c).update({
+      totalQuestions: tq,
+      lietCount: lietCount,
+      lietPositions: lietPositions,
+      lietQuestion: lietCount,
+      groupDetails: updatedGroupDetails,
+      groups: updatedGroupDetails.length,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Lưu OK!', 'success');
+    backToQuestionSets(); loadQuestionSets(); loadDashboard();
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); } finally { hideLoading(); }
+}
 
  // =====================================================================
  // ADD QUESTIONS
  // =====================================================================
  function showAddQuestionsPage(c) {
-   const s=allQuestionSets.find(x=>x.code===c);
-   if(!s) return;
-   currentSetForQuestions=c; tempQuestions=[]; selectedGroupIndex=0;
-   showPage('add_questions_page');
-   document.getElementById('addQSetName2').textContent=s.name;
-   document.getElementById('targetCount').textContent=s.totalQuestions||'∞';
-   document.getElementById('addedCount').textContent='0';
-   const tabContainer=document.getElementById('groupTabsContainer');
-   tabContainer.innerHTML='';
-   if(s.groupDetails){
-     s.groupDetails.forEach((g,i)=>{
-       const btn=document.createElement('button');
-       btn.type='button'; btn.className=`group-tab-btn ${i===0?'active':''}`; btn.textContent=g.name;
-       btn.onclick=function(){selectedGroupIndex=i;tabContainer.querySelectorAll('.group-tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');};
-       tabContainer.appendChild(btn);
-     });
-   }
-   clearQuestionForm(); renderQuestionsList();
- }
+  const s = allQuestionSets.find(x => x.code === c);
+  if (!s) return;
+  currentSetForQuestions = c; tempQuestions = []; selectedGroupIndex = 0;
+  showPage('add_questions_page');
+  document.getElementById('addQSetName2').textContent = s.name;
+  document.getElementById('targetCount').textContent = s.totalQuestions || '∞';
+  document.getElementById('addedCount').textContent = '0';
+  const tabContainer = document.getElementById('groupTabsContainer');
+  tabContainer.innerHTML = '';
+
+  if (s.groupDetails) {
+    s.groupDetails.forEach((g, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `group-tab-btn ${i === 0 ? 'active' : ''}`;
+      btn.textContent = g.name;
+      btn.onclick = function () {
+        selectedGroupIndex = i;
+        tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+      tabContainer.appendChild(btn);
+    });
+  }
+
+  // Thêm tab Câu liệt nếu có
+  const lietCount = s.lietCount || s.lietQuestion || 0;
+  if (lietCount > 0) {
+    const lietBtn = document.createElement('button');
+    lietBtn.type = 'button';
+    lietBtn.className = 'group-tab-btn';
+    lietBtn.textContent = '⚠ Câu liệt';
+    lietBtn.style.borderColor = 'var(--warning)';
+    lietBtn.style.color = '#856404';
+    lietBtn.onclick = function () {
+      selectedGroupIndex = -99; // special index for liet
+      tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+      lietBtn.classList.add('active');
+    };
+    tabContainer.appendChild(lietBtn);
+  }
+
+  clearQuestionForm();
+  renderQuestionsList();
+}
  function clearQuestionForm() {
    document.getElementById('qContent').value='';
    ['qAnswer1','qAnswer2','qAnswer3','qAnswer4'].forEach(id=>{document.getElementById(id).value='';autoResizeTextarea(document.getElementById(id));});
@@ -2923,40 +3176,58 @@ async function toggleMaintenanceMode() {
  function showImagePreview(src,name){const container=document.getElementById('imagePreviewContainer');const img=document.getElementById('imagePreview');const fileName=document.getElementById('imageFileName');img.src=src;fileName.textContent='✓ '+(name||'Ảnh đã sẵn sàng');fileName.style.color='var(--success)';container.style.display='block';img.onerror=function(){fileName.textContent='❌ Không tải được ảnh';fileName.style.color='var(--danger)';};}
  function clearImagePreview(){currentImageData=null;document.getElementById('imagePreviewContainer').style.display='none';document.getElementById('imagePreview').src='';document.getElementById('qImageFile').value='';const fn=document.getElementById('imageFileName');fn.textContent='';fn.style.color='var(--success)';}
 
- function addQuestion(){
-   const content=document.getElementById('qContent').value.trim();
-   const a1=document.getElementById('qAnswer1').value.trim();
-   const a2=document.getElementById('qAnswer2').value.trim();
-   const a3=document.getElementById('qAnswer3').value.trim();
-   const a4=document.getElementById('qAnswer4').value.trim();
-   const correctRadio=document.querySelector('input[name="correctAnswer"]:checked');
-   const correct=correctRadio?parseInt(correctRadio.value):0;
-   if(!content){showToast('Nhập nội dung câu hỏi!','error');document.getElementById('qContent').focus();return;}
-   if(!a1||!a2){showToast('Cần ít nhất 2 đáp án!','error');return;}
-   if(!correct){showToast('Chọn đáp án đúng!','error');return;}
-   const answers=[a1,a2,a3,a4].filter(a=>a);
-   if(correct>answers.length){showToast('Đáp án đúng không hợp lệ!','error');return;}
-   let imageUrl=null; if(currentImageData)imageUrl=currentImageData.value;
-   tempQuestions.push({content,answers,correctAnswer:correct,groupIndex:selectedGroupIndex,imageUrl});
-   clearQuestionForm(); renderQuestionsList();
-   document.getElementById('addedCount').textContent=tempQuestions.length;
-   showToast(`Câu #${tempQuestions.length} đã thêm!`,'success',1500);
- }
+ function addQuestion() {
+  const content = document.getElementById('qContent').value.trim();
+  const a1 = document.getElementById('qAnswer1').value.trim();
+  const a2 = document.getElementById('qAnswer2').value.trim();
+  const a3 = document.getElementById('qAnswer3').value.trim();
+  const a4 = document.getElementById('qAnswer4').value.trim();
+  const correctRadio = document.querySelector('input[name="correctAnswer"]:checked');
+  const correct = correctRadio ? parseInt(correctRadio.value) : 0;
+  if (!content) { showToast('Nhập nội dung câu hỏi!', 'error'); document.getElementById('qContent').focus(); return; }
+  if (!a1 || !a2) { showToast('Cần ít nhất 2 đáp án!', 'error'); return; }
+  if (!correct) { showToast('Chọn đáp án đúng!', 'error'); return; }
+  const answers = [a1, a2, a3, a4].filter(a => a);
+  if (correct > answers.length) { showToast('Đáp án đúng không hợp lệ!', 'error'); return; }
+  let imageUrl = null; if (currentImageData) imageUrl = currentImageData.value;
 
- function renderQuestionsList(){
-   const c=document.getElementById('questionsList');
-   document.getElementById('questionsCount').textContent=tempQuestions.length;
-   if(!tempQuestions.length){c.innerHTML=`<div style="text-align:center; padding:40px; color:var(--text-muted);"><span style="font-size:48px;">📋</span><p style="margin-top:12px; font-size:14px;">Chưa có câu hỏi nào</p><p style="font-size:12px;">Nhập câu hỏi ở trên hoặc import từ Excel/Word</p></div>`;return;}
-   const s=allQuestionSets.find(x=>x.code===currentSetForQuestions);
-   const labels=['A','B','C','D'];
-   let h='';
-   tempQuestions.forEach((q,i)=>{
-     const gn=s?.groupDetails?.[q.groupIndex]?.name||'?';
-     const preview=q.content.length>80?q.content.substring(0,80)+'...':q.content;
-     h+=`<div class="q-item"><div class="q-item-header" onclick="toggleQuestionItem(this)"><div class="q-item-num"><div class="q-num-badge">${i+1}</div><div><div style="font-size:13px; font-weight:600; color:var(--text-primary);">${escapeHtml(preview)}</div><div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${escapeHtml(gn)} • ${q.answers.length} đáp án ${q.imageUrl?'• Có ảnh':''}</div></div></div><div style="display:flex; gap:6px; align-items:center;"><span style="font-size:14px; color:var(--text-muted);">▼</span><button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); removeQuestion(${i})" style="padding:4px 8px;">✕</button></div></div><div class="q-item-body collapsed"><div style="font-size:14px; color:var(--text-primary); line-height:1.6; margin-bottom:10px;">${escapeHtml(q.content)}</div>${q.imageUrl?`<img src="${q.imageUrl}" style="max-width:200px; max-height:120px; border-radius:6px; margin-bottom:10px; border:1px solid var(--border);" onerror="this.style.display='none'">`:''}<ul class="q-answer-list">${q.answers.map((a,j)=>`<li class="${j+1===q.correctAnswer?'correct':''}">${labels[j]}. ${escapeHtml(a)}</li>`).join('')}</ul></div></div>`;
-   });
-   c.innerHTML=h;
- }
+  const isLiet = selectedGroupIndex === -99;
+
+  tempQuestions.push({
+    content,
+    answers,
+    correctAnswer: correct,
+    groupIndex: isLiet ? -1 : selectedGroupIndex,
+    imageUrl,
+    isLiet: isLiet
+  });
+  clearQuestionForm(); renderQuestionsList();
+  document.getElementById('addedCount').textContent = tempQuestions.length;
+  showToast(`Câu #${tempQuestions.length} đã thêm!${isLiet ? ' (Câu liệt)' : ''}`, 'success', 1500);
+}
+
+ function renderQuestionsList() {
+  const c = document.getElementById('questionsList');
+  document.getElementById('questionsCount').textContent = tempQuestions.length;
+  if (!tempQuestions.length) {
+    c.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span style="font-size:48px;">📝</span><p style="margin-top:12px; font-size:14px;">Chưa có câu hỏi nào</p><p style="font-size:12px;">Nhập câu hỏi ở trên hoặc import từ Excel/Word</p></div>`;
+    return;
+  }
+  const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+  const labels = ['A', 'B', 'C', 'D'];
+  let h = '';
+  tempQuestions.forEach((q, i) => {
+    let gn;
+    if (q.isLiet) {
+      gn = '⚠ Câu liệt';
+    } else {
+      gn = s?.groupDetails?.[q.groupIndex]?.name || '?';
+    }
+    const preview = q.content.length > 80 ? q.content.substring(0, 80) + '...' : q.content;
+    h += `<div class="q-item"><div class="q-item-header" onclick="toggleQuestionItem(this)"><div class="q-item-num"><div class="q-num-badge" ${q.isLiet ? 'style="background:var(--warning);color:#856404;"' : ''}>${i + 1}</div><div><div style="font-size:13px; font-weight:600; color:var(--text-primary);">${escapeHtml(preview)}</div><div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${escapeHtml(gn)} • ${q.answers.length} đáp án ${q.imageUrl ? '• Có ảnh' : ''}</div></div></div><div style="display:flex; gap:6px; align-items:center;"><span style="font-size:14px; color:var(--text-muted);">▼</span><button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); removeQuestion(${i})" style="padding:4px 8px;">✕</button></div></div><div class="q-item-body collapsed"><div style="font-size:14px; color:var(--text-primary); line-height:1.6; margin-bottom:10px;">${escapeHtml(q.content)}</div>${q.imageUrl ? `<img src="${q.imageUrl}" style="max-width:200px; max-height:120px; border-radius:6px; margin-bottom:10px; border:1px solid var(--border);" onerror="this.style.display='none'">` : ''}<ul class="q-answer-list">${q.answers.map((a, j) => `<li class="${j + 1 === q.correctAnswer ? 'correct' : ''}">${labels[j]}. ${escapeHtml(a)}</li>`).join('')}</ul></div></div>`;
+  });
+  c.innerHTML = h;
+}
  function toggleQuestionItem(header){const body=header.nextElementSibling;body.classList.toggle('collapsed');const arrow=header.querySelector('span');if(arrow)arrow.textContent=body.classList.contains('collapsed')?'▼':'▲';}
  function collapseAllQuestions(){document.querySelectorAll('.q-item-body').forEach(b=>b.classList.add('collapsed'));}
  function expandAllQuestions(){document.querySelectorAll('.q-item-body').forEach(b=>b.classList.remove('collapsed'));}
@@ -3076,26 +3347,45 @@ async function toggleMaintenanceMode() {
    showToast(`Đã nhập ${imported} câu hỏi từ Word!`,'success',5000);
  }
 
- async function saveAndClose(){
-   if(!tempQuestions.length){showToast('Chưa có câu hỏi nào!','warning');return;}
-   const confirmed=await showConfirm('Lưu câu hỏi',`Bạn sắp lưu ${tempQuestions.length} câu hỏi vào bộ đề. Tiếp tục?`,'💾');
-   if(!confirmed)return;
-   showLoading(`Đang lưu ${tempQuestions.length} câu hỏi...`);
-   try{
-     for(let i=0;i<tempQuestions.length;i+=500){
-       const batch=db.batch();
-       tempQuestions.slice(i,i+500).forEach((q,idx)=>{
-         const docData={content:q.content,answers:q.answers,correctAnswer:q.correctAnswer,groupIndex:q.groupIndex,imageUrl:q.imageUrl||null,setCode:currentSetForQuestions,order:i+idx+1,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-         batch.set(db.collection('questions').doc(),docData);
-       });
-       await batch.commit();
-     }
-     const s=allQuestionSets.find(x=>x.code===currentSetForQuestions);
-     if(s){s.totalQuestions=(s.totalQuestions||0)+tempQuestions.length;await db.collection('questionSets').doc(currentSetForQuestions).update({totalQuestions:s.totalQuestions,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
-     showToast(`Đã lưu ${tempQuestions.length} câu hỏi thành công!`,'success',5000);
-     tempQuestions=[]; backToQuestionSets(); await loadQuestionSetsFromDB(); loadQuestionSets(); loadDashboard();
-   }catch(e){showToast('Lỗi: '+e.message,'error');console.error('Save error:',e);}finally{hideLoading();}
- }
+ async function saveAndClose() {
+  if (!tempQuestions.length) { showToast('Chưa có câu hỏi nào!', 'warning'); return; }
+  const lietQs = tempQuestions.filter(q => q.isLiet).length;
+  const normalQs = tempQuestions.length - lietQs;
+  let msg = `Bạn sắp lưu ${tempQuestions.length} câu hỏi`;
+  if (lietQs > 0) msg += ` (trong đó ${lietQs} câu liệt)`;
+  msg += ' vào bộ đề. Tiếp tục?';
+
+  const confirmed = await showConfirm('Lưu câu hỏi', msg, '💾');
+  if (!confirmed) return;
+  showLoading(`Đang lưu ${tempQuestions.length} câu hỏi...`);
+  try {
+    for (let i = 0; i < tempQuestions.length; i += 500) {
+      const batch = db.batch();
+      tempQuestions.slice(i, i + 500).forEach((q, idx) => {
+        const docData = {
+          content: q.content,
+          answers: q.answers,
+          correctAnswer: q.correctAnswer,
+          groupIndex: q.groupIndex,
+          imageUrl: q.imageUrl || null,
+          isLiet: q.isLiet || false,
+          setCode: currentSetForQuestions,
+          order: i + idx + 1,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        batch.set(db.collection('questions').doc(), docData);
+      });
+      await batch.commit();
+    }
+    const s = allQuestionSets.find(x => x.code === currentSetForQuestions);
+    if (s) {
+      s.totalQuestions = (s.totalQuestions || 0) + tempQuestions.length;
+      await db.collection('questionSets').doc(currentSetForQuestions).update({ totalQuestions: s.totalQuestions, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    showToast(`Đã lưu ${tempQuestions.length} câu hỏi thành công!`, 'success', 5000);
+    tempQuestions = []; backToQuestionSets(); await loadQuestionSetsFromDB(); loadQuestionSets(); loadDashboard();
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); console.error('Save error:', e); } finally { hideLoading(); }
+}
 
  async function deleteSet(c){
    const s=allQuestionSets.find(x=>x.code===c);
@@ -3191,11 +3481,11 @@ async function toggleMaintenanceMode() {
 // NAVIGATION
 // =====================================================================
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(btn){document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  if (btn) { document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
   document.getElementById('sidebar').classList.remove('mobile-open');
-  switch(id){
+  switch (id) {
     case 'dashboard': loadDashboard(); break;
     case 'students': loadStudents(); break;
     case 'question_sets': loadQuestionSets(); break;
