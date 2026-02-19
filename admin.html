@@ -550,6 +550,7 @@
        <span>🚪</span> Đăng xuất
      </button>
    </div>
+  <div id="courseStats" class="dashboard-card"></div>
  </header>
 
  <div id="layout">
@@ -701,6 +702,9 @@
              <option value="Sĩ quan">Sĩ quan</option>
              <option value="Chuyên nghiệp">Chuyên nghiệp</option>
            </select>
+           <select id="filterCourse">
+             <option value="">-- Tất cả khóa học --</option>
+             </select>
          </div>
          <div id="printHeader">
            <h2>DANH SÁCH HỌC VIÊN</h2>
@@ -1151,6 +1155,9 @@ D. Đáp án D
        <div class="warning-title">⚠️ Lưu ý</div>
        <div class="warning-text">• Hệ thống tự tạo mã HV<br>• Không trùng tên + đơn vị + ngày sinh</div>
      </div>
+    <label>Khóa học</label>
+<input type="text" id="studentCourse" placeholder="VD: K2025">
+
      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
        <button class="btn btn-secondary" onclick="closeModal('studentModal')">Hủy</button>
        <button class="btn btn-success" onclick="saveStudent()">💾 Lưu</button>
@@ -1253,6 +1260,8 @@ D. Đáp án D
      startPresenceListener();
      loadDashboard();
      loadStudents();
+     loadCourseFilter();
+     loadCourseFilter();
      loadQuestionSets();
      loadStats();
      renderDashboardCharts();
@@ -1386,6 +1395,7 @@ D. Đáp án D
      document.getElementById('todayExams').textContent = s.size;
    } catch(e) { renderActivityTable([]); }
  }
+  
 
  // =====================================================================
  // ONLINE PRESENCE
@@ -1439,6 +1449,14 @@ D. Đáp án D
    document.getElementById('activeStudents').textContent = a;
    document.getElementById('warningCount').textContent = l;
    document.getElementById('totalSets').textContent = allQuestionSets.filter(s => s.status === 'active').length;
+   const cs = getCourseStats();
+let html = '<b>📊 Học viên theo Khóa học</b><ul>';
+Object.keys(cs).sort().forEach(k => {
+  html += `<li>${escapeHtml(k)}: <b>${cs[k]}</b></li>`;
+});
+html += '</ul>';
+document.getElementById('courseStats').innerHTML = html;
+
  }
  function renderActivityTable(a) {
    const tb = document.getElementById('activityTableBody');
@@ -1489,6 +1507,23 @@ D. Đáp án D
      chartInstances.byObject = new Chart(ctx4, { type:'pie', data:{ labels:Object.keys(oc), datasets:[{ data:Object.values(oc), backgroundColor:['rgba(13,110,253,0.7)','rgba(25,135,84,0.7)','rgba(255,193,7,0.7)','rgba(124,58,237,0.7)'], borderWidth:2, borderColor:isDark?'#1a1d24':'white' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:14 } } } } });
    }
  }
+  function loadCourseFilter() {
+  const sel = document.getElementById('filterCourse');
+  const courses = [...new Set(allStudents.map(s => s.course).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">-- Tất cả khóa học --</option>';
+  courses.forEach(c => {
+    sel.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+  });
+}
+  function getCourseStats() {
+  const stats = {};
+  allStudents.forEach(s => {
+    if (!s.course) return;
+    stats[s.course] = (stats[s.course] || 0) + 1;
+  });
+  return stats;
+}
+
 
  // =====================================================================
  // STUDENTS
@@ -1510,13 +1545,18 @@ D. Đáp án D
    document.getElementById('lockedByObject').innerHTML = fmt(ct(allStudents.filter(s=>s.status==='locked')));
  }
  function applyFilters() {
+   const fc = document.getElementById('filterCourse').value;
    const q = document.getElementById('searchAll').value.toLowerCase().trim();
    const fs = document.getElementById('filterStatus').value;
    const fo = document.getElementById('filterObject').value;
    filteredStudents = allStudents.filter(s => {
+     if (fc && s.course !== fc) return false;
      const ms = !q || (s.name||'').toLowerCase().includes(q) || (s.code||'').toLowerCase().includes(q) || (s.unit||'').toLowerCase().includes(q);
      return ms && (!fs || s.status===fs) && (!fo || s.object===fo);
    });
+   <select id="filterCourse">
+  <option value="">-- Tất cả khóa học --</option>
+</select>
    currentPage = 1;
    renderStudentTable();
  }
@@ -1581,6 +1621,10 @@ D. Đáp án D
    const q = document.getElementById('searchAll').value;
    const fs = document.getElementById('filterStatus').value;
    const fo = document.getElementById('filterObject').value;
+   <select id="filterCourse">
+  <option value="">-- Tất cả khóa học --</option>
+</select>
+
    let t = '';
    if (!q&&!fs&&!fo) t=`Tổng: ${allStudents.length} học viên`;
    else { const f=[]; if(q)f.push(`"${q}"`); if(fs)f.push(fs==='active'?'Hoạt động':'Khóa'); if(fo)f.push(fo); t=f.join(' | ')+` | ${filteredStudents.length} kết quả`; }
@@ -1595,6 +1639,7 @@ D. Đáp án D
    toggleOtherField();
    document.getElementById('studentModal').classList.add('show');
    setTimeout(() => document.getElementById('studentName').focus(), 300);
+  document.getElementById('studentCourse').value = '';
  }
  function editStudent(c) {
    const s = allStudents.find(x => x.code===c);
@@ -1604,6 +1649,9 @@ D. Đáp án D
    document.getElementById('studentName').value = s.name||'';
    document.getElementById('studentUnit').value = s.unit||'';
    document.getElementById('studentDob').value = s.dob||'';
+  document.getElementById('studentCourse').value = s.course || '';
+   <label>Khóa học</label>
+<input type="text" id="studentCourse" placeholder="VD: K2025">
    if (['Học viên','Sĩ quan','Chuyên nghiệp'].includes(s.object)) { document.getElementById('studentObject').value = s.object; }
    else { document.getElementById('studentObject').value = 'other'; document.getElementById('otherObjectName').value = s.object||''; }
    toggleOtherField();
@@ -1614,6 +1662,9 @@ D. Đáp án D
    const un = document.getElementById('studentUnit').value.trim();
    const db2 = document.getElementById('studentDob').value;
    let ob = document.getElementById('studentObject').value;
+   <label>Khóa học</label>
+<input type="text" id="studentCourse" placeholder="VD: K2025">
+
    if (!nm||!un) { showToast('Nhập đầy đủ thông tin!','error'); return; }
    if (ob==='other') { ob = document.getElementById('otherObjectName').value.trim(); if (!ob) { showToast('Nhập đối tượng!','error'); return; } }
    const dup = allStudents.some(s => { if (currentEditingCode&&s.code===currentEditingCode) return false; return (s.name||'').toLowerCase()===nm.toLowerCase()&&(s.unit||'').toLowerCase()===un.toLowerCase()&&(s.dob||'')===db2; });
@@ -1621,7 +1672,8 @@ D. Đáp án D
    showLoading('Đang lưu...');
    try {
      if (currentEditingCode) {
-       await db.collection('students').doc(currentEditingCode).update({ name:nm, unit:un, dob:db2, object:ob, nameSearch:nm.toLowerCase(), updatedAt:firebase.firestore.FieldValue.serverTimestamp() });
+       await db.collection('students').doc(currentEditingCode).update({ name:nm, unit:un, dob:db2, object:ob,course: cr,
+ nameSearch:nm.toLowerCase(), updatedAt:firebase.firestore.FieldValue.serverTimestamp() });
        const s = allStudents.find(x=>x.code===currentEditingCode);
        if(s){s.name=nm;s.unit=un;s.dob=db2;s.object=ob;}
        showToast('Cập nhật OK!','success');
@@ -1629,7 +1681,8 @@ D. Đáp án D
        const pf = ob==='Học viên'?'HV':ob==='Sĩ quan'?'SQ':ob==='Chuyên nghiệp'?'CN':'KH';
        const mx = allStudents.filter(s=>(s.code||'').startsWith(pf)).reduce((m,s)=>{ const n=parseInt((s.code||'').substring(2)); return n>m?n:m; },0);
        const nc = pf+String(mx+1).padStart(4,'0');
-       const ns = { code:nc, name:nm, unit:un, dob:db2, object:ob, status:'active', exams:0, bestScore:0, avgScore:0, nameSearch:nm.toLowerCase(), createdAt:firebase.firestore.FieldValue.serverTimestamp() };
+       const ns = { code:nc, name:nm, unit:un, dob:db2, object:ob,course: cr,
+ status:'active', exams:0, bestScore:0, avgScore:0, nameSearch:nm.toLowerCase(), createdAt:firebase.firestore.FieldValue.serverTimestamp() };
        await db.collection('students').doc(nc).set(ns);
        ns.createdAt = new Date();
        allStudents.unshift(ns);
@@ -1637,8 +1690,11 @@ D. Đáp án D
      }
      closeModal('studentModal');
      loadStudents();
+     loadCourseFilter();
      loadDashboard();
    } catch(e) { showToast('Lỗi: '+e.message,'error'); } finally { hideLoading(); }
+  const cr = document.getElementById('studentCourse').value.trim();
+  if (!cr) { showToast('Nhập khóa học!','error'); return; }
  }
  async function deleteStudent(c) {
    const s = allStudents.find(x=>x.code===c);
@@ -1651,7 +1707,7 @@ D. Đáp án D
      const i = allStudents.findIndex(x=>x.code===c);
      if(i>-1) allStudents.splice(i,1);
      showToast(`Đã xóa ${c}`,'success');
-     loadStudents(); loadDashboard();
+     loadStudents();loadCourseFilter(); loadDashboard();
    } catch(e) { showToast('Lỗi: '+e.message,'error'); } finally { hideLoading(); }
  }
  function toggleOtherField() {
@@ -1697,8 +1753,9 @@ D. Đáp án D
          if(ds){const p=ds.split('/');if(p.length===3)dob=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;else if(ds.includes('-'))dob=ds;}
          let ob='Học viên',pf='HV';
          if(ot==='SQ'){ob='Sĩ quan';pf='SQ';}else if(ot==='CN'){ob='Chuyên nghiệp';pf='CN';}
-         const sd={name:nm,unit:un,object:ob,prefix:pf,dob,row:i+1};
+         const sd={name:nm,unit:un,object:ob,prefix:pf,dob,course: cr,row:i+1};
          if(allStudents.some(s=>(s.name||'').toLowerCase()===nm.toLowerCase()&&(s.unit||'').toLowerCase()===un.toLowerCase()&&(s.dob||'')===dob)){duplicatesFound.push(sd);}else pendingImportData.push(sd);
+         const cr = r[4] ? r[4].toString().trim() : '';
        }
        if(duplicatesFound.length>0){
          let h=''; duplicatesFound.forEach(s=>{h+=`<div class="duplicate-item"><b>Dòng ${s.row}:</b> ${escapeHtml(s.name)} - ${escapeHtml(s.unit)}</div>`;});
@@ -1725,11 +1782,12 @@ D. Đáp án D
          const ns={code:nc,name:sd.name,unit:sd.unit,dob:sd.dob,object:sd.object,status:'active',exams:0,bestScore:0,avgScore:0,nameSearch:sd.name.toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
          batch.set(db.collection('students').doc(nc),ns);
          ns.createdAt=new Date(); allStudents.push(ns);
+         course: sd.course || '',
        }
        await batch.commit();
      }
      showToast(`Đã nhập ${pendingImportData.length} HV!`,'success',5000);
-     closeModal('importModal'); loadStudents(); loadDashboard();
+     closeModal('importModal'); loadStudents();loadCourseFilter(); loadDashboard();
    } catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}
  }
  function exportToExcel() {
