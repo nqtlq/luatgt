@@ -1647,13 +1647,20 @@ window.onload = async function () {
     const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
     if (maintDoc.exists && maintDoc.data().enabled) {
       isMaintenanceOn = true;
-      const userType = localStorage.getItem('userType');
-      if (userType !== 'admin') {
-        document.getElementById('maintenancePage').style.display = 'flex';
-        return;
-      }
     }
-  } catch (e) { }
+  } catch (e) {
+    // Fallback localStorage
+    try {
+      const local = JSON.parse(localStorage.getItem('maintenanceMode') || '{}');
+      if (local.enabled) isMaintenanceOn = true;
+    } catch (ex) {}
+  }
+
+  // Nếu bảo trì và KHÔNG phải admin → hiện trang bảo trì
+  if (isMaintenanceOn && localStorage.getItem('userType') !== 'admin') {
+    document.getElementById('maintenancePage').style.display = 'flex';
+    return;
+  }
 
   initializeSystem();
   updateClock();
@@ -2614,16 +2621,32 @@ async function confirmResetSystem() {
 
 // --- Bảo trì hệ thống ---
 // =====================================================================
-// MAINTENANCE MODE
+// MAINTENANCE MODE (with fallback)
 // =====================================================================
 async function loadMaintenanceState() {
+  let enabled = false;
+  let data = null;
+  
   try {
     const doc = await db.collection('systemConfig').doc('maintenance').get();
-    const enabled = doc.exists && doc.data().enabled;
-    updateMaintenanceUI(enabled, doc.exists ? doc.data() : null);
+    if (doc.exists) {
+      enabled = !!doc.data().enabled;
+      data = doc.data();
+    }
   } catch (e) {
-    console.warn('Load maintenance state error:', e);
+    console.warn('Cannot read systemConfig from Firestore, using localStorage fallback:', e.message);
+    // Fallback: đọc từ localStorage
+    const local = localStorage.getItem('maintenanceMode');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        enabled = !!parsed.enabled;
+        data = parsed;
+      } catch (ex) {}
+    }
   }
+  
+  updateMaintenanceUI(enabled, data);
 }
 
 function updateMaintenanceUI(enabled, data) {
@@ -2638,8 +2661,13 @@ function updateMaintenanceUI(enabled, data) {
 
   if (statusText) {
     if (enabled && data && data.enabledAt) {
-      const dt = data.enabledAt.toDate ? data.enabledAt.toDate() : new Date(data.enabledAt);
-      statusText.innerHTML = `<span style="color:var(--danger);font-weight:700;">🔴 Đang bảo trì</span> — Bật từ: ${formatDateTime(dt)}`;
+      let dt;
+      if (data.enabledAt.toDate) {
+        dt = data.enabledAt.toDate();
+      } else if (data.enabledAt) {
+        dt = new Date(data.enabledAt);
+      }
+      statusText.innerHTML = `<span style="color:var(--danger);font-weight:700;">🔴 Đang bảo trì</span> — Bật từ: ${dt ? formatDateTime(dt) : ''}`;
     } else if (enabled) {
       statusText.innerHTML = '<span style="color:var(--danger);font-weight:700;">🔴 Đang bảo trì</span>';
     } else {
@@ -2647,7 +2675,6 @@ function updateMaintenanceUI(enabled, data) {
     }
   }
 
-  // Banner
   if (banner) {
     if (enabled) {
       banner.classList.add('show');
@@ -2656,7 +2683,6 @@ function updateMaintenanceUI(enabled, data) {
     }
   }
 
-  // Header title
   if (headerTitle) {
     if (enabled) {
       headerTitle.innerHTML = 'ADMIN PANEL <span style="font-size:11px;opacity:0.9;background:rgba(220,53,69,0.3);padding:3px 8px;border-radius:10px;margin-left:8px;">⚠ ĐANG BẢO TRÌ</span>';
@@ -2681,10 +2707,22 @@ async function enableMaintenanceMode() {
       enabledAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    // Lưu backup vào localStorage
+    localStorage.setItem('maintenanceMode', JSON.stringify({
+      enabled: true,
+      enabledAt: new Date().toISOString()
+    }));
     await loadMaintenanceState();
     showToast('🔧 Đã bật chế độ bảo trì hệ thống', 'warning', 5000);
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error');
+    console.warn('Firestore write failed, saving to localStorage:', e.message);
+    // Fallback: chỉ lưu localStorage
+    localStorage.setItem('maintenanceMode', JSON.stringify({
+      enabled: true,
+      enabledAt: new Date().toISOString()
+    }));
+    updateMaintenanceUI(true, { enabled: true, enabledAt: new Date().toISOString() });
+    showToast('🔧 Đã bật bảo trì (lưu cục bộ do lỗi kết nối)', 'warning', 5000);
   } finally { hideLoading(); }
 }
 
@@ -2703,10 +2741,14 @@ async function disableMaintenanceMode() {
       disabledAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    localStorage.setItem('maintenanceMode', JSON.stringify({ enabled: false }));
     await loadMaintenanceState();
     showToast('✅ Đã tắt chế độ bảo trì. Hệ thống hoạt động bình thường!', 'success', 5000);
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error');
+    console.warn('Firestore write failed, saving to localStorage:', e.message);
+    localStorage.setItem('maintenanceMode', JSON.stringify({ enabled: false }));
+    updateMaintenanceUI(false, null);
+    showToast('✅ Đã tắt bảo trì (lưu cục bộ)', 'success', 5000);
   } finally { hideLoading(); }
 }
  // =====================================================================
