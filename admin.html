@@ -588,6 +588,7 @@
 
    <main>
      <!-- ========== DASHBOARD ========== -->
+     <div id="courseStats" class="dashboard-card"></div>
      <div id="dashboard" class="page active">
        <h2 style="font-size:20px; font-weight:800; margin-bottom:20px; color:var(--text-primary);">📊 Tổng quan hệ thống</h2>
        <div class="dash-grid">
@@ -1441,6 +1442,16 @@ D. Đáp án D
  // =====================================================================
  // DASHBOARD
  // =====================================================================
+  function getCourseStats() {
+  const stats = {};
+
+  allStudents.forEach(s => {
+    const c = s.course && s.course.trim() ? s.course.trim() : 'Chưa phân loại';
+    stats[c] = (stats[c] || 0) + 1;
+  });
+
+  return stats;
+}
  function loadDashboard() {
    const t = allStudents.length;
    const a = allStudents.filter(s => s.status === 'active').length;
@@ -1449,13 +1460,18 @@ D. Đáp án D
    document.getElementById('activeStudents').textContent = a;
    document.getElementById('warningCount').textContent = l;
    document.getElementById('totalSets').textContent = allQuestionSets.filter(s => s.status === 'active').length;
-   const cs = getCourseStats();
-let html = '<b>📊 Học viên theo Khóa học</b><ul>';
+   /* ===== THỐNG KÊ KHÓA HỌC ===== */
+const cs = getCourseStats();
+let html = '<b>📊 Học viên theo Khóa học</b><ul style="margin-top:6px">';
+
 Object.keys(cs).sort().forEach(k => {
   html += `<li>${escapeHtml(k)}: <b>${cs[k]}</b></li>`;
 });
+
 html += '</ul>';
-document.getElementById('courseStats').innerHTML = html;
+
+const box = document.getElementById('courseStats');
+if (box) box.innerHTML = html;
 
  }
  function renderActivityTable(a) {
@@ -1569,7 +1585,8 @@ document.getElementById('courseStats').innerHTML = html;
    pg.forEach((s,i) => {
      const sc = s.status==='active' ? 'status-active' : 'status-locked';
      const st2 = s.status==='active' ? '● Hoạt động' : '● Đã khóa';
-     h += `<tr><td>${(currentPage-1)*itemsPerPage+i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td style="text-align:left">${escapeHtml(s.unit)}</td><td>${formatDate(s.dob)}</td><td>${escapeHtml(s.object)}</td><td class="no-print"><span class="status-badge ${sc}" style="cursor:pointer" onclick="toggleStatus('${s.code}')">${st2}</span></td><td class="no-print"><button class="btn btn-primary btn-sm" onclick="editStudent('${s.code}')">✎</button> <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.code}')">🗑</button></td></tr>`;
+     h += `<tr><td>${(currentPage-1)*itemsPerPage+i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td style="text-align:left">${escapeHtml(s.unit)}</td><td>${formatDate(s.dob)}</td><td>${escapeHtml(s.object)}<td>${escapeHtml(s.course || '')}</td>
+</td><td class="no-print"><span class="status-badge ${sc}" style="cursor:pointer" onclick="toggleStatus('${s.code}')">${st2}</span></td><td class="no-print"><button class="btn btn-primary btn-sm" onclick="editStudent('${s.code}')">✎</button> <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.code}')">🗑</button></td></tr>`;
    });
    tb.innerHTML = h;
    renderPagination();
@@ -1723,7 +1740,7 @@ document.getElementById('courseStats').innerHTML = html;
    document.getElementById('importModal').classList.add('show');
  }
  function downloadExcelTemplate() {
-   const d = [['Họ và tên','Đơn vị','Đối tượng','Ngày sinh'],['Nguyễn Văn A','Đại đội 1','HV','15/03/1998']];
+   const d = [ ['Họ và tên','Đơn vị','Đối tượng','Khóa học','Ngày sinh'], ['Nguyễn Văn A','Đại đội 1','HV','K2024','15/03/1998']];
    const ws = XLSX.utils.aoa_to_sheet(d);
    ws['!cols'] = [{wch:25},{wch:20},{wch:15},{wch:15}];
    const wb = XLSX.utils.book_new();
@@ -1779,10 +1796,9 @@ document.getElementById('courseStats').innerHTML = html;
        for(const sd of chunk){
          ct[sd.prefix]=(ct[sd.prefix]||0)+1;
          const nc=sd.prefix+String(ct[sd.prefix]).padStart(4,'0');
-         const ns={code:nc,name:sd.name,unit:sd.unit,dob:sd.dob,object:sd.object,status:'active',exams:0,bestScore:0,avgScore:0,nameSearch:sd.name.toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-         batch.set(db.collection('students').doc(nc),ns);
-         ns.createdAt=new Date(); allStudents.push(ns);
-         course: sd.course || '',
+         const ns = {  code: nc,  name: sd.name,  unit: sd.unit,  dob: sd.dob,  object: sd.object,  course: sd.course || '',  status: 'active',  exams: 0,  bestScore: 0,  avgScore: 0,  nameSearch: sd.name.toLowerCase(),
+  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+};
        }
        await batch.commit();
      }
@@ -1792,8 +1808,8 @@ document.getElementById('courseStats').innerHTML = html;
  }
  function exportToExcel() {
    const ed=filteredStudents.length?filteredStudents:allStudents;
-   const d=[['STT','Mã HV','Họ tên','Đơn vị','Ngày sinh','Đối tượng','Trạng thái','Lần thi','Điểm max','Điểm TB']];
-   ed.forEach((s,i)=>{d.push([i+1,s.code,s.name,s.unit,formatDate(s.dob),s.object,s.status==='active'?'Hoạt động':'Khóa',s.exams||0,s.bestScore||0,s.avgScore||0]);});
+   const d=[['STT','Mã HV','Họ tên','Đơn vị','Khóa học','Ngày sinh','Đối tượng','Trạng thái','Lần thi','Điểm max','Điểm TB']];
+   ed.forEach((s,i)=>{d.push([ i+1, s.code, s.name, s.unit, s.course || '', formatDate(s.dob), s.object,,s.status==='active'?'Hoạt động':'Khóa',s.exams||0,s.bestScore||0,s.avgScore||0]);});
    const ws=XLSX.utils.aoa_to_sheet(d); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'DS');
    XLSX.writeFile(wb,`HocVien_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
    showToast(`Xuất ${ed.length} HV`,'success');
