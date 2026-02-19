@@ -458,6 +458,7 @@
 
  /* ===== PRINT STYLES - IMPROVED ===== */
  #printHeader { display: none; }
+ .print-letterhead, .print-date, .print-title { display: none; }
  @media print {
    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
    header, aside, .toolbar, .btn, .statGrid, .pagination,
@@ -470,16 +471,26 @@
    .page { display: none !important; }
    #students.page { display: block !important; }
    .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
-   #printHeader { display: block !important; text-align: center; margin-bottom: 16px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-   #printHeader h2 { font-size: 16pt; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
-   #printHeader p { font-size: 10pt; color: #555; }
+   #printHeader { display: block !important; margin-bottom: 8px; }
+   .print-letterhead { width: 100%; border-collapse: collapse; border: none; margin-bottom: 2px; display: table !important; }
+   .print-letterhead td { border: none; padding: 0; vertical-align: top; width: 50%; }
+   .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
+   .letterhead-left div:first-child { font-size: 10pt; }
+   .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+   .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
+   .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+   .letterhead-motto { font-size: 11pt; font-weight: bold; }
+   .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
+   .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
+   .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
+   #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
    .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
    table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
    th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
    th { background: #e8e8e8 !important; font-weight: bold !important; }
    tbody tr:nth-child(even) { background: #f9f9f9 !important; }
    .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
-   @page { margin: 1.5cm; size: A4 landscape; }
+   @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 3.5cm; margin-right: 1.5cm; size: A4 portrait; }
  }
 
  @media (min-width: 768px) { .header-clock { display: block; } }
@@ -529,7 +540,7 @@
      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
      <div class="logo">
        <div class="logo-icon">🚦</div>
-       <span>ADMIN PANEL - TRANG QUẢN TRỊ HỆ THỐNG</span>
+       <span>ADMIN PANEL</span>
      </div>
    </div>
    <div class="header-right">
@@ -706,7 +717,22 @@
              </select>
          </div>
          <div id="printHeader">
-           <h2>DANH SÁCH HỌC VIÊN</h2>
+           <table class="print-letterhead">
+             <tr>
+               <td class="letterhead-left">
+                 <div>TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+                 <div class="letterhead-unit">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+                 <div class="letterhead-underline"></div>
+               </td>
+               <td class="letterhead-right">
+                 <div class="letterhead-republic">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                 <div class="letterhead-motto">Độc lập – Tự do – Hạnh phúc</div>
+                 <div class="letterhead-underline"></div>
+               </td>
+             </tr>
+           </table>
+           <div class="print-date" id="printDate"></div>
+           <div class="print-title" id="printTitle"></div>
            <p id="printInfo"></p>
          </div>
          <div class="tableWrap">
@@ -1050,6 +1076,10 @@
          <input type="hidden" id="editQDocId">
          <label>Nội dung câu hỏi *</label>
          <textarea id="editQContent" rows="4" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:var(--radius-md); font-size:14px; font-family:inherit; background:var(--bg-input); color:var(--text-primary); resize:vertical; min-height:90px; margin-bottom:14px; transition:var(--transition);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+         <label>Nhóm câu hỏi</label>
+         <select id="editQGroupSelect" style="width:100%; padding:10px 12px; margin-bottom:14px; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:14px; background:var(--bg-input); color:var(--text-primary); transition:var(--transition);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+           <option value="-99">⚠️ Câu liệt</option>
+         </select>
          <div class="answers-grid" style="margin-bottom:14px;">
            <div class="answer-item" id="editAnswerItem1">
              <div class="answer-header"><label class="answer-radio"><input type="radio" name="editCorrectAnswer" value="1" onchange="updateEditAnswerHighlight()"><span class="radio-custom"></span></label><span class="answer-label">A</span><span class="answer-required">*</span></div>
@@ -1689,6 +1719,18 @@ D. Đáp án D
    if (!q&&!fs&&!fo) t=`Tổng: ${allStudents.length} học viên`;
    else { const f=[]; if(q)f.push(`"${q}"`); if(fs)f.push(fs==='active'?'Hoạt động':'Khóa'); if(fo)f.push(fo); t=f.join(' | ')+` | ${filteredStudents.length} kết quả`; }
    document.getElementById('printInfo').textContent = t;
+
+   // Set date for letterhead
+   const now = new Date();
+   const dateEl = document.getElementById('printDate');
+   if (dateEl) dateEl.textContent = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}`;
+
+   // Set page title (keep existing title from document)
+   const titleEl = document.getElementById('printTitle');
+   if (titleEl) {
+     const fc = document.getElementById('filterCourse') ? document.getElementById('filterCourse').value : '';
+     titleEl.textContent = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
+   }
  }
  // CRUD students
  function openAddModal() {
@@ -2641,6 +2683,8 @@ function renderViewQuestions() {
 function openEditQuestion(docId) {
   const q = allViewQuestions.find(x => x.docId === docId);
   if (!q) return;
+  const s = allQuestionSets.find(x => x.code === currentViewSetCode);
+
   document.getElementById('editQDocId').value = docId;
   document.getElementById('editQContent').value = q.content || '';
   const answers = q.answers || [];
@@ -2654,6 +2698,26 @@ function openEditQuestion(docId) {
   document.getElementById('editQImageUrl').value = q.imageUrl || '';
   updateEditAnswerHighlight();
   updateEditImagePreview(q.imageUrl || '');
+
+  // Populate group dropdown
+  const sel = document.getElementById('editQGroupSelect');
+  sel.innerHTML = '';
+  if (s && s.groupDetails) {
+    s.groupDetails.forEach((g, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `Nhóm ${i+1}: ${g.name}`;
+      sel.appendChild(opt);
+    });
+  }
+  // Add liet option
+  const lietOpt = document.createElement('option');
+  lietOpt.value = -99;
+  lietOpt.textContent = '⚠️ Câu liệt';
+  sel.appendChild(lietOpt);
+  // Set current value
+  sel.value = q.isLiet ? -99 : (q.groupIndex !== undefined ? q.groupIndex : 0);
+
   document.getElementById('editQuestionModal').classList.add('show');
 }
 
@@ -2701,15 +2765,20 @@ async function saveEditedQuestion() {
   const answers = [a1, a2, a3, a4].filter(a => a);
   if (correct > answers.length) { showToast('Đáp án đúng không hợp lệ!', 'error'); return; }
 
+  const groupSelVal = parseInt(document.getElementById('editQGroupSelect').value);
+  const newIsLiet = groupSelVal === -99;
+  const newGroupIndex = newIsLiet ? -1 : groupSelVal;
+
   showLoading('Đang lưu...');
   try {
     await db.collection('questions').doc(docId).update({
       content, answers, correctAnswer: correct, imageUrl: imageUrl || null,
+      groupIndex: newGroupIndex, isLiet: newIsLiet,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     // Update local cache
     const idx = allViewQuestions.findIndex(x => x.docId === docId);
-    if (idx > -1) Object.assign(allViewQuestions[idx], { content, answers, correctAnswer: correct, imageUrl });
+    if (idx > -1) Object.assign(allViewQuestions[idx], { content, answers, correctAnswer: correct, imageUrl, groupIndex: newGroupIndex, isLiet: newIsLiet });
     closeModal('editQuestionModal');
     renderViewQuestions();
     showToast('Đã cập nhật câu hỏi!', 'success');
