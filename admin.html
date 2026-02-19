@@ -550,7 +550,6 @@
        <span>🚪</span> Đăng xuất
      </button>
    </div>
-  <div id="courseStats" class="dashboard-card"></div>
  </header>
 
  <div id="layout">
@@ -714,16 +713,17 @@
          <div class="tableWrap">
            <table id="studentTable">
              <thead><tr>
-               <th onclick="sortTable(0)" style="width:5%">#</th>
-               <th onclick="sortTable(1)" style="width:10%">Mã HV <span class="sort-icon">⇅</span></th>
-               <th onclick="sortTable(2)" style="width:22%">Họ và Tên <span class="sort-icon">⇅</span></th>
-               <th onclick="sortTable(3)" style="width:16%">Đơn vị <span class="sort-icon">⇅</span></th>
-               <th onclick="sortTable(4)" style="width:10%">Ngày sinh <span class="sort-icon">⇅</span></th>
-               <th onclick="sortTable(5)" style="width:10%">Đối tượng <span class="sort-icon">⇅</span></th>
-               <th style="width:12%" class="no-print">Trạng thái</th>
-               <th style="width:15%" class="no-print">Thao tác</th>
+               <th onclick="sortTable(0)" style="width:4%">#</th>
+               <th onclick="sortTable(1)" style="width:9%">Mã HV <span class="sort-icon">⇅</span></th>
+               <th onclick="sortTable(2)" style="width:18%">Họ và Tên <span class="sort-icon">⇅</span></th>
+               <th onclick="sortTable(3)" style="width:14%">Đơn vị <span class="sort-icon">⇅</span></th>
+               <th onclick="sortTable(4)" style="width:9%">Ngày sinh <span class="sort-icon">⇅</span></th>
+               <th onclick="sortTable(5)" style="width:9%">Đối tượng <span class="sort-icon">⇅</span></th>
+               <th onclick="sortTable(6)" style="width:9%">Khóa học <span class="sort-icon">⇅</span></th>
+               <th style="width:11%" class="no-print">Trạng thái</th>
+               <th style="width:17%" class="no-print">Thao tác</th>
              </tr></thead>
-             <tbody id="studentTableBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);">Đang tải...</td></tr></tbody>
+             <tbody id="studentTableBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);">Đang tải...</td></tr></tbody>
            </table>
          </div>
          <div class="pagination" id="studentPagination"></div>
@@ -1010,6 +1010,77 @@
        </div>
      </div>
 
+     <!-- ========== VIEW QUESTIONS PAGE ========== -->
+     <div id="view_questions_page" class="page">
+       <div class="back-btn" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+         <button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button>
+         <div style="display:flex; gap:8px; flex-wrap:wrap;">
+           <button class="btn btn-success" onclick="showAddQuestionsPage(currentViewSetCode)">➕ Thêm câu hỏi</button>
+         </div>
+       </div>
+       <div class="box" style="background:linear-gradient(135deg,var(--accent),#0a58ca);color:white;border:none; margin-bottom:16px;">
+         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+           <div>
+             <div style="font-size:12px; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">Danh sách câu hỏi của bộ đề</div>
+             <div style="font-size:20px; font-weight:800;" id="viewQSetName"></div>
+           </div>
+           <div style="display:flex; gap:16px; text-align:center;">
+             <div><div style="font-size:28px; font-weight:800;" id="viewQCount">0</div><div style="font-size:11px; opacity:0.8;">Tổng câu hỏi</div></div>
+           </div>
+         </div>
+       </div>
+       <div class="box" style="padding:0; overflow:hidden;">
+         <div style="background:var(--bg-table-head); padding:12px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+           <span style="font-weight:700; font-size:13px; color:var(--text-secondary);">Nhóm câu hỏi:</span>
+           <div id="viewGroupTabsContainer" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+           <input type="text" id="viewQSearch" placeholder="🔍 Tìm câu hỏi..." onkeyup="filterViewQuestions()" style="margin-left:auto; padding:7px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:13px; background:var(--bg-input); color:var(--text-primary); min-width:200px;">
+         </div>
+         <div style="padding:16px;" id="viewQuestionsListContainer">
+           <div style="text-align:center; padding:40px; color:var(--text-muted);">
+             <span style="font-size:48px;">📋</span>
+             <p style="margin-top:12px; font-size:14px;">Đang tải câu hỏi...</p>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- ========== EDIT QUESTION MODAL ========== -->
+     <div id="editQuestionModal" class="modal">
+       <div class="modal-content" style="max-width:680px;">
+         <h3>✏️ Chỉnh sửa câu hỏi</h3>
+         <input type="hidden" id="editQDocId">
+         <label>Nội dung câu hỏi *</label>
+         <textarea id="editQContent" rows="4" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:var(--radius-md); font-size:14px; font-family:inherit; background:var(--bg-input); color:var(--text-primary); resize:vertical; min-height:90px; margin-bottom:14px; transition:var(--transition);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+         <div class="answers-grid" style="margin-bottom:14px;">
+           <div class="answer-item" id="editAnswerItem1">
+             <div class="answer-header"><label class="answer-radio"><input type="radio" name="editCorrectAnswer" value="1" onchange="updateEditAnswerHighlight()"><span class="radio-custom"></span></label><span class="answer-label">A</span><span class="answer-required">*</span></div>
+             <textarea id="editQAnswer1" rows="2" placeholder="Đáp án A..." class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+           </div>
+           <div class="answer-item" id="editAnswerItem2">
+             <div class="answer-header"><label class="answer-radio"><input type="radio" name="editCorrectAnswer" value="2" onchange="updateEditAnswerHighlight()"><span class="radio-custom"></span></label><span class="answer-label">B</span><span class="answer-required">*</span></div>
+             <textarea id="editQAnswer2" rows="2" placeholder="Đáp án B..." class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+           </div>
+           <div class="answer-item" id="editAnswerItem3">
+             <div class="answer-header"><label class="answer-radio"><input type="radio" name="editCorrectAnswer" value="3" onchange="updateEditAnswerHighlight()"><span class="radio-custom"></span></label><span class="answer-label">C</span></div>
+             <textarea id="editQAnswer3" rows="2" placeholder="Đáp án C (không bắt buộc)" class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+           </div>
+           <div class="answer-item" id="editAnswerItem4">
+             <div class="answer-header"><label class="answer-radio"><input type="radio" name="editCorrectAnswer" value="4" onchange="updateEditAnswerHighlight()"><span class="radio-custom"></span></label><span class="answer-label">D</span></div>
+             <textarea id="editQAnswer4" rows="2" placeholder="Đáp án D (không bắt buộc)" class="answer-input" oninput="autoResizeTextarea(this)"></textarea>
+           </div>
+         </div>
+         <label>URL hình ảnh (không bắt buộc)</label>
+         <input type="text" id="editQImageUrl" placeholder="https://..." style="width:100%; padding:10px 12px; margin-bottom:14px; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:14px; background:var(--bg-input); color:var(--text-primary);">
+         <div id="editImagePreview" style="display:none; margin-bottom:14px;">
+           <img id="editImagePreviewImg" style="max-width:100%; max-height:150px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+         </div>
+         <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+           <button class="btn btn-secondary" onclick="closeModal('editQuestionModal')">Hủy</button>
+           <button class="btn btn-success" onclick="saveEditedQuestion()">💾 Lưu thay đổi</button>
+         </div>
+       </div>
+     </div>
+
      <!-- ========== MODAL IMPORT CÂU HỎI TỪ EXCEL ========== -->
      <div id="importQuestionsModal" class="modal">
        <div class="modal-content" style="max-width:700px;">
@@ -1213,7 +1284,10 @@ D. Đáp án D
  let presenceMap = new Map();
  let currentImageData = null;
  let selectedGroupIndex = 0;
- let pendingLietQuestions = []; // câu hỏi liệt chờ lưu
+ let pendingLietQuestions = [];
+ let currentViewSetCode = null;
+ let allViewQuestions = [];
+ let currentViewGroupFilter = -1;
 
  // =====================================================================
  // INIT
@@ -1221,7 +1295,7 @@ D. Đáp án D
  window.onload = function () {
    initializeSystem();
    updateClock();
-   setInterval(updateClock, 60000);
+   setInterval(updateClock, 1000);
    const t = localStorage.getItem('theme');
    if (t) {
      document.documentElement.setAttribute('data-theme', t);
@@ -1243,10 +1317,6 @@ D. Đáp án D
       const timeStr = n.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const dateStr = n.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
       document.getElementById('currentTime').innerHTML = `🕐 ${timeStr} &nbsp;|&nbsp; 📅 ${dateStr}`;
-      /* ⏱ Chạy đồng hồ */
-      updateClock();                 // chạy ngay khi load trang
-      setInterval(updateClock, 1000); // cập nhật mỗi 1 giây
-
     }
 
 
@@ -1261,7 +1331,6 @@ D. Đáp án D
      startPresenceListener();
      loadDashboard();
      loadStudents();
-     loadCourseFilter();
      loadCourseFilter();
      loadQuestionSets();
      loadStats();
@@ -1531,15 +1600,6 @@ if (box) box.innerHTML = html;
     sel.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
   });
 }
-  function getCourseStats() {
-  const stats = {};
-  allStudents.forEach(s => {
-    if (!s.course) return;
-    stats[s.course] = (stats[s.course] || 0) + 1;
-  });
-  return stats;
-}
-
 
  // =====================================================================
  // STUDENTS
@@ -1570,9 +1630,6 @@ if (box) box.innerHTML = html;
      const ms = !q || (s.name||'').toLowerCase().includes(q) || (s.code||'').toLowerCase().includes(q) || (s.unit||'').toLowerCase().includes(q);
      return ms && (!fs || s.status===fs) && (!fo || s.object===fo);
    });
-   <select id="filterCourse">
-  <option value="">-- Tất cả khóa học --</option>
-</select>
    currentPage = 1;
    renderStudentTable();
  }
@@ -1580,13 +1637,12 @@ if (box) box.innerHTML = html;
    const tb = document.getElementById('studentTableBody');
    const st = (currentPage-1)*itemsPerPage;
    const pg = filteredStudents.slice(st, st+itemsPerPage);
-   if (!pg.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Không tìm thấy</td></tr>'; document.getElementById('studentPagination').innerHTML = ''; return; }
+   if (!pg.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Không tìm thấy</td></tr>'; document.getElementById('studentPagination').innerHTML = ''; return; }
    let h = '';
    pg.forEach((s,i) => {
      const sc = s.status==='active' ? 'status-active' : 'status-locked';
      const st2 = s.status==='active' ? '● Hoạt động' : '● Đã khóa';
-     h += `<tr><td>${(currentPage-1)*itemsPerPage+i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td style="text-align:left">${escapeHtml(s.unit)}</td><td>${formatDate(s.dob)}</td><td>${escapeHtml(s.object)}<td>${escapeHtml(s.course || '')}</td>
-</td><td class="no-print"><span class="status-badge ${sc}" style="cursor:pointer" onclick="toggleStatus('${s.code}')">${st2}</span></td><td class="no-print"><button class="btn btn-primary btn-sm" onclick="editStudent('${s.code}')">✎</button> <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.code}')">🗑</button></td></tr>`;
+     h += `<tr><td>${(currentPage-1)*itemsPerPage+i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td style="text-align:left">${escapeHtml(s.unit)}</td><td>${formatDate(s.dob)}</td><td>${escapeHtml(s.object)}</td><td>${escapeHtml(s.course||'—')}</td><td class="no-print"><span class="status-badge ${sc}" style="cursor:pointer" onclick="toggleStatus('${s.code}')">${st2}</span></td><td class="no-print"><button class="btn btn-primary btn-sm" onclick="editStudent('${s.code}')">✎</button> <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.code}')">🗑</button></td></tr>`;
    });
    tb.innerHTML = h;
    renderPagination();
@@ -1625,7 +1681,7 @@ if (box) box.innerHTML = html;
    renderStudentTable();
  }
  function sortTable(c) {
-   const f = ['','code','name','unit','dob','object'];
+   const f = ['','code','name','unit','dob','object','course'];
    const fd = f[c];
    if (!fd) return;
    const asc = sortDirection[fd] !== 'asc';
@@ -1638,9 +1694,6 @@ if (box) box.innerHTML = html;
    const q = document.getElementById('searchAll').value;
    const fs = document.getElementById('filterStatus').value;
    const fo = document.getElementById('filterObject').value;
-   <select id="filterCourse">
-  <option value="">-- Tất cả khóa học --</option>
-</select>
 
    let t = '';
    if (!q&&!fs&&!fo) t=`Tổng: ${allStudents.length} học viên`;
@@ -1667,8 +1720,6 @@ if (box) box.innerHTML = html;
    document.getElementById('studentUnit').value = s.unit||'';
    document.getElementById('studentDob').value = s.dob||'';
   document.getElementById('studentCourse').value = s.course || '';
-   <label>Khóa học</label>
-<input type="text" id="studentCourse" placeholder="VD: K2025">
    if (['Học viên','Sĩ quan','Chuyên nghiệp'].includes(s.object)) { document.getElementById('studentObject').value = s.object; }
    else { document.getElementById('studentObject').value = 'other'; document.getElementById('otherObjectName').value = s.object||''; }
    toggleOtherField();
@@ -1679,8 +1730,7 @@ if (box) box.innerHTML = html;
    const un = document.getElementById('studentUnit').value.trim();
    const db2 = document.getElementById('studentDob').value;
    let ob = document.getElementById('studentObject').value;
-   <label>Khóa học</label>
-<input type="text" id="studentCourse" placeholder="VD: K2025">
+   const cr = document.getElementById('studentCourse').value.trim();
 
    if (!nm||!un) { showToast('Nhập đầy đủ thông tin!','error'); return; }
    if (ob==='other') { ob = document.getElementById('otherObjectName').value.trim(); if (!ob) { showToast('Nhập đối tượng!','error'); return; } }
@@ -1710,8 +1760,6 @@ if (box) box.innerHTML = html;
      loadCourseFilter();
      loadDashboard();
    } catch(e) { showToast('Lỗi: '+e.message,'error'); } finally { hideLoading(); }
-  const cr = document.getElementById('studentCourse').value.trim();
-  if (!cr) { showToast('Nhập khóa học!','error'); return; }
  }
  async function deleteStudent(c) {
    const s = allStudents.find(x=>x.code===c);
@@ -1770,9 +1818,9 @@ if (box) box.innerHTML = html;
          if(ds){const p=ds.split('/');if(p.length===3)dob=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;else if(ds.includes('-'))dob=ds;}
          let ob='Học viên',pf='HV';
          if(ot==='SQ'){ob='Sĩ quan';pf='SQ';}else if(ot==='CN'){ob='Chuyên nghiệp';pf='CN';}
+         const cr = r[4] ? r[4].toString().trim() : '';
          const sd={name:nm,unit:un,object:ob,prefix:pf,dob,course: cr,row:i+1};
          if(allStudents.some(s=>(s.name||'').toLowerCase()===nm.toLowerCase()&&(s.unit||'').toLowerCase()===un.toLowerCase()&&(s.dob||'')===dob)){duplicatesFound.push(sd);}else pendingImportData.push(sd);
-         const cr = r[4] ? r[4].toString().trim() : '';
        }
        if(duplicatesFound.length>0){
          let h=''; duplicatesFound.forEach(s=>{h+=`<div class="duplicate-item"><b>Dòng ${s.row}:</b> ${escapeHtml(s.name)} - ${escapeHtml(s.unit)}</div>`;});
@@ -1799,6 +1847,7 @@ if (box) box.innerHTML = html;
          const ns = {  code: nc,  name: sd.name,  unit: sd.unit,  dob: sd.dob,  object: sd.object,  course: sd.course || '',  status: 'active',  exams: 0,  bestScore: 0,  avgScore: 0,  nameSearch: sd.name.toLowerCase(),
   createdAt: firebase.firestore.FieldValue.serverTimestamp()
 };
+         batch.set(db.collection('students').doc(nc), ns);
        }
        await batch.commit();
      }
@@ -1809,7 +1858,7 @@ if (box) box.innerHTML = html;
  function exportToExcel() {
    const ed=filteredStudents.length?filteredStudents:allStudents;
    const d=[['STT','Mã HV','Họ tên','Đơn vị','Khóa học','Ngày sinh','Đối tượng','Trạng thái','Lần thi','Điểm max','Điểm TB']];
-   ed.forEach((s,i)=>{d.push([ i+1, s.code, s.name, s.unit, s.course || '', formatDate(s.dob), s.object,,s.status==='active'?'Hoạt động':'Khóa',s.exams||0,s.bestScore||0,s.avgScore||0]);});
+   ed.forEach((s,i)=>{d.push([ i+1, s.code, s.name, s.unit, s.course || '', formatDate(s.dob), s.object, s.status==='active'?'Hoạt động':'Khóa',s.exams||0,s.bestScore||0,s.avgScore||0]);});
    const ws=XLSX.utils.aoa_to_sheet(d); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'DS');
    XLSX.writeFile(wb,`HocVien_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
    showToast(`Xuất ${ed.length} HV`,'success');
@@ -1826,7 +1875,7 @@ if (box) box.innerHTML = html;
    allQuestionSets.forEach((s,i)=>{
      const isLocked=s.status==='locked';
      const badge=isLocked?`<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','active')">● Khóa</span>`:`<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','locked')">● Hoạt động</span>`;
-     h+=`<tr><td>${i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td>${s.totalQuestions||0}</td><td>${s.groups||0}</td><td>${badge}</td><td><button class="btn btn-info btn-sm" onclick="showConfigPage('${s.code}')">⚙️</button> <button class="btn btn-success btn-sm" onclick="showAddQuestionsPage('${s.code}')">➕</button> <button class="btn btn-danger btn-sm" onclick="deleteSet('${s.code}')">🗑️</button></td></tr>`;
+     h+=`<tr><td>${i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td>${s.totalQuestions||0}</td><td>${s.groups||0}</td><td>${badge}</td><td><button class="btn btn-info btn-sm" onclick="showConfigPage('${s.code}')" title="Cài đặt">⚙️</button> <button class="btn btn-primary btn-sm" onclick="showViewQuestionsPage('${s.code}')" title="Xem câu hỏi">👁️</button> <button class="btn btn-success btn-sm" onclick="showAddQuestionsPage('${s.code}')" title="Thêm câu hỏi">➕</button> <button class="btn btn-danger btn-sm" onclick="deleteSet('${s.code}')" title="Xóa bộ đề">🗑️</button></td></tr>`;
    });
    tb.innerHTML=h;
  }
@@ -2355,6 +2404,7 @@ if (box) box.innerHTML = html;
  function backToQuestionSets(){
    if(tempQuestions?.length&&!confirm('Có câu chưa lưu. Thoát?'))return;
    tempQuestions=[];
+   allViewQuestions=[];
    showPage('question_sets');
    loadQuestionSets();
    document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
@@ -2454,7 +2504,260 @@ if (box) box.innerHTML = html;
  // =====================================================================
  // EVENTS
  // =====================================================================
- window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.classList.remove('show'); };
+ // =====================================================================
+// VIEW / EDIT / DELETE QUESTIONS
+// =====================================================================
+// -1 = tất cả (group filter default)
+
+async function showViewQuestionsPage(setCode) {
+  const s = allQuestionSets.find(x => x.code === setCode);
+  if (!s) return;
+  currentViewSetCode = setCode;
+  currentViewGroupFilter = -1;
+  showPage('view_questions_page');
+  document.getElementById('viewQSetName').textContent = s.name;
+  document.getElementById('viewQCount').textContent = '...';
+  document.getElementById('viewQSearch').value = '';
+  // Build group tabs
+  const tabContainer = document.getElementById('viewGroupTabsContainer');
+  tabContainer.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = 'group-tab-btn active';
+  allBtn.textContent = 'Tất cả';
+  allBtn.onclick = function() {
+    currentViewGroupFilter = -1;
+    tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+    allBtn.classList.add('active');
+    renderViewQuestions();
+  };
+  tabContainer.appendChild(allBtn);
+  if (s.groupDetails) {
+    s.groupDetails.forEach((g, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'group-tab-btn';
+      btn.textContent = g.name;
+      btn.onclick = function() {
+        currentViewGroupFilter = i;
+        tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderViewQuestions();
+      };
+      tabContainer.appendChild(btn);
+    });
+    // Câu liệt tab
+    if ((s.lietQuestion || 0) > 0) {
+      const lietBtn = document.createElement('button');
+      lietBtn.type = 'button';
+      lietBtn.className = 'group-tab-btn';
+      lietBtn.textContent = '⚠️ Câu liệt';
+      lietBtn.onclick = function() {
+        currentViewGroupFilter = -99;
+        tabContainer.querySelectorAll('.group-tab-btn').forEach(b => b.classList.remove('active'));
+        lietBtn.classList.add('active');
+        renderViewQuestions();
+      };
+      tabContainer.appendChild(lietBtn);
+    }
+  }
+  await loadQuestionsForSet(setCode);
+}
+
+async function loadQuestionsForSet(setCode) {
+  const container = document.getElementById('viewQuestionsListContainer');
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);"><div class="spinner" style="margin:0 auto 12px;"></div><p>Đang tải câu hỏi...</p></div>';
+  try {
+    const snap = await db.collection('questions').where('setCode', '==', setCode).orderBy('order', 'asc').get();
+    allViewQuestions = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+    document.getElementById('viewQCount').textContent = allViewQuestions.length;
+    renderViewQuestions();
+  } catch (e) {
+    // Try without orderBy if index doesn't exist
+    try {
+      const snap2 = await db.collection('questions').where('setCode', '==', setCode).get();
+      allViewQuestions = snap2.docs.map(d => ({ docId: d.id, ...d.data() }));
+      allViewQuestions.sort((a,b) => (a.order||0) - (b.order||0));
+      document.getElementById('viewQCount').textContent = allViewQuestions.length;
+      renderViewQuestions();
+    } catch(e2) {
+      container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--danger);">❌ Lỗi tải câu hỏi: ${escapeHtml(e2.message)}</div>`;
+    }
+  }
+}
+
+function filterViewQuestions() {
+  renderViewQuestions();
+}
+
+function renderViewQuestions() {
+  const container = document.getElementById('viewQuestionsListContainer');
+  const searchTerm = (document.getElementById('viewQSearch').value || '').toLowerCase().trim();
+  const s = allQuestionSets.find(x => x.code === currentViewSetCode);
+  const labels = ['A','B','C','D'];
+
+  let filtered = allViewQuestions.filter(q => {
+    if (currentViewGroupFilter === -99) return q.isLiet === true;
+    if (currentViewGroupFilter >= 0) return q.groupIndex === currentViewGroupFilter;
+    return true;
+  });
+
+  if (searchTerm) {
+    filtered = filtered.filter(q =>
+      (q.content || '').toLowerCase().includes(searchTerm) ||
+      (q.answers || []).some(a => a.toLowerCase().includes(searchTerm))
+    );
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);">
+      <span style="font-size:48px;">🔍</span>
+      <p style="margin-top:12px;font-size:14px;">${searchTerm ? 'Không tìm thấy câu hỏi phù hợp' : 'Chưa có câu hỏi nào trong nhóm này'}</p>
+    </div>`;
+    return;
+  }
+
+  let h = '';
+  filtered.forEach((q, idx) => {
+    const gName = q.isLiet ? '⚠️ Câu liệt' : (s?.groupDetails?.[q.groupIndex]?.name || `Nhóm ${(q.groupIndex||0)+1}`);
+    const preview = (q.content || '').length > 90 ? q.content.substring(0, 90) + '...' : (q.content || '');
+    h += `<div class="q-item" id="qitem_${q.docId}">
+      <div class="q-item-header" onclick="toggleQuestionItem(this)">
+        <div class="q-item-num">
+          <div class="q-num-badge">${idx+1}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">${escapeHtml(preview)}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(gName)} • ${(q.answers||[]).length} đáp án ${q.imageUrl ? '• 🖼️ Có ảnh' : ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:14px;color:var(--text-muted);">▼</span>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openEditQuestion('${q.docId}')" style="padding:4px 8px;" title="Sửa">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); confirmDeleteQuestion('${q.docId}', ${idx+1})" style="padding:4px 8px;" title="Xóa">🗑️</button>
+        </div>
+      </div>
+      <div class="q-item-body collapsed">
+        <div style="font-size:14px;color:var(--text-primary);line-height:1.6;margin-bottom:10px;">${escapeHtml(q.content||'')}</div>
+        ${q.imageUrl ? `<img src="${escapeHtml(q.imageUrl)}" style="max-width:280px;max-height:160px;border-radius:var(--radius-sm);margin-bottom:10px;border:1px solid var(--border);" onerror="this.style.display='none'">` : ''}
+        <ul class="q-answer-list">
+          ${(q.answers||[]).map((a,j) => `<li class="${j+1===q.correctAnswer?'correct':''}">${labels[j]}. ${escapeHtml(a)}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = h;
+}
+
+function openEditQuestion(docId) {
+  const q = allViewQuestions.find(x => x.docId === docId);
+  if (!q) return;
+  document.getElementById('editQDocId').value = docId;
+  document.getElementById('editQContent').value = q.content || '';
+  const answers = q.answers || [];
+  ['editQAnswer1','editQAnswer2','editQAnswer3','editQAnswer4'].forEach((id, i) => {
+    document.getElementById(id).value = answers[i] || '';
+    autoResizeTextarea(document.getElementById(id));
+  });
+  document.querySelectorAll('input[name="editCorrectAnswer"]').forEach(r => {
+    r.checked = parseInt(r.value) === q.correctAnswer;
+  });
+  document.getElementById('editQImageUrl').value = q.imageUrl || '';
+  updateEditAnswerHighlight();
+  updateEditImagePreview(q.imageUrl || '');
+  document.getElementById('editQuestionModal').classList.add('show');
+}
+
+function updateEditAnswerHighlight() {
+  const selected = document.querySelector('input[name="editCorrectAnswer"]:checked');
+  for (let i = 1; i <= 4; i++) {
+    const item = document.getElementById('editAnswerItem' + i);
+    if (item) item.classList.toggle('correct', selected && selected.value == i);
+  }
+}
+
+function updateEditImagePreview(url) {
+  const preview = document.getElementById('editImagePreview');
+  const img = document.getElementById('editImagePreviewImg');
+  if (url && url.startsWith('http')) {
+    img.src = url;
+    preview.style.display = 'block';
+    img.onerror = function() { preview.style.display = 'none'; };
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'editQImageUrl') {
+    updateEditImagePreview(e.target.value);
+  }
+});
+
+async function saveEditedQuestion() {
+  const docId = document.getElementById('editQDocId').value;
+  const content = document.getElementById('editQContent').value.trim();
+  const a1 = document.getElementById('editQAnswer1').value.trim();
+  const a2 = document.getElementById('editQAnswer2').value.trim();
+  const a3 = document.getElementById('editQAnswer3').value.trim();
+  const a4 = document.getElementById('editQAnswer4').value.trim();
+  const correctRadio = document.querySelector('input[name="editCorrectAnswer"]:checked');
+  const correct = correctRadio ? parseInt(correctRadio.value) : 0;
+  const imageUrl = document.getElementById('editQImageUrl').value.trim() || null;
+
+  if (!content) { showToast('Nhập nội dung câu hỏi!', 'error'); return; }
+  if (!a1 || !a2) { showToast('Cần ít nhất 2 đáp án!', 'error'); return; }
+  if (!correct) { showToast('Chọn đáp án đúng!', 'error'); return; }
+
+  const answers = [a1, a2, a3, a4].filter(a => a);
+  if (correct > answers.length) { showToast('Đáp án đúng không hợp lệ!', 'error'); return; }
+
+  showLoading('Đang lưu...');
+  try {
+    await db.collection('questions').doc(docId).update({
+      content, answers, correctAnswer: correct, imageUrl: imageUrl || null,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // Update local cache
+    const idx = allViewQuestions.findIndex(x => x.docId === docId);
+    if (idx > -1) Object.assign(allViewQuestions[idx], { content, answers, correctAnswer: correct, imageUrl });
+    closeModal('editQuestionModal');
+    renderViewQuestions();
+    showToast('Đã cập nhật câu hỏi!', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function confirmDeleteQuestion(docId, num) {
+  const ok = await showConfirm('Xóa câu hỏi', `Bạn có chắc muốn xóa câu hỏi #${num}? Thao tác này không thể hoàn tác.`, '🗑️');
+  if (!ok) return;
+  showLoading('Đang xóa...');
+  try {
+    await db.collection('questions').doc(docId).delete();
+    // Remove from local cache
+    allViewQuestions = allViewQuestions.filter(x => x.docId !== docId);
+    // Update set total count
+    const s = allQuestionSets.find(x => x.code === currentViewSetCode);
+    if (s) {
+      s.totalQuestions = Math.max(0, (s.totalQuestions || 1) - 1);
+      await db.collection('questionSets').doc(currentViewSetCode).update({
+        totalQuestions: s.totalQuestions,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    document.getElementById('viewQCount').textContent = allViewQuestions.length;
+    renderViewQuestions();
+    showToast('Đã xóa câu hỏi!', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.classList.remove('show'); };
  document.addEventListener('keydown',function(e){
    if(e.key==='Escape'){
      document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
