@@ -220,6 +220,7 @@ button:disabled{opacity:.5;cursor:not-allowed;}
  opacity:0.85;
  margin:0;
  color:white;
+ transition: all 0.3s;
 }
 
 .maintenance-page .maint-thanks{
@@ -228,7 +229,7 @@ button:disabled{opacity:.5;cursor:not-allowed;}
  margin:0;
 }
 
-/* Nút quay lại */
+/* Nút quay lại bảo trì */
 .maintenance-page .maint-back-btn{
  display:inline-flex;
  align-items:center;
@@ -252,8 +253,6 @@ button:disabled{opacity:.5;cursor:not-allowed;}
  border-color:rgba(255,255,255,0.5);
  transform:translateY(-1px);
 }
-
-/* Spinner nhỏ cho nút quay lại */
 .maint-back-btn .btn-spinner{
  display:none;
  width:16px;height:16px;
@@ -409,10 +408,9 @@ button:disabled{opacity:.5;cursor:not-allowed;}
  <div class="maint-icon">🔧</div>
  <h1>Hệ thống đang bảo trì</h1>
  <p class="maint-desc">Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.</p>
- <p class="maint-sub">Vui lòng quay lại sau.</p>
+ <p class="maint-sub" id="maintSubText">Vui lòng quay lại sau.</p>
  <p class="maint-thanks">Xin cảm ơn sự thông cảm của bạn!</p>
 
- <!-- Nút quay lại -->
  <button class="maint-back-btn" id="maintBackBtn" onclick="goBackFromMaintenance()">
   <span class="btn-text-icon">← Quay lại trang đăng nhập</span>
   <span class="btn-spinner"></span>
@@ -478,7 +476,7 @@ button:disabled{opacity:.5;cursor:not-allowed;}
    </div>
   </div>
 
-  <button id="loginBtn">Đăng nhập</button>
+  <button id="loginBtn" onclick="login()">Đăng nhập</button>
   <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
 
   <div class="note">
@@ -519,7 +517,14 @@ const ADMIN_HASH = "2e06d4d58006dd575764d8e348c653397cd2c33288d4fad146555ae04291
 const DEFAULT_PASSWORD = '123456';
 
 // =====================================================================
-// SIMPLE HASH
+// STATE
+// =====================================================================
+let isSystemMaintenance = false;
+let eventsInitialized = false;
+let changePwStudentCode = '';
+
+// =====================================================================
+// SIMPLE HASH (phải giống hệt hàm trong admin.html)
 // =====================================================================
 function simpleHash(str) {
  let hash = 0;
@@ -532,11 +537,18 @@ function simpleHash(str) {
 }
 
 // =====================================================================
-// SHA-256 HASH
+// SHA-256 HASH (cho admin password)
 // =====================================================================
 function hashPassword(str) {
  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str))
   .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""));
+}
+
+// =====================================================================
+// NORMALIZE TEXT
+// =====================================================================
+function normalize(s) {
+ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 // =====================================================================
@@ -573,10 +585,8 @@ function showLoginLoading(show) {
 }
 
 // =====================================================================
-// MAINTENANCE CHECK
+// MAINTENANCE - SHOW / HIDE
 // =====================================================================
-let isSystemMaintenance = false;
-
 async function checkMaintenanceMode() {
  try {
   const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
@@ -606,41 +616,40 @@ function hideMaintenancePage() {
 }
 
 // =====================================================================
-// NÚT QUAY LẠI - Kiểm tra lại bảo trì rồi quyết định
+// NÚT QUAY LẠI TỪ TRANG BẢO TRÌ
 // =====================================================================
 async function goBackFromMaintenance() {
  const btn = document.getElementById('maintBackBtn');
+ const subEl = document.getElementById('maintSubText');
 
- // Hiện loading trên nút
+ // Hiện loading
  btn.classList.add('loading');
  btn.disabled = true;
 
  try {
-  // Kiểm tra lại trạng thái bảo trì từ Firestore
   const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
 
   if (maintDoc.exists && maintDoc.data().enabled) {
-   // Vẫn đang bảo trì → thông báo cho người dùng
+   // Vẫn bảo trì - thông báo
    btn.classList.remove('loading');
    btn.disabled = false;
 
-   // Hiển thị thông báo tạm
-   const oldText = document.querySelector('.maint-sub').textContent;
-   const subEl = document.querySelector('.maint-sub');
    subEl.textContent = '⚠️ Hệ thống vẫn đang bảo trì, vui lòng thử lại sau!';
    subEl.style.color = '#ffc107';
    subEl.style.fontWeight = '600';
 
    setTimeout(() => {
-    subEl.textContent = oldText;
+    subEl.textContent = 'Vui lòng quay lại sau.';
     subEl.style.color = '';
     subEl.style.fontWeight = '';
    }, 3000);
 
   } else {
-   // Đã hết bảo trì → quay lại trang đăng nhập
+   // Hết bảo trì - quay lại đăng nhập
+   btn.classList.remove('loading');
+   btn.disabled = false;
    hideMaintenancePage();
-   setupEventListeners();
+   initEvents();
    document.getElementById('loginInput').focus();
   }
 
@@ -648,46 +657,25 @@ async function goBackFromMaintenance() {
   console.warn('Lỗi kiểm tra bảo trì:', e.message);
   btn.classList.remove('loading');
   btn.disabled = false;
-
-  // Không kết nối được → cho phép quay lại luôn
+  // Lỗi kết nối - cho quay lại
   hideMaintenancePage();
-  setupEventListeners();
+  initEvents();
   document.getElementById('loginInput').focus();
  }
 }
 
 // =====================================================================
-// NORMALIZE TEXT
+// SETUP EVENT LISTENERS (chỉ gắn 1 lần duy nhất)
 // =====================================================================
-function normalize(s) {
- return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
+function initEvents() {
+ if (eventsInitialized) return;
+ eventsInitialized = true;
 
-// =====================================================================
-// PAGE INIT
-// =====================================================================
-window.onload = async function () {
- const isMaintenance = await checkMaintenanceMode();
- if (isMaintenance) {
-  showMaintenancePage();
-  return;
- }
-
- const userType = localStorage.getItem('userType');
- if (userType === 'admin') {
-  // location.href = 'admin.html';
- }
-
- setupEventListeners();
-};
-
-function setupEventListeners() {
  const loginInput = document.getElementById('loginInput');
  const password = document.getElementById('password');
- const loginBtn = document.getElementById('loginBtn');
  const showPass = document.getElementById('showPass');
 
- loginInput.addEventListener('keydown', e => {
+ loginInput.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
    if (!password.value) {
     password.focus();
@@ -697,42 +685,87 @@ function setupEventListeners() {
   }
  });
 
- password.addEventListener('keydown', e => {
+ password.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') login();
  });
 
- loginBtn.onclick = login;
-
- showPass.onchange = () => {
+ showPass.addEventListener('change', function() {
   password.type = showPass.checked ? 'text' : 'password';
- };
+ });
 
- loginInput.focus();
+ // Modal close
+ document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+   closeChangePwModal();
+  }
+ });
+
+ document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+   const modal = document.getElementById('changePwModal');
+   if (modal.classList.contains('show')) {
+    closeChangePwModal();
+   }
+  }
+ });
+
+ console.log('✅ Event listeners đã được khởi tạo');
 }
+
+// =====================================================================
+// PAGE INIT
+// =====================================================================
+window.onload = async function() {
+ console.log('🚀 Trang đang tải...');
+
+ // 1. Kiểm tra bảo trì
+ const isMaintenance = await checkMaintenanceMode();
+ if (isMaintenance) {
+  console.log('🔧 Hệ thống đang bảo trì');
+  showMaintenancePage();
+  return;
+ }
+
+ // 2. Setup events
+ initEvents();
+
+ // 3. Focus
+ document.getElementById('loginInput').focus();
+
+ console.log('✅ Trang đã sẵn sàng');
+};
 
 // =====================================================================
 // MAIN LOGIN FUNCTION
 // =====================================================================
 async function login() {
  hideError();
- const raw = document.getElementById('loginInput').value.trim();
- const pass = document.getElementById('password').value;
+
+ const loginInput = document.getElementById('loginInput');
+ const passwordInput = document.getElementById('password');
+ const raw = loginInput.value.trim();
+ const pass = passwordInput.value;
+
+ console.log('🔐 Bắt đầu đăng nhập, mã:', raw);
 
  if (!raw) {
   showError('Vui lòng nhập mã học viên hoặc tên');
-  document.getElementById('loginInput').focus();
+  loginInput.focus();
   return;
  }
 
- if (isSystemMaintenance) {
+ // Kiểm tra bảo trì (cho phép admin đăng nhập khi bảo trì)
+ if (isSystemMaintenance && raw.toLowerCase() !== 'admin') {
   showMaintenancePage();
   return;
  }
 
+ // Kiểm tra bảo trì real-time
  try {
   const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
   if (maintDoc.exists && maintDoc.data().enabled) {
    if (raw.toLowerCase() === 'admin') {
+    console.log('👑 Admin đăng nhập khi bảo trì');
     await loginAsAdmin(pass);
     return;
    } else {
@@ -744,11 +777,13 @@ async function login() {
   console.warn('Không check được bảo trì:', e.message);
  }
 
+ // Đăng nhập Admin
  if (raw.toLowerCase() === 'admin') {
   await loginAsAdmin(pass);
   return;
  }
 
+ // Đăng nhập Học viên
  await loginAsStudent(raw, pass);
 }
 
@@ -770,26 +805,28 @@ async function loginAsAdmin(pass) {
    localStorage.setItem('userType', 'admin');
    localStorage.setItem('adminName', 'Admin');
    showSuccess('Đăng nhập Admin thành công! Đang chuyển trang...');
-   setTimeout(() => {
-    location.href = 'admin.html';
-   }, 800);
-  } else {
-   try {
-    const adminDoc = await db.collection('systemConfig').doc('admin').get();
-    if (adminDoc.exists && adminDoc.data().passwordHash) {
-     if (simpleHash(pass) === adminDoc.data().passwordHash) {
-      localStorage.setItem('userType', 'admin');
-      localStorage.setItem('adminName', 'Admin');
-      showSuccess('Đăng nhập Admin thành công!');
-      setTimeout(() => {
-       location.href = 'admin.html';
-      }, 800);
-      return;
-     }
-    }
-   } catch (e) {}
-   showError('Sai mật khẩu Admin!');
+   setTimeout(() => { location.href = 'admin.html'; }, 800);
+   return;
   }
+
+  // Kiểm tra mật khẩu admin trong Firestore (nếu đã đổi)
+  try {
+   const adminDoc = await db.collection('systemConfig').doc('admin').get();
+   if (adminDoc.exists && adminDoc.data().passwordHash) {
+    if (simpleHash(pass) === adminDoc.data().passwordHash) {
+     localStorage.setItem('userType', 'admin');
+     localStorage.setItem('adminName', 'Admin');
+     showSuccess('Đăng nhập Admin thành công!');
+     setTimeout(() => { location.href = 'admin.html'; }, 800);
+     return;
+    }
+   }
+  } catch (e) {
+   console.warn('Lỗi kiểm tra admin Firestore:', e.message);
+  }
+
+  showError('Sai mật khẩu Admin!');
+
  } catch (e) {
   showError('Lỗi: ' + e.message);
  } finally {
@@ -801,59 +838,104 @@ async function loginAsAdmin(pass) {
 // STUDENT LOGIN
 // =====================================================================
 async function loginAsStudent(raw, pass) {
+ console.log('👤 Đăng nhập học viên:', raw);
  showLoginLoading(true);
 
  try {
   let student = null;
   const codeUpper = raw.toUpperCase();
 
-  const snapCode = await db.collection('students').where('code', '==', codeUpper).limit(1).get();
-  if (!snapCode.empty) {
-   student = { id: snapCode.docs[0].id, ...snapCode.docs[0].data() };
+  // === Bước 1: Tìm chính xác theo code ===
+  console.log('🔍 Tìm theo code:', codeUpper);
+  try {
+   const snapCode = await db.collection('students').where('code', '==', codeUpper).limit(1).get();
+   if (!snapCode.empty) {
+    const doc = snapCode.docs[0];
+    student = { id: doc.id, ...doc.data() };
+    console.log('✅ Tìm thấy theo code:', student.code, student.name);
+   }
+  } catch (e) {
+   console.error('❌ Lỗi tìm theo code:', e.message);
   }
 
+  // === Bước 2: Thử thêm prefix ===
   if (!student) {
    const prefixes = ['HV', 'SQ', 'CN', 'KH'];
-   for (const pf of prefixes) {
-    const tryCode = pf + raw.replace(/\D/g, '').padStart(4, '0');
-    const snap2 = await db.collection('students').where('code', '==', tryCode).limit(1).get();
-    if (!snap2.empty) {
-     student = { id: snap2.docs[0].id, ...snap2.docs[0].data() };
-     break;
+   const numPart = raw.replace(/\D/g, '');
+
+   if (numPart) {
+    for (const pf of prefixes) {
+     const tryCode = pf + numPart.padStart(4, '0');
+     console.log('🔍 Thử prefix:', tryCode);
+     try {
+      const snap2 = await db.collection('students').where('code', '==', tryCode).limit(1).get();
+      if (!snap2.empty) {
+       const doc = snap2.docs[0];
+       student = { id: doc.id, ...doc.data() };
+       console.log('✅ Tìm thấy với prefix:', student.code, student.name);
+       break;
+      }
+     } catch (e) {
+      console.error('❌ Lỗi tìm prefix ' + tryCode + ':', e.message);
+     }
     }
    }
   }
 
+  // === Bước 3: Tìm theo tên ===
   if (!student) {
-   const key = normalize(raw);
-   const snapAll = await db.collection('students').get();
-   snapAll.forEach(d => {
-    if (!student && normalize(d.data().name || '').includes(key)) {
-     student = { id: d.id, ...d.data() };
-    }
-   });
+   console.log('🔍 Tìm theo tên:', raw);
+   try {
+    const key = normalize(raw);
+    const snapAll = await db.collection('students').get();
+    console.log('📋 Tổng số học viên:', snapAll.size);
+    snapAll.forEach(d => {
+     if (!student) {
+      const name = d.data().name || '';
+      if (normalize(name).includes(key)) {
+       student = { id: d.id, ...d.data() };
+       console.log('✅ Tìm thấy theo tên:', student.code, student.name);
+      }
+     }
+    });
+   } catch (e) {
+    console.error('❌ Lỗi tìm theo tên:', e.message);
+   }
   }
 
+  // === Không tìm thấy ===
   if (!student) {
+   console.log('❌ Không tìm thấy học viên');
    showError('Không tìm thấy học viên. Vui lòng kiểm tra lại mã hoặc tên.');
    showLoginLoading(false);
    return;
   }
 
+  // === Kiểm tra trạng thái khóa ===
   if (student.status === 'locked') {
+   console.log('🔒 Tài khoản bị khóa:', student.code);
    showError('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.');
    showLoginLoading(false);
    return;
   }
 
+  // === Kiểm tra mật khẩu ===
   const inputPassword = pass || DEFAULT_PASSWORD;
   const storedPassword = student.password || simpleHash(DEFAULT_PASSWORD);
 
+  console.log('🔑 Kiểm tra mật khẩu...');
+  console.log('   Input hash:', simpleHash(inputPassword));
+  console.log('   Stored hash:', storedPassword);
+
   if (simpleHash(inputPassword) !== storedPassword) {
+   console.log('❌ Sai mật khẩu');
    showError('Sai mật khẩu! Mật khẩu mặc định là: ' + DEFAULT_PASSWORD);
    showLoginLoading(false);
    return;
   }
+
+  // === ĐĂNG NHẬP THÀNH CÔNG ===
+  console.log('✅ Đăng nhập thành công:', student.name);
 
   localStorage.setItem('userType', 'student');
   localStorage.setItem('studentCode', student.code);
@@ -861,25 +943,26 @@ async function loginAsStudent(raw, pass) {
   localStorage.setItem('studentUnit', student.unit || '');
   localStorage.setItem('studentObject', student.object || '');
 
+  // Kiểm tra mật khẩu mặc định
   if (!student.passwordChanged && inputPassword === DEFAULT_PASSWORD) {
-   showSuccess(`Xin chào ${student.name}! Đang chuyển trang...`);
-   setTimeout(() => {
-    if (confirm(`Chào ${student.name}!\n\nBạn đang sử dụng mật khẩu mặc định (${DEFAULT_PASSWORD}).\nBạn có muốn đổi mật khẩu ngay bây giờ không?\n\n(Bạn có thể đổi sau bất cứ lúc nào)`)) {
+   showSuccess('Xin chào ' + student.name + '! Đang chuyển trang...');
+   setTimeout(function() {
+    if (confirm('Chào ' + student.name + '!\n\nBạn đang sử dụng mật khẩu mặc định (' + DEFAULT_PASSWORD + ').\nBạn có muốn đổi mật khẩu ngay bây giờ không?\n\n(Bạn có thể đổi sau bất cứ lúc nào)')) {
      openChangePwModal(student.code);
     } else {
      location.href = 'exam.html';
     }
    }, 500);
   } else {
-   showSuccess(`Xin chào ${student.name}! Đang chuyển trang...`);
-   setTimeout(() => {
+   showSuccess('Xin chào ' + student.name + '! Đang chuyển trang...');
+   setTimeout(function() {
     location.href = 'exam.html';
    }, 800);
   }
 
  } catch (e) {
+  console.error('❌ Lỗi đăng nhập:', e);
   showError('Lỗi kết nối: ' + e.message);
-  console.error('Login error:', e);
  } finally {
   showLoginLoading(false);
  }
@@ -888,8 +971,6 @@ async function loginAsStudent(raw, pass) {
 // =====================================================================
 // CHANGE PASSWORD
 // =====================================================================
-let changePwStudentCode = '';
-
 function openChangePwModal(studentCode) {
  changePwStudentCode = studentCode;
  document.getElementById('cpOldPw').value = '';
@@ -978,24 +1059,6 @@ function tryExam() {
  localStorage.setItem('userType', 'guest');
  location.href = 'test.html';
 }
-
-// =====================================================================
-// MODAL CLOSE ON OUTSIDE CLICK
-// =====================================================================
-document.addEventListener('click', function (e) {
- if (e.target.classList.contains('modal-overlay')) {
-  closeChangePwModal();
- }
-});
-
-document.addEventListener('keydown', function (e) {
- if (e.key === 'Escape') {
-  const modal = document.getElementById('changePwModal');
-  if (modal.classList.contains('show')) {
-   closeChangePwModal();
-  }
- }
-});
 </script>
 </body>
 </html>
