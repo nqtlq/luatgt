@@ -692,7 +692,7 @@
          </div>
        </div>
        <div class="box">
-         <h3>👥 Danh sách Học viên</h3>
+         <h3>Danh sách Học viên</h3>
          <div class="toolbar">
            <button class="btn btn-success" onclick="openAddModal()">➕ Thêm</button>
            <button class="btn btn-primary" onclick="openImportModal()">📥 Nhập Excel</button>
@@ -1216,24 +1216,63 @@ D. Đáp án D
          <h3>⚙️ Cài đặt hệ thống</h3>
          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
            <div style="padding:18px; border:1px solid var(--border); border-radius:var(--radius-md)">
-             <h4 style="margin:0 0 12px">👤 Tài khoản</h4>
-             <button class="btn btn-primary btn-sm" onclick="showToast('Đang phát triển','info')">Đổi mật khẩu</button>
+             <h4 style="margin:0 0 12px; display:flex; align-items:center; gap:8px;">🔒 Tài khoản Admin</h4>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Email: <b>trunglq002@gmail.com</b></p>
+             <button class="btn btn-primary btn-sm" onclick="changeAdminPassword()">🔑 Đổi mật khẩu</button>
            </div>
            <div style="padding:18px; border:1px solid var(--border); border-radius:var(--radius-md)">
-             <h4 style="margin:0 0 12px">💾 Sao lưu</h4>
-             <button class="btn btn-success btn-sm" onclick="showToast('Đang phát triển','info')">Backup</button>
+             <h4 style="margin:0 0 12px; display:flex; align-items:center; gap:8px;">💾 Sao lưu & Khôi phục</h4>
+             <div style="display:flex; gap:8px; flex-wrap:wrap;">
+             <button class="btn btn-success btn-sm" onclick="backupSystemData()">📥 Backup</button>
+             <button class="btn btn-info btn-sm" onclick="restoreFromBackup()">📤 Khôi phục</button>
+             </div>
+           </div>
+           <div style="padding:20px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-card);">
+             <h4 style="margin:0 0 12px; display:flex; align-items:center; gap:8px;">🔧 Bảo trì hệ thống</h4>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Chặn người dùng đăng nhập khi bảo trì</p>
+             <button class="btn btn-warning btn-sm" id="maintenanceToggle" onclick="toggleMaintenanceMode()">🟢 BẬT bảo trì</button>
            </div>
            <div style="padding:18px; border:1px solid var(--border); border-radius:var(--radius-md)">
              <h4 style="margin:0 0 12px">🎨 Giao diện</h4>
              <button class="btn btn-outline btn-sm" onclick="toggleDarkMode()">🌙 Dark / ☀️ Light</button>
            </div>
-           <div style="padding:18px; border:1px solid var(--border); border-radius:var(--radius-md)">
-             <h4 style="margin:0 0 12px">🗄️ Dữ liệu</h4>
-             <button class="btn btn-danger btn-sm" onclick="confirmDeleteOldData()">🗑️ Xóa dữ liệu cũ</button>
+           <div style="padding:20px; border:2px solid var(--danger); border-radius:var(--radius-md); background:var(--danger-light);">
+             <h4 style="margin:0 0 12px; display:flex; align-items:center; gap:8px; color:var(--danger);">⚠️ NGUY HIỂM</h4>
+             <p style="font-size:12px; color:var(--danger); margin-bottom:12px;"><b>Cảnh báo:</b> Các thao tác này không thể hoàn tác!</p>
+             <button class="btn btn-danger btn-sm" onclick="deleteAllSystemData()">🗑️ Xóa toàn bộ dữ liệu</button>
            </div>
          </div>
        </div>
      </div>
+
+   <!-- ========== MODAL ĐỔI MẬT KHẨU ADMIN ========== -->
+   <div id="changePasswordModal" class="modal">
+     <div class="modal-content" style="max-width:480px;">
+       <h3>🔑 Đổi mật khẩu Admin</h3>
+       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Email xác nhận: <b>trunglq002@gmail.com</b></p>
+       
+       <label>Mật khẩu hiện tại *</label>
+       <input type="password" id="oldPassword" placeholder="Nhập mật khẩu hiện tại">
+       
+       <label>Mật khẩu mới *</label>
+       <input type="password" id="newPassword" placeholder="Ít nhất 6 ký tự">
+       
+       <label>Xác nhận mật khẩu mới *</label>
+       <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+       
+       <div style="background:var(--warning-light);padding:12px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--warning);">
+         <div style="font-size:12px;color:#856404;">
+           <b>⚠️ Lưu ý:</b> Sau khi đổi mật khẩu, bạn cần đăng nhập lại với mật khẩu mới.
+         </div>
+       </div>
+       
+       <div style="display:flex;gap:10px;justify-content:flex-end;">
+         <button class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Hủy</button>
+         <button class="btn btn-success" onclick="saveNewAdminPassword()">💾 Đổi mật khẩu</button>
+       </div>
+     </div>
+   </div>
+
    </main>
  </div>
 
@@ -1252,6 +1291,24 @@ D. Đáp án D
        <option value="other">Khác...</option>
      </select>
      <div id="otherObjectGroup" style="display:none"><label>Đối tượng khác:</label><input type="text" id="otherObjectName"></div>
+ <label>Khóa học *</label>
+ <select id="studentCourse">
+ <option value="K1">K1</option>
+ <option value="K2">K2</option>
+ <option value="K3">K3</option>
+ <option value="K4">K4</option>
+ <option value="K5">K5</option>
+ <option value="K6">K6</option>
+ <option value="K7">K7</option>
+ <option value="K8">K8</option>
+ <option value="K9">K9</option>
+ <option value="K10">K10</option>
+ </select>
+ <div style="margin:16px 0;padding:12px;background:var(--bg-hover);border-left:3px solid var(--info);border-radius:6px;">
+   <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;"><b>Mật khẩu:</b></div>
+   <div style="font-size:13px;color:var(--text-secondary);">Mật khẩu mặc định: <code style="background:var(--warning-light);padding:2px 8px;border-radius:4px;font-weight:600;">123456</code></div>
+   <button type="button" class="btn btn-warning btn-sm" onclick="resetStudentPassword()" style="margin-top:8px;" id="resetPasswordBtn" disabled>🔄 Reset mật khẩu về 123456</button>
+ </div>
      <div class="warning-box">
        <div class="warning-title">⚠️ Lưu ý</div>
        <div class="warning-text">• Hệ thống tự tạo mã HV<br>• Không trùng tên + đơn vị + ngày sinh</div>
@@ -1299,6 +1356,12 @@ D. Đáp án D
  firebase.initializeApp(firebaseConfig);
  const db = firebase.firestore();
  if (localStorage.getItem("userType") !== "admin") location.href = "index.html";
+ 
+ // ===== NEW CONSTANTS =====
+ const DEFAULT_COURSES = ['K1','K2','K3','K4','K5','K6','K7','K8','K9','K10'];
+ const DEFAULT_PASSWORD = '123456';
+ const ADMIN_EMAIL = 'trunglq002@gmail.com';
+ let maintenanceMode = false;
 
  // =====================================================================
  // GLOBALS
@@ -2819,6 +2882,332 @@ window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.c
      if(document.getElementById('confirmDialog').classList.contains('show'))closeConfirmDialog(false);
    }
  });
- </script>
+ 
+// =====================================================================
+// NEW FUNCTIONS - ADDED FOR VERSION 19022
+// =====================================================================
+
+// Toggle password visibility
+function togglePasswordView(code, password) {
+  const pwdEl = document.getElementById('pwd_' + code);
+  if (!pwdEl) return;
+  if (pwdEl.textContent === '*******') {
+    pwdEl.textContent = password || DEFAULT_PASSWORD;
+    pwdEl.style.color = 'var(--danger)';
+    pwdEl.style.fontWeight = '600';
+  } else {
+    pwdEl.textContent = '*******';
+    pwdEl.style.color = 'inherit';
+    pwdEl.style.fontWeight = 'normal';
+  }
+}
+
+// Reset student password to default
+async function resetStudentPassword() {
+  if (!currentEditingCode) return;
+  const ok = await showConfirm(
+    'Reset mật khẩu',
+    'Reset mật khẩu học viên về mặc định (123456)?',
+    '🔄'
+  );
+  if (!ok) return;
+  
+  showLoading('Đang reset mật khẩu...');
+  try {
+    await db.collection('students').doc(currentEditingCode).update({
+      password: DEFAULT_PASSWORD,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    const s = allStudents.find(x => x.code === currentEditingCode);
+    if (s) s.password = DEFAULT_PASSWORD;
+    
+    showToast('Đã reset mật khẩu về 123456', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Delete all system data
+async function deleteAllSystemData() {
+  const confirm1 = await showConfirm(
+    'XÓA TOÀN BỘ DỮ LIỆU',
+    '⚠️ CẢNH BÁO: Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ dữ liệu hệ thống!\n\nBạn nên sao lưu (Backup) trước khi tiếp tục.\n\nTiếp tục?',
+    '🚨'
+  );
+  if (!confirm1) return;
+  
+  const userInput = prompt('Nhập chính xác "XOA DU LIEU" (viết hoa, không dấu) để xác nhận:');
+  if (userInput !== 'XOA DU LIEU') {
+    showToast('Đã hủy thao tác', 'info');
+    return;
+  }
+  
+  showLoading('Đang xóa toàn bộ dữ liệu hệ thống...');
+  try {
+    // Delete students
+    const studentsSnap = await db.collection('students').get();
+    for (let i = 0; i < studentsSnap.docs.length; i += 500) {
+      const batch = db.batch();
+      studentsSnap.docs.slice(i, i+500).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+    
+    // Delete questions
+    const questionsSnap = await db.collection('questions').get();
+    for (let i = 0; i < questionsSnap.docs.length; i += 500) {
+      const batch = db.batch();
+      questionsSnap.docs.slice(i, i+500).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+    
+    // Delete questionSets
+    const setsSnap = await db.collection('questionSets').get();
+    for (let i = 0; i < setsSnap.docs.length; i += 500) {
+      const batch = db.batch();
+      setsSnap.docs.slice(i, i+500).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+    
+    // Delete examResults
+    const resultsSnap = await db.collection('examResults').get();
+    for (let i = 0; i < resultsSnap.docs.length; i += 500) {
+      const batch = db.batch();
+      resultsSnap.docs.slice(i, i+500).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+    
+    // Clear local data
+    allStudents = [];
+    allQuestionSets = [];
+    allResults = [];
+    
+    showToast('✅ Đã xóa toàn bộ dữ liệu hệ thống!', 'success', 5000);
+    
+    // Reload pages
+    loadStudents();
+    loadQuestionSets();
+    loadDashboard();
+    
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Backup system data
+async function backupSystemData() {
+  showLoading('Đang sao lưu dữ liệu...');
+  try {
+    const backup = {
+      timestamp: new Date().toISOString(),
+      version: '1.0',
+      students: [],
+      questionSets: [],
+      questions: [],
+      examResults: []
+    };
+    
+    // Backup students
+    const studentsSnap = await db.collection('students').get();
+    backup.students = studentsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    
+    // Backup questionSets
+    const setsSnap = await db.collection('questionSets').get();
+    backup.questionSets = setsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    
+    // Backup questions
+    const questionsSnap = await db.collection('questions').get();
+    backup.questions = questionsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    
+    // Backup examResults (last 1000)
+    const resultsSnap = await db.collection('examResults').orderBy('timestamp', 'desc').limit(1000).get();
+    backup.examResults = resultsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    
+    // Download as JSON
+    const dataStr = JSON.stringify(backup, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast('✅ Đã tạo file backup!', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Restore from backup
+async function restoreFromBackup() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.json';
+  fileInput.onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      try {
+        const backup = JSON.parse(ev.target.result);
+        
+        const ok = await showConfirm(
+          'Khôi phục dữ liệu',
+          `Khôi phục từ backup ${backup.timestamp}?\n\nDữ liệu hiện tại sẽ bị ghi đè!`,
+          '📥'
+        );
+        if (!ok) return;
+        
+        showLoading('Đang khôi phục dữ liệu...');
+        
+        // Restore students
+        if (backup.students) {
+          for (let i = 0; i < backup.students.length; i += 500) {
+            const batch = db.batch();
+            backup.students.slice(i, i+500).forEach(s => {
+              const ref = db.collection('students').doc(s.id);
+              batch.set(ref, s);
+            });
+            await batch.commit();
+          }
+        }
+        
+        // Restore questionSets
+        if (backup.questionSets) {
+          for (let i = 0; i < backup.questionSets.length; i += 500) {
+            const batch = db.batch();
+            backup.questionSets.slice(i, i+500).forEach(s => {
+              const ref = db.collection('questionSets').doc(s.id);
+              batch.set(ref, s);
+            });
+            await batch.commit();
+          }
+        }
+        
+        // Restore questions
+        if (backup.questions) {
+          for (let i = 0; i < backup.questions.length; i += 500) {
+            const batch = db.batch();
+            backup.questions.slice(i, i+500).forEach(q => {
+              const ref = db.collection('questions').doc();
+              batch.set(ref, q);
+            });
+            await batch.commit();
+          }
+        }
+        
+        showToast('✅ Khôi phục thành công!', 'success');
+        setTimeout(() => location.reload(), 1500);
+        
+      } catch(err) {
+        showToast('Lỗi: ' + err.message, 'error');
+      } finally {
+        hideLoading();
+      }
+    };
+    reader.readAsText(file);
+  };
+  fileInput.click();
+}
+
+// Toggle maintenance mode
+async function toggleMaintenanceMode() {
+  const currentMode = maintenanceMode;
+  const newMode = !currentMode;
+  
+  const ok = await showConfirm(
+    newMode ? 'Bật chế độ bảo trì' : 'Tắt chế độ bảo trì',
+    newMode ? 'Bật chế độ bảo trì? Người dùng sẽ không thể đăng nhập.' : 'Tắt chế độ bảo trì?',
+    '🔧'
+  );
+  if (!ok) return;
+  
+  showLoading('Đang cập nhật...');
+  try {
+    await db.collection('system').doc('config').set({
+      maintenance: newMode,
+      maintenanceMessage: 'Hệ thống đang bảo trì, nâng cấp. Vui lòng quay lại sau.',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+    
+    maintenanceMode = newMode;
+    const btn = document.getElementById('maintenanceToggle');
+    btn.textContent = newMode ? '🔴 TẮT bảo trì' : '🟢 BẬT bảo trì';
+    btn.className = newMode ? 'btn btn-danger btn-sm' : 'btn btn-warning btn-sm';
+    showToast(newMode ? 'Đã bật chế độ bảo trì' : 'Đã tắt chế độ bảo trì', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Change admin password
+function changeAdminPassword() {
+  document.getElementById('changePasswordModal').classList.add('show');
+}
+
+async function saveNewAdminPassword() {
+  const oldPwd = document.getElementById('oldPassword').value;
+  const newPwd = document.getElementById('newPassword').value;
+  const confirmPwd = document.getElementById('confirmPassword').value;
+  
+  if (!oldPwd || !newPwd || !confirmPwd) {
+    showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
+    return;
+  }
+  
+  if (newPwd !== confirmPwd) {
+    showToast('Mật khẩu xác nhận không khớp!', 'error');
+    return;
+  }
+  
+  if (newPwd.length < 6) {
+    showToast('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
+    return;
+  }
+  
+  // Verify old password
+  const savedPassword = localStorage.getItem('adminPassword') || '123456';
+  if (oldPwd !== savedPassword) {
+    showToast('Mật khẩu cũ không đúng!', 'error');
+    return;
+  }
+  
+  showLoading('Đang đổi mật khẩu...');
+  try {
+    // Save new password
+    localStorage.setItem('adminPassword', newPwd);
+    
+    // Also save to Firestore
+    await db.collection('system').doc('admin').set({
+      password: newPwd,
+      email: ADMIN_EMAIL,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+    
+    closeModal('changePasswordModal');
+    showToast('✅ Đã đổi mật khẩu thành công!', 'success');
+    
+    // Clear form
+    ['oldPassword', 'newPassword', 'confirmPassword'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+</script>
 </body>
 </html>
