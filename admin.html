@@ -643,8 +643,59 @@ display: none;
 .box > h3 { display: none !important; }
 .maintenance-banner { display: none !important; }
 }
+
+/* ===== LOGIN OVERLAY ===== */
+#loginOverlay { display: none; }
+#loginOverlay input::placeholder { color: rgba(255,255,255,0.4); }
+#loginOverlay input { box-sizing: border-box; }
+#loginOverlay button#loginBtn:hover { opacity: 0.9; transform: translateY(-1px); }
+#loginOverlay button#loginBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+/* ===== PASSWORD REVEAL ===== */
+.password-mask { transition: color 0.2s; }
+.password-mask:hover { color: var(--accent) !important; }
+/* ===== INLINE PW FORM TRANSITION ===== */
+#inlineAdminPwForm { transition: all 0.3s ease; }
+/* ===== TOASTER IMPROVEMENTS ===== */
+.toast { line-height: 1.4; }
+/* ===== SPINNER CENTER ===== */
+.loading-overlay { background: rgba(0,0,0,0.4) !important; }
+[data-theme="light"] .loading-overlay { background: rgba(255,255,255,0.85) !important; }
+/* ===== TABLE STICKY HEADER FIX ===== */
+.tableWrap { position: relative; }
+/* ===== MOBILE IMPROVEMENTS ===== */
+@media (max-width:480px) {
+  .dash-grid { grid-template-columns: 1fr !important; }
+  .btn { font-size:12px; padding:7px 10px; }
+  .modal-content { padding: 20px 16px; }
+}
 </style>
 </head>
+<!-- ========== LOGIN OVERLAY ========== -->
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36 0%,#1e3a5f 50%,#0d6efd 100%);z-index:99999;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);backdrop-filter:blur(20px);border-radius:20px;padding:40px;width:100%;max-width:400px;margin:20px;color:white;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:48px;margin-bottom:12px;">🚦</div>
+      <h2 style="font-size:22px;font-weight:800;margin:0;">ADMIN PANEL</h2>
+      <p style="opacity:0.7;font-size:13px;margin-top:4px;">Hệ thống thi luật giao thông</p>
+    </div>
+    <div id="loginLockMsg" style="display:none;background:rgba(220,53,69,0.2);border:1px solid rgba(220,53,69,0.5);border-radius:8px;padding:10px;margin-bottom:14px;text-align:center;font-size:13px;color:#ff8080;"></div>
+    <label style="font-size:13px;font-weight:600;opacity:0.8;display:block;margin-bottom:6px;">Mật khẩu Admin</label>
+    <div style="position:relative;">
+      <input type="password" id="loginPasswordInput" placeholder="Nhập mật khẩu..." 
+        style="width:100%;padding:12px 44px 12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:white;font-size:15px;outline:none;box-sizing:border-box;"
+        onkeydown="if(event.key==='Enter')doAdminLogin()"
+        onfocus="this.style.borderColor='rgba(255,255,255,0.6)'"
+        onblur="this.style.borderColor='rgba(255,255,255,0.25)'">
+      <button onclick="toggleLoginPwVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;" id="loginEyeBtn">👁</button>
+    </div>
+    <button onclick="doAdminLogin()" id="loginBtn"
+      style="width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,#0d6efd,#0a58ca);border:none;border-radius:10px;color:white;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;">
+      🔓 Đăng nhập
+    </button>
+    <div id="loginAttemptInfo" style="text-align:center;font-size:12px;opacity:0.6;margin-top:12px;"></div>
+  </div>
+</div>
+
 <body>
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -1580,20 +1631,87 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const DEFAULT_PASSWORD = '123456';
 const ADMIN_EMAIL = 'trunglq002@gmail.com';
-// ─── Session guard ──────────────────────────────────────────────────────────
-(function guardAdmin() {
-  const SESSION_TTL = 8 * 60 * 60 * 1000;
+// ─── Session guard + built-in login overlay ─────────────────────────────────
+const SESSION_TTL = 8 * 60 * 60 * 1000;
+function _getSession() {
+  try { return JSON.parse(sessionStorage.getItem('adminSession') || localStorage.getItem('adminSession') || 'null'); } catch(e) { return null; }
+}
+function _setSession() {
+  const s = { role:'admin', ts: Date.now() };
+  sessionStorage.setItem('adminSession', JSON.stringify(s));
+  localStorage.setItem('userType','admin'); // backward compat
+}
+function _clearSession() {
+  sessionStorage.removeItem('adminSession');
+  localStorage.removeItem('adminSession');
+  localStorage.removeItem('userType');
+  localStorage.removeItem('adminUser');
+  localStorage.removeItem('adminName');
+}
+function _hasValidSession() {
+  const s = _getSession();
+  return s && s.role === 'admin' && s.ts && (Date.now() - s.ts) < SESSION_TTL;
+}
+
+async function doAdminLogin() {
+  if (_isLocked()) {
+    const sec = _lockoutSec();
+    document.getElementById('loginLockMsg').style.display='block';
+    document.getElementById('loginLockMsg').textContent = `⏱ Tài khoản bị khóa tạm thời. Thử lại sau ${sec}s`;
+    return;
+  }
+  const pw = document.getElementById('loginPasswordInput').value;
+  if (!pw) { document.getElementById('loginPasswordInput').focus(); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ Đang xác thực...';
   try {
-    const raw = sessionStorage.getItem('adminSession') || localStorage.getItem('adminSession');
-    if (!raw) { location.href = 'index.html'; return; }
-    const sess = JSON.parse(raw);
-    if (sess.role !== 'admin' || !sess.ts || (Date.now() - sess.ts) > SESSION_TTL) {
-      sessionStorage.removeItem('adminSession'); localStorage.removeItem('adminSession');
-      location.href = 'index.html';
+    const doc = await db.collection('systemConfig').doc('admin').get();
+    const stored = doc.exists ? (doc.data().passwordHash || doc.data().password || '') : '';
+    const ok = stored ? await verifyPassword(pw, stored) : (pw === '123456');
+    if (ok) {
+      // Upgrade legacy hash
+      if (stored && isLegacyHash(stored)) {
+        await db.collection('systemConfig').doc('admin').set({ passwordHash: await hashPassword(pw) }, { merge:true });
+      }
+      _recordOk();
+      _setSession();
+      document.getElementById('loginOverlay').style.display = 'none';
+      await _runAfterLogin();
+    } else {
+      _recordFail();
+      const left = _triesLeft();
+      const info = document.getElementById('loginAttemptInfo');
+      const lockMsg = document.getElementById('loginLockMsg');
+      if (left > 0) {
+        info.textContent = `⚠ Sai mật khẩu! Còn ${left} lần thử.`;
+        lockMsg.style.display = 'none';
+      } else {
+        lockMsg.style.display='block';
+        lockMsg.textContent = `⏱ Tài khoản bị khóa ${Math.ceil(_LOCKOUT/60000)} phút do nhập sai nhiều lần.`;
+        info.textContent = '';
+      }
+      document.getElementById('loginPasswordInput').value = '';
+      document.getElementById('loginPasswordInput').focus();
     }
-    sess.ts = Date.now();
-    sessionStorage.setItem('adminSession', JSON.stringify(sess));
-  } catch(e) { location.href = 'index.html'; }
+  } catch(e) {
+    document.getElementById('loginAttemptInfo').textContent = '⚠ Lỗi kết nối: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '🔓 Đăng nhập';
+  }
+}
+
+function toggleLoginPwVisible() {
+  const inp = document.getElementById('loginPasswordInput');
+  const btn = document.getElementById('loginEyeBtn');
+  if (inp.type === 'password') { inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
+}
+
+// Check session on load
+(function checkSession() {
+  if (!_hasValidSession()) {
+    document.getElementById('loginOverlay').style.display = 'flex';
+  }
 })();
 // =====================================================================
 // GLOBALS
@@ -1629,38 +1747,38 @@ function _triesLeft() { return Math.max(0, _MAX_TRIES - _getAttempts().n); }
 // INIT
 // =====================================================================
 window.onload = async function () {
-// Check maintenance mode
-let isMaintenanceOn = false;
-try {
-const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
-if (maintDoc.exists && maintDoc.data().enabled) {
-isMaintenanceOn = true;
-}
-} catch (e) {
-// Fallback localStorage
-try {
-const local = JSON.parse(localStorage.getItem('maintenanceMode') || '{}');
-if (local.enabled) isMaintenanceOn = true;
-} catch (ex) {}
-}
-// Nếu bảo trì và KHÔNG phải admin → hiện trang bảo trì
-if (isMaintenanceOn && localStorage.getItem('userType') !== 'admin') {
-document.getElementById('maintenancePage').style.display = 'flex';
-return;
-}
-initializeSystem();
-updateClock();
-setInterval(updateClock, 1000);
-const t = localStorage.getItem('theme');
-if (t) {
-document.documentElement.setAttribute('data-theme', t);
-updateThemeIcon(t);
-}
-if (localStorage.getItem('sidebarCollapsed') === 'true') document.getElementById('sidebar').classList.add('collapsed');
-const adminName = localStorage.getItem('adminName') || 'Admin';
-document.getElementById('headerAdminName').textContent = adminName;
-document.getElementById('adminAvatar').textContent = adminName.charAt(0).toUpperCase();
+  // Apply theme & UI prefs immediately (before login check)
+  const t = localStorage.getItem('theme');
+  if (t) { document.documentElement.setAttribute('data-theme', t); updateThemeIcon(t); }
+  if (localStorage.getItem('sidebarCollapsed') === 'true') document.getElementById('sidebar').classList.add('collapsed');
+  updateClock();
+  setInterval(updateClock, 1000);
+  // If already logged in, skip login overlay and init system
+  if (_hasValidSession()) {
+    _setSession(); // renew timestamp
+    document.getElementById('loginOverlay').style.display = 'none';
+    await _runAfterLogin();
+  }
+  // else: loginOverlay is already shown by checkSession() above
 };
+
+async function _runAfterLogin() {
+  const adminName = localStorage.getItem('adminName') || 'Admin';
+  document.getElementById('headerAdminName').textContent = adminName;
+  document.getElementById('adminAvatar').textContent = adminName.charAt(0).toUpperCase();
+  // Maintenance check
+  let isMaintenanceOn = false;
+  try {
+    const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
+    if (maintDoc.exists && maintDoc.data().enabled) isMaintenanceOn = true;
+  } catch (e) {
+    try { const l = JSON.parse(localStorage.getItem('maintenanceMode') || '{}'); if (l.enabled) isMaintenanceOn = true; } catch(ex){}
+  }
+  if (isMaintenanceOn && !_hasValidSession()) {
+    document.getElementById('maintenancePage').style.display = 'flex'; return;
+  }
+  initializeSystem();
+}
 function updateThemeIcon(theme) {
 const btn = document.getElementById('themeToggleBtn');
 if (btn) btn.textContent = theme === 'dark' ? '☀' : ' ';
@@ -1673,34 +1791,35 @@ document.getElementById('currentTime').innerHTML = `<span style="font-size:16px;
 8px;">|</span><span style="font-size:13px;"> ${dateStr}</span>`;
 }
 async function initializeSystem() {
-showLoading('Đang kết nối Firebase...');
-try {
-await db.collection('students').limit(1).get();
-await loadStudentsFromDB();
-await loadQuestionSetsFromDB();
-await loadTodayExamsFromDB();
-await loadActivitiesFromDB();
-startPresenceListener();
-loadDashboard();
-loadStudents();
-loadCourseFilter();
-loadQuestionSets();
-loadStats();
-renderDashboardCharts();
-renderStatsCharts();
-await loadMaintenanceState();
-showToast('Kết nối thành công!', 'success', 2000);
-setInterval(async () => {
-await loadActivitiesFromDB();
-await loadTodayExamsFromDB();
-loadDashboard();
-}, 30000);
-} catch (e) {
-console.error(e);
-showToast('Lỗi: ' + e.message, 'error', 8000);
-} finally {
-hideLoading();
-}
+  showLoading('Đang kết nối Firebase...');
+  try {
+    await db.collection('students').limit(1).get();
+    await loadStudentsFromDB();
+    await loadQuestionSetsFromDB();
+    await Promise.all([loadTodayExamsFromDB(), loadActivitiesFromDB()]);
+    startPresenceListener();
+    loadDashboard();
+    loadStudents();
+    loadCourseFilter();
+    loadQuestionSets();
+    loadStats();
+    renderDashboardCharts();
+    renderStatsCharts();
+    await loadMaintenanceState();
+    showToast('✅ Kết nối thành công!', 'success', 2000);
+    // Auto-refresh every 30s
+    setInterval(async () => {
+      try { await Promise.all([loadActivitiesFromDB(), loadTodayExamsFromDB()]); loadDashboard(); }
+      catch(e) { console.warn('Auto-refresh error:', e.message); }
+    }, 30000);
+    // Renew session every 30 min
+    setInterval(() => { if (_hasValidSession()) _setSession(); }, 30 * 60 * 1000);
+  } catch (e) {
+    console.error('initializeSystem error:', e);
+    showToast('❌ Lỗi kết nối: ' + e.message, 'error', 10000);
+  } finally {
+    hideLoading();
+  }
 }
 // =====================================================================
 // UTILITIES
@@ -1731,7 +1850,7 @@ return new Promise(r => {
 confirmResolve = r;
 document.getElementById('confirmIcon').textContent = i;
 document.getElementById('confirmTitle').textContent = t;
-document.getElementById('confirmMessage').textContent = m;
+document.getElementById('confirmMessage').innerHTML = m.replace(/\n/g, '<br>');
 document.getElementById('confirmDialog').classList.add('show');
 });
 }
@@ -1755,6 +1874,10 @@ if (typeof d === 'string') d = new Date(d);
 if (isNaN(d)) return '';
 return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}
 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function escapeJs(str) {
+  if (!str) return '';
+  return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/`/g,'\\`');
 }
 function escapeHtml(t) {
 if (!t) return '';
@@ -2011,11 +2134,11 @@ let h = '';
 pg.forEach((s,i) => {
 const sc = s.status==='active' ? 'status-active' : 'status-locked';
 const st2 = s.status==='active' ? '● Hoạt động' : '● Đã khóa';
-const pwDisplay = s.passwordChanged ? '••••••' : DEFAULT_PASSWORD;
+const pwDisplay = '••••••'; // Password always masked for security
 h += `<tr>
 <td>${(currentPage-1)*itemsPerPage+i+1}</td>
 <td><b>${escapeHtml(s.code)}</b></td>
-<td class="no-print"><span class="password-mask" title="Click để xem">${pwDisplay}</span></td>
+<td class="no-print"><span class="password-mask" title="Click để xem" onclick="revealPwd(this,this.dataset.code,this.dataset.def==='1')" data-code="${escapeHtml(s.code)}" data-def="${!s.passwordChanged?'1':'0'}">••••••</span></td>
 <td style="text-align:left">${escapeHtml(s.name)}</td>
 <td style="text-align:left">${escapeHtml(s.unit)}</td>
 <td>${formatDate(s.dob)}</td>
@@ -2145,7 +2268,9 @@ const un = document.getElementById('studentUnit').value.trim();
 const db2 = document.getElementById('studentDob').value;
 let ob = document.getElementById('studentObject').value;
 const cr = document.getElementById('studentCourse').value.trim();
-if (!nm||!un) { showToast('Nhập đầy đủ thông tin!','error'); return; }
+if (!nm || nm.length < 2) { showToast('Tên phải có ít nhất 2 ký tự!','error'); return; }
+ if (!un) { showToast('Vui lòng nhập đơn vị!','error'); return; }
+ if (nm.length > 100 || un.length > 100) { showToast('Tên/Đơn vị quá dài (tối đa 100 ký tự)!','error'); return; }
 if (ob==='other') { ob = document.getElementById('otherObjectName').value.trim(); if (!ob) { showToast('Nhập đối tượng!','error'); return; } }
 // Phát hiện trùng lặp: chỉ khi TẤT CẢ trường giống nhau
 const dup = allStudents.some(s => {
@@ -2400,7 +2525,13 @@ const setsSnap = await db.collection('questionSets').get();
 setsSnap.forEach(d => backup.questionSets.push({ id: d.id, ...d.data() }));
 const questionsSnap = await db.collection('questions').get();
 questionsSnap.forEach(d => backup.questions.push({ id: d.id, ...d.data() }));
-const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+// Convert Firestore Timestamps to ISO strings for JSON
+  const safeBackup = JSON.parse(JSON.stringify(backup, (key, val) => {
+    if (val && typeof val === 'object' && typeof val.toDate === 'function') return val.toDate().toISOString();
+    if (val && typeof val === 'object' && val._seconds !== undefined) return new Date(val._seconds * 1000).toISOString();
+    return val;
+  }));
+  const blob = new Blob([JSON.stringify(safeBackup, null, 2)], { type: 'application/json' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
 a.href = url;
@@ -2474,6 +2605,23 @@ function importSystemBackup() {
 document.getElementById('backupFile').value = '';
 document.getElementById('importBackupModal').classList.add('show');
 }
+
+// ─── Sanitize backup doc: remove/convert non-Firestore-compatible fields ─────
+function sanitizeBackupDoc(doc) {
+  const skip = ['id'];
+  const result = {};
+  for (const [k, v] of Object.entries(doc)) {
+    if (skip.includes(k)) continue;
+    // Convert ISO strings that look like timestamps to server timestamp
+    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v)) {
+      result[k] = new Date(v); // Firestore accepts Date objects
+    } else {
+      result[k] = v;
+    }
+  }
+  return result;
+}
+
 async function processImportBackup() {
 const fi = document.getElementById('backupFile');
 if (!fi.files[0]) { showToast('Chọn file backup!','error'); return; }
@@ -3116,14 +3264,12 @@ file=item.getAsFile();processImageFile(file);return;}}showToast('Không tìm th�
 function processImageFile(file){if(file.size>5*1024*1024){showToast('Ảnh quá lớn! Tối đa 5MB','error');return;}const reader=new
 FileReader();reader.onload=function(e){currentImageData={type:'base64',value:e.target.result,fileName:file.name};showImagePreview(e.target.result,file.name);};reader.readAsDataURL
 (file);}
-function
-previewImageUrl(url){if(!url){clearImagePreview();return;}if(url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)||url.startsWith('https://')){currentImageData={type:'url',value:url};showIm
+function previewImageUrl(url){if(!url){clearImagePreview();return;}if(url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)||url.startsWith('https://')){currentImageData={type:'url',value:url};showIm
 agePreview(url,'URL ảnh');}}
 function showImagePreview(src,name){const container=document.getElementById('imagePreviewContainer');const img=document.getElementById('imagePreview');const
 fileName=document.getElementById('imageFileName');img.src=src;fileName.textContent='✓ '+(name||'Ảnh đã sẵn sàng');fileName.style.color='var(--
 success)';container.style.display='block';img.onerror=function(){fileName.textContent=' Không tải được ảnh';fileName.style.color='var(--danger)';};}
-function
-clearImagePreview(){currentImageData=null;document.getElementById('imagePreviewContainer').style.display='none';document.getElementById('imagePreview').src='';document.getEle
+function clearImagePreview(){currentImageData=null;document.getElementById('imagePreviewContainer').style.display='none';document.getElementById('imagePreview').src='';document.getEle
 mentById('qImageFile').value='';const fn=document.getElementById('imageFileName');fn.textContent='';fn.style.color='var(--success)';}
 function addQuestion() {
 const content = document.getElementById('qContent').value.trim();
@@ -3352,8 +3498,8 @@ if(idx>-1)allQuestionSets.splice(idx,1);
 showToast('Đã xóa!','success'); loadQuestionSets(); loadDashboard();
 }catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}
 }
-function backToQuestionSets(){
-if(tempQuestions?.length&&!confirm('Có câu chưa lưu. Thoát?'))return;
+async function backToQuestionSets(){
+if(tempQuestions?.length){ const ok=await showConfirm('Chưa lưu','Bạn có câu hỏi chưa lưu. Thoát mà không lưu?','⚠'); if(!ok)return; }
 tempQuestions=[];
 allViewQuestions=[];
 showPage('question_sets');
@@ -3364,21 +3510,41 @@ document.querySelectorAll('.menu button')[2].classList.add('active');
 // =====================================================================
 // RESULTS
 // =====================================================================
+
+// ─── Results page: init date range ──────────────────────────────────────────
+function initResultsDates() {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const toStr = d => d.toISOString().split('T')[0];
+  const fromEl = document.getElementById('resultDateFrom');
+  const toEl = document.getElementById('resultDateTo');
+  if (fromEl && !fromEl.value) fromEl.value = toStr(firstDay);
+  if (toEl && !toEl.value) toEl.value = toStr(today);
+  loadExamResults();
+}
+
 async function loadExamResults(){
-const f=document.getElementById('resultDateFrom').value;
-const t=document.getElementById('resultDateTo').value;
-if(!f){showToast('Chọn ngày bắt đầu','info');return;}
-showLoading('Đang tải...');
-try{
-let q=db.collection('examResults').orderBy('timestamp','desc');
-const fd=new Date(f);fd.setHours(0,0,0,0);
-q=q.where('timestamp','>=',fd);
-if(t){const td=new Date(t);td.setHours(23,59,59,999);q=q.where('timestamp','<=',td);}
-const snap=await q.limit(500).get();
-allResults=snap.docs.map(d=>{const dt=d.data();const
-st=allStudents.find(s=>s.code===dt.studentCode);return{id:d.id,...dt,studentName:st?.name||'?',timestamp:dt.timestamp?.toDate?dt.timestamp.toDate():new Date()};});
-renderResultsTable();
-}catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}
+  const f = document.getElementById('resultDateFrom').value;
+  const t = document.getElementById('resultDateTo').value;
+  if (!f) { showToast('Chọn ngày bắt đầu','info'); return; }
+  showLoading('Đang tải kết quả...');
+  try {
+    const fd = new Date(f); fd.setHours(0,0,0,0);
+    let q = db.collection('examResults').where('timestamp','>=', fd).orderBy('timestamp','desc');
+    if (t) { const td = new Date(t); td.setHours(23,59,59,999); q = q.where('timestamp','<=', td); }
+    const snap = await q.limit(500).get();
+    allResults = snap.docs.map(d => {
+      const dt = d.data();
+      const st = allStudents.find(s => s.code === dt.studentCode);
+      return { id: d.id, ...dt, studentName: st ? st.name : (dt.studentName || '?'), 
+               timestamp: dt.timestamp?.toDate ? dt.timestamp.toDate() : new Date(dt.timestamp || Date.now()) };
+    });
+    renderResultsTable();
+    if (!allResults.length) showToast('Không có kết quả trong khoảng thời gian này','info');
+  } catch(e) {
+    console.error('loadExamResults error:', e);
+    showToast('Lỗi tải kết quả: ' + e.message,'error');
+  } finally { hideLoading(); }
 }
 function renderResultsTable(){
 const tb=document.getElementById('resultsTableBody');
@@ -3442,30 +3608,19 @@ case 'students': loadStudents(); break;
 case 'question_sets': loadQuestionSets(); break;
 case 'stats': loadStats(); break;
 case 'system': loadMaintenanceState(); break;
+case 'results': initResultsDates(); break;
 }
 }
 function logout(){
-showConfirm('Đăng xuất','Bạn muốn đăng xuất?',' ').then(ok=>{
-if(ok){
-      sessionStorage.removeItem('adminSession');
-      localStorage.removeItem('adminSession');
-      localStorage.removeItem('userType');
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('adminName');
-      location.href='index.html';
-    }
-});
+  showConfirm('Đăng xuất','Bạn muốn đăng xuất?','🔓').then(ok=>{
+    if(ok){ _clearSession(); location.href = location.pathname; }
+  });
 }
 // =====================================================================
 // EVENTS
 // =====================================================================
-window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.classList.remove('show'); };
-document.addEventListener('keydown',function(e){
-if(e.key==='Escape'){
-document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
-if(document.getElementById('confirmDialog').classList.contains('show'))closeConfirmDialog(false);
-}
-});
+// window.onclick: see below
+
 // =====================================================================
 // VIEW / EDIT / DELETE QUESTIONS
 // =====================================================================
@@ -3747,30 +3902,8 @@ pwdEl.style.fontWeight = 'normal';
 }
 }
 // Reset student password to default
-async function resetStudentPassword() {
-if (!currentEditingCode) return;
-const ok = await showConfirm(
-'Reset mật khẩu',
-'Reset mật khẩu học viên về mặc định (123456)?',
-' '
-);
-if (!ok) return;
-showLoading('Đang reset mật khẩu...');
-try {
-await db.collection('students').doc(currentEditingCode).update({
-password: DEFAULT_PASSWORD,
-updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-});
-const s = allStudents.find(x => x.code === currentEditingCode);
-if (s) s.password = DEFAULT_PASSWORD;
-showToast('Đã reset mật khẩu về 123456', 'success');
-} catch(e) {
-showToast('Lỗi: ' + e.message, 'error');
-} finally {
-hideLoading();
-}
-}
-// Delete all system data
+// resetStudentPassword: duplicate removed (secure version above)
+
 async function deleteAllSystemData() {
 const confirm1 = await showConfirm(
 'XÓA TOÀN BỘ DỮ LIỆU',
@@ -3828,142 +3961,16 @@ showToast('Lỗi: ' + e.message, 'error');
 hideLoading();
 }
 }
-// Backup system data
-async function backupSystemData() {
-showLoading('Đang sao lưu dữ liệu...');
-try {
-const backup = {
-timestamp: new Date().toISOString(),
-version: '1.0',
-students: [],
-questionSets: [],
-questions: [],
-examResults: []
-};
-// Backup students
-const studentsSnap = await db.collection('students').get();
-backup.students = studentsSnap.docs.map(d => ({id: d.id, ...d.data()}));
-// Backup questionSets
-const setsSnap = await db.collection('questionSets').get();
-backup.questionSets = setsSnap.docs.map(d => ({id: d.id, ...d.data()}));
-// Backup questions
-const questionsSnap = await db.collection('questions').get();
-backup.questions = questionsSnap.docs.map(d => ({id: d.id, ...d.data()}));
-// Backup examResults (last 1000)
-const resultsSnap = await db.collection('examResults').orderBy('timestamp', 'desc').limit(1000).get();
-backup.examResults = resultsSnap.docs.map(d => ({id: d.id, ...d.data()}));
-// Download as JSON
-const dataStr = JSON.stringify(backup, null, 2);
-const dataBlob = new Blob([dataStr], {type: 'application/json'});
-const url = URL.createObjectURL(dataBlob);
-const link = document.createElement('a');
-link.href = url;
-link.download = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-link.click();
-URL.revokeObjectURL(url);
-showToast(' Đã tạo file backup!', 'success');
-} catch(e) {
-showToast('Lỗi: ' + e.message, 'error');
-} finally {
-hideLoading();
-}
-}
-// Restore from backup
-async function restoreFromBackup() {
-const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = '.json';
-fileInput.onchange = async function(e) {
-const file = e.target.files[0];
-if (!file) return;
-const reader = new FileReader();
-reader.onload = async function(ev) {
-try {
-const backup = JSON.parse(ev.target.result);
-const ok = await showConfirm(
-'Khôi phục dữ liệu',
-`Khôi phục từ backup ${backup.timestamp}?\n\nDữ liệu hiện tại sẽ bị ghi đè!`,
-' '
-);
-if (!ok) return;
-showLoading('Đang khôi phục dữ liệu...');
-// Restore students
-if (backup.students) {
-for (let i = 0; i < backup.students.length; i += 500) {
-const batch = db.batch();
-backup.students.slice(i, i+500).forEach(s => {
-const ref = db.collection('students').doc(s.id);
-batch.set(ref, s);
-});
-await batch.commit();
-}
-}
-// Restore questionSets
-if (backup.questionSets) {
-for (let i = 0; i < backup.questionSets.length; i += 500) {
-const batch = db.batch();
-backup.questionSets.slice(i, i+500).forEach(s => {
-const ref = db.collection('questionSets').doc(s.id);
-batch.set(ref, s);
-});
-await batch.commit();
-}
-}
-// Restore questions
-if (backup.questions) {
-for (let i = 0; i < backup.questions.length; i += 500) {
-const batch = db.batch();
-backup.questions.slice(i, i+500).forEach(q => {
-const ref = db.collection('questions').doc();
-batch.set(ref, q);
-});
-await batch.commit();
-}
-}
-showToast(' Khôi phục thành công!', 'success');
-setTimeout(() => location.reload(), 1500);
-} catch(err) {
-showToast('Lỗi: ' + err.message, 'error');
-} finally {
-hideLoading();
-}
-};
-reader.readAsText(file);
-};
-fileInput.click();
-}
-// Toggle maintenance mode
+// backupSystemData: use backupSystem() instead
+async function backupSystemData() { return backupSystem(); }
+// toggleMaintenanceMode: compatibility shim
 async function toggleMaintenanceMode() {
-const currentMode = maintenanceMode;
-const newMode = !currentMode;
-const ok = await showConfirm(
-newMode ? 'Bật chế độ bảo trì' : 'Tắt chế độ bảo trì',
-newMode ? 'Bật chế độ bảo trì? Người dùng sẽ không thể đăng nhập.' : 'Tắt chế độ bảo trì?',
-' '
-);
-if (!ok) return;
-showLoading('Đang cập nhật...');
-try {
-await db.collection('system').doc('config').set({
-maintenance: newMode,
-maintenanceMessage: 'Hệ thống đang bảo trì, nâng cấp. Vui lòng quay lại sau.',
-updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-}, {merge: true});
-maintenanceMode = newMode;
-const btn = document.getElementById('maintenanceToggle');
-btn.textContent = newMode ? ' TẮT bảo trì' : ' BẬT bảo trì';
-btn.className = newMode ? 'btn btn-danger btn-sm' : 'btn btn-warning btn-sm';
-showToast(newMode ? 'Đã bật chế độ bảo trì' : 'Đã tắt chế độ bảo trì', 'success');
-} catch(e) {
-showToast('Lỗi: ' + e.message, 'error');
-} finally {
-hideLoading();
+  const doc = await db.collection('systemConfig').doc('maintenance').get();
+  const enabled = doc.exists && doc.data().enabled;
+  if (enabled) await disableMaintenanceMode();
+  else await enableMaintenanceMode();
 }
-}
-// Change admin password
-function changeAdminPassword() {
-document.getElementById('changePasswordModal').classList.add('show');
-}
+// changeAdminPassword: handled by changeAdminPwModal above
 async function saveNewAdminPassword() {
   const oldPwd = document.getElementById('oldPassword').value.trim();
   const newPwd = document.getElementById('newPassword').value.trim();
@@ -3987,6 +3994,16 @@ async function saveNewAdminPassword() {
     setTimeout(() => { sessionStorage.removeItem('adminSession'); localStorage.removeItem('userType'); location.href = 'index.html'; }, 3000);
   } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
   finally { hideLoading(); }
+}
+
+
+// ─── Password reveal in table ─────────────────────────────────────────────────
+function revealPwd(el, code, isDefault) {
+  const MASK = '••••••';
+  if (el.textContent !== MASK) { el.textContent = MASK; el.style.color = ''; return; }
+  el.textContent = isDefault ? DEFAULT_PASSWORD : '(đã đổi)';
+  el.style.color = isDefault ? 'var(--success)' : 'var(--text-muted)';
+  setTimeout(() => { if (el.textContent !== MASK) { el.textContent = MASK; el.style.color = ''; } }, 5000);
 }
 
 // ─── Inline Admin Password Form ───────────────────────────────────────────────
@@ -4046,6 +4063,25 @@ async function saveInlineAdminPassword() {
     setTimeout(() => { sessionStorage.removeItem('adminSession'); localStorage.removeItem('userType'); location.href = 'index.html'; }, 3000);
   } catch(e) { hideLoading(); showToast('Lỗi: ' + e.message, 'error'); }
 }
+
+
+// ─── Keyboard shortcuts ───────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    if (document.getElementById('confirmDialog').classList.contains('show')) closeConfirmDialog(false);
+    // Close inline password form if open
+    const pwForm = document.getElementById('inlineAdminPwForm');
+    if (pwForm && pwForm.style.display !== 'none') toggleAdminPwForm();
+  }
+  // Ctrl+S or Ctrl+Enter to save student form if modal open
+  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'Enter')) {
+    if (document.getElementById('studentModal')?.classList.contains('show')) {
+      e.preventDefault(); saveStudent();
+    }
+  }
+});
+
 
 </script>
 </body>
