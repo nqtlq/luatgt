@@ -3,310 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <title>Chọn bộ đề thi | Traffic Law Test</title>
-
 <style>
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:linear-gradient(135deg,#eef3ff,#f9fbff);
-}
-
-/* ===== HEADER ===== */
-header{
- background:linear-gradient(90deg,#1d3557,#264a8a);
- color:white;
- padding:18px 30px;
- box-shadow:0 4px 15px rgba(0,0,0,.25);
- display:flex;
- align-items:center;
- gap:15px;
-}
-header .title{
- flex:1;
- text-align:center;
-}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#eef3ff,#f9fbff);}
+header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:18px 30px;box-shadow:0 4px 15px rgba(0,0,0,.25);display:flex;align-items:center;gap:15px;}
+header .title{flex:1;text-align:center;}
 header h1{margin:0;font-size:24px}
 header .en{font-size:16px;margin-top:6px;opacity:.95}
 header .hint{margin-top:12px;font-size:14px}
-
-/* BACK BUTTON */
-#backPage{
- background:rgba(255,255,255,.15);
- border:1px solid rgba(255,255,255,.35);
- color:white;
- padding:8px 14px;
- border-radius:8px;
- cursor:pointer;
- font-size:14px;
- display:flex;
- align-items:center;
- gap:6px;
-}
-#backPage:hover{
- background:rgba(255,255,255,.25);
-}
-
-/* ===== CONTAINER ===== */
-#container{
- max-width:1200px;
- margin:35px auto;
- padding:0 20px;
-}
-
-/* ===== SECTION ===== */
+#backPage{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px;}
+#backPage:hover{background:rgba(255,255,255,.25);}
+#container{max-width:1200px;margin:35px auto;padding:0 20px;}
 .section{margin-bottom:45px}
 .section h2{color:#1d3557;margin-bottom:22px}
-
-/* ===== GRID ===== */
-.grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
- gap:28px;
-}
-
-/* ===== CARD ===== */
-.card{
- border-radius:18px;
- padding:24px;
- box-shadow:0 10px 28px rgba(0,0,0,.14);
- transition:.25s;
- cursor:pointer;
-}
-.card:hover{
- transform:translateY(-6px);
- box-shadow:0 16px 38px rgba(0,0,0,.22);
-}
-.card h3{margin:0 0 10px}
-.card p{margin:6px 0;font-size:14px}
-
-/* ===== THEMES ===== */
-.moto{
- background:linear-gradient(135deg,#e8f7f3,#cfeee7);
- border-left:6px solid #2a9d8f;
-}
-.car{
- background:linear-gradient(135deg,#eef4ff,#dbe6ff);
- border-left:6px solid #457b9d;
-}
-
-/* ===== MODAL ===== */
-#modal{
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.55);
- display:none;
- align-items:center;
- justify-content:center;
- z-index:10;
-}
-#modalBox{
- background:white;
- width:460px;
- max-width:95%;
- border-radius:18px;
- padding:26px;
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;}
+.card{border-radius:18px;padding:24px;box-shadow:0 10px 28px rgba(0,0,0,.14);transition:.25s;cursor:pointer;background:white;}
+.card:hover{transform:translateY(-6px);box-shadow:0 16px 38px rgba(0,0,0,.22);}
+.card h3{margin:0 0 10px;color:#1d3557;}
+.card p{margin:6px 0;font-size:14px;color:#555;}
+.card .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-top:8px;}
+.badge-active{background:#d1e7dd;color:#0f5132;}
+.badge-locked{background:#f8d7da;color:#842029;}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:10;}
+#modalBox{background:white;width:460px;max-width:95%;border-radius:18px;padding:26px;}
 #modalBox h3{margin-top:0;color:#1d3557}
-
-/* INFO */
-.info{
- background:#f1f4f8;
- padding:14px;
- border-radius:12px;
- margin-bottom:14px;
- font-size:14px;
-}
-
-/* ===== STAT ===== */
-.stat-row{
- display:flex;
- gap:14px;
- margin-bottom:16px;
-}
-.stat-box{
- flex:1;
- background:#eaf6ff;
- border-radius:14px;
- padding:14px;
- text-align:center;
-}
-.stat-box b{
- display:block;
- font-size:15px;
- color:#1d3557;
- margin-bottom:6px;
-}
-.stat-box span{
- font-size:22px;
- font-weight:bold;
- color:#0d6efd;
-}
-
-/* RULES */
-.rules{
- background:#fff3cd;
- border:2px solid #ffca2c;
- padding:16px;
- border-radius:14px;
- font-size:15px;
-}
+.info{background:#f1f4f8;padding:14px;border-radius:12px;margin-bottom:14px;font-size:14px;}
+.stat-row{display:flex;gap:14px;margin-bottom:16px;}
+.stat-box{flex:1;background:#eaf6ff;border-radius:14px;padding:14px;text-align:center;}
+.stat-box b{display:block;font-size:15px;color:#1d3557;margin-bottom:6px;}
+.stat-box span{font-size:22px;font-weight:bold;color:#0d6efd;}
+.rules{background:#fff3cd;border:2px solid #ffca2c;padding:16px;border-radius:14px;font-size:15px;}
 .rules ul{padding-left:20px;margin:10px 0 0}
 .rules li{margin-bottom:8px}
-
-/* BUTTON */
-.modal-btns{
- display:flex;
- gap:14px;
- margin-top:22px;
-}
-.modal-btns button{
- flex:1;
- padding:12px;
- border:none;
- border-radius:10px;
- font-size:15px;
- font-weight:bold;
- cursor:pointer;
-}
+.modal-btns{display:flex;gap:14px;margin-top:22px;}
+.modal-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;}
 .start{background:#198754;color:white}
 .back{background:#6c757d;color:white}
 .start:hover{opacity:.9}
 .back:hover{opacity:.85}
+#loading{text-align:center;padding:40px;color:#666;font-size:16px;}
+#noSets{text-align:center;padding:40px;color:#888;font-style:italic;display:none;}
+/* Maintenance */
+.maintenance-page{position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36 0%,#1e3a5f 50%,#0d6efd 100%);display:none;align-items:center;justify-content:center;z-index:99999;color:white;text-align:center;flex-direction:column;gap:18px;padding:20px;}
+.maintenance-page.show{display:flex;}
+.maintenance-page .maint-icon{font-size:64px;animation:maintPulse 2s infinite;}
+.maintenance-page h1{font-size:24px;font-weight:800;margin:0;}
+.maintenance-page p{font-size:15px;opacity:0.85;max-width:500px;line-height:1.8;}
+@keyframes maintPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
 </style>
 </head>
-
 <body>
 
+<!-- TRANG BẢO TRÌ -->
+<div class="maintenance-page" id="maintenancePage">
+<div class="maint-icon">🔧</div>
+<h1>Hệ thống đang bảo trì</h1>
+<p>Chúng tôi đang tiến hành nâng cấp hệ thống. Vui lòng quay lại sau.</p>
+<button onclick="location.href='index.html'" style="padding:12px 32px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:12px;color:white;font-size:15px;cursor:pointer;">← Quay lại</button>
+</div>
+
 <header>
- <button id="backPage" onclick="history.back()">⬅ Quay lại</button>
-
- <div class="title">
-  <h1>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
-  <div class="en">Road Traffic Law Examination System</div>
-  <div class="hint">👉 Vui lòng lựa chọn bộ đề thi phù hợp để bắt đầu làm bài</div>
- </div>
+<button id="backPage" onclick="goBack()">⬅ Quay lại</button>
+<div class="title">
+ <h1>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
+ <div class="en">Road Traffic Law Examination System</div>
+ <div class="hint">🎯 Vui lòng lựa chọn bộ đề thi phù hợp để bắt đầu làm bài</div>
+</div>
 </header>
-
 <div id="container">
-
- <div class="section">
-  <h2>🏍️ Thi sát hạch lái xe mô tô quân sự</h2>
-  <div class="grid" id="motoBox"></div>
- </div>
-
- <div class="section">
-  <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
-  <div class="grid" id="carBox"></div>
- </div>
-
+ <div id="loading">⏳ Đang tải danh sách đề thi...</div>
+ <div id="noSets">📋 Chưa có bộ đề thi nào được kích hoạt</div>
+ <div id="setsContainer"></div>
 </div>
 
-<!-- ===== MODAL ===== -->
+<!-- MODAL -->
 <div id="modal">
- <div id="modalBox">
-
-  <h3 id="mName"></h3>
-
-  <div class="info">
-   <p id="mDesc"></p>
-   <p id="mBasic"></p>
-  </div>
-
-  <div class="stat-row">
-   <div class="stat-box">
-    <b>📊 Số lần đã thi</b>
-    <span id="mAttempts">0</span>
-   </div>
-   <div class="stat-box">
-    <b>📈 Tỷ lệ đạt</b>
-    <span id="mRate">0%</span>
-   </div>
-  </div>
-
-  <div class="rules">
-   <b>⚠️ NỘI QUY & CHỐNG GIAN LẬN</b>
-   <ul>
-    <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
-    <li>🔄 Không tải lại trang</li>
-    <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
-    <li>⛔ Mỗi lượt thi được ghi nhận tự động</li>
-   </ul>
-  </div>
-
-  <div class="modal-btns">
-   <button class="back" onclick="closeModal()">⬅ Quay lại</button>
-   <button class="start" onclick="startExam()">▶ Bắt đầu làm bài</button>
-  </div>
-
+<div id="modalBox">
+ <h3 id="mName"></h3>
+ <div class="info">
+ <p id="mDesc"></p>
+ <p id="mBasic"></p>
+ </div>
+ <div class="stat-row">
+ <div class="stat-box">
+ <b>📝 Số lần đã thi</b>
+ <span id="mAttempts">0</span>
+ </div>
+ <div class="stat-box">
+ <b>✅ Tỷ lệ đạt</b>
+ <span id="mRate">0%</span>
+ </div>
+ </div>
+ <div class="rules">
+ <b>⚠ NỘI QUY & CHỐNG GIAN LẬN</b>
+ <ul>
+ <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
+ <li>🔄 Không tải lại trang</li>
+ <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
+ <li>💾 Mỗi lượt thi được ghi nhận tự động</li>
+ </ul>
+ </div>
+ <div class="modal-btns">
+ <button class="back" onclick="closeModal()">⬅ Quay lại</button>
+ <button class="start" onclick="startExam()">▶ Bắt đầu làm bài</button>
  </div>
 </div>
+</div>
 
-<!-- ===== FIREBASE + SCRIPT (GIỮ NGUYÊN) ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
+// =====================================================================
+// FIREBASE - ĐỒNG BỘ VỚI ADMIN
+// =====================================================================
 firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
+ apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain: "thi-luat-giao-thong.firebaseapp.com",
+ projectId: "thi-luat-giao-thong"
 });
 const db = firebase.firestore();
 
-let selectedSet=null;
+// =====================================================================
+// LOGIN CHECK
+// =====================================================================
+const userType = localStorage.getItem("userType");
+if (userType !== "student" && userType !== "guest") {
+ location.href = "index.html";
+}
 
-/* COUNTER */
-function animateCounter(el,start,end,duration=800,suffix=""){
- const t0=performance.now();
- function step(t){
-  const p=Math.min((t-t0)/duration,1);
-  el.innerText=Math.floor(start+(end-start)*p)+suffix;
-  if(p<1) requestAnimationFrame(step);
+let selectedSet = null;
+const studentCode = localStorage.getItem("studentCode") || "";
+
+function goBack() {
+ if (userType === 'guest') {
+  location.href = 'index.html';
+ } else {
+  location.href = 'exam.html';
+ }
+}
+
+// =====================================================================
+// MAINTENANCE CHECK - ĐỒNG BỘ VỚI ADMIN
+// =====================================================================
+async function checkMaintenance() {
+ try {
+  const doc = await db.collection('systemConfig').doc('maintenance').get();
+  if (doc.exists && doc.data().enabled) {
+   document.getElementById('maintenancePage').classList.add('show');
+   return true;
+  }
+ } catch(e) {}
+ return false;
+}
+
+// =====================================================================
+// COUNTER
+// =====================================================================
+function animateCounter(el, start, end, duration = 800, suffix = "") {
+ const t0 = performance.now();
+ function step(t) {
+  const p = Math.min((t - t0) / duration, 1);
+  el.innerText = Math.floor(start + (end - start) * p) + suffix;
+  if (p < 1) requestAnimationFrame(step);
  }
  requestAnimationFrame(step);
 }
 
-/* LOAD SETS */
-db.collection("question_sets").where("active","==",true).get().then(snap=>{
- snap.forEach(doc=>{
-  const s=doc.data(); s.id=doc.id;
-  if(s.type==="car" && s.code==="XMT") return;
-  const card=`
-   <div class="card ${s.type}" onclick='openModal(${JSON.stringify(s)})'>
-    <h3>${s.name}</h3>
-    <p>${s.description||""}</p>
-    <p>• Số câu: ${s.totalQuestions}</p>
-    <p>• Thời gian: ${s.time} phút</p>
-    <p>• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}</p>
-   </div>`;
-  s.type==="moto"?motoBox.innerHTML+=card:carBox.innerHTML+=card;
- });
+// =====================================================================
+// LOAD SETS - ĐỒNG BỘ VỚI ADMIN (collection: questionSets)
+// =====================================================================
+async function loadQuestionSets() {
+ const isMaint = await checkMaintenance();
+ if (isMaint) return;
+
+ const loadingEl = document.getElementById('loading');
+ const noSetsEl = document.getElementById('noSets');
+ const container = document.getElementById('setsContainer');
+
+ try {
+  // ĐỒNG BỘ: dùng questionSets thay vì question_sets
+  const snap = await db.collection("questionSets").get();
+  const sets = [];
+  snap.forEach(doc => {
+   const s = doc.data();
+   s.id = doc.id;
+   // Chỉ hiện các đề active
+   if (s.status === 'active') {
+    sets.push(s);
+   }
+  });
+
+  loadingEl.style.display = 'none';
+
+  if (sets.length === 0) {
+   noSetsEl.style.display = 'block';
+   return;
+  }
+
+  // Render cards
+  let html = '<div class="grid">';
+  sets.forEach(s => {
+   const totalQ = s.totalQuestions || 0;
+   const groups = s.groups || 0;
+   const lietCount = s.lietCount || s.lietQuestion || 0;
+   html += `
+    <div class="card" onclick='openModal(${JSON.stringify(s).replace(/'/g, "\\'")})'>
+     <h3>📝 ${escapeHtml(s.name)}</h3>
+     <p>${escapeHtml(s.description || 'Không có mô tả')}</p>
+     <p>• Số câu: <b>${totalQ}</b></p>
+     <p>• Số nhóm: ${groups}</p>
+     ${lietCount > 0 ? `<p>• Câu liệt: <b style="color:#dc3545">${lietCount} câu</b></p>` : ''}
+     <span class="badge badge-active">✅ Đang hoạt động</span>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+ } catch(e) {
+  loadingEl.textContent = '❌ Lỗi tải danh sách đề: ' + e.message;
+  console.error('Load sets error:', e);
+ }
+}
+
+function escapeHtml(t) {
+ if (!t) return '';
+ const d = document.createElement('div');
+ d.textContent = t;
+ return d.innerHTML;
+}
+
+// =====================================================================
+// MODAL
+// =====================================================================
+function openModal(s) {
+ selectedSet = s;
+ document.getElementById('mName').innerText = s.name;
+ document.getElementById('mDesc').innerText = s.description || "Không có mô tả";
+
+ const totalQ = s.totalQuestions || 0;
+ const lietCount = s.lietCount || s.lietQuestion || 0;
+ let info = `• Số câu: ${totalQ}\n• Số nhóm: ${s.groups || 0}`;
+ if (lietCount > 0) info += `\n• Câu liệt: ${lietCount} câu`;
+
+ document.getElementById('mBasic').innerText = info;
+ document.getElementById('modal').style.display = "flex";
+ loadStats(s.code || s.id);
+}
+
+function closeModal() { document.getElementById('modal').style.display = "none"; }
+
+// ĐỒNG BỘ: dùng examResults thay vì exam_logs
+function loadStats(setCode) {
+ let t = 0, p = 0;
+ db.collection("examResults")
+  .where("setCode", "==", setCode)
+  .where("studentCode", "==", studentCode)
+  .get()
+  .then(snap => {
+   snap.forEach(d => {
+    t++;
+    const data = d.data();
+    const score = data.score || 0;
+    const totalQ = data.totalQuestions || 30;
+    const passQ = data.passQuestions || Math.ceil(totalQ * 0.8);
+    if (score >= passQ) p++;
+   });
+   animateCounter(document.getElementById('mAttempts'), 0, t, 700);
+   animateCounter(document.getElementById('mRate'), 0, t ? Math.round(p / t * 100) : 0, 900, "%");
+  })
+  .catch(e => {
+   console.warn('Load stats error:', e);
+   document.getElementById('mAttempts').textContent = '0';
+   document.getElementById('mRate').textContent = '0%';
+  });
+}
+
+// =====================================================================
+// START EXAM
+// =====================================================================
+function startExam() {
+ if (!selectedSet) return;
+
+ // Cập nhật presence
+ if (studentCode) {
+  try {
+   db.collection('presence').doc(studentCode).set({
+    isOnline: true,
+    currentSection: `Đang thi: ${selectedSet.name}`,
+    startAt: firebase.firestore.FieldValue.serverTimestamp(),
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+   }, { merge: true });
+  } catch(e) {}
+ }
+
+ localStorage.setItem("examSet", JSON.stringify(selectedSet));
+ location.href = "do_exam.html"; // hoặc exam_page.html tùy file bạn dùng
+}
+
+// Modal click outside close
+document.getElementById('modal').addEventListener('click', function(e) {
+ if (e.target === this) closeModal();
 });
 
-function openModal(s){
- selectedSet=s;
- mName.innerText=s.name;
- mDesc.innerText=s.description||"Không có mô tả";
- mBasic.innerText=`• Số câu: ${s.totalQuestions}
-• Thời gian: ${s.time} phút
-• Điều kiện đạt: ≥ ${s.passQuestions}/${s.totalQuestions}`;
- modal.style.display="flex";
- loadStats(s.code||s.id);
-}
-function closeModal(){modal.style.display="none";}
-function loadStats(code){
- let t=0,p=0;
- db.collection("exam_logs").where("setCode","==",code).get().then(snap=>{
-  snap.forEach(d=>{t++; d.data().pass&&p++;});
-  animateCounter(mAttempts,0,t,700);
-  animateCounter(mRate,0,t?Math.round(p/t*100):0,900,"%");
- });
-}
-function startExam(){
- localStorage.setItem("examSet",JSON.stringify(selectedSet));
- location.href="exam.html";
-}
+// =====================================================================
+// INIT
+// =====================================================================
+loadQuestionSets();
 </script>
-
 </body>
 </html>
