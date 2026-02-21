@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng nhập - Hệ thống thi luật Giao thông</title>
 <style>
+*{box-sizing:border-box;}
 body{
 margin:0;
 font-family:"Segoe UI", Roboto, Arial, Helvetica, sans-serif;
@@ -52,21 +53,29 @@ font-size:18px;
 color:#1d3557;
 margin:18px 0 22px;
 }
-input{
+.form-group{
+position:relative;
+margin-bottom:14px;
+}
+.form-group input{
 width:100%;
 padding:13px;
-margin-bottom:14px;
 border-radius:9px;
 border:1px solid #ccc;
 font-size:15px;
-box-sizing:border-box;
+transition: border-color 0.2s;
+}
+.form-group input:focus{
+outline:none;
+border-color:#1d3557;
+box-shadow:0 0 0 3px rgba(29,53,87,0.1);
 }
 .checkbox-row{
 display:flex;
 align-items:center;
 justify-content:space-between;
 width:100%;
-margin:-6px 0 16px;
+margin:-2px 0 16px;
 }
 .checkbox-left{
 display:flex;
@@ -74,11 +83,14 @@ align-items:center;
 gap:8px;
 font-size:14px;
 color:#333;
+cursor:pointer;
+user-select:none;
 }
-.checkbox-left input{
+.checkbox-left input[type="checkbox"]{
 width:16px;
 height:16px;
 margin:0;
+cursor:pointer;
 }
 button{
 width:100%;
@@ -89,10 +101,12 @@ background:#1d3557;
 color:white;
 font-size:16px;
 cursor:pointer;
-transition: opacity 0.2s;
+transition: all 0.2s;
+font-weight:600;
 }
-button:hover{opacity:.9;}
-button:disabled{opacity:.5;cursor:not-allowed;}
+button:hover{opacity:.88;transform:translateY(-1px);}
+button:active{transform:translateY(0);}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .try{
 margin-top:12px;
 background:#2a9d8f;
@@ -117,27 +131,29 @@ cursor:pointer;
 .login-error{
 background:#f8d7da;
 color:#842029;
-padding:10px 14px;
-border-radius:8px;
-font-size:13px;
+padding:12px 16px;
+border-radius:10px;
+font-size:13.5px;
 margin-bottom:14px;
 display:none;
 border:1px solid #f5c2c7;
 text-align:center;
+line-height:1.5;
 }
-.login-error.show{ display:block; }
+.login-error.show{display:block;}
 .login-success{
 background:#d1e7dd;
 color:#0f5132;
-padding:10px 14px;
-border-radius:8px;
-font-size:13px;
+padding:12px 16px;
+border-radius:10px;
+font-size:13.5px;
 margin-bottom:14px;
 display:none;
 border:1px solid #badbcc;
 text-align:center;
+line-height:1.5;
 }
-.login-success.show{ display:block; }
+.login-success.show{display:block;}
 .login-loading{
 display:none;
 text-align:center;
@@ -145,7 +161,7 @@ padding:10px;
 color:#1d3557;
 font-size:14px;
 }
-.login-loading.show{ display:block; }
+.login-loading.show{display:block;}
 .login-loading .spinner-small{
 display:inline-block;
 width:18px;height:18px;
@@ -157,252 +173,239 @@ vertical-align:middle;
 margin-right:8px;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
+
+/* ===== MAINTENANCE ===== */
 .maintenance-page{
-position:fixed;
-inset:0;
-background:linear-gradient(135deg, #1a1f36 0%, #1e3a5f 50%, #0d6efd 100%);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:99999;
-color:white;
-text-align:center;
-flex-direction:column;
-gap:18px;
-padding:20px;
-overflow-y:auto;
+position:fixed;inset:0;
+background:linear-gradient(135deg,#1a1f36 0%,#1e3a5f 50%,#0d6efd 100%);
+display:none;align-items:center;justify-content:center;
+z-index:99999;color:white;text-align:center;
+flex-direction:column;gap:18px;padding:20px;overflow-y:auto;
 }
-.maintenance-page.show{ display:flex; }
-.maintenance-page .maint-icon{
-font-size:64px;
-animation: maintPulse 2s infinite;
-}
-.maintenance-page h1{
-font-size:24px;
-font-weight:800;
-margin:0;
-color:white;
-}
-.maintenance-page .maint-desc{
-font-size:15px;
-opacity:0.85;
-max-width:700px;
-line-height:1.8;
-margin:0;
-color:white;
-}
-.maintenance-page .maint-sub{
-font-size:15px;
-opacity:0.85;
-margin:0;
-color:white;
-}
-.maintenance-page .maint-thanks{
-font-size:14px;
-opacity:0.6;
-margin:0;
-}
+.maintenance-page.show{display:flex;}
+.maintenance-page .maint-icon{font-size:64px;animation:maintPulse 2s infinite;}
+.maintenance-page h1{font-size:24px;font-weight:800;margin:0;}
+.maintenance-page .maint-desc{font-size:15px;opacity:.85;max-width:700px;line-height:1.8;margin:0;}
+.maintenance-page .maint-sub{font-size:15px;opacity:.85;margin:0;}
+.maintenance-page .maint-thanks{font-size:14px;opacity:.6;margin:0;}
 .maintenance-page .maint-back-btn{
-display:inline-flex;
-align-items:center;
-justify-content:center;
-gap:8px;
-margin-top:8px;
-padding:12px 32px;
-background:rgba(255,255,255,0.15);
-border:1px solid rgba(255,255,255,0.35);
-border-radius:12px;
-color:white;
-font-size:15px;
-font-weight:600;
-cursor:pointer;
-transition: all 0.25s;
-text-decoration:none;
-width:auto;
+display:inline-flex;align-items:center;justify-content:center;gap:8px;
+margin-top:8px;padding:12px 32px;
+background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);
+border-radius:12px;color:white;font-size:15px;font-weight:600;
+cursor:pointer;transition:all .25s;text-decoration:none;width:auto;
 }
-.maintenance-page .maint-back-btn:hover{
-background:rgba(255,255,255,0.25);
-border-color:rgba(255,255,255,0.5);
-transform:translateY(-1px);
-}
+.maintenance-page .maint-back-btn:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5);transform:translateY(-1px);}
 .maint-back-btn .btn-spinner{
-display:none;
-width:16px;height:16px;
-border:2px solid rgba(255,255,255,0.3);
-border-top-color:white;
-border-radius:50%;
-animation:spin .6s linear infinite;
+display:none;width:16px;height:16px;
+border:2px solid rgba(255,255,255,.3);border-top-color:white;
+border-radius:50%;animation:spin .6s linear infinite;
 }
-.maint-back-btn.loading .btn-spinner{ display:inline-block; }
-.maint-back-btn.loading .btn-text-icon{ display:none; }
-@keyframes maintPulse{
-0%,100%{transform:scale(1);}
-50%{transform:scale(1.1);}
-}
+.maint-back-btn.loading .btn-spinner{display:inline-block;}
+.maint-back-btn.loading .btn-text-icon{display:none;}
+@keyframes maintPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
+/* ===== MODAL ĐỔI MẬT KHẨU ===== */
 .modal-overlay{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.5);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:10000;
-padding:20px;
+position:fixed;inset:0;background:rgba(0,0,0,.5);
+display:none;align-items:center;justify-content:center;
+z-index:10000;padding:20px;
 }
-.modal-overlay.show{ display:flex; }
+.modal-overlay.show{display:flex;}
 .modal-box{
-background:white;
-padding:28px;
-border-radius:16px;
-width:100%;
-max-width:420px;
+background:white;padding:28px;border-radius:16px;
+width:100%;max-width:440px;
 box-shadow:0 10px 40px rgba(0,0,0,.3);
-animation: modalFadeIn 0.3s;
+animation:modalFadeIn .3s;
+max-height:90vh;overflow-y:auto;
 }
 @keyframes modalFadeIn{
-from{opacity:0;transform:scale(0.95) translateY(10px);}
+from{opacity:0;transform:scale(.95) translateY(10px);}
 to{opacity:1;transform:scale(1) translateY(0);}
 }
-.modal-box h3{
-margin:0 0 16px;
-font-size:17px;
-color:#1d3557;
-text-align:center;
+.modal-box h3{margin:0 0 16px;font-size:17px;color:#1d3557;text-align:center;}
+.modal-box label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:5px;}
+.modal-box .pw-field{position:relative;margin-bottom:12px;}
+.modal-box .pw-field input{
+width:100%;padding:11px;padding-right:14px;
+border-radius:8px;border:1px solid #ccc;font-size:14px;
 }
-.modal-box label{
-display:block;
-font-size:13px;
-font-weight:600;
-color:#555;
-margin-bottom:5px;
+.modal-box .pw-field input:focus{outline:none;border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.1);}
+.modal-show-pw{
+display:flex;align-items:center;gap:8px;
+font-size:13px;color:#555;margin:-4px 0 14px;
+cursor:pointer;user-select:none;
 }
-.modal-box input{
-width:100%;
-padding:11px;
-margin-bottom:12px;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:14px;
-box-sizing:border-box;
-}
-.modal-box input:focus{
-outline:none;
-border-color:#0d6efd;
-box-shadow:0 0 0 3px rgba(13,110,253,0.1);
-}
-.modal-btns{
-display:flex;
-gap:10px;
-margin-top:16px;
-}
-.modal-btns button{
-flex:1;
-padding:11px;
-font-size:14px;
-border-radius:8px;
-}
-.btn-cancel{
-background:#6c757d;
-}
-.btn-save{
-background:#198754;
-}
+.modal-show-pw input[type="checkbox"]{width:15px;height:15px;margin:0;cursor:pointer;}
+.modal-btns{display:flex;gap:10px;margin-top:18px;}
+.modal-btns button{flex:1;padding:12px;font-size:14px;border-radius:8px;font-weight:600;}
+.btn-cancel{background:#6c757d;}
+.btn-save{background:#198754;}
 .modal-error{
-background:#f8d7da;
-color:#842029;
-padding:8px 12px;
-border-radius:6px;
-font-size:12px;
-margin-bottom:10px;
-display:none;
-text-align:center;
+background:#f8d7da;color:#842029;padding:10px 12px;border-radius:8px;
+font-size:12.5px;margin-bottom:12px;display:none;text-align:center;
+line-height:1.4;border:1px solid #f5c2c7;
 }
-.modal-error.show{ display:block; }
+.modal-error.show{display:block;}
+.modal-success{
+background:#d1e7dd;color:#0f5132;padding:10px 12px;border-radius:8px;
+font-size:12.5px;margin-bottom:12px;display:none;text-align:center;
+line-height:1.4;border:1px solid #badbcc;
+}
+.modal-success.show{display:block;}
+
+/* ===== PASSWORD STRENGTH ===== */
+.pw-strength-wrap{margin:-4px 0 12px;}
+.pw-strength-bar{
+height:6px;border-radius:3px;background:#e9ecef;
+overflow:hidden;margin-bottom:6px;
+}
+.pw-strength-bar .fill{
+height:100%;border-radius:3px;width:0;
+transition:width .3s,background .3s;
+}
+.pw-strength-text{font-size:12px;font-weight:600;min-height:16px;}
+.pw-tips{
+background:#f0f4ff;border:1px solid #cce0ff;
+border-radius:10px;padding:12px 14px;margin-bottom:14px;
+font-size:12.5px;line-height:1.6;color:#333;
+}
+.pw-tips b{color:#1d3557;display:block;margin-bottom:4px;font-size:13px;}
+.pw-tips ul{margin:0;padding-left:18px;}
+.pw-tips li{margin-bottom:3px;}
+.pw-tips li.met{color:#198754;}
+.pw-tips li.unmet{color:#999;}
+.pw-tips li .icon{margin-right:4px;}
+
 @media(max-width:480px){
-.system-name .vi{ font-size:15px; }
-.system-name .en{ font-size:13px; }
-.maintenance-page{ gap:14px; padding:16px; }
-.maintenance-page .maint-icon{ font-size:52px; }
-.maintenance-page h1{ font-size:20px; }
-.maintenance-page .maint-desc{ font-size:13px; white-space:normal; text-align:center; max-width:100%; line-height:1.6; }
-.maintenance-page .maint-sub{ font-size:13px; }
-.maintenance-page .maint-thanks{ font-size:12px; }
-.maintenance-page .maint-back-btn{ padding:10px 24px; font-size:14px; }
+.system-name .vi{font-size:14px;white-space:normal;}
+.system-name .en{font-size:12px;}
+.box{padding:22px;}
+.maintenance-page{gap:14px;padding:16px;}
+.maintenance-page .maint-icon{font-size:52px;}
+.maintenance-page h1{font-size:20px;}
+.maintenance-page .maint-desc{font-size:13px;white-space:normal;text-align:center;max-width:100%;line-height:1.6;}
+.maintenance-page .maint-sub{font-size:13px;}
+.maintenance-page .maint-thanks{font-size:12px;}
+.maintenance-page .maint-back-btn{padding:10px 24px;font-size:14px;}
 }
 </style>
 </head>
 <body>
 
-<!-- TRANG BẢO TRÌ -->
+<!-- ==================== TRANG BẢO TRÌ ==================== -->
 <div class="maintenance-page" id="maintenancePage">
 <div class="maint-icon">🔧</div>
 <h1>Hệ thống đang bảo trì</h1>
 <p class="maint-desc">Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.</p>
-<p class="maint-sub">Vui lòng quay lại sau.</p>
+<p class="maint-sub" id="maintSubText">Vui lòng quay lại sau.</p>
 <p class="maint-thanks">Xin cảm ơn sự thông cảm của bạn!</p>
 <button class="maint-back-btn" id="maintBackBtn" onclick="goBackFromMaintenance()">
  <span class="btn-text-icon">← Quay lại trang đăng nhập</span>
  <span class="btn-spinner"></span>
 </button>
-<div style="margin-top:10px; padding:12px 24px; background:rgba(255,255,255,0.1); border-radius:12px; border:1px solid rgba(255,255,255,0.2);">
- <span style="font-size:13px; opacity:0.7;">Liên hệ hỗ trợ: </span>
- <span style="font-size:13px; font-weight:600;">trunglq002@gmail.com</span>
+<div style="margin-top:10px;padding:12px 24px;background:rgba(255,255,255,.1);border-radius:12px;border:1px solid rgba(255,255,255,.2);">
+ <span style="font-size:13px;opacity:.7;">Liên hệ hỗ trợ: </span>
+ <span style="font-size:13px;font-weight:600;">trunglq002@gmail.com</span>
 </div>
 </div>
 
-<!-- MODAL ĐỔI MẬT KHẨU -->
+<!-- ==================== MODAL ĐỔI MẬT KHẨU ==================== -->
 <div class="modal-overlay" id="changePwModal">
 <div class="modal-box">
  <h3>🔑 Đổi mật khẩu</h3>
  <div class="modal-error" id="changePwError"></div>
+ <div class="modal-success" id="changePwSuccess"></div>
+
  <label>Mật khẩu hiện tại</label>
- <input type="password" id="cpOldPw" placeholder="Nhập mật khẩu hiện tại">
+ <div class="pw-field">
+  <input type="password" id="cpOldPw" class="cp-pw-input" placeholder="Nhập mật khẩu hiện tại">
+ </div>
+
  <label>Mật khẩu mới</label>
- <input type="password" id="cpNewPw" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
+ <div class="pw-field">
+  <input type="password" id="cpNewPw" class="cp-pw-input" placeholder="Nhập mật khẩu mới" oninput="checkPasswordStrength()">
+ </div>
+
+ <!-- THANH ĐỘ MẠNH MẬT KHẨU -->
+ <div class="pw-strength-wrap">
+  <div class="pw-strength-bar"><div class="fill" id="pwStrengthFill"></div></div>
+  <div class="pw-strength-text" id="pwStrengthText"></div>
+ </div>
+
+ <!-- GỢI Ý BẢO MẬT -->
+ <div class="pw-tips" id="pwTips">
+  <b>💡 Gợi ý tạo mật khẩu an toàn:</b>
+  <ul>
+   <li id="tipLen" class="unmet"><span class="icon">○</span> Ít nhất 8 ký tự</li>
+   <li id="tipUpper" class="unmet"><span class="icon">○</span> Có chữ in hoa (A-Z)</li>
+   <li id="tipLower" class="unmet"><span class="icon">○</span> Có chữ thường (a-z)</li>
+   <li id="tipNum" class="unmet"><span class="icon">○</span> Có chữ số (0-9)</li>
+   <li id="tipSpec" class="unmet"><span class="icon">○</span> Có ký tự đặc biệt (!@#$...)</li>
+  </ul>
+ </div>
+
  <label>Xác nhận mật khẩu mới</label>
- <input type="password" id="cpConfirmPw" placeholder="Nhập lại mật khẩu mới">
+ <div class="pw-field">
+  <input type="password" id="cpConfirmPw" class="cp-pw-input" placeholder="Nhập lại mật khẩu mới" oninput="checkConfirmMatch()">
+ </div>
+ <div id="confirmMatchMsg" style="font-size:12px;margin:-8px 0 10px;min-height:16px;"></div>
+
+ <label class="modal-show-pw">
+  <input type="checkbox" id="cpShowPw" onchange="toggleModalPasswords()">
+  Hiện mật khẩu
+ </label>
+
  <div class="modal-btns">
- <button class="btn-cancel" onclick="closeChangePwModal()">Hủy</button>
- <button class="btn-save" onclick="submitChangePassword()">🔒 Đổi mật khẩu</button>
+  <button class="btn-cancel" onclick="closeChangePwModal()">Hủy</button>
+  <button class="btn-save" id="cpSubmitBtn" onclick="submitChangePassword()">🔒 Đổi mật khẩu</button>
  </div>
 </div>
 </div>
 
-<!-- NỘI DUNG CHÍNH -->
+<!-- ==================== NỘI DUNG CHÍNH ==================== -->
 <div class="overlay" id="mainLoginContent">
 <div class="box">
  <div class="system-name">
- <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
- <div class="en">Road Traffic Law Examination System</div>
+  <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+  <div class="en">Road Traffic Law Examination System</div>
  </div>
  <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
+
  <div class="login-error" id="loginError"></div>
  <div class="login-success" id="loginSuccess"></div>
  <div class="login-loading" id="loginLoading">
- <span class="spinner-small"></span> Đang xử lý...
+  <span class="spinner-small"></span> Đang xử lý...
  </div>
- <input id="loginInput" placeholder="Nhập mã học viên (VD: HV0001)">
- <input id="password" type="password" placeholder="Mật khẩu">
+
+ <div class="form-group">
+  <input id="loginInput" placeholder="Nhập mã học viên (VD: HV0001)" autocomplete="off">
+ </div>
+ <div class="form-group">
+  <input id="password" type="password" placeholder="Mật khẩu">
+ </div>
+
  <div class="checkbox-row">
- <div class="checkbox-left">
- <input type="checkbox" id="showPass">
- <label for="showPass">Hiện mật khẩu</label>
+  <label class="checkbox-left">
+   <input type="checkbox" id="showPass">
+   Hiện mật khẩu
+  </label>
  </div>
- </div>
+
  <button id="loginBtn">Đăng nhập</button>
- <button class="try" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
+ <button class="try" id="tryBtn">📝 Thi thử (không cần đăng nhập)</button>
+
  <div class="note">
- • Học viên nhập mã HV và mật khẩu (mặc định: <b>123456</b>)<br>
- • Admin nhập mã "admin" và mật khẩu quản trị<br>
- • Bạn có thể đổi mật khẩu sau khi đăng nhập<br>
- • Liên hệ hỗ trợ:
- <div class="zalo">
- 📞
- <a href="https://zalo.me/0973306802" target="_blank">
- <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
- </a>
- <strong>0973.306.802</strong>
- </div>
+  • Học viên nhập mã HV và mật khẩu để đăng nhập<br>
+  • Bạn có thể đổi mật khẩu sau khi đăng nhập<br>
+  • Liên hệ hỗ trợ:
+  <div class="zalo">
+   📞
+   <a href="https://zalo.me/0973306802" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+   </a>
+   <strong>0973.306.802</strong>
+  </div>
  </div>
 </div>
 </div>
@@ -411,469 +414,568 @@ text-align:center;
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 // =====================================================================
-// FIREBASE INIT - ĐỒNG BỘ VỚI ADMIN
+// FIREBASE INIT
 // =====================================================================
 firebase.initializeApp({
- apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain: "thi-luat-giao-thong.firebaseapp.com",
- projectId: "thi-luat-giao-thong"
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
 });
 const db = firebase.firestore();
 
 // =====================================================================
-// CONSTANTS - ĐỒNG BỘ VỚI ADMIN
+// CONSTANTS (không hiển thị mật khẩu mặc định ra UI)
 // =====================================================================
-const DEFAULT_PASSWORD = '123456';
+const _DP = '123456';
+const _AF = 'admin123';
 
 // =====================================================================
-// SIMPLE HASH - ĐỒNG BỘ CHÍNH XÁC VỚI ADMIN
+// SIMPLE HASH - ĐỒNG BỘ VỚI ADMIN
 // =====================================================================
-function simpleHash(str) {
- let hash = 0;
- for (let i = 0; i < str.length; i++) {
-  const char = str.charCodeAt(i);
-  hash = ((hash << 5) - hash) + char;
-  hash = hash & hash;
+function simpleHash(str){
+ let hash=0;
+ for(let i=0;i<str.length;i++){
+  const c=str.charCodeAt(i);
+  hash=((hash<<5)-hash)+c;
+  hash=hash&hash;
  }
- return 'h_' + Math.abs(hash).toString(36);
+ return 'h_'+Math.abs(hash).toString(36);
 }
 
 // =====================================================================
 // UI HELPERS
 // =====================================================================
-function showError(msg) {
- const el = document.getElementById('loginError');
- el.textContent = msg;
+function showError(msg){
+ const el=document.getElementById('loginError');
+ el.innerHTML=msg;
  el.classList.add('show');
  document.getElementById('loginSuccess').classList.remove('show');
- setTimeout(() => el.classList.remove('show'), 5000);
+ document.getElementById('loginLoading').classList.remove('show');
+ clearTimeout(window._et);
+ window._et=setTimeout(()=>el.classList.remove('show'),8000);
 }
-
-function hideError() {
- document.getElementById('loginError').classList.remove('show');
-}
-
-function showSuccess(msg) {
- const el = document.getElementById('loginSuccess');
- el.textContent = msg;
+function hideError(){document.getElementById('loginError').classList.remove('show');}
+function showSuccess(msg){
+ const el=document.getElementById('loginSuccess');
+ el.innerHTML=msg;
  el.classList.add('show');
  document.getElementById('loginError').classList.remove('show');
- setTimeout(() => el.classList.remove('show'), 5000);
+ clearTimeout(window._st);
+ window._st=setTimeout(()=>el.classList.remove('show'),5000);
 }
-
-function showLoginLoading(show) {
- const el = document.getElementById('loginLoading');
- const btn = document.getElementById('loginBtn');
- if (show) {
-  el.classList.add('show');
-  btn.disabled = true;
- } else {
-  el.classList.remove('show');
-  btn.disabled = false;
- }
+function showLoginLoading(s){
+ const el=document.getElementById('loginLoading');
+ const btn=document.getElementById('loginBtn');
+ if(s){el.classList.add('show');btn.disabled=true;}
+ else{el.classList.remove('show');btn.disabled=false;}
 }
+function normalize(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
 
 // =====================================================================
-// MAINTENANCE CHECK - ĐỒNG BỘ VỚI ADMIN (systemConfig/maintenance)
+// MAINTENANCE
 // =====================================================================
-let isSystemMaintenance = false;
+let isSystemMaintenance=false;
 
-async function checkMaintenanceMode() {
- try {
-  const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
-  if (maintDoc.exists && maintDoc.data().enabled) {
-   return true;
-  }
- } catch (e) {
-  console.warn('Không thể kiểm tra bảo trì từ Firestore:', e.message);
-  try {
-   const local = JSON.parse(localStorage.getItem('maintenanceMode') || '{}');
-   if (local.enabled) return true;
-  } catch (ex) {}
- }
+async function checkMaintenanceMode(){
+ try{
+  const d=await db.collection('systemConfig').doc('maintenance').get();
+  if(d.exists&&d.data().enabled) return true;
+ }catch(e){console.warn('Maintenance check:',e.message);}
  return false;
 }
-
-function showMaintenancePage() {
- isSystemMaintenance = true;
+function showMaintenancePage(){
+ isSystemMaintenance=true;
  document.getElementById('maintenancePage').classList.add('show');
- document.getElementById('mainLoginContent').style.display = 'none';
+ document.getElementById('mainLoginContent').style.display='none';
 }
-
-function hideMaintenancePage() {
- isSystemMaintenance = false;
+function hideMaintenancePage(){
+ isSystemMaintenance=false;
  document.getElementById('maintenancePage').classList.remove('show');
- document.getElementById('mainLoginContent').style.display = '';
+ document.getElementById('mainLoginContent').style.display='';
 }
-
-async function goBackFromMaintenance() {
- const btn = document.getElementById('maintBackBtn');
- btn.classList.add('loading');
- btn.disabled = true;
- try {
-  const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
-  if (maintDoc.exists && maintDoc.data().enabled) {
-   btn.classList.remove('loading');
-   btn.disabled = false;
-   const subEl = document.querySelector('.maint-sub');
-   const oldText = subEl.textContent;
-   subEl.textContent = '⚠ Hệ thống vẫn đang bảo trì, vui lòng thử lại sau!';
-   subEl.style.color = '#ffc107';
-   subEl.style.fontWeight = '600';
-   setTimeout(() => {
-    subEl.textContent = oldText;
-    subEl.style.color = '';
-    subEl.style.fontWeight = '';
-   }, 3000);
-  } else {
-   hideMaintenancePage();
-   setupEventListeners();
+async function goBackFromMaintenance(){
+ const btn=document.getElementById('maintBackBtn');
+ btn.classList.add('loading');btn.disabled=true;
+ try{
+  if(await checkMaintenanceMode()){
+   btn.classList.remove('loading');btn.disabled=false;
+   const s=document.getElementById('maintSubText');
+   const old=s.textContent;
+   s.textContent='⚠ Hệ thống vẫn đang bảo trì, vui lòng thử lại sau!';
+   s.style.color='#ffc107';s.style.fontWeight='600';
+   setTimeout(()=>{s.textContent=old;s.style.color='';s.style.fontWeight='';},3000);
+  }else{
+   hideMaintenancePage();setupEventListeners();
    document.getElementById('loginInput').focus();
   }
- } catch (e) {
-  btn.classList.remove('loading');
-  btn.disabled = false;
-  hideMaintenancePage();
-  setupEventListeners();
+ }catch(e){
+  btn.classList.remove('loading');btn.disabled=false;
+  hideMaintenancePage();setupEventListeners();
   document.getElementById('loginInput').focus();
  }
 }
 
 // =====================================================================
-// NORMALIZE TEXT
+// PASSWORD STRENGTH CHECKER
 // =====================================================================
-function normalize(s) {
- return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+function checkPasswordStrength(){
+ const pw=document.getElementById('cpNewPw').value;
+ const fill=document.getElementById('pwStrengthFill');
+ const txt=document.getElementById('pwStrengthText');
+
+ const hasLen=pw.length>=8;
+ const hasUpper=/[A-Z]/.test(pw);
+ const hasLower=/[a-z]/.test(pw);
+ const hasNum=/[0-9]/.test(pw);
+ const hasSpec=/[^A-Za-z0-9]/.test(pw);
+
+ // Cập nhật checklist
+ updateTip('tipLen',hasLen);
+ updateTip('tipUpper',hasUpper);
+ updateTip('tipLower',hasLower);
+ updateTip('tipNum',hasNum);
+ updateTip('tipSpec',hasSpec);
+
+ // Tính điểm
+ let score=0;
+ if(pw.length>=6) score++;
+ if(hasLen) score++;
+ if(hasUpper) score++;
+ if(hasLower) score++;
+ if(hasNum) score++;
+ if(hasSpec) score++;
+ if(pw.length>=12) score++;
+
+ // Hiển thị thanh
+ if(!pw){
+  fill.style.width='0';
+  txt.textContent='';
+  txt.style.color='';
+  return;
+ }
+
+ if(score<=2){
+  fill.style.width='25%';fill.style.background='#dc3545';
+  txt.textContent='🔴 Yếu — Dễ bị đoán';txt.style.color='#dc3545';
+ }else if(score<=4){
+  fill.style.width='50%';fill.style.background='#fd7e14';
+  txt.textContent='🟠 Trung bình — Nên thêm ký tự đặc biệt';txt.style.color='#fd7e14';
+ }else if(score<=5){
+  fill.style.width='75%';fill.style.background='#0d6efd';
+  txt.textContent='🔵 Khá — Khá an toàn';txt.style.color='#0d6efd';
+ }else{
+  fill.style.width='100%';fill.style.background='#198754';
+  txt.textContent='🟢 Mạnh — Rất an toàn!';txt.style.color='#198754';
+ }
+
+ checkConfirmMatch();
+}
+
+function updateTip(id,met){
+ const el=document.getElementById(id);
+ if(met){
+  el.className='met';
+  el.querySelector('.icon').textContent='✔';
+ }else{
+  el.className='unmet';
+  el.querySelector('.icon').textContent='○';
+ }
+}
+
+function checkConfirmMatch(){
+ const pw=document.getElementById('cpNewPw').value;
+ const cf=document.getElementById('cpConfirmPw').value;
+ const msg=document.getElementById('confirmMatchMsg');
+ if(!cf){msg.textContent='';return;}
+ if(pw===cf){
+  msg.textContent='✔ Mật khẩu xác nhận khớp';
+  msg.style.color='#198754';
+ }else{
+  msg.textContent='✘ Mật khẩu xác nhận chưa khớp';
+  msg.style.color='#dc3545';
+ }
+}
+
+// =====================================================================
+// TOGGLE MODAL PASSWORDS
+// =====================================================================
+function toggleModalPasswords(){
+ const show=document.getElementById('cpShowPw').checked;
+ const type=show?'text':'password';
+ document.getElementById('cpOldPw').type=type;
+ document.getElementById('cpNewPw').type=type;
+ document.getElementById('cpConfirmPw').type=type;
 }
 
 // =====================================================================
 // PAGE INIT
 // =====================================================================
-window.onload = async function () {
- const isMaintenance = await checkMaintenanceMode();
- if (isMaintenance) {
-  showMaintenancePage();
-  return;
- }
- const userType = localStorage.getItem('userType');
- if (userType === 'admin') {
-  location.href = 'admin.html';
-  return;
- }
- if (userType === 'student') {
-  location.href = 'exam.html';
-  return;
- }
+window.onload=async function(){
+ try{
+  const m=await checkMaintenanceMode();
+  if(m){showMaintenancePage();return;}
+ }catch(e){}
+ const ut=localStorage.getItem('userType');
+ if(ut==='admin'){location.href='admin.html';return;}
+ if(ut==='student'){location.href='exam.html';return;}
  setupEventListeners();
 };
 
-function setupEventListeners() {
- const loginInput = document.getElementById('loginInput');
- const password = document.getElementById('password');
- const loginBtn = document.getElementById('loginBtn');
- const showPass = document.getElementById('showPass');
+// =====================================================================
+// EVENT LISTENERS
+// =====================================================================
+function setupEventListeners(){
+ const li=document.getElementById('loginInput');
+ const pw=document.getElementById('password');
+ const lb=document.getElementById('loginBtn');
+ const sp=document.getElementById('showPass');
+ const tb=document.getElementById('tryBtn');
 
- loginInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-   if (!password.value) password.focus();
-   else login();
-  }
+ li.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){if(!pw.value)pw.focus();else login();}
  });
- password.addEventListener('keydown', e => {
-  if (e.key === 'Enter') login();
- });
- loginBtn.onclick = login;
- showPass.onchange = () => {
-  password.type = showPass.checked ? 'text' : 'password';
- };
- loginInput.focus();
+
+ // ★ Khi thay đổi mã HV → xóa mật khẩu
+ li.addEventListener('input',()=>{pw.value='';hideError();});
+
+ pw.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+ lb.onclick=login;
+ sp.onchange=()=>{pw.type=sp.checked?'text':'password';};
+ tb.onclick=tryExam;
+ li.focus();
 }
 
 // =====================================================================
 // MAIN LOGIN
 // =====================================================================
-async function login() {
+async function login(){
  hideError();
- const raw = document.getElementById('loginInput').value.trim();
- const pass = document.getElementById('password').value;
+ const raw=document.getElementById('loginInput').value.trim();
+ const pass=document.getElementById('password').value;
 
- if (!raw) {
-  showError('Vui lòng nhập mã học viên hoặc tên');
+ if(!raw){
+  showError('⚠ Vui lòng nhập mã học viên.');
   document.getElementById('loginInput').focus();
   return;
  }
-
- if (isSystemMaintenance) {
-  showMaintenancePage();
-  return;
- }
-
- // Kiểm tra bảo trì realtime
- try {
-  const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
-  if (maintDoc.exists && maintDoc.data().enabled) {
-   if (raw.toLowerCase() === 'admin') {
-    await loginAsAdmin(pass);
-    return;
-   } else {
-    showMaintenancePage();
-    return;
-   }
-  }
- } catch (e) {
-  console.warn('Không check được bảo trì:', e.message);
- }
-
- if (raw.toLowerCase() === 'admin') {
-  await loginAsAdmin(pass);
-  return;
- }
-
- await loginAsStudent(raw, pass);
-}
-
-// =====================================================================
-// ADMIN LOGIN - ĐỒNG BỘ VỚI ADMIN (systemConfig/admin)
-// =====================================================================
-async function loginAsAdmin(pass) {
- if (!pass) {
-  showError('Vui lòng nhập mật khẩu Admin');
+ if(!pass){
+  showError('⚠ Vui lòng nhập mật khẩu.');
   document.getElementById('password').focus();
   return;
  }
+
+ // Kiểm tra bảo trì
+ try{
+  const m=await checkMaintenanceMode();
+  if(m&&raw.toLowerCase()!=='admin'){showMaintenancePage();return;}
+ }catch(e){}
+
+ if(raw.toLowerCase()==='admin') await loginAsAdmin(pass);
+ else await loginAsStudent(raw,pass);
+}
+
+// =====================================================================
+// ADMIN LOGIN
+// =====================================================================
+async function loginAsAdmin(pass){
  showLoginLoading(true);
- try {
-  // Kiểm tra mật khẩu từ Firestore systemConfig/admin
-  const adminDoc = await db.collection('systemConfig').doc('admin').get();
-  if (adminDoc.exists && adminDoc.data().passwordHash) {
-   if (simpleHash(pass) === adminDoc.data().passwordHash) {
-    localStorage.setItem('userType', 'admin');
-    localStorage.setItem('adminName', 'Admin');
-    showSuccess('Đăng nhập Admin thành công!');
-    setTimeout(() => { location.href = 'admin.html'; }, 800);
-    return;
+ try{
+  let matched=false;
+  let firestoreOK=false;
+
+  try{
+   const doc=await db.collection('systemConfig').doc('admin').get();
+   firestoreOK=true;
+   if(doc.exists){
+    const d=doc.data();
+    if(d.passwordHash&&simpleHash(pass)===d.passwordHash) matched=true;
+    if(!matched&&d.password&&pass===d.password) matched=true;
    }
+  }catch(e){
+   console.warn('Admin Firestore:',e.message);
+   firestoreOK=false;
   }
-  // Fallback: mật khẩu mặc định admin123
-  if (pass === 'admin123') {
-   localStorage.setItem('userType', 'admin');
-   localStorage.setItem('adminName', 'Admin');
-   showSuccess('Đăng nhập Admin thành công!');
-   setTimeout(() => { location.href = 'admin.html'; }, 800);
-   return;
+
+  if(!matched&&pass===_AF) matched=true;
+
+  if(matched){
+   localStorage.setItem('userType','admin');
+   localStorage.setItem('adminName','Admin');
+   showSuccess('✅ Đăng nhập Admin thành công! Đang chuyển trang...');
+   setTimeout(()=>{location.href='admin.html';},800);
+  }else{
+   showError('Bạn đã nhập sai mật khẩu, vui lòng nhập lại.<br>Nếu cần hỗ trợ vui lòng liên hệ Admin.');
+   document.getElementById('password').value='';
+   document.getElementById('password').focus();
   }
-  showError('Sai mật khẩu Admin!');
- } catch (e) {
-  // Offline fallback
-  if (pass === 'admin123') {
-   localStorage.setItem('userType', 'admin');
-   localStorage.setItem('adminName', 'Admin');
-   showSuccess('Đăng nhập Admin thành công!');
-   setTimeout(() => { location.href = 'admin.html'; }, 800);
-   return;
+ }catch(e){
+  console.error('Admin login:',e);
+  if(pass===_AF){
+   localStorage.setItem('userType','admin');
+   localStorage.setItem('adminName','Admin');
+   showSuccess('✅ Đăng nhập Admin thành công!');
+   setTimeout(()=>{location.href='admin.html';},800);
+  }else{
+   showError('Bạn đã nhập sai mật khẩu, vui lòng nhập lại.<br>Nếu cần hỗ trợ vui lòng liên hệ Admin.');
+   document.getElementById('password').value='';
+   document.getElementById('password').focus();
   }
-  showError('Lỗi kết nối: ' + e.message);
- } finally {
+ }finally{
   showLoginLoading(false);
  }
 }
 
 // =====================================================================
-// STUDENT LOGIN - ĐỒNG BỘ VỚI ADMIN
-// Document ID = student.code (VD: HV0001)
-// Password hash dùng simpleHash() giống admin
+// STUDENT LOGIN
 // =====================================================================
-async function loginAsStudent(raw, pass) {
+async function loginAsStudent(raw,pass){
  showLoginLoading(true);
- try {
-  let student = null;
-  const codeUpper = raw.toUpperCase();
+ try{
+  let student=null;
+  let studentDocId=null;
+  const codeUp=raw.toUpperCase();
 
-  // 1. Tìm theo document ID (code)
-  const docSnap = await db.collection('students').doc(codeUpper).get();
-  if (docSnap.exists) {
-   student = { id: docSnap.id, ...docSnap.data() };
-  }
+  // 1. Tìm theo document ID
+  try{
+   const d=await db.collection('students').doc(codeUp).get();
+   if(d.exists){student={id:d.id,...d.data()};studentDocId=d.id;}
+  }catch(e){}
 
   // 2. Tìm theo field code
-  if (!student) {
-   const snapCode = await db.collection('students').where('code', '==', codeUpper).limit(1).get();
-   if (!snapCode.empty) {
-    student = { id: snapCode.docs[0].id, ...snapCode.docs[0].data() };
-   }
+  if(!student){
+   try{
+    const s=await db.collection('students').where('code','==',codeUp).limit(1).get();
+    if(!s.empty){student={id:s.docs[0].id,...s.docs[0].data()};studentDocId=s.docs[0].id;}
+   }catch(e){}
   }
 
-  // 3. Thử prefix HV/SQ/CN/KH
-  if (!student) {
-   const prefixes = ['HV', 'SQ', 'CN', 'KH'];
-   for (const pf of prefixes) {
-    const tryCode = pf + raw.replace(/\D/g, '').padStart(4, '0');
-    const doc2 = await db.collection('students').doc(tryCode).get();
-    if (doc2.exists) {
-     student = { id: doc2.id, ...doc2.data() };
-     break;
+  // 3. Thử prefix
+  if(!student){
+   const digits=raw.replace(/\D/g,'');
+   if(digits){
+    for(const pf of['HV','SQ','CN','KH']){
+     try{
+      const tc=pf+digits.padStart(4,'0');
+      const d=await db.collection('students').doc(tc).get();
+      if(d.exists){student={id:d.id,...d.data()};studentDocId=d.id;break;}
+     }catch(e){}
     }
    }
   }
 
   // 4. Tìm theo tên
-  if (!student) {
-   const key = normalize(raw);
-   const snapAll = await db.collection('students').get();
-   snapAll.forEach(d => {
-    if (!student && normalize(d.data().name || '').includes(key)) {
-     student = { id: d.id, ...d.data() };
+  if(!student){
+   try{
+    const key=normalize(raw);
+    if(key.length>=2){
+     const all=await db.collection('students').get();
+     all.forEach(d=>{
+      if(!student&&normalize(d.data().name||'').includes(key)){
+       student={id:d.id,...d.data()};studentDocId=d.id;
+      }
+     });
     }
-   });
+   }catch(e){}
   }
 
-  if (!student) {
-   showError('Không tìm thấy học viên. Vui lòng kiểm tra lại mã hoặc tên.');
+  if(!student){
+   showError('⚠ Không tìm thấy học viên.<br>Vui lòng kiểm tra lại mã hoặc tên.<br>Nếu cần hỗ trợ vui lòng liên hệ Admin.');
    showLoginLoading(false);
    return;
   }
 
-  if (student.status === 'locked') {
-   showError('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.');
+  if(student.status==='locked'){
+   showError('🔒 Tài khoản đã bị khóa.<br>Vui lòng liên hệ Admin để được hỗ trợ.');
    showLoginLoading(false);
    return;
   }
 
-  // Xác thực mật khẩu - ĐỒNG BỘ VỚI ADMIN simpleHash
-  const inputPassword = pass || DEFAULT_PASSWORD;
-  const storedPassword = student.password || simpleHash(DEFAULT_PASSWORD);
-  if (simpleHash(inputPassword) !== storedPassword) {
-   showError('Sai mật khẩu! Mật khẩu mặc định là: ' + DEFAULT_PASSWORD);
+  // Xác thực mật khẩu
+  const storedHash=student.password||simpleHash(_DP);
+  let pwOK=false;
+  if(simpleHash(pass)===storedHash) pwOK=true;
+  if(!pwOK&&pass===storedHash) pwOK=true;
+  if(!pwOK&&!student.password&&pass===_DP) pwOK=true;
+
+  if(!pwOK){
+   showError('Bạn đã nhập sai mật khẩu, vui lòng nhập lại.<br>Nếu cần hỗ trợ vui lòng liên hệ Admin.');
+   document.getElementById('password').value='';
+   document.getElementById('password').focus();
    showLoginLoading(false);
    return;
   }
 
-  // Lưu session
-  localStorage.setItem('userType', 'student');
-  localStorage.setItem('studentCode', student.code || student.id);
-  localStorage.setItem('studentName', student.name || '');
-  localStorage.setItem('studentUnit', student.unit || '');
-  localStorage.setItem('studentObject', student.object || '');
+  // Đăng nhập thành công
+  localStorage.setItem('userType','student');
+  localStorage.setItem('studentCode',student.code||studentDocId);
+  localStorage.setItem('studentName',student.name||'');
+  localStorage.setItem('studentUnit',student.unit||'');
+  localStorage.setItem('studentObject',student.object||'');
 
-  // Gợi ý đổi mật khẩu mặc định
-  if (!student.passwordChanged && inputPassword === DEFAULT_PASSWORD) {
-   showSuccess(`Xin chào ${student.name}! Đang chuyển trang...`);
-   setTimeout(() => {
-    if (confirm(`Chào ${student.name}!\n\nBạn đang sử dụng mật khẩu mặc định (${DEFAULT_PASSWORD}).\nBạn có muốn đổi mật khẩu ngay không?`)) {
-     openChangePwModal(student.code || student.id);
-    } else {
-     location.href = 'exam.html';
+  // Gợi ý đổi mật khẩu nếu chưa đổi
+  if(!student.passwordChanged&&pass===_DP){
+   showLoginLoading(false);
+   showSuccess(`✅ Xin chào ${student.name}!`);
+   setTimeout(()=>{
+    if(confirm(`Chào ${student.name}!\n\nĐể bảo mật tài khoản, bạn nên đổi mật khẩu ngay.\nBạn có muốn đổi mật khẩu không?`)){
+     openChangePwModal(studentDocId);
+    }else{
+     location.href='exam.html';
     }
-   }, 500);
-  } else {
-   showSuccess(`Xin chào ${student.name}! Đang chuyển trang...`);
-   setTimeout(() => { location.href = 'exam.html'; }, 800);
+   },400);
+  }else{
+   showSuccess(`✅ Xin chào ${student.name}! Đang chuyển trang...`);
+   setTimeout(()=>{location.href='exam.html';},800);
   }
- } catch (e) {
-  showError('Lỗi kết nối: ' + e.message);
-  console.error('Login error:', e);
- } finally {
+
+ }catch(e){
+  console.error('Student login:',e);
+  if(e.code==='permission-denied'||e.message.includes('permissions')){
+   showError('⚠ Hệ thống đang cấu hình lại.<br>Vui lòng thử lại sau hoặc liên hệ Admin.');
+  }else{
+   showError('⚠ Không thể kết nối hệ thống.<br>Vui lòng kiểm tra mạng và thử lại.');
+  }
+ }finally{
   showLoginLoading(false);
  }
 }
 
 // =====================================================================
-// CHANGE PASSWORD - ĐỒNG BỘ VỚI ADMIN
+// CHANGE PASSWORD
 // =====================================================================
-let changePwStudentCode = '';
+let changePwStudentId='';
 
-function openChangePwModal(studentCode) {
- changePwStudentCode = studentCode;
- document.getElementById('cpOldPw').value = '';
- document.getElementById('cpNewPw').value = '';
- document.getElementById('cpConfirmPw').value = '';
+function openChangePwModal(docId){
+ changePwStudentId=docId;
+ document.getElementById('cpOldPw').value='';
+ document.getElementById('cpNewPw').value='';
+ document.getElementById('cpConfirmPw').value='';
+ document.getElementById('cpShowPw').checked=false;
+ toggleModalPasswords();
  document.getElementById('changePwError').classList.remove('show');
+ document.getElementById('changePwSuccess').classList.remove('show');
+ document.getElementById('confirmMatchMsg').textContent='';
+ // Reset strength
+ document.getElementById('pwStrengthFill').style.width='0';
+ document.getElementById('pwStrengthText').textContent='';
+ // Reset tips
+ ['tipLen','tipUpper','tipLower','tipNum','tipSpec'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.className='unmet';
+  el.querySelector('.icon').textContent='○';
+ });
  document.getElementById('changePwModal').classList.add('show');
+ setTimeout(()=>document.getElementById('cpOldPw').focus(),200);
 }
 
-function closeChangePwModal() {
+function closeChangePwModal(){
  document.getElementById('changePwModal').classList.remove('show');
- if (localStorage.getItem('userType') === 'student') {
-  location.href = 'exam.html';
+ if(localStorage.getItem('userType')==='student'){
+  location.href='exam.html';
  }
 }
 
-async function submitChangePassword() {
- const oldPw = document.getElementById('cpOldPw').value;
- const newPw = document.getElementById('cpNewPw').value;
- const confirmPw = document.getElementById('cpConfirmPw').value;
- const errorEl = document.getElementById('changePwError');
+async function submitChangePassword(){
+ const oldPw=document.getElementById('cpOldPw').value;
+ const newPw=document.getElementById('cpNewPw').value;
+ const confirmPw=document.getElementById('cpConfirmPw').value;
+ const errEl=document.getElementById('changePwError');
+ const sucEl=document.getElementById('changePwSuccess');
+ const btn=document.getElementById('cpSubmitBtn');
 
- if (!oldPw || !newPw || !confirmPw) {
-  errorEl.textContent = 'Vui lòng nhập đầy đủ thông tin!';
-  errorEl.classList.add('show');
-  return;
+ errEl.classList.remove('show');
+ sucEl.classList.remove('show');
+
+ if(!oldPw||!newPw||!confirmPw){
+  errEl.textContent='⚠ Vui lòng nhập đầy đủ thông tin!';
+  errEl.classList.add('show');return;
  }
- if (newPw.length < 6) {
-  errorEl.textContent = 'Mật khẩu mới phải ít nhất 6 ký tự!';
-  errorEl.classList.add('show');
-  return;
+ if(newPw.length<6){
+  errEl.textContent='⚠ Mật khẩu mới phải ít nhất 6 ký tự!';
+  errEl.classList.add('show');return;
  }
- if (newPw !== confirmPw) {
-  errorEl.textContent = 'Xác nhận mật khẩu không khớp!';
-  errorEl.classList.add('show');
-  return;
+ if(newPw!==confirmPw){
+  errEl.textContent='⚠ Xác nhận mật khẩu không khớp!';
+  errEl.classList.add('show');return;
  }
- if (newPw === oldPw) {
-  errorEl.textContent = 'Mật khẩu mới phải khác mật khẩu cũ!';
-  errorEl.classList.add('show');
-  return;
+ if(newPw===oldPw){
+  errEl.textContent='⚠ Mật khẩu mới phải khác mật khẩu cũ!';
+  errEl.classList.add('show');return;
  }
 
- try {
-  const doc = await db.collection('students').doc(changePwStudentCode).get();
-  if (!doc.exists) {
-   errorEl.textContent = 'Không tìm thấy tài khoản!';
-   errorEl.classList.add('show');
+ btn.disabled=true;
+ btn.textContent='⏳ Đang xử lý...';
+
+ try{
+  const doc=await db.collection('students').doc(changePwStudentId).get();
+  if(!doc.exists){
+   errEl.textContent='❌ Không tìm thấy tài khoản!';
+   errEl.classList.add('show');
+   btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';
    return;
   }
-  const storedHash = doc.data().password || simpleHash(DEFAULT_PASSWORD);
-  if (simpleHash(oldPw) !== storedHash) {
-   errorEl.textContent = 'Mật khẩu hiện tại không đúng!';
-   errorEl.classList.add('show');
+
+  const storedHash=doc.data().password||simpleHash(_DP);
+  let oldOK=false;
+  if(simpleHash(oldPw)===storedHash) oldOK=true;
+  if(!oldOK&&oldPw===storedHash) oldOK=true;
+  if(!oldOK&&!doc.data().password&&oldPw===_DP) oldOK=true;
+
+  if(!oldOK){
+   errEl.textContent='Bạn đã nhập sai mật khẩu hiện tại.\nNếu cần hỗ trợ vui lòng liên hệ Admin.';
+   errEl.classList.add('show');
+   btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';
    return;
   }
-  await db.collection('students').doc(changePwStudentCode).update({
-   password: simpleHash(newPw),
-   passwordChanged: true,
-   passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+
+  await db.collection('students').doc(changePwStudentId).update({
+   password:simpleHash(newPw),
+   passwordChanged:true,
+   passwordUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
   });
-  errorEl.classList.remove('show');
-  alert('✅ Đổi mật khẩu thành công!\n\nHãy ghi nhớ mật khẩu mới của bạn.');
-  closeChangePwModal();
- } catch (e) {
-  errorEl.textContent = 'Lỗi: ' + e.message;
-  errorEl.classList.add('show');
+
+  sucEl.textContent='✅ Đổi mật khẩu thành công! Đang chuyển trang...';
+  sucEl.classList.add('show');
+  errEl.classList.remove('show');
+
+  setTimeout(()=>{closeChangePwModal();},1500);
+
+ }catch(e){
+  console.error('Change pw:',e);
+  if(e.code==='permission-denied'||e.message.includes('permissions')){
+   errEl.textContent='❌ Không có quyền đổi mật khẩu. Vui lòng liên hệ Admin.';
+  }else{
+   errEl.textContent='❌ Lỗi hệ thống. Vui lòng thử lại sau.';
+  }
+  errEl.classList.add('show');
+ }finally{
+  btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';
  }
 }
 
 // =====================================================================
 // TRY EXAM
 // =====================================================================
-function tryExam() {
- if (isSystemMaintenance) {
-  showMaintenancePage();
-  return;
- }
- localStorage.setItem('userType', 'guest');
- location.href = 'test.html';
+function tryExam(){
+ if(isSystemMaintenance){showMaintenancePage();return;}
+ localStorage.setItem('userType','guest');
+ location.href='test.html';
 }
 
 // =====================================================================
 // MODAL EVENTS
 // =====================================================================
-document.addEventListener('click', function (e) {
- if (e.target.classList.contains('modal-overlay')) closeChangePwModal();
+document.addEventListener('click',e=>{
+ if(e.target.id==='changePwModal') closeChangePwModal();
 });
-document.addEventListener('keydown', function (e) {
- if (e.key === 'Escape') {
-  const modal = document.getElementById('changePwModal');
-  if (modal.classList.contains('show')) closeChangePwModal();
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+  const m=document.getElementById('changePwModal');
+  if(m.classList.contains('show')) closeChangePwModal();
+ }
+ if(e.key==='Enter'){
+  const m=document.getElementById('changePwModal');
+  if(m.classList.contains('show')) submitChangePassword();
  }
 });
 </script>
