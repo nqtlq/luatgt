@@ -459,7 +459,6 @@ var(--transition); }
   .box > h3 { display: none !important; } 
   .maintenance-banner { display: none !important; } 
 } 
-  <style> 
 .admin-pw-modal-overlay {  position: fixed; 
  inset: 0;  background: rgba(0,0,0,.5);  display: none;  align-items: center;  justify-content: center;  z-index: 10000;  padding: 20px; 
 } 
@@ -656,59 +655,6 @@ gap: 12px;
 </style> 
  
 <!-- MODAL HTML --> 
-<div class="admin-pw-modal-overlay" id="adminPwModal"> 
- <div class="admin-pw-modal">   <h3>   Đổi mật khẩu Admin</h3> 
- 
-  <div class="admin-pw-error" id="adminPwError"></div> 
-  <div class="admin-pw-success" id="adminPwSuccess"></div> 
- 
-  <!-- Mật khẩu hiện tại --> 
-  <label class="pw-label">Mật khẩu hiện tại</label> 
-  <div class="pw-input-wrap"> 
-   <input type="password" id="adminOldPw" class="admin-pw-field" placeholder="Nhập mật khẩu hiện tại"> 
-  </div> 
- 
-  <!-- Mật khẩu mới --> 
-  <label class="pw-label">Mật khẩu mới</label> 
-  <div class="pw-input-wrap"> 
-   <input type="password" id="adminNewPw" class="admin-pw-field" placeholder="Nhập mật khẩu mới" oninput="checkAdminPwStrength()">   </div> 
- 
-  <!-- Thanh độ mạnh --> 
-  <div class="admin-pw-strength-wrap"> 
-   <div class="admin-pw-strength-bar"><div class="fill" id="adminPwFill"></div></div> 
-   <div class="admin-pw-strength-text" id="adminPwText"></div> 
-  </div> 
- 
-  <!-- Gợi ý --> 
-  <div class="admin-pw-tips">    <b>   Gợi ý tạo mật khẩu an toàn:</b> 
-   <ul> 
-    <li id="adTipLen" class="unmet"><span class="icon">○</span> Ít nhất 8 ký tự</li> 
-    <li id="adTipUp" class="unmet"><span class="icon">○</span> Có chữ in hoa (A-Z)</li> 
-    <li id="adTipLo" class="unmet"><span class="icon">○</span> Có chữ thường (a-z)</li> 
-    <li id="adTipNum" class="unmet"><span class="icon">○</span> Có chữ số (0-9)</li> 
-    <li id="adTipSp" class="unmet"><span class="icon">○</span> Có ký tự đặc biệt (!@#$...)</li>    </ul> 
-  </div> 
- 
-  <!-- Xác nhận --> 
-  <label class="pw-label">Xác nhận mật khẩu mới</label> 
-  <div class="pw-input-wrap"> 
-   <input type="password" id="adminConfirmPw" class="admin-pw-field" placeholder="Nhập lại mật khẩu mới" oninput="checkAdminPwMatch()"> 
-  </div> 
-  <div class="admin-pw-match" id="adminPwMatch"></div> 
- 
-  <!-- ★ CHECKBOX HIỆN MẬT KHẨU ★ --> 
-  <label class="admin-pw-show-row"> 
-   <input type="checkbox" id="adminShowPw" onchange="toggleAdminPwVisibility()"> 
-   Hiện mật khẩu 
-  </label> 
- 
-  <!-- Nút --> 
-  <div class="btn-row"> 
-   <button class="admin-pw-cancel" onclick="closeAdminPwModal()">Hủy</button> 
-   <button class="admin-pw-save" id="adminPwSubmitBtn" onclick="submitAdminPwChange()">   Đổi mật khẩu</button>   </div> 
- </div> 
-</div> 
- </style> 
 </head> 
 <body> 
  
@@ -763,6 +709,60 @@ gap: 12px;
  
 <!-- MAINTENANCE BANNER --> 
 <div class="maintenance-banner" id="maintenanceBanner">   ⚠ HỆ THỐNG ĐANG TRONG CHẾ ĐỘ BẢO TRÌ / NÂNG CẤP ⚠ 
+
+<div class="admin-pw-modal-overlay" id="adminPwModal"> 
+ <div class="admin-pw-modal">   <h3>   Đổi mật khẩu Admin</h3> 
+ 
+  <div class="admin-pw-error" id="adminPwError"></div> 
+  <div class="admin-pw-success" id="adminPwSuccess"></div> 
+ 
+  <!-- Mật khẩu hiện tại --> 
+  <label class="pw-label">Mật khẩu hiện tại</label> 
+  <div class="pw-input-wrap"> 
+   <input type="password" id="adminOldPw" class="admin-pw-field" placeholder="Nhập mật khẩu hiện tại"> 
+  </div> 
+ 
+  <!-- Mật khẩu mới --> 
+  <label class="pw-label">Mật khẩu mới</label> 
+  <div class="pw-input-wrap"> 
+   <input type="password" id="adminNewPw" class="admin-pw-field" placeholder="Nhập mật khẩu mới" oninput="checkAdminPwStrength()">   </div> 
+ 
+  <!-- Thanh độ mạnh --> 
+  <div class="admin-pw-strength-wrap"> 
+   <div class="admin-pw-strength-bar"><div class="fill" id="adminPwFill"></div></div> 
+   <div class="admin-pw-strength-text" id="adminPwText"></div> 
+  </div> 
+ 
+  <!-- Gợi ý --> 
+  <div class="admin-pw-tips">    <b>   Gợi ý tạo mật khẩu an toàn:</b> 
+   <ul> 
+    <li id="adTipLen" class="unmet"><span class="icon">○</span> Ít nhất 8 ký tự</li> 
+    <li id="adTipUp" class="unmet"><span class="icon">○</span> Có chữ in hoa (A-Z)</li> 
+    <li id="adTipLo" class="unmet"><span class="icon">○</span> Có chữ thường (a-z)</li> 
+    <li id="adTipNum" class="unmet"><span class="icon">○</span> Có chữ số (0-9)</li> 
+    <li id="adTipSp" class="unmet"><span class="icon">○</span> Có ký tự đặc biệt (!@#$...)</li>    </ul> 
+  </div> 
+ 
+  <!-- Xác nhận --> 
+  <label class="pw-label">Xác nhận mật khẩu mới</label> 
+  <div class="pw-input-wrap"> 
+   <input type="password" id="adminConfirmPw" class="admin-pw-field" placeholder="Nhập lại mật khẩu mới" oninput="checkAdminPwMatch()"> 
+  </div> 
+  <div class="admin-pw-match" id="adminPwMatch"></div> 
+ 
+  <!-- ★ CHECKBOX HIỆN MẬT KHẨU ★ --> 
+  <label class="admin-pw-show-row"> 
+   <input type="checkbox" id="adminShowPw" onchange="toggleAdminPwVisibility()"> 
+   Hiện mật khẩu 
+  </label> 
+ 
+  <!-- Nút --> 
+  <div class="btn-row"> 
+   <button class="admin-pw-cancel" onclick="closeAdminPwModal()">Hủy</button> 
+   <button class="admin-pw-save" id="adminPwSubmitBtn" onclick="submitAdminPwChange()">   Đổi mật khẩu</button>   </div> 
+ </div> 
+</div> 
+
 </div> 
  
  <div id="layout"> 
@@ -2338,8 +2338,9 @@ function printTable() { window.print(); }
 // ===================================================================== 
  
 // --- Đổi mật khẩu Admin --- 
-function openChangeAdminPasswordModal() { 
-  ['currentAdminPw','newAdminPw','confirmAdminPw'].forEach(id => document.getElementById(id).value = '');   document.getElementById('changeAdminPwModal').classList.add('show'); } 
+function openChangeAdminPasswordModal() {
+  openAdminPwModal();
+} 
  
 async function changeAdminPassword() { 
   const current = document.getElementById('currentAdminPw').value;   const newPw = document.getElementById('newAdminPw').value;   const confirm = document.getElementById('confirmAdminPw').value; 
@@ -3232,9 +3233,7 @@ window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.c
 // ===================================================================== 
 // NEW FUNCTIONS - ADDED FOR VERSION 19022 
 // ===================================================================== 
- 
-// ===================================================================== 
-// ADMIN CHANGE PASSWORD - CÓ CHECKBOX HIỆN MẬT KHẨU 
+ // ADMIN CHANGE PASSWORD - CÓ CHECKBOX HIỆN MẬT KHẨU 
 // ===================================================================== 
  
 // ★ Toggle hiện/ẩn mật khẩu function toggleAdminPwVisibility() {  const show = document.getElementById('adminShowPw').checked;  const type = show ? 'text' : 'password';  document.querySelectorAll('.admin-pw-field').forEach(input => { 
@@ -3932,59 +3931,6 @@ async function deleteNotification(notifId) {   const ok = await showConfirm('Xó
     // Xóa các studentNotifications liên quan (optional - có thể giữ lại) 
     const studentNotifs = await db.collection('studentNotifications').where('notificationId', '==', notifId).get();     if (!studentNotifs.empty) {       for (let i = 0; i < studentNotifs.docs.length; i += 500) {         const batch = db.batch();         studentNotifs.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));         await batch.commit(); 
       } 
-    } 
- 
-    closeModal('notifDetailModal');     await loadNotifHistory();     loadNotifStats();     showToast('Đã xóa thông báo!', 'success'); 
-  } catch (e) { 
-    showToast('Lỗi: ' + e.message, 'error'); 
-  } finally { 
-    hideLoading(); 
-  } 
-} 
- 
-// --- THỐNG KÊ THÔNG BÁO --- async function loadNotifStats() {   try { 
-    const snap = await db.collection('notifications').get();     const notifs = snap.docs.map(d => d.data()); 
- 
-    const total = notifs.length;     const today = new Date();     today.setHours(0, 0, 0, 0);     const todayCount = notifs.filter(n => {       const sentAt = n.sentAt?.toDate ? n.sentAt.toDate() : (n.sentAt ? new Date(n.sentAt) : null);       return sentAt && sentAt >= today; 
-    }).length; 
-    const totalRecipients = notifs.reduce((sum, n) => sum + (n.recipientCount || 0), 0); 
-const urgentCount = notifs.filter(n => n.priority === 'urgent').length; 
- 
-    document.getElementById('notifTotalSent').textContent = total;     document.getElementById('notifTodaySent').textContent = todayCount;     document.getElementById('notifTotalRecipients').textContent = totalRecipients;     document.getElementById('notifUrgentCount').textContent = urgentCount; 
-  } catch (e) { 
-    console.warn('Load notif stats:', e.message); 
-  } 
-} 
- 
-// --- XUẤT LỊCH SỬ THÔNG BÁO --- function exportNotifHistory() {   if (!allNotifications.length) {     showToast('Không có dữ liệu!', 'warning'); 
-    return; 
-  } 
- 
-  const data = [['STT', 'Tiêu đề', 'Nội dung', 'Mức độ', 'Gửi đến', 'Số người', 'Người gửi', 'Thời gian']];   allNotifications.forEach((n, i) => { 
-    const sentAt = n.sentAt?.toDate ? n.sentAt.toDate() : (n.sentAt ? new Date(n.sentAt) : new Date());     data.push([       i + 1, 
-      n.title || '', 
-      n.content || '', 
-      n.priority || 'normal', 
-      n.targetType || 'all', 
-      n.recipientCount || 0, 
-      n.sentBy || 'Admin', 
-      formatDateTime(sentAt) 
-    ]); 
-  }); 
- 
-  const ws = XLSX.utils.aoa_to_sheet(data); 
-  ws['!cols'] = [{wch:5},{wch:30},{wch:50},{wch:12},{wch:15},{wch:10},{wch:15},{wch:18}]; 
-  const wb = XLSX.utils.book_new(); 
-  XLSX.utils.book_append_sheet(wb, ws, 'LichSuThongBao'); 
-  XLSX.writeFile(wb, `ThongBao_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`);   showToast('Đã xuất lịch sử thông báo!', 'success'); 
-} 
- 
-// --- DEBOUNCE TÌM KIẾM --- function debounceNotifSearch() {   clearTimeout(notifSearchTimeout);   notifSearchTimeout = setTimeout(() => { 
-    notifCurrentPage = 1;     loadNotifHistory(); 
-  }, 300); } 
-</script> 
-</body> 
-</html> 
     } 
  
     closeModal('notifDetailModal');     await loadNotifHistory();     loadNotifStats();     showToast('Đã xóa thông báo!', 'success'); 
