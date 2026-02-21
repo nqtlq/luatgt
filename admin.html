@@ -665,6 +665,224 @@
   .box > h3 { display: none !important; }
   .maintenance-banner { display: none !important; }
 }
+  <style>
+.admin-pw-modal-overlay {
+ position: fixed;
+ inset: 0;
+ background: rgba(0,0,0,.5);
+ display: none;
+ align-items: center;
+ justify-content: center;
+ z-index: 10000;
+ padding: 20px;
+}
+.admin-pw-modal-overlay.show { display: flex; }
+.admin-pw-modal {
+ background: white;
+ padding: 28px;
+ border-radius: 16px;
+ width: 100%;
+ max-width: 440px;
+ box-shadow: 0 10px 40px rgba(0,0,0,.3);
+ animation: adminPwFadeIn 0.3s;
+ max-height: 90vh;
+ overflow-y: auto;
+}
+@keyframes adminPwFadeIn {
+ from { opacity: 0; transform: scale(0.95) translateY(10px); }
+ to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.admin-pw-modal h3 {
+ margin: 0 0 18px;
+ font-size: 18px;
+ color: #1d3557;
+ text-align: center;
+}
+.admin-pw-modal .pw-label {
+ display: block;
+ font-size: 13px;
+ font-weight: 600;
+ color: #555;
+ margin-bottom: 6px;
+}
+.admin-pw-modal .pw-input-wrap {
+ position: relative;
+ margin-bottom: 14px;
+}
+.admin-pw-modal .pw-input-wrap input {
+ width: 100%;
+ padding: 12px 14px;
+ border-radius: 9px;
+ border: 1px solid #ccc;
+ font-size: 14px;
+ transition: border-color 0.2s;
+}
+.admin-pw-modal .pw-input-wrap input:focus {
+ outline: none;
+ border-color: #0d6efd;
+ box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+}
+.admin-pw-show-row {
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ font-size: 13px;
+ color: #555;
+ margin: -6px 0 16px;
+ cursor: pointer;
+ user-select: none;
+}
+.admin-pw-show-row input[type="checkbox"] {
+ width: 16px;
+ height: 16px;
+ margin: 0;
+ cursor: pointer;
+}
+.admin-pw-strength-wrap { margin: -6px 0 14px; }
+.admin-pw-strength-bar {
+ height: 6px;
+ border-radius: 3px;
+ background: #e9ecef;
+ overflow: hidden;
+ margin-bottom: 6px;
+}
+.admin-pw-strength-bar .fill {
+ height: 100%;
+ border-radius: 3px;
+ width: 0;
+ transition: width 0.3s, background 0.3s;
+}
+.admin-pw-strength-text {
+ font-size: 12px;
+ font-weight: 600;
+ min-height: 16px;
+}
+.admin-pw-tips {
+ background: #f0f4ff;
+ border: 1px solid #cce0ff;
+ border-radius: 10px;
+ padding: 12px 14px;
+ margin-bottom: 14px;
+ font-size: 12.5px;
+ line-height: 1.6;
+ color: #333;
+}
+.admin-pw-tips b { color: #1d3557; display: block; margin-bottom: 4px; font-size: 13px; }
+.admin-pw-tips ul { margin: 0; padding-left: 18px; }
+.admin-pw-tips li { margin-bottom: 3px; }
+.admin-pw-tips li.met { color: #198754; }
+.admin-pw-tips li.unmet { color: #999; }
+.admin-pw-tips li .icon { margin-right: 4px; }
+.admin-pw-match {
+ font-size: 12px;
+ margin: -10px 0 12px;
+ min-height: 16px;
+}
+.admin-pw-modal .btn-row {
+ display: flex;
+ gap: 12px;
+ margin-top: 18px;
+}
+.admin-pw-modal .btn-row button {
+ flex: 1;
+ padding: 12px;
+ border: none;
+ border-radius: 9px;
+ font-size: 14px;
+ font-weight: 600;
+ cursor: pointer;
+ transition: opacity 0.2s;
+}
+.admin-pw-modal .btn-row button:hover { opacity: 0.88; }
+.admin-pw-modal .btn-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-pw-cancel { background: #6c757d; color: white; }
+.admin-pw-save { background: #198754; color: white; }
+.admin-pw-error {
+ background: #f8d7da;
+ color: #842029;
+ padding: 10px 14px;
+ border-radius: 8px;
+ font-size: 13px;
+ margin-bottom: 12px;
+ display: none;
+ text-align: center;
+ line-height: 1.4;
+ border: 1px solid #f5c2c7;
+}
+.admin-pw-error.show { display: block; }
+.admin-pw-success {
+ background: #d1e7dd;
+ color: #0f5132;
+ padding: 10px 14px;
+ border-radius: 8px;
+ font-size: 13px;
+ margin-bottom: 12px;
+ display: none;
+ text-align: center;
+ line-height: 1.4;
+ border: 1px solid #badbcc;
+}
+.admin-pw-success.show { display: block; }
+</style>
+
+<!-- MODAL HTML -->
+<div class="admin-pw-modal-overlay" id="adminPwModal">
+ <div class="admin-pw-modal">
+  <h3>🔑 Đổi mật khẩu Admin</h3>
+
+  <div class="admin-pw-error" id="adminPwError"></div>
+  <div class="admin-pw-success" id="adminPwSuccess"></div>
+
+  <!-- Mật khẩu hiện tại -->
+  <label class="pw-label">Mật khẩu hiện tại</label>
+  <div class="pw-input-wrap">
+   <input type="password" id="adminOldPw" class="admin-pw-field" placeholder="Nhập mật khẩu hiện tại">
+  </div>
+
+  <!-- Mật khẩu mới -->
+  <label class="pw-label">Mật khẩu mới</label>
+  <div class="pw-input-wrap">
+   <input type="password" id="adminNewPw" class="admin-pw-field" placeholder="Nhập mật khẩu mới" oninput="checkAdminPwStrength()">
+  </div>
+
+  <!-- Thanh độ mạnh -->
+  <div class="admin-pw-strength-wrap">
+   <div class="admin-pw-strength-bar"><div class="fill" id="adminPwFill"></div></div>
+   <div class="admin-pw-strength-text" id="adminPwText"></div>
+  </div>
+
+  <!-- Gợi ý -->
+  <div class="admin-pw-tips">
+   <b>💡 Gợi ý tạo mật khẩu an toàn:</b>
+   <ul>
+    <li id="adTipLen" class="unmet"><span class="icon">○</span> Ít nhất 8 ký tự</li>
+    <li id="adTipUp" class="unmet"><span class="icon">○</span> Có chữ in hoa (A-Z)</li>
+    <li id="adTipLo" class="unmet"><span class="icon">○</span> Có chữ thường (a-z)</li>
+    <li id="adTipNum" class="unmet"><span class="icon">○</span> Có chữ số (0-9)</li>
+    <li id="adTipSp" class="unmet"><span class="icon">○</span> Có ký tự đặc biệt (!@#$...)</li>
+   </ul>
+  </div>
+
+  <!-- Xác nhận -->
+  <label class="pw-label">Xác nhận mật khẩu mới</label>
+  <div class="pw-input-wrap">
+   <input type="password" id="adminConfirmPw" class="admin-pw-field" placeholder="Nhập lại mật khẩu mới" oninput="checkAdminPwMatch()">
+  </div>
+  <div class="admin-pw-match" id="adminPwMatch"></div>
+
+  <!-- ★ CHECKBOX HIỆN MẬT KHẨU ★ -->
+  <label class="admin-pw-show-row">
+   <input type="checkbox" id="adminShowPw" onchange="toggleAdminPwVisibility()">
+   Hiện mật khẩu
+  </label>
+
+  <!-- Nút -->
+  <div class="btn-row">
+   <button class="admin-pw-cancel" onclick="closeAdminPwModal()">Hủy</button>
+   <button class="admin-pw-save" id="adminPwSubmitBtn" onclick="submitAdminPwChange()">🔒 Đổi mật khẩu</button>
+  </div>
+ </div>
+</div>
  </style>
 </head>
 <body>
@@ -4160,7 +4378,209 @@ async function saveNewAdminPassword() {
     hideLoading();
   }
 }
+// =====================================================================
+// ADMIN CHANGE PASSWORD - CÓ CHECKBOX HIỆN MẬT KHẨU
+// =====================================================================
 
+// ★ Toggle hiện/ẩn mật khẩu
+function toggleAdminPwVisibility() {
+ const show = document.getElementById('adminShowPw').checked;
+ const type = show ? 'text' : 'password';
+ document.querySelectorAll('.admin-pw-field').forEach(input => {
+  input.type = type;
+ });
+}
+
+// Mở modal
+function openAdminPwModal() {
+ document.getElementById('adminOldPw').value = '';
+ document.getElementById('adminNewPw').value = '';
+ document.getElementById('adminConfirmPw').value = '';
+ document.getElementById('adminShowPw').checked = false;
+ toggleAdminPwVisibility(); // reset về ẩn
+ document.getElementById('adminPwError').classList.remove('show');
+ document.getElementById('adminPwSuccess').classList.remove('show');
+ document.getElementById('adminPwMatch').textContent = '';
+ document.getElementById('adminPwFill').style.width = '0';
+ document.getElementById('adminPwText').textContent = '';
+ ['adTipLen','adTipUp','adTipLo','adTipNum','adTipSp'].forEach(id => {
+  const el = document.getElementById(id);
+  el.className = 'unmet';
+  el.querySelector('.icon').textContent = '○';
+ });
+ document.getElementById('adminPwModal').classList.add('show');
+ setTimeout(() => document.getElementById('adminOldPw').focus(), 200);
+}
+
+// Đóng modal
+function closeAdminPwModal() {
+ document.getElementById('adminPwModal').classList.remove('show');
+}
+
+// Kiểm tra độ mạnh
+function checkAdminPwStrength() {
+ const pw = document.getElementById('adminNewPw').value;
+ const fill = document.getElementById('adminPwFill');
+ const txt = document.getElementById('adminPwText');
+
+ const hl = pw.length >= 8;
+ const hu = /[A-Z]/.test(pw);
+ const hlo = /[a-z]/.test(pw);
+ const hn = /[0-9]/.test(pw);
+ const hs = /[^A-Za-z0-9]/.test(pw);
+
+ setAdminTip('adTipLen', hl);
+ setAdminTip('adTipUp', hu);
+ setAdminTip('adTipLo', hlo);
+ setAdminTip('adTipNum', hn);
+ setAdminTip('adTipSp', hs);
+
+ let sc = 0;
+ if (pw.length >= 6) sc++;
+ if (hl) sc++;
+ if (hu) sc++;
+ if (hlo) sc++;
+ if (hn) sc++;
+ if (hs) sc++;
+ if (pw.length >= 12) sc++;
+
+ if (!pw) { fill.style.width = '0'; txt.textContent = ''; return; }
+
+ if (sc <= 2) {
+  fill.style.width = '25%'; fill.style.background = '#dc3545';
+  txt.textContent = '🔴 Yếu — Dễ bị đoán'; txt.style.color = '#dc3545';
+ } else if (sc <= 4) {
+  fill.style.width = '50%'; fill.style.background = '#fd7e14';
+  txt.textContent = '🟠 Trung bình — Nên thêm ký tự đặc biệt'; txt.style.color = '#fd7e14';
+ } else if (sc <= 5) {
+  fill.style.width = '75%'; fill.style.background = '#0d6efd';
+  txt.textContent = '🔵 Khá — Khá an toàn'; txt.style.color = '#0d6efd';
+ } else {
+  fill.style.width = '100%'; fill.style.background = '#198754';
+  txt.textContent = '🟢 Mạnh — Rất an toàn!'; txt.style.color = '#198754';
+ }
+
+ checkAdminPwMatch();
+}
+
+function setAdminTip(id, met) {
+ const el = document.getElementById(id);
+ el.className = met ? 'met' : 'unmet';
+ el.querySelector('.icon').textContent = met ? '✔' : '○';
+}
+
+// Kiểm tra khớp
+function checkAdminPwMatch() {
+ const pw = document.getElementById('adminNewPw').value;
+ const cf = document.getElementById('adminConfirmPw').value;
+ const msg = document.getElementById('adminPwMatch');
+ if (!cf) { msg.textContent = ''; return; }
+ if (pw === cf) {
+  msg.textContent = '✔ Mật khẩu xác nhận khớp';
+  msg.style.color = '#198754';
+ } else {
+  msg.textContent = '✘ Mật khẩu xác nhận chưa khớp';
+  msg.style.color = '#dc3545';
+ }
+}
+
+// Submit đổi mật khẩu
+async function submitAdminPwChange() {
+ const oldPw = document.getElementById('adminOldPw').value;
+ const newPw = document.getElementById('adminNewPw').value;
+ const confirmPw = document.getElementById('adminConfirmPw').value;
+ const errEl = document.getElementById('adminPwError');
+ const sucEl = document.getElementById('adminPwSuccess');
+ const btn = document.getElementById('adminPwSubmitBtn');
+
+ errEl.classList.remove('show');
+ sucEl.classList.remove('show');
+
+ // Validate
+ if (!oldPw || !newPw || !confirmPw) {
+  errEl.textContent = '⚠ Vui lòng nhập đầy đủ thông tin!';
+  errEl.classList.add('show'); return;
+ }
+ if (newPw.length < 6) {
+  errEl.textContent = '⚠ Mật khẩu mới phải ít nhất 6 ký tự!';
+  errEl.classList.add('show'); return;
+ }
+ if (newPw !== confirmPw) {
+  errEl.textContent = '⚠ Xác nhận mật khẩu không khớp!';
+  errEl.classList.add('show'); return;
+ }
+ if (newPw === oldPw) {
+  errEl.textContent = '⚠ Mật khẩu mới phải khác mật khẩu cũ!';
+  errEl.classList.add('show'); return;
+ }
+
+ btn.disabled = true;
+ btn.textContent = '⏳ Đang xử lý...';
+
+ try {
+  // Kiểm tra mật khẩu cũ
+  let oldMatch = false;
+
+  // Check với mật khẩu mặc định
+  if (oldPw === 'admin123') oldMatch = true;
+
+  // Check với Firestore
+  if (!oldMatch) {
+   try {
+    const adminDoc = await db.collection('systemConfig').doc('admin').get();
+    if (adminDoc.exists) {
+     const data = adminDoc.data();
+     if (data.passwordHash && simpleHash(oldPw) === data.passwordHash) oldMatch = true;
+     if (!oldMatch && data.password && oldPw === data.password) oldMatch = true;
+    }
+   } catch(e) {
+    console.warn('Firestore check:', e.message);
+    // Nếu không đọc được Firestore, chỉ chấp nhận mật khẩu mặc định
+   }
+  }
+
+  if (!oldMatch) {
+   errEl.textContent = 'Bạn đã nhập sai mật khẩu hiện tại.\nNếu cần hỗ trợ vui lòng liên hệ Admin.';
+   errEl.classList.add('show');
+   btn.disabled = false; btn.textContent = '🔒 Đổi mật khẩu';
+   return;
+  }
+
+  // Lưu mật khẩu mới vào Firestore
+  await db.collection('systemConfig').doc('admin').set({
+   passwordHash: simpleHash(newPw),
+   passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  sucEl.textContent = '✅ Đổi mật khẩu Admin thành công!';
+  sucEl.classList.add('show');
+  errEl.classList.remove('show');
+
+  setTimeout(() => {
+   closeAdminPwModal();
+   if (typeof showToast === 'function') showToast('✅ Mật khẩu Admin đã được cập nhật');
+  }, 1500);
+
+ } catch(e) {
+  console.error('Admin pw change:', e);
+  errEl.textContent = '❌ Lỗi: ' + e.message;
+  errEl.classList.add('show');
+ } finally {
+  btn.disabled = false;
+  btn.textContent = '🔒 Đổi mật khẩu';
+ }
+}
+
+// Modal events
+document.getElementById('adminPwModal').addEventListener('click', function(e) {
+ if (e.target === this) closeAdminPwModal();
+});
+document.addEventListener('keydown', function(e) {
+ const modal = document.getElementById('adminPwModal');
+ if (!modal.classList.contains('show')) return;
+ if (e.key === 'Escape') closeAdminPwModal();
+ if (e.key === 'Enter') submitAdminPwChange();
+});
 </script>
 </body>
 </html>
