@@ -231,6 +231,9 @@ none; align-items: center; justify-content: center; border: 2px solid rgba(0,0,0
    position: sticky; 
    top: var(--header-height); 
    height: calc(100vh - var(--header-height)); 
+   width: var(--sidebar-width);
+   background: var(--bg-card);
+   z-index: 50;  
    box-shadow: 2px 0 12px rgba(0,0,0,0.04); 
  } 
  aside.collapsed { width: 72px; } 
@@ -1687,7 +1690,7 @@ let allViewQuestions = [];
 let currentViewGroupFilter = -1; 
 let pendingAdminPwChange = null; 
 let generatedVerifyCode = ''; 
- 
+let maintenanceMode = false; 
 // ===================================================================== 
 // INIT 
 // ===================================================================== 
@@ -1708,10 +1711,11 @@ window.onload = async function () {
   } 
  
   // Nếu bảo trì và KHÔNG phải admin → hiện trang bảo trì 
-  if (isMaintenanceOn && localStorage.getItem('userType') !== 'admin') { 
-    document.getElementById('maintenancePage').style.display = 'flex'; 
-    return; 
-  } 
+  maintenanceMode = isMaintenanceOn || false;
+if (maintenanceMode && localStorage.getItem('userType') !== 'admin') {
+    document.getElementById('maintenancePage').style.display = 'flex';
+    return;
+}
  
   initializeSystem(); 
   updateClock(); 
@@ -1739,36 +1743,47 @@ function updateClock() {
 8px;">|</span><span style="font-size:13px;">        ${dateStr}</span>`; 
 } 
  
-async function initializeSystem() { 
-  showLoading('Đang kết nối Firebase...'); 
-  try { 
-    await db.collection('students').limit(1).get(); 
-    await loadStudentsFromDB(); 
-    await loadQuestionSetsFromDB(); 
-    await loadTodayExamsFromDB(); 
-    await loadActivitiesFromDB(); 
-    startPresenceListener(); 
-    loadDashboard(); 
-    loadStudents(); 
-    loadCourseFilter(); 
-    loadQuestionSets(); 
-    loadStats(); 
-    renderDashboardCharts(); 
-    renderStatsCharts(); 
-    await loadMaintenanceState(); 
-    showToast('Kết nối thành công!', 'success', 2000); 
-    setInterval(async () => { 
-      await loadActivitiesFromDB(); 
-      await loadTodayExamsFromDB(); 
-      loadDashboard(); 
-    }, 30000); 
-  } catch (e) { 
-    console.error(e); 
-    showToast('Lỗi: ' + e.message, 'error', 8000); 
-  } finally { 
-    hideLoading(); 
-  } 
-} 
+async function initializeSystem() {
+    showLoading('Đang kết nối Firebase...');
+    try {
+        // Thêm timeout cho kết nối Firebase
+        const connectionTimeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Kết nối Firebase quá thời gian (15 giây)')), 15000)
+        );
+
+        const connectionTest = db.collection('students').limit(1).get();
+
+        // Race: ai xong trước thì lấy
+        await Promise.race([connectionTest, connectionTimeout]);
+        console.log('✅ Kết nối Firebase thành công');
+
+        showLoading('Đang tải dữ liệu...');
+        await loadAllData();
+        console.log('✅ Tải dữ liệu thành công');
+
+        showLoading('Đang thiết lập giao diện...');
+        if (typeof setupUI === 'function') {
+            setupUI();
+        }
+
+        showPage('dashboard', document.querySelector('.menu button'));
+        showToast('Hệ thống đã sẵn sàng!', 'success');
+    } catch (e) {
+        console.error('❌ Lỗi khởi tạo:', e);
+        showToast('Lỗi: ' + e.message, 'error', 8000);
+
+        // Vẫn cho phép sử dụng giao diện dù có lỗi
+        try {
+            showPage('dashboard', document.querySelector('.menu button'));
+        } catch (e2) {
+            console.error('Không thể hiện trang dashboard:', e2);
+        }
+    } finally {
+        // ĐẢM BẢO luôn tắt loading
+        hideLoading();
+        console.log('✅ Loading đã tắt');
+    }
+}
  
  // ===================================================================== 
 // UTILITIES 
@@ -1790,11 +1805,32 @@ function showToast(m, t = 'info', d = 4000) {
   }, d); 
 } 
  
-function showLoading(t = 'Đang tải...') { 
-  document.getElementById('loadingText').textContent = t; 
-  document.getElementById('loadingOverlay').classList.add('show'); 
-} 
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); } 
+// MỚI - thêm auto-hide timeout
+let loadingTimeout = null;  // Thêm biến này vào phần GLOBALS
+
+function showLoading(t = 'Đang tải...') {
+    // Xóa timeout cũ nếu có
+    if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+    }
+
+    document.getElementById('loadingText').textContent = t;
+    document.getElementById('loadingOverlay').classList.add('show');
+
+    // Tự động tắt loading sau 30 giây để tránh treo giao diện
+    loadingTimeout = setTimeout(() => {
+        hideLoading();
+        console.warn('Loading tự động tắt sau 30 giây');
+    }, 30000);
+}
+function hideLoading() {
+    if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+    }
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
  
 function showConfirm(t, m, i = '   ') { 
   return new Promise(r => { 
@@ -3640,19 +3676,57 @@ ${rc}">${rt}</span></td></tr>`;
  // ===================================================================== 
 // NAVIGATION 
 // ===================================================================== 
-function showPage(id, btn) { 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
-  document.getElementById(id).classList.add('active'); 
-  if (btn) { document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); } 
-  document.getElementById('sidebar').classList.remove('mobile-open'); 
-  switch (id) { 
-    case 'dashboard': loadDashboard(); break; 
-    case 'students': loadStudents(); break; 
-    case 'question_sets': loadQuestionSets(); break; 
-    case 'stats': loadStats(); break; 
-    case 'system': loadMaintenanceState(); break; 
-  } 
-} 
+function showPage(id, btn) {
+    try {
+        // Ẩn tất cả các trang
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        
+        // Hiện trang được chọn
+        const targetPage = document.getElementById(id);
+        if (!targetPage) {
+            console.error('Không tìm thấy trang:', id);
+            showToast('Không tìm thấy trang: ' + id, 'error');
+            return;
+        }
+        targetPage.classList.add('active');
+        
+        // Đánh dấu nút menu đang active
+        if (btn) {
+            document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
+        // Tải dữ liệu cho trang tương ứng
+        switch (id) {
+            case 'dashboard':
+                try { loadDashboard(); } catch(e) { console.error(e); }
+                break;
+            case 'students':
+                loadStudents().catch(e => console.error('Lỗi loadStudents:', e));
+                break;
+            case 'classes':
+                loadClasses().catch(e => console.error('Lỗi loadClasses:', e));
+                break;
+            case 'teachers':
+                loadTeachers().catch(e => console.error('Lỗi loadTeachers:', e));
+                break;
+            case 'fees':
+                loadFees().catch(e => console.error('Lỗi loadFees:', e));
+                break;
+            case 'reports':
+                loadReports().catch(e => console.error('Lỗi loadReports:', e));
+                break;
+            case 'settings':
+                loadSettings().catch(e => console.error('Lỗi loadSettings:', e));
+                break;
+            default:
+                console.warn('Trang không xác định:', id);
+        }
+    } catch (e) {
+        console.error('Lỗi showPage:', e);
+        showToast('Có lỗi xảy ra khi chuyển trang', 'error');
+    }
+}
  
 function logout(){ 
   showConfirm('Đăng xuất','Bạn muốn đăng xuất?','         ').then(ok=>{ 
@@ -3660,16 +3734,6 @@ function logout(){
   }); 
 } 
  
-// ===================================================================== 
-// EVENTS 
-// ===================================================================== 
-window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.classList.remove('show'); }; 
-document.addEventListener('keydown',function(e){ 
-  if(e.key==='Escape'){ 
-    document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show')); 
-    if(document.getElementById('confirmDialog').classList.contains('show'))closeConfirmDialog(false); 
-  } 
-}); 
  // ===================================================================== 
 // VIEW / EDIT / DELETE QUESTIONS 
 // ===================================================================== 
@@ -3948,14 +4012,6 @@ async function confirmDeleteQuestion(docId, num) {
   } 
 } 
  
-window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.classList.remove('show'); }; 
- document.addEventListener('keydown',function(e){ 
-   if(e.key==='Escape'){ 
-     document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show')); 
-     if(document.getElementById('confirmDialog').classList.contains('show'))closeConfirmDialog(false); 
-   } 
- }); 
-  
 // ===================================================================== 
 // NEW FUNCTIONS - ADDED FOR VERSION 19022 
 // ===================================================================== 
@@ -4192,36 +4248,43 @@ async function restoreFromBackup() {
 } 
  
 // Toggle maintenance mode 
-async function toggleMaintenanceMode() { 
-  const currentMode = maintenanceMode; 
-  const newMode = !currentMode; 
-   
-  const ok = await showConfirm( 
-    newMode ? 'Bật chế độ bảo trì' : 'Tắt chế độ bảo trì', 
-    newMode ? 'Bật chế độ bảo trì? Người dùng sẽ không thể đăng nhập.' : 'Tắt chế độ bảo trì?', 
-    '   ' 
-  ); 
-  if (!ok) return; 
-   
-  showLoading('Đang cập nhật...'); 
-  try { 
-    await db.collection('system').doc('config').set({ 
-      maintenance: newMode, 
-      maintenanceMessage: 'Hệ thống đang bảo trì, nâng cấp. Vui lòng quay lại sau.', 
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp() 
-    }, {merge: true}); 
-     
-    maintenanceMode = newMode; 
-    const btn = document.getElementById('maintenanceToggle'); 
-    btn.textContent = newMode ? '    TẮT bảo trì' : '    BẬT bảo trì'; 
-    btn.className = newMode ? 'btn btn-danger btn-sm' : 'btn btn-warning btn-sm'; 
-    showToast(newMode ? 'Đã bật chế độ bảo trì' : 'Đã tắt chế độ bảo trì', 'success'); 
-  } catch(e) { 
-    showToast('Lỗi: ' + e.message, 'error'); 
-  } finally { 
-    hideLoading(); 
-  } 
-} 
+async function toggleMaintenanceMode() {
+    try {
+        // Lấy trạng thái hiện tại từ Firebase
+        const settingsDoc = await db.collection('settings').doc('maintenance').get();
+        const currentMode = settingsDoc.exists ? settingsDoc.data().enabled : false;
+
+        const newMode = !currentMode;
+        const confirmed = await showConfirm(
+            newMode ? 'Bật chế độ bảo trì?' : 'Tắt chế độ bảo trì?',
+            newMode
+                ? 'Người dùng sẽ không thể truy cập hệ thống khi bảo trì.'
+                : 'Người dùng sẽ có thể truy cập hệ thống bình thường.'
+        );
+
+        if (!confirmed) return;
+
+        showLoading(newMode ? 'Đang bật bảo trì...' : 'Đang tắt bảo trì...');
+
+        await db.collection('settings').doc('maintenance').set({
+            enabled: newMode,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Cập nhật biến toàn cục
+        maintenanceMode = newMode;
+
+        hideLoading();
+        showToast(
+            newMode ? 'Đã bật chế độ bảo trì' : 'Đã tắt chế độ bảo trì',
+            'success'
+        );
+    } catch (e) {
+        hideLoading();
+        console.error('Lỗi toggleMaintenanceMode:', e);
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
  
 // Change admin password 
 function changeAdminPassword() { 
@@ -4280,7 +4343,36 @@ async function saveNewAdminPassword() {
     hideLoading(); 
   } 
 } 
- 
+// ===== XỬ LÝ CLICK TOÀN CỤC (CHỈ 1 LẦN DUY NHẤT) =====
+window.addEventListener('click', function(e) {
+    // Đóng modal khi click bên ngoài
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+    }
+});
+// ===== PHÍM TẮT KHẨN CẤP (nhấn Ctrl+Shift+X để tắt tất cả overlay) =====
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+        e.preventDefault();
+        console.warn('⚠️ KHẨN CẤP: Tắt tất cả overlay');
+
+        // Tắt loading
+        hideLoading();
+
+        // Tắt tất cả modal
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+
+        // Tắt confirm dialog
+        const confirmDialog = document.querySelector('.confirm-dialog');
+        if (confirmDialog) confirmDialog.classList.remove('show');
+
+        // Tắt maintenance page
+        const maintenancePage = document.getElementById('maintenancePage');
+        if (maintenancePage) maintenancePage.style.display = 'none';
+
+        showToast('Đã tắt tất cả overlay', 'info');
+    }
+});
 </script> 
 </body> 
 </html> 
