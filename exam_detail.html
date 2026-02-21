@@ -3,185 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
-
-<!-- ===== CHART ===== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
 <script>
-/* ===== BẮT BUỘC VỚI CHART.JS 4 ===== */
 Chart.register(ChartDataLabels);
 </script>
-
 <style>
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:linear-gradient(135deg,#eef3ff,#f9fbff);
-}
-header{
- background:linear-gradient(90deg,#1d3557,#264a8a);
- color:white;
- padding:18px 30px;
- display:flex;
- justify-content:space-between;
- align-items:center;
-}
-#container{
- max-width:1100px;
- margin:30px auto;
- padding:0 20px;
-}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#eef3ff,#f9fbff);}
+header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;}
+#container{max-width:1100px;margin:30px auto;padding:0 20px;}
 h2{color:#1d3557;margin-bottom:25px;}
-.grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:30px;
-}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;}
 @media(max-width:768px){.grid{grid-template-columns:1fr;}}
-.box{
- background:white;
- padding:25px;
- border-radius:18px;
- box-shadow:0 8px 25px rgba(0,0,0,.12);
-}
+.box{background:white;padding:25px;border-radius:18px;box-shadow:0 8px 25px rgba(0,0,0,.12);}
 .box h3{text-align:center;color:#1d3557;}
 canvas{height:320px !important;}
 #empty{text-align:center;color:#777;font-style:italic;}
-button{
- background:#457b9d;color:white;
- border:none;border-radius:10px;
- padding:10px 18px;cursor:pointer;
-}
+button{background:#457b9d;color:white;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;}
 </style>
 </head>
-
 <body>
-
 <header>
- <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ</b>
- <button onclick="back()">⬅ Quay lại</button>
+<b>📊 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ</b>
+<button onclick="back()">⬅ Quay lại</button>
 </header>
-
 <div id="container">
- <h2 id="studentTitle"></h2>
-
- <div id="empty" style="display:none;">📭 Chưa có dữ liệu thống kê</div>
-
- <div class="grid" id="grid">
-  <div class="box">
-   <h3>📊 Số lượt kiểm tra (%)</h3>
-   <canvas id="barChart"></canvas>
-  </div>
-  <div class="box">
-   <h3>🥧 Tỷ lệ đạt / không đạt</h3>
-   <canvas id="pieChart"></canvas>
-  </div>
+<h2 id="studentTitle"></h2>
+<div id="empty" style="display:none;">📋 Chưa có dữ liệu thống kê</div>
+<div class="grid" id="grid">
+ <div class="box">
+ <h3>📊 Số lượt kiểm tra (%)</h3>
+ <canvas id="barChart"></canvas>
  </div>
+ <div class="box">
+ <h3>🎯 Tỷ lệ đạt / không đạt</h3>
+ <canvas id="pieChart"></canvas>
+ </div>
+</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
-/* ===== FIREBASE ===== */
+// FIREBASE - ĐỒNG BỘ VỚI ADMIN
 firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
+ apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain: "thi-luat-giao-thong.firebaseapp.com",
+ projectId: "thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-/* ===== LOGIN ===== */
-if(localStorage.getItem("userType")!=="student"){
- location.href="index.html";
+// LOGIN CHECK
+if (localStorage.getItem("userType") !== "student") {
+ location.href = "index.html";
 }
 
-const code=localStorage.getItem("studentCode");
-const name=localStorage.getItem("studentName")||"";
-studentTitle.innerText=`Học viên: ${name} (${code})`;
+const code = localStorage.getItem("studentCode") || "";
+const name = localStorage.getItem("studentName") || "";
+document.getElementById('studentTitle').innerText = `Học viên: ${name} (${code})`;
 
-function back(){location.href="exam.html";}
+function back() { location.href = "exam.html"; }
 
-/* ===== LOAD DATA ===== */
-db.collection("exam_logs").where("code","==",code).get().then(snap=>{
- let total=0,pass=0,fail=0;
- snap.forEach(d=>{
-  total++;
-  d.data().pass?pass++:fail++;
+// LOAD DATA - ĐỒNG BỘ: dùng examResults thay vì exam_logs
+db.collection("examResults")
+ .where("studentCode", "==", code)
+ .get()
+ .then(snap => {
+  let total = 0, pass = 0, fail = 0;
+  snap.forEach(d => {
+   total++;
+   const data = d.data();
+   const score = data.score || 0;
+   const totalQ = data.totalQuestions || 30;
+   const passQ = data.passQuestions || Math.ceil(totalQ * 0.8);
+   if (score >= passQ) pass++;
+   else fail++;
+  });
+  if (!total) {
+   document.getElementById('grid').style.display = "none";
+   document.getElementById('empty').style.display = "block";
+   return;
+  }
+  drawCharts(total, pass, fail);
+ })
+ .catch(e => {
+  console.error('Lỗi tải dữ liệu:', e);
+  document.getElementById('grid').style.display = "none";
+  document.getElementById('empty').style.display = "block";
+  document.getElementById('empty').textContent = "❌ Lỗi tải dữ liệu: " + e.message;
  });
- if(!total){
-  grid.style.display="none";
-  empty.style.display="block";
-  return;
- }
- drawCharts(total,pass,fail);
-});
 
-/* ===== DRAW ===== */
-function drawCharts(total,pass,fail){
-
- /* BAR */
- new Chart(barChart,{
-  type:"bar",
-  data:{
-   labels:["Đạt","Không đạt"],
-   datasets:[{
-    data:[pass,fail],
-    backgroundColor:["#2a9d8f","#e63946"],
-    borderRadius:12
+// DRAW CHARTS
+function drawCharts(total, pass, fail) {
+ // BAR
+ new Chart(document.getElementById('barChart'), {
+  type: "bar",
+  data: {
+   labels: ["Đạt", "Không đạt"],
+   datasets: [{
+    data: [pass, fail],
+    backgroundColor: ["#2a9d8f", "#e63946"],
+    borderRadius: 12
    }]
   },
-  options:{
-   plugins:{
-    legend:{display:false},
-    datalabels:{
-     color:"#fff",
-     font:{size:16,weight:"bold"},
-     anchor:"center",
-     align:"center",
-     formatter:v=>`${v} (${Math.round(v/total*100)}%)`
+  options: {
+   plugins: {
+    legend: { display: false },
+    datalabels: {
+     color: "#fff",
+     font: { size: 16, weight: "bold" },
+     anchor: "center",
+     align: "center",
+     formatter: v => `${v} (${Math.round(v / total * 100)}%)`
     },
-    tooltip:{
-     callbacks:{
-      label:c=>`${c.raw} (${Math.round(c.raw/total*100)}%)`
+    tooltip: {
+     callbacks: {
+      label: c => `${c.raw} (${Math.round(c.raw / total * 100)}%)`
      }
     }
    },
-   scales:{y:{beginAtZero:true}}
+   scales: { y: { beginAtZero: true } }
   }
  });
 
- /* PIE */
- new Chart(pieChart,{
-  type:"pie",
-  data:{
-   labels:[
-    `Đạt (${Math.round(pass/total*100)}%)`,
-    `Không đạt (${Math.round(fail/total*100)}%)`
+ // PIE
+ new Chart(document.getElementById('pieChart'), {
+  type: "pie",
+  data: {
+   labels: [
+    `Đạt (${Math.round(pass / total * 100)}%)`,
+    `Không đạt (${Math.round(fail / total * 100)}%)`
    ],
-   datasets:[{
-    data:[pass,fail],
-    backgroundColor:["#2a9d8f","#e63946"]
+   datasets: [{
+    data: [pass, fail],
+    backgroundColor: ["#2a9d8f", "#e63946"]
    }]
   },
-  options:{
-   plugins:{
-    legend:{
-     position:"bottom",
-     labels:{font:{size:14,weight:"bold"}}
+  options: {
+   plugins: {
+    legend: {
+     position: "bottom",
+     labels: { font: { size: 14, weight: "bold" } }
     },
-    datalabels:{
-     color:"#fff",
-     font:{size:18,weight:"bold"},
-     formatter:v=>`${Math.round(v/total*100)}%`
+    datalabels: {
+     color: "#fff",
+     font: { size: 18, weight: "bold" },
+     formatter: v => `${Math.round(v / total * 100)}%`
     }
    }
   }
  });
-
 }
 </script>
-
 </body>
 </html>
