@@ -4,11 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-/* ===== GIỮ NGUYÊN CSS GỐC ===== */
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
 header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.25);}
 header b{font-size:18px}
@@ -35,167 +32,320 @@ th{background:#f1f4fb;color:#1d3557;}
 #detailBtn{background:#457b9d}
 #startBtn{background:#2a9d8f}
 #empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
+/* Maintenance */
+.maintenance-page{position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36 0%,#1e3a5f 50%,#0d6efd 100%);display:none;align-items:center;justify-content:center;z-index:99999;color:white;text-align:center;flex-direction:column;gap:18px;padding:20px;}
+.maintenance-page.show{display:flex;}
+.maintenance-page .maint-icon{font-size:64px;animation:maintPulse 2s infinite;}
+.maintenance-page h1{font-size:24px;font-weight:800;margin:0;}
+.maintenance-page p{font-size:15px;opacity:0.85;max-width:500px;line-height:1.8;}
+@keyframes maintPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
 </style>
 </head>
-
 <body>
 
-<header>
- <b>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</b>
- <button id="logoutBtn">Đăng xuất</button>
-</header>
-
-<div id="container">
- <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
-
- <div class="grid">
-  <div class="box info">
-   <h3>📘 Thông tin học viên</h3>
-   <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
-   <p><b>Họ và tên:</b> <span id="infoName"></span></p>
-   <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
-   <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
-  </div>
-
-  <div class="box">
-   <h3>📊 Thống kê kết quả</h3>
-
-   <div class="statRow">
-    <div class="statBox bg1">Tổng lượt thi<b id="totalExam">0</b></div>
-    <div class="statBox bg2">Đạt<b id="passExam">0</b></div>
-    <div class="statBox bg3">Không đạt<b id="failExam">0</b></div>
-   </div>
-
-   <div class="chartBox">
-    <canvas id="chart"></canvas>
-   </div>
-
-   <div id="empty"></div>
-
-   <table id="resultTable" style="display:none;">
-    <thead>
-     <tr><th>#</th><th>Thời gian</th><th>Kết quả</th></tr>
-    </thead>
-    <tbody id="logTable"></tbody>
-   </table>
-
-   <div class="actions">
-    <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
-    <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
-   </div>
-  </div>
- </div>
+<!-- TRANG BẢO TRÌ -->
+<div class="maintenance-page" id="maintenancePage">
+<div class="maint-icon">🔧</div>
+<h1>Hệ thống đang bảo trì</h1>
+<p>Chúng tôi đang tiến hành nâng cấp hệ thống. Vui lòng quay lại sau.</p>
+<button onclick="location.href='index.html'" style="padding:12px 32px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:12px;color:white;font-size:15px;cursor:pointer;">← Quay lại</button>
 </div>
 
-<!-- FIREBASE -->
+<header>
+<b>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</b>
+<button id="logoutBtn">Đăng xuất</button>
+</header>
+<div id="container">
+<div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
+<div class="grid">
+ <div class="box info">
+ <h3>📋 Thông tin học viên</h3>
+ <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
+ <p><b>Họ và tên:</b> <span id="infoName"></span></p>
+ <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
+ <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
+ </div>
+ <div class="box">
+ <h3>📊 Thống kê kết quả</h3>
+ <div class="statRow">
+ <div class="statBox bg1">Tổng lượt thi<b id="totalExam">0</b></div>
+ <div class="statBox bg2">Đạt<b id="passExam">0</b></div>
+ <div class="statBox bg3">Không đạt<b id="failExam">0</b></div>
+ </div>
+ <div class="chartBox">
+ <canvas id="chart"></canvas>
+ </div>
+ <div id="empty"></div>
+ <table id="resultTable" style="display:none;">
+ <thead>
+ <tr><th>#</th><th>Thời gian</th><th>Đề thi</th><th>Điểm</th><th>Kết quả</th></tr>
+ </thead>
+ <tbody id="logTable"></tbody>
+ </table>
+ <div class="actions">
+ <button id="detailBtn" class="actionBtn">📊 Thống kê chi tiết</button>
+ <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
+ </div>
+ </div>
+</div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
+// =====================================================================
+// FIREBASE - ĐỒNG BỘ VỚI ADMIN
+// =====================================================================
 firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
+ apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain: "thi-luat-giao-thong.firebaseapp.com",
+ projectId: "thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-/* LOGIN CHECK */
-if(localStorage.getItem("userType")!=="student"){
- location.href="index.html";
+// =====================================================================
+// LOGIN CHECK
+// =====================================================================
+if (localStorage.getItem("userType") !== "student") {
+ location.href = "index.html";
 }
 
-/* STUDENT CODE */
-const code=(localStorage.getItem("studentCode")||"").replace(/\D/g,"").padStart(3,"0");
-
-/* LOAD STUDENT */
-db.collection("students").where("code","==",code).limit(1).get().then(snap=>{
- if(snap.empty){alert("Không tìm thấy học viên");location.href="index.html";return;}
- const s=snap.docs[0].data();
- studentName.textContent=s.name;
- infoCode.textContent="HV"+s.code;
- infoName.textContent=s.name;
- infoUnit.textContent=s.unit||"";
- infoStatus.textContent=s.status||"Hoạt động";
- loadExamLogs(code);
-});
-
-/* COUNTER (BỔ SUNG – KHÔNG ẢNH HƯỞNG LOGIC) */
-function animate(el,val){
- let n=0,step=Math.max(1,Math.ceil(val/40));
- const t=setInterval(()=>{
-  n+=step;
-  if(n>=val){el.textContent=val;clearInterval(t);}
-  else el.textContent=n;
- },20);
+// =====================================================================
+// MAINTENANCE CHECK - ĐỒNG BỘ VỚI ADMIN
+// =====================================================================
+async function checkMaintenance() {
+ try {
+  const doc = await db.collection('systemConfig').doc('maintenance').get();
+  if (doc.exists && doc.data().enabled) {
+   document.getElementById('maintenancePage').classList.add('show');
+   return true;
+  }
+ } catch(e) {
+  try {
+   const local = JSON.parse(localStorage.getItem('maintenanceMode') || '{}');
+   if (local.enabled) {
+    document.getElementById('maintenancePage').classList.add('show');
+    return true;
+   }
+  } catch(ex) {}
+ }
+ return false;
 }
 
-/* LOAD LOGS */
-let chart=null;
-function loadExamLogs(code){
- db.collection("exam_logs").where("code","==",code).get().then(snap=>{
-  if(snap.empty){empty.textContent="📭 Chưa có dữ liệu";return;}
+// =====================================================================
+// STUDENT CODE - ĐỒNG BỘ (dùng code gốc, không strip)
+// =====================================================================
+const studentCode = localStorage.getItem("studentCode") || "";
 
-  let logs=[],pass=0,fail=0;
-  snap.forEach(d=>logs.push(d.data()));
-  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+// =====================================================================
+// LOAD STUDENT - ĐỒNG BỘ (document ID = code)
+// =====================================================================
+async function initPage() {
+ const isMaint = await checkMaintenance();
+ if (isMaint) return;
 
-  logTable.innerHTML="";
-  logs.forEach((d,i)=>{
-   d.pass?pass++:fail++;
-   const t=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
-   logTable.innerHTML+=`
-    <tr>
-     <td>${i+1}</td>
-     <td>${t}</td>
-     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
-    </tr>`;
+ try {
+  // Tìm student bằng document ID (đồng bộ với admin)
+  let studentData = null;
+  const docSnap = await db.collection("students").doc(studentCode).get();
+  if (docSnap.exists) {
+   studentData = docSnap.data();
+  } else {
+   // Fallback: tìm theo field code
+   const snap = await db.collection("students").where("code","==",studentCode).limit(1).get();
+   if (!snap.empty) {
+    studentData = snap.docs[0].data();
+   }
+  }
+
+  if (!studentData) {
+   alert("Không tìm thấy học viên");
+   localStorage.clear();
+   location.href = "index.html";
+   return;
+  }
+
+  // Hiển thị thông tin
+  document.getElementById('studentName').textContent = studentData.name || '';
+  document.getElementById('infoCode').textContent = studentData.code || studentCode;
+  document.getElementById('infoName').textContent = studentData.name || '';
+  document.getElementById('infoUnit').textContent = studentData.unit || '';
+  document.getElementById('infoStatus').textContent = studentData.status === 'locked' ? '🔒 Đã khóa' : '✅ Hoạt động';
+
+  // Kiểm tra khóa
+  if (studentData.status === 'locked') {
+   alert('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
+   localStorage.clear();
+   location.href = 'index.html';
+   return;
+  }
+
+  // Cập nhật presence - ĐỒNG BỘ VỚI ADMIN
+  updatePresence();
+
+  loadExamLogs();
+ } catch(e) {
+  console.error('Lỗi tải thông tin:', e);
+ }
+}
+
+// =====================================================================
+// PRESENCE - ĐỒNG BỘ VỚI ADMIN (collection: presence)
+// =====================================================================
+function updatePresence() {
+ try {
+  db.collection('presence').doc(studentCode).set({
+   isOnline: true,
+   currentSection: 'Trang chính',
+   lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+   studentName: localStorage.getItem('studentName') || ''
+  }, { merge: true });
+ } catch(e) {
+  console.warn('Presence error:', e);
+ }
+}
+
+// Cập nhật offline khi rời trang
+window.addEventListener('beforeunload', () => {
+ try {
+  navigator.sendBeacon && db.collection('presence').doc(studentCode).update({
+   isOnline: false,
+   lastActive: firebase.firestore.FieldValue.serverTimestamp()
   });
+ } catch(e) {}
+});
 
-  animate(totalExam,logs.length);
-  animate(passExam,pass);
-  animate(failExam,fail);
+// =====================================================================
+// COUNTER ANIMATION
+// =====================================================================
+function animate(el, val) {
+ let n = 0, step = Math.max(1, Math.ceil(val / 40));
+ const t = setInterval(() => {
+  n += step;
+  if (n >= val) { el.textContent = val; clearInterval(t); }
+  else el.textContent = n;
+ }, 20);
+}
 
-  resultTable.style.display="table";
-  empty.textContent="";
+// =====================================================================
+// LOAD EXAM LOGS - ĐỒNG BỘ VỚI ADMIN (collection: examResults)
+// =====================================================================
+let chart = null;
 
-  const total=pass+fail;
-  const passPct=Math.round(pass*100/total);
-  const failPct=100-passPct;
+function loadExamLogs() {
+ // ĐỒNG BỘ: dùng examResults thay vì exam_logs
+ db.collection("examResults")
+  .where("studentCode", "==", studentCode)
+  .orderBy("timestamp", "desc")
+  .limit(50)
+  .get()
+  .then(snap => {
+   if (snap.empty) {
+    document.getElementById('empty').textContent = "📋 Chưa có dữ liệu kiểm tra";
+    return;
+   }
+   let logs = [], pass = 0, fail = 0;
+   snap.forEach(d => {
+    const data = d.data();
+    logs.push(data);
+    const score = data.score || 0;
+    const totalQ = data.totalQuestions || 30;
+    const passQ = data.passQuestions || Math.ceil(totalQ * 0.8);
+    if (score >= passQ) pass++;
+    else fail++;
+   });
 
-  if(chart) chart.destroy();
-  chart=new Chart(document.getElementById("chart"),{
-   type:"pie",
-   data:{
-    labels:[`Đạt (${passPct}%)`,`Không đạt (${failPct}%)`],
-    datasets:[{
-     data:[pass,fail],
-     backgroundColor:["#2a9d8f","#e63946"]
-    }]
-   },
-   options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-     tooltip:{
-      callbacks:{
-       label:(ctx)=>{
-        const v=ctx.raw;
-        const p=Math.round(v*100/total);
-        return `${ctx.label}: ${v} lượt (${p}%)`;
+   const logTableEl = document.getElementById('logTable');
+   logTableEl.innerHTML = "";
+   logs.forEach((d, i) => {
+    const ts = d.timestamp?.toDate ? d.timestamp.toDate() : (d.timestamp ? new Date(d.timestamp) : new Date());
+    const timeStr = ts.toLocaleString("vi-VN");
+    const score = d.score || 0;
+    const totalQ = d.totalQuestions || 30;
+    const passQ = d.passQuestions || Math.ceil(totalQ * 0.8);
+    const isPass = score >= passQ;
+    logTableEl.innerHTML += `
+     <tr>
+     <td>${i+1}</td>
+     <td>${timeStr}</td>
+     <td>${d.setName || d.setCode || '-'}</td>
+     <td>${score}/${totalQ}</td>
+     <td class="${isPass ? 'pass' : 'fail'}">${isPass ? 'ĐẠT' : 'KHÔNG ĐẠT'}</td>
+     </tr>`;
+   });
+
+   animate(document.getElementById('totalExam'), logs.length);
+   animate(document.getElementById('passExam'), pass);
+   animate(document.getElementById('failExam'), fail);
+   document.getElementById('resultTable').style.display = "table";
+   document.getElementById('empty').textContent = "";
+
+   // Chart
+   const total = pass + fail;
+   const passPct = total ? Math.round(pass * 100 / total) : 0;
+   const failPct = 100 - passPct;
+   if (chart) chart.destroy();
+   chart = new Chart(document.getElementById("chart"), {
+    type: "pie",
+    data: {
+     labels: [`Đạt (${passPct}%)`, `Không đạt (${failPct}%)`],
+     datasets: [{
+      data: [pass, fail],
+      backgroundColor: ["#2a9d8f", "#e63946"]
+     }]
+    },
+    options: {
+     responsive: true,
+     maintainAspectRatio: false,
+     plugins: {
+      tooltip: {
+       callbacks: {
+        label: (ctx) => {
+         const v = ctx.raw;
+         const p = Math.round(v * 100 / total);
+         return `${ctx.label}: ${v} lượt (${p}%)`;
+        }
        }
       }
      }
     }
-   }
+   });
+  })
+  .catch(e => {
+   console.warn('Lỗi tải exam results:', e);
+   // Fallback: thử không orderBy nếu thiếu index
+   db.collection("examResults")
+    .where("studentCode", "==", studentCode)
+    .get()
+    .then(snap => {
+     if (snap.empty) {
+      document.getElementById('empty').textContent = "📋 Chưa có dữ liệu";
+     }
+    });
   });
- });
 }
 
-/* BUTTONS – GIỮ MẠCH CŨ */
-logoutBtn.onclick=()=>{localStorage.clear();location.href="index.html";}
-startBtn.onclick=()=>location.href="test.html";
-detailBtn.onclick=()=>location.href="exam_detail.html";
-</script>
+// =====================================================================
+// BUTTONS
+// =====================================================================
+document.getElementById('logoutBtn').onclick = () => {
+ // Cập nhật offline
+ try {
+  db.collection('presence').doc(studentCode).update({
+   isOnline: false,
+   lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  });
+ } catch(e) {}
+ localStorage.clear();
+ location.href = "index.html";
+};
+document.getElementById('startBtn').onclick = () => location.href = "test.html";
+document.getElementById('detailBtn').onclick = () => location.href = "exam_detail.html";
 
+// =====================================================================
+// INIT
+// =====================================================================
+initPage();
+</script>
 </body>
 </html>
