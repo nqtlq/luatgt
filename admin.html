@@ -730,35 +730,39 @@
 
  <div id="layout">
    <!-- SIDEBAR -->
-   <aside id="sidebar">
-     <button class="sidebar-toggle" onclick="toggleSidebar()" title="Thu gọn">
-       ◀ <span class="menu-text" style="font-size:12px;">Thu gọn</span>
-     </button>
-     <div class="menu">
-       <div class="menu-section-title">Chính</div>
-       <button class="active" onclick="showPage('dashboard',this)">
-         <span class="menu-icon">📊</span><span class="menu-text">Tổng quan</span>
-       </button>
-       <button onclick="showPage('students',this)">
-         <span class="menu-icon">👥</span><span class="menu-text">Quản lý học viên</span>
-       </button>
-       <div class="menu-section-title">Đề thi</div>
-       <button onclick="showPage('question_sets',this)">
-         <span class="menu-icon">📋</span><span class="menu-text">Quản lý đề</span>
-       </button>
-       <button onclick="showPage('results',this)">
-         <span class="menu-icon">📝</span><span class="menu-text">Kết quả thi</span>
-       </button>
-       <div class="menu-section-title">Phân tích</div>
-       <button onclick="showPage('stats',this)">
-         <span class="menu-icon">📈</span><span class="menu-text">Thống kê</span>
-       </button>
-       <div class="menu-section-title">Hệ thống</div>
-       <button onclick="showPage('system',this)">
-         <span class="menu-icon">⚙️</span><span class="menu-text">Cài đặt</span>
-       </button>
-     </div>
-   </aside>
+   <!-- SIDEBAR -->
+<aside id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Thu gọn">
+        ◀ <span class="menu-text" style="font-size:12px;">Thu gọn</span>
+    </button>
+    <div class="menu">
+        <div class="menu-section-title">Chính</div>
+        <button class="active" onclick="showPage('dashboard',this)">
+            <span class="menu-icon">📊</span><span class="menu-text">Tổng quan</span>
+        </button>
+        <button onclick="showPage('students',this)">
+            <span class="menu-icon">👥</span><span class="menu-text">Quản lý học viên</span>
+        </button>
+        <div class="menu-section-title">Đề thi</div>
+        <button onclick="showPage('question_sets',this)">
+            <span class="menu-icon">📋</span><span class="menu-text">Quản lý đề </span>
+        </button>
+        <button onclick="showPage('results',this)">
+            <span class="menu-icon">📝</span><span class="menu-text">Kết quả thi</span>
+        </button>
+        <div class="menu-section-title">Phân tích</div>
+        <button onclick="showPage('stats',this)">
+            <span class="menu-icon">📈</span><span class="menu-text">Thống kê</span>
+        </button>
+        <div class="menu-section-title">Hệ thống</div>
+        <button onclick="showPage('notifications',this)">
+            <span class="menu-icon">🔔</span><span class="menu-text">Thông báo</span>
+        </button>
+        <button onclick="showPage('system',this)">
+            <span class="menu-icon">⚙️</span><span class="menu-text">Cài đặt</span>
+        </button>
+    </div>
+</aside>
    <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
 
    <main>
@@ -1042,7 +1046,7 @@
           </div>
           <div>
             <label>📝 Số câu hỏi trong đề thi *</label>
-            <input type="number" id="configExamQuestions" min="1" max="200" placeholder="VD: 25" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
+            <input type="number" id="configExamQuestions" min="1" max="200" placeholder="VD: 25" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)";oninput="updatePassConditionPreview()">
           </div>
         </div>
         <label>📦 Tổng số câu hỏi (tự động)</label>
@@ -1070,9 +1074,38 @@
       <div class="section-card">
         <div class="section-title">⚠ Câu hỏi liệt</div>
         <div class="liet-checkbox">
-          <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
+          <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()",oninput="updatePassConditionPreview()">
           <label for="configHasLiet">Có câu liệt</label>
         </div>
+       <!-- ĐIỀU KIỆN ĐẠT -->
+<div style="margin-top:20px;">
+    <div class="pass-condition-box">
+        <h5>✅ Điều kiện đạt yêu cầu</h5>
+        <div class="pass-condition-item">
+            <div class="cond-icon">1</div>
+            <div>
+                <label style="font-weight:600; margin:0; font-size:13px;">Số câu trả lời đúng tối thiểu *</label>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <input type="number" id="configMinCorrect" min="1" max="200" placeholder="VD: 21" oninput="updatePassConditionPreview()" style="max-width:100px; padding:6px 10px; border:2px solid #10b981; border-radius:6px; font-size:16px; font-weight:700; color:#065f46; background:white;">
+                    <span style="font-size:13px; color:#047857;">/ <span id="condTotalQ">0</span> câu</span>
+                </div>
+            </div>
+        </div>
+        <div class="pass-condition-item" id="condLietRow" style="display:none;">
+            <div class="cond-icon">2</div>
+            <div>
+                <span style="font-weight:600; font-size:13px;">Trả lời đúng tất cả câu hỏi liệt</span>
+                <div style="font-size:12px; opacity:0.8; margin-top:2px;">Nếu trả lời sai bất kỳ câu liệt nào → Không đạt (dù đủ số câu đúng)</div>
+            </div>
+        </div>
+        <div style="margin-top:12px; padding:10px; background:rgba(16,185,129,0.1); border-radius:6px;">
+            <div style="font-size:12px; font-weight:700; color:#065f46; margin-bottom:4px;">📋 Tóm tắt điều kiện đạt:</div>
+            <div id="passConditionPreview" style="font-size:13px; color:#047857; line-height:1.6;">
+                Chưa thiết lập
+            </div>
+        </div>
+    </div>
+</div>
         <div id="configLietContainer" style="display:none;margin-top:12px">
           <!-- Số lượng câu liệt -->
           <div style="margin-bottom:14px;">
@@ -1427,6 +1460,157 @@ D. Đáp án D
        </div>
      </div>
 
+    <!-- ========== ONLINE USERS PAGE ========== -->
+<div id="online_users" class="page">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+        <h2 style="font-size:20px; font-weight:800; color:var(--text-primary);">🟢 Người đang online (<span id="onlinePageCount">0</span>)</h2>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" onclick="refreshOnlineUsers()">🔄 Làm mới</button>
+            <button class="btn btn-secondary" onclick="showPage('dashboard'); document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.menu button')[0].classList.add('active');">⬅ Quay lại</button>
+        </div>
+    </div>
+
+    <div class="dash-grid" style="margin-bottom:20px;">
+        <div class="dash-card">
+            <div class="card-stripe green"></div>
+            <div class="card-icon green">🟢</div>
+            <div class="card-label">Đang online</div>
+            <div class="card-value" id="onlineActiveCount">0</div>
+            <div class="card-subtitle">Người dùng đang hoạt động</div>
+        </div>
+        <div class="dash-card">
+            <div class="card-stripe blue"></div>
+            <div class="card-icon blue">📝</div>
+            <div class="card-label">Đang thi</div>
+            <div class="card-value" id="onlineExamCount">0</div>
+            <div class="card-subtitle">Đang làm bài thi</div>
+        </div>
+        <div class="dash-card">
+            <div class="card-stripe purple"></div>
+            <div class="card-icon purple">📖</div>
+            <div class="card-label">Đang luyện tập</div>
+            <div class="card-value" id="onlinePracticeCount">0</div>
+            <div class="card-subtitle">Đang luyện đề</div>
+        </div>
+    </div>
+
+    <div class="online-page-card">
+        <div class="toolbar" style="margin-bottom:14px;">
+            <input type="text" id="searchOnline" placeholder="🔍 Tìm học viên..." oninput="renderOnlinePage()" style="flex:1; min-width:200px;">
+        </div>
+        <div class="tableWrap" style="max-height:500px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Trạng thái</th>
+                        <th>Mã HV</th>
+                        <th>Họ tên</th>
+                        <th>Đơn vị</th>
+                        <th>Đang làm</th>
+                        <th>Bắt đầu</th>
+                        <th>Hoạt động cuối</th>
+                    </tr>
+                </thead>
+                <tbody id="onlinePageTableBody">
+                    <tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========== NOTIFICATIONS PAGE ========== -->
+<div id="notifications" class="page">
+    <h2 style="font-size:20px; font-weight:800; margin-bottom:20px; color:var(--text-primary);">🔔 Quản lý Thông báo</h2>
+
+    <!-- Compose Notification -->
+    <div class="notif-compose">
+        <h4>📤 Gửi thông báo mới</h4>
+        <div class="form-row" style="margin-bottom:14px;">
+            <div>
+                <label style="font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block;">Đối tượng nhận *</label>
+                <select id="notifTarget" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary); font-size:14px;">
+                    <option value="all">📢 Toàn bộ học viên</option>
+                    <option value="Học viên">👨‍🎓 Học viên (HV)</option>
+                    <option value="Sĩ quan">🎖️ Sĩ quan (SQ)</option>
+                    <option value="Chuyên nghiệp">⚙️ Chuyên nghiệp (CN)</option>
+                    <option value="active">🟢 Chỉ tài khoản đang hoạt động</option>
+                    <option value="locked">🔒 Chỉ tài khoản đã khóa</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block;">Loại thông báo</label>
+                <select id="notifType" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary); font-size:14px;">
+                    <option value="info">ℹ️ Thông tin</option>
+                    <option value="warning">⚠️ Cảnh báo</option>
+                    <option value="success">✅ Chúc mừng</option>
+                    <option value="urgent">🚨 Khẩn cấp</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block;">Tiêu đề thông báo *</label>
+            <input type="text" id="notifTitle" placeholder="VD: Thông báo lịch thi..." style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary); font-size:14px;">
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block;">Nội dung thông báo *</label>
+            <textarea id="notifContent" rows="4" placeholder="Nhập nội dung thông báo..." style="width:100%; padding:12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary); font-size:14px; font-family:inherit; resize:vertical; min-height:80px;"></textarea>
+        </div>
+
+        <!-- Hẹn giờ gửi -->
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:14px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text-secondary);">
+                <input type="checkbox" id="notifScheduled" onchange="toggleScheduleFields()" style="width:18px; height:18px; cursor:pointer;">
+                ⏰ Hẹn giờ gửi tự động
+            </label>
+            <div id="scheduleFields" style="display:none; margin-top:12px;">
+                <div class="form-row">
+                    <div>
+                        <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">Ngày gửi *</label>
+                        <input type="date" id="notifScheduleDate" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary);">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">Giờ gửi *</label>
+                        <input type="time" id="notifScheduleTime" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-input); color:var(--text-primary);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="clearNotifForm()">🗑️ Xóa form</button>
+            <button class="btn btn-success" onclick="sendNotification()">📤 Gửi thông báo</button>
+        </div>
+    </div>
+
+    <!-- Thông báo đã lên lịch -->
+    <div class="notif-page-card">
+        <h3 style="margin:0 0 16px; font-size:16px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+            ⏰ Thông báo đã lên lịch
+            <span id="scheduledCount" style="background:var(--warning-light);color:#92400e;font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;">0</span>
+        </h3>
+        <div id="scheduledNotifList">
+            <div style="text-align:center; padding:30px; color:var(--text-muted); font-style:italic;">Chưa có thông báo nào được lên lịch</div>
+        </div>
+    </div>
+
+    <!-- Lịch sử thông báo -->
+    <div class="notif-page-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                📋 Lịch sử thông báo
+                <span id="notifHistoryCount" style="background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;">0</span>
+            </h3>
+            <button class="btn btn-danger btn-sm" onclick="clearNotifHistory()">🗑️ Xóa lịch sử</button>
+        </div>
+        <div id="notifHistoryList">
+            <div style="text-align:center; padding:40px; color:var(--text-muted); font-style:italic;">Chưa có thông báo nào</div>
+        </div>
+        <div class="pagination" id="notifPagination" style="margin-top:16px;"></div>
+    </div>
+</div>
+    
      <!-- ========== SYSTEM ========== -->
 <div id="system" class="page">
   <div class="box">
@@ -1750,6 +1934,8 @@ async function initializeSystem() {
     renderDashboardCharts();
     renderStatsCharts();
     await loadMaintenanceState();
+    await loadNotifications();
+    startScheduledNotifChecker();
     showToast('Kết nối thành công!', 'success', 2000);
     setInterval(async () => {
       await loadActivitiesFromDB();
@@ -3022,6 +3208,7 @@ function updateConfigSummary() {
   } else {
     document.getElementById('configSummaryLiet').textContent = 'Không';
   }
+ updatePassConditionPreview();
 }
 
  async function saveNewQuestionSet() {
@@ -3057,7 +3244,11 @@ function updateConfigSummary() {
   document.getElementById('configTotalQuestions').value = s.totalQuestions || '';
   document.getElementById('configExamTime').value = s.examTime || '';
   document.getElementById('configExamQuestions').value = s.examQuestions || '';
-
+  document.getElementById('configMinCorrect').value = s.minCorrect || '';
+// Update pass condition UI
+setTimeout(() => {
+    updatePassConditionPreview();
+}, 200);
   // Liet config
   const hasLiet = (s.lietCount || s.lietQuestion || 0) > 0;
   document.getElementById('configHasLiet').checked = hasLiet;
@@ -3222,7 +3413,9 @@ function updateConfigSummary() {
     let gcIdx = 0;
     updatedGroupDetails.forEach((g, i) => { g.count = gv[gcIdx++] || 0; });
     newGroups.forEach((ng, i) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length] || ng.count }); });
-
+    const examTime = parseInt(document.getElementById('configExamTime').value) || 0;
+    const examQuestions = parseInt(document.getElementById('configExamQuestions').value) || 0;
+    const minCorrect = parseInt(document.getElementById('configMinCorrect')?.value) || 0;
     s.totalQuestions = tq;
     s.examTime = examTime;
     s.examQuestions = examQuestions;
@@ -3241,6 +3434,7 @@ function updateConfigSummary() {
       lietQuestion: lietCount,
       groupDetails: updatedGroupDetails,
       groups: updatedGroupDetails.length,
+      minCorrect: minCorrect,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showToast('Lưu OK!', 'success');
@@ -3629,17 +3823,22 @@ function updateConfigSummary() {
 // NAVIGATION
 // =====================================================================
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (btn) { document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  switch (id) {
-    case 'dashboard': loadDashboard(); break;
-    case 'students': loadStudents(); break;
-    case 'question_sets': loadQuestionSets(); break;
-    case 'stats': loadStats(); break;
-    case 'system': loadMaintenanceState(); break;
-  }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (btn) {
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    switch (id) {
+        case 'dashboard': loadDashboard(); break;
+        case 'students': loadStudents(); break;
+        case 'question_sets': loadQuestionSets(); break;
+        case 'stats': loadStats(); break;
+        case 'system': loadMaintenanceState(); break;
+        case 'online_users': renderOnlinePage(); break;
+        case 'notifications': loadNotifications(); break;
+    }
 }
 
 function logout(){
@@ -4235,6 +4434,646 @@ async function saveNewAdminPassword() {
   } finally {
     hideLoading();
   }
+}
+  /* ===== FIXED: Sidebar more prominent ===== */
+aside {
+    background: linear-gradient(180deg, #0a1628 0%, #132140 50%, #1a2d52 100%) !important;
+    border-right: none !important;
+    box-shadow: 4px 0 25px rgba(0,0,0,0.3) !important;
+}
+[data-theme="light"] aside {
+    background: linear-gradient(180deg, #0d1b3e 0%, #162d5a 50%, #1e3a6e 100%) !important;
+}
+aside .menu-section-title {
+    color: rgba(255,255,255,0.45) !important;
+}
+aside .menu-section-title::before,
+aside .menu-section-title::after {
+    background: rgba(255,255,255,0.1) !important;
+}
+aside .sidebar-toggle {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+aside .sidebar-toggle:hover {
+    background: rgba(255,255,255,0.15) !important;
+    color: white !important;
+    border-color: rgba(255,255,255,0.3) !important;
+}
+aside .menu button {
+    color: rgba(255,255,255,0.75) !important;
+    border-left-color: transparent !important;
+}
+aside .menu button:hover {
+    background: rgba(255,255,255,0.1) !important;
+    color: white !important;
+    border-left-color: #60a5fa !important;
+}
+aside .menu button.active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(37,99,235,0.4) !important;
+    border-left-color: transparent !important;
+}
+aside .menu button .menu-icon {
+    background: rgba(255,255,255,0.1) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+}
+aside .menu button:hover .menu-icon {
+    background: rgba(255,255,255,0.2) !important;
+    border-color: rgba(255,255,255,0.3) !important;
+}
+aside .menu button.active .menu-icon {
+    background: rgba(255,255,255,0.25) !important;
+    border-color: rgba(255,255,255,0.35) !important;
+}
+
+/* ===== FIXED: Dashboard cards more prominent ===== */
+.dash-card {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+    background: var(--bg-card) !important;
+}
+.dash-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important;
+    transform: translateY(-4px) !important;
+}
+.dash-card .card-stripe {
+    height: 5px !important;
+}
+.stat-card-prominent {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* ===== Stat Grid prominent ===== */
+.statBox {
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2) !important;
+    border: none !important;
+}
+
+/* ===== Box sections more prominent ===== */
+.box {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+}
+.box:hover {
+    box-shadow: 0 6px 25px rgba(0,0,0,0.12) !important;
+}
+
+/* ===== Chart cards prominent ===== */
+.chart-card {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+}
+
+/* ===== Activity section prominent ===== */
+.activity-section {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+}
+
+/* ===== Mini stats prominent ===== */
+.miniStatBox {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+}
+.miniStatBox:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important;
+}
+
+/* ===== NOTIFICATIONS PAGE ===== */
+.notif-page-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+.notif-compose {
+    background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+    border: 2px solid #c7d2fe;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+[data-theme="dark"] .notif-compose {
+    background: linear-gradient(135deg, #1e1b4b, #1e293b);
+    border-color: #3730a3;
+}
+.notif-compose h4 {
+    color: #4338ca;
+    margin-bottom: 16px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+[data-theme="dark"] .notif-compose h4 { color: #818cf8; }
+.notif-history-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    transition: var(--transition);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+.notif-history-item:hover {
+    background: var(--bg-hover);
+    box-shadow: var(--shadow-sm);
+}
+.notif-icon-circle {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.notif-icon-circle.sent { background: var(--success-light); }
+.notif-icon-circle.scheduled { background: var(--warning-light); }
+.notif-icon-circle.failed { background: var(--danger-light); }
+.notif-target-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.notif-target-badge.all { background: var(--accent-light); color: var(--accent); }
+.notif-target-badge.group { background: var(--success-light); color: var(--success); }
+.scheduled-notif-card {
+    background: var(--warning-light);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 10px;
+}
+.scheduled-notif-card .sched-time {
+    font-weight: 700;
+    color: #92400e;
+    font-size: 13px;
+}
+
+/* ===== ONLINE USERS PAGE ===== */
+.online-page-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.online-status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+.online-status-dot.online { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.online-status-dot.offline { background: #94a3b8; }
+
+/* ===== CONDITION PASS SECTION ===== */
+.pass-condition-box {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid #6ee7b7;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-top: 14px;
+}
+[data-theme="dark"] .pass-condition-box {
+    background: linear-gradient(135deg, #064e3b, #065f46);
+    border-color: #10b981;
+}
+.pass-condition-box h5 {
+    color: #065f46;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+[data-theme="dark"] .pass-condition-box h5 { color: #6ee7b7; }
+.pass-condition-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #047857;
+}
+[data-theme="dark"] .pass-condition-item { color: #a7f3d0; }
+.pass-condition-item .cond-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #10b981;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+  // =====================================================================
+// ONLINE USERS PAGE
+// =====================================================================
+function refreshOnlineUsers() {
+    updateOnlineUI();
+    renderOnlinePage();
+    showToast('Đã làm mới danh sách', 'success', 1500);
+}
+
+function renderOnlinePage() {
+    const search = (document.getElementById('searchOnline')?.value || '').toLowerCase().trim();
+    const onlineList = allStudents.filter(s => s.isOnline);
+    const examCount = onlineList.filter(s => (s.currentSection||'').toLowerCase().includes('thi')).length;
+    const practiceCount = onlineList.filter(s => (s.currentSection||'').toLowerCase().includes('luyện')).length;
+    
+    document.getElementById('onlinePageCount').textContent = onlineList.length;
+    document.getElementById('onlineActiveCount').textContent = onlineList.length;
+    document.getElementById('onlineExamCount').textContent = examCount;
+    document.getElementById('onlinePracticeCount').textContent = onlineList.length - examCount;
+
+    let filtered = onlineList;
+    if (search) {
+        filtered = filtered.filter(s =>
+            (s.name||'').toLowerCase().includes(search) ||
+            (s.code||'').toLowerCase().includes(search) ||
+            (s.unit||'').toLowerCase().includes(search)
+        );
+    }
+
+    const tb = document.getElementById('onlinePageTableBody');
+    if (!filtered.length) {
+        tb.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">
+            <span style="font-size:40px;">🔍</span><br>
+            ${search ? 'Không tìm thấy kết quả' : 'Không có ai đang online'}
+        </td></tr>`;
+        return;
+    }
+    
+    let h = '';
+    filtered.forEach((s, i) => {
+        const section = s.currentSection || 'Đang chờ';
+        const sectionColor = section.includes('thi') ? 'var(--danger)' : section.includes('luyện') ? 'var(--accent)' : 'var(--success)';
+        h += `<tr>
+            <td>${i+1}</td>
+            <td><span class="online-status-dot online"></span> Online</td>
+            <td><b>${escapeHtml(s.code)}</b></td>
+            <td style="text-align:left">${escapeHtml(s.name)}</td>
+            <td style="text-align:left">${escapeHtml(s.unit||'—')}</td>
+            <td><span class="status-badge" style="background:${sectionColor}15;color:${sectionColor};">${escapeHtml(section)}</span></td>
+            <td>${s.startAt ? formatDateTime(s.startAt) : '—'}</td>
+            <td>${s.lastActive ? formatDateTime(s.lastActive) : '—'}</td>
+        </tr>`;
+    });
+    tb.innerHTML = h;
+}
+
+// =====================================================================
+// NOTIFICATIONS SYSTEM
+// =====================================================================
+let allNotifications = [];
+let scheduledNotifications = [];
+let notifCheckInterval = null;
+
+async function loadNotifications() {
+    try {
+        const snap = await db.collection('notifications').orderBy('createdAt', 'desc').limit(100).get();
+        allNotifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        const schedSnap = await db.collection('scheduledNotifications').orderBy('scheduledAt', 'asc').get();
+        scheduledNotifications = schedSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        renderNotifHistory();
+        renderScheduledNotifs();
+        updateNotifBadge();
+    } catch(e) {
+        console.warn('Load notifications error:', e);
+        // Fallback to localStorage
+        allNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+        scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifs') || '[]');
+        renderNotifHistory();
+        renderScheduledNotifs();
+    }
+}
+
+function toggleScheduleFields() {
+    const checked = document.getElementById('notifScheduled').checked;
+    document.getElementById('scheduleFields').style.display = checked ? 'block' : 'none';
+}
+
+function clearNotifForm() {
+    document.getElementById('notifTitle').value = '';
+    document.getElementById('notifContent').value = '';
+    document.getElementById('notifTarget').value = 'all';
+    document.getElementById('notifType').value = 'info';
+    document.getElementById('notifScheduled').checked = false;
+    document.getElementById('scheduleFields').style.display = 'none';
+    document.getElementById('notifScheduleDate').value = '';
+    document.getElementById('notifScheduleTime').value = '';
+}
+
+async function sendNotification() {
+    const target = document.getElementById('notifTarget').value;
+    const type = document.getElementById('notifType').value;
+    const title = document.getElementById('notifTitle').value.trim();
+    const content = document.getElementById('notifContent').value.trim();
+    const isScheduled = document.getElementById('notifScheduled').checked;
+
+    if (!title || !content) {
+        showToast('Nhập tiêu đề và nội dung!', 'error');
+        return;
+    }
+
+    // Count target recipients
+    let recipientCount = 0;
+    if (target === 'all') recipientCount = allStudents.length;
+    else if (target === 'active') recipientCount = allStudents.filter(s => s.status === 'active').length;
+    else if (target === 'locked') recipientCount = allStudents.filter(s => s.status === 'locked').length;
+    else recipientCount = allStudents.filter(s => s.object === target).length;
+
+    if (isScheduled) {
+        const schedDate = document.getElementById('notifScheduleDate').value;
+        const schedTime = document.getElementById('notifScheduleTime').value;
+        if (!schedDate || !schedTime) {
+            showToast('Chọn ngày và giờ gửi!', 'error');
+            return;
+        }
+        const scheduledAt = new Date(schedDate + 'T' + schedTime);
+        if (scheduledAt <= new Date()) {
+            showToast('Thời gian hẹn phải sau thời điểm hiện tại!', 'error');
+            return;
+        }
+
+        const ok = await showConfirm('Lên lịch thông báo',
+            `Thông báo sẽ được gửi đến ${recipientCount} học viên vào ${formatDateTime(scheduledAt)}.\n\nXác nhận?`, '⏰');
+        if (!ok) return;
+
+        showLoading('Đang lên lịch...');
+        try {
+            const schedData = {
+                title, content, type, target,
+                recipientCount,
+                scheduledAt: firebase.firestore.Timestamp.fromDate(scheduledAt),
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await db.collection('scheduledNotifications').add(schedData);
+            scheduledNotifications.push({ ...schedData, scheduledAt });
+            showToast(`⏰ Đã lên lịch gửi thông báo vào ${formatDateTime(scheduledAt)}`, 'success', 5000);
+        } catch(e) {
+            // Fallback localStorage
+            const schedData = { id: 'sn_' + Date.now(), title, content, type, target, recipientCount, scheduledAt: scheduledAt.toISOString(), status: 'pending', createdAt: new Date().toISOString() };
+            scheduledNotifications.push(schedData);
+            localStorage.setItem('scheduledNotifs', JSON.stringify(scheduledNotifications));
+            showToast('⏰ Đã lên lịch (lưu cục bộ)', 'success');
+        }
+        renderScheduledNotifs();
+        clearNotifForm();
+        hideLoading();
+        return;
+    }
+
+    // Send immediately
+    const ok = await showConfirm('Gửi thông báo',
+        `Gửi thông báo "${title}" đến ${recipientCount} học viên (${target === 'all' ? 'Toàn bộ' : target})?\n\nXác nhận?`, '📤');
+    if (!ok) return;
+
+    showLoading('Đang gửi thông báo...');
+    try {
+        const notifData = {
+            title, content, type, target,
+            recipientCount,
+            status: 'sent',
+            sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to notifications collection
+        await db.collection('notifications').add(notifData);
+
+        // Write to each student's notification subcollection
+        const targetStudents = target === 'all' ? allStudents :
+            target === 'active' ? allStudents.filter(s => s.status === 'active') :
+            target === 'locked' ? allStudents.filter(s => s.status === 'locked') :
+            allStudents.filter(s => s.object === target);
+
+        for (let i = 0; i < targetStudents.length; i += 500) {
+            const batch = db.batch();
+            targetStudents.slice(i, i + 500).forEach(s => {
+                const ref = db.collection('students').doc(s.code).collection('notifications').doc();
+                batch.set(ref, {
+                    title, content, type,
+                    read: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+
+        allNotifications.unshift({ ...notifData, sentAt: new Date(), createdAt: new Date() });
+        showToast(`✅ Đã gửi thông báo đến ${recipientCount} học viên!`, 'success', 5000);
+    } catch(e) {
+        // Fallback
+        const notifData = { id: 'n_' + Date.now(), title, content, type, target, recipientCount, status: 'sent', sentAt: new Date().toISOString(), createdAt: new Date().toISOString() };
+        allNotifications.unshift(notifData);
+        localStorage.setItem('notifications', JSON.stringify(allNotifications));
+        showToast(`✅ Đã gửi thông báo (lưu cục bộ)`, 'success');
+    }
+    
+    renderNotifHistory();
+    updateNotifBadge();
+    clearNotifForm();
+    hideLoading();
+}
+
+function renderNotifHistory() {
+    const container = document.getElementById('notifHistoryList');
+    const countEl = document.getElementById('notifHistoryCount');
+    
+    if (!allNotifications.length) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-style:italic;">Chưa có thông báo nào</div>';
+        if (countEl) countEl.textContent = '0';
+        return;
+    }
+    if (countEl) countEl.textContent = allNotifications.length;
+
+    const typeIcons = { info: 'ℹ️', warning: '⚠️', success: '✅', urgent: '🚨' };
+    const typeColors = { info: '#3b82f6', warning: '#f59e0b', success: '#10b981', urgent: '#ef4444' };
+    
+    let h = '';
+    allNotifications.slice(0, 20).forEach(n => {
+        const icon = typeIcons[n.type] || 'ℹ️';
+        const sentTime = n.sentAt ? (n.sentAt.toDate ? formatDateTime(n.sentAt.toDate()) : formatDateTime(new Date(n.sentAt))) : '—';
+        const targetLabel = n.target === 'all' ? 'Toàn bộ' : n.target;
+        const targetClass = n.target === 'all' ? 'all' : 'group';
+        
+        h += `<div class="notif-history-item">
+            <div class="notif-icon-circle sent">${icon}</div>
+            <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:4px;">
+                    <div>
+                        <span style="font-weight:700; font-size:14px; color:var(--text-primary);">${escapeHtml(n.title)}</span>
+                        <span class="notif-target-badge ${targetClass}">${escapeHtml(targetLabel)}</span>
+                    </div>
+                    <span style="font-size:11px; color:var(--text-muted);">${sentTime}</span>
+                </div>
+                <div style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${escapeHtml((n.content||'').substring(0, 150))}${(n.content||'').length > 150 ? '...' : ''}</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">📨 ${n.recipientCount || 0} người nhận</div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = h;
+}
+
+function renderScheduledNotifs() {
+    const container = document.getElementById('scheduledNotifList');
+    const countEl = document.getElementById('scheduledCount');
+    const pending = scheduledNotifications.filter(s => s.status === 'pending');
+    
+    if (countEl) countEl.textContent = pending.length;
+    
+    if (!pending.length) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-style:italic;">Chưa có thông báo nào được lên lịch</div>';
+        return;
+    }
+    
+    let h = '';
+    pending.forEach(n => {
+        const schedTime = n.scheduledAt ? (n.scheduledAt.toDate ? formatDateTime(n.scheduledAt.toDate()) : formatDateTime(new Date(n.scheduledAt))) : '—';
+        h += `<div class="scheduled-notif-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div>
+                    <span class="sched-time">⏰ ${schedTime}</span>
+                    <span style="font-weight:700; margin-left:8px;">${escapeHtml(n.title)}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <span style="font-size:12px; color:#92400e;">📨 ${n.recipientCount || 0} người</span>
+                    <button class="btn btn-danger btn-sm" onclick="cancelScheduledNotif('${n.id}')" style="padding:3px 8px; font-size:11px;">✕ Hủy</button>
+                </div>
+            </div>
+            <div style="font-size:12px; color:#78350f; margin-top:6px;">${escapeHtml((n.content||'').substring(0, 100))}</div>
+        </div>`;
+    });
+    container.innerHTML = h;
+}
+
+async function cancelScheduledNotif(id) {
+    const ok = await showConfirm('Hủy thông báo', 'Hủy thông báo đã lên lịch này?', '⏰');
+    if (!ok) return;
+    try {
+        await db.collection('scheduledNotifications').doc(id).delete();
+    } catch(e) { console.warn(e); }
+    scheduledNotifications = scheduledNotifications.filter(n => n.id !== id);
+    localStorage.setItem('scheduledNotifs', JSON.stringify(scheduledNotifications));
+    renderScheduledNotifs();
+    showToast('Đã hủy thông báo lên lịch', 'success');
+}
+
+async function clearNotifHistory() {
+    const ok = await showConfirm('Xóa lịch sử', 'Xóa toàn bộ lịch sử thông báo?', '🗑️');
+    if (!ok) return;
+    showLoading('Đang xóa...');
+    try {
+        const snap = await db.collection('notifications').get();
+        for (let i = 0; i < snap.docs.length; i += 500) {
+            const batch = db.batch();
+            snap.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+            await batch.commit();
+        }
+    } catch(e) { console.warn(e); }
+    allNotifications = [];
+    localStorage.removeItem('notifications');
+    renderNotifHistory();
+    updateNotifBadge();
+    showToast('Đã xóa lịch sử', 'success');
+    hideLoading();
+}
+
+function updateNotifBadge() {
+    const badge = document.getElementById('notifBadge');
+    const pending = scheduledNotifications.filter(s => s.status === 'pending').length;
+    if (badge) {
+        badge.textContent = pending;
+        badge.style.display = pending > 0 ? 'flex' : 'none';
+    }
+}
+
+// Check scheduled notifications every minute
+function startScheduledNotifChecker() {
+    if (notifCheckInterval) clearInterval(notifCheckInterval);
+    notifCheckInterval = setInterval(async () => {
+        const now = new Date();
+        const pendingToSend = scheduledNotifications.filter(n => {
+            if (n.status !== 'pending') return false;
+            const schedAt = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
+            return schedAt <= now;
+        });
+        
+        for (const notif of pendingToSend) {
+            try {
+                // Auto send
+                const notifData = {
+                    title: notif.title,
+                    content: notif.content,
+                    type: notif.type,
+                    target: notif.target,
+                    recipientCount: notif.recipientCount,
+                    status: 'sent',
+                    sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    autoSent: true
+                };
+                await db.collection('notifications').add(notifData);
+                
+                // Update scheduled status
+                if (notif.id) {
+                    try { await db.collection('scheduledNotifications').doc(notif.id).update({ status: 'sent' }); } catch(e) {}
+                }
+                notif.status = 'sent';
+                allNotifications.unshift({ ...notifData, sentAt: new Date(), createdAt: new Date() });
+                showToast(`⏰ Thông báo "${notif.title}" đã được gửi tự động!`, 'info', 5000);
+            } catch(e) {
+                console.warn('Auto send failed:', e);
+            }
+        }
+        
+        if (pendingToSend.length > 0) {
+            renderScheduledNotifs();
+            renderNotifHistory();
+            updateNotifBadge();
+        }
+    }, 60000); // Check every 60 seconds
+}
+
+// =====================================================================
+// PASS CONDITION PREVIEW
+// =====================================================================
+function updatePassConditionPreview() {
+    const minCorrect = parseInt(document.getElementById('configMinCorrect')?.value) || 0;
+    const examQ = parseInt(document.getElementById('configExamQuestions')?.value) || 0;
+    const hasLiet = document.getElementById('configHasLiet')?.checked;
+    const lietCount = hasLiet ? (parseInt(document.getElementById('configLietCount')?.value) || 0) : 0;
+    
+    const condTotalEl = document.getElementById('condTotalQ');
+    if (condTotalEl) condTotalEl.textContent = examQ;
+    
+    const condLietRow = document.getElementById('condLietRow');
+    if (condLietRow) condLietRow.style.display = hasLiet && lietCount > 0 ? 'flex' : 'none';
+    
+    const preview = document.getElementById('passConditionPreview');
+    if (!preview) return;
+    
+    let text = '';
+    if (minCorrect > 0 && examQ > 0) {
+        const percent = Math.round(minCorrect / examQ * 100);
+        text = `✅ Trả lời đúng tối thiểu ${minCorrect}/${examQ} câu (${percent}%)`;
+        if (hasLiet && lietCount > 0) {
+            text += `\n✅ Trả lời đúng tất cả ${lietCount} câu hỏi liệt`;
+            text += `\n⚠️ Sai câu liệt → Không đạt (dù đủ ${minCorrect} câu đúng)`;
+        }
+    } else {
+        text = 'Chưa thiết lập đầy đủ';
+    }
+    preview.textContent = text;
+    preview.style.whiteSpace = 'pre-line';
 }
 </script>
 </body>
