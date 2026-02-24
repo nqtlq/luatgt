@@ -4,7 +4,10 @@
  <meta charset="UTF-8">
  <title>ADMIN | Hệ thống thi luật giao thông</title>
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -140,7 +143,7 @@
  .header-left .logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255,255,255,0.25); }
  .mobile-menu-btn { display: none; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 10px; font-size: 20px; cursor: pointer; }
  .header-right { display: flex; align-items: center; gap: 10px; }
- .header-clock { font-size: 14px; opacity: 0.95; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; display: none; font-weight: 600; letter-spacing: 0.3px; border: 1px solid rgba(255,255,255,0.2); }
+ .header-clock { font-size: 14px; opacity: 0.95; background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 20px; display: none; font-weight: 600; letter-spacing: 0.3px; border: 1px solid rgba(255,255,255,0.2); font-family: "Rajdhani", sans-serif; }
 
  /* ===== THEME TOGGLE - IMPROVED ===== */
  .theme-toggle {
@@ -737,7 +740,7 @@
          <span class="menu-icon">📊</span><span class="menu-text">Tổng quan</span>
        </button>
        <button onclick="showPage('students',this)">
-         <span class="menu-icon">👥</span><span class="menu-text">Học viên</span>
+         <span class="menu-icon">👥</span><span class="menu-text">Quản lý học viên</span>
        </button>
        <div class="menu-section-title">Đề thi</div>
        <button onclick="showPage('question_sets',this)">
@@ -855,7 +858,7 @@
   </div>
 
   <div class="box">
-    <h3>👥 Danh sách Học viên</h3>
+    <h3>👥 Quản lý Học viên</h3>
     <div class="toolbar">
       <button class="btn btn-success" onclick="openAddModal()">➕ Thêm</button>
       <button class="btn btn-primary" onclick="openImportModal()">📥 Nhập Excel</button>
@@ -923,16 +926,35 @@
 
      <!-- ========== QUESTION SETS ========== -->
      <div id="question_sets" class="page">
-       <div class="box">
-         <h3>📋 Quản lý Đề thi</h3>
-         <div class="toolbar">
-           <button class="btn btn-success" onclick="showAddSetPage()">➕ Thêm đề thi</button>
-           <button class="btn btn-outline" onclick="downloadQuestionTemplate()">📥 Tải mẫu Excel</button>
+       <div class="toolbar" style="margin-bottom:16px;">
+         <button class="btn btn-success" onclick="showAddSetPage()">➕ Thêm đề thi</button>
+         <button class="btn btn-outline" onclick="downloadQuestionTemplate()">📥 Tải mẫu Excel</button>
+       </div>
+
+       <!-- MOTO SECTION -->
+       <div class="box" style="margin-bottom:20px;">
+         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+           <h3 style="margin:0;">🏍️ Bộ đề thi xe Mô tô</h3>
+           <span id="motoSetCount" style="background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:700;padding:4px 12px;border-radius:12px;">0 bộ đề</span>
          </div>
          <div class="tableWrap">
            <table>
-             <thead><tr><th>#</th><th>Mã đề</th><th>Tên đề thi</th><th>Số câu</th><th>Số nhóm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-             <tbody id="setTableBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Đang tải...</td></tr></tbody>
+             <thead><tr><th>#</th><th>Mã đề</th><th>Tên đề thi</th><th>Thời gian</th><th>Số câu/đề</th><th>Tổng câu hỏi</th><th>Nhóm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+             <tbody id="motoSetTableBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);">Đang tải...</td></tr></tbody>
+           </table>
+         </div>
+       </div>
+
+       <!-- OTO SECTION -->
+       <div class="box">
+         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+           <h3 style="margin:0;">🚗 Bộ đề thi xe Ô tô</h3>
+           <span id="otoSetCount" style="background:#fff3cd;color:#856404;font-size:12px;font-weight:700;padding:4px 12px;border-radius:12px;">0 bộ đề</span>
+         </div>
+         <div class="tableWrap">
+           <table>
+             <thead><tr><th>#</th><th>Mã đề</th><th>Tên đề thi</th><th>Thời gian</th><th>Số câu/đề</th><th>Tổng câu hỏi</th><th>Nhóm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+             <tbody id="otoSetTableBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);">Đang tải...</td></tr></tbody>
            </table>
          </div>
        </div>
@@ -950,6 +972,11 @@
                <div><label>Tên bộ đề *</label><input type="text" id="setName" placeholder="VD: Bộ đề thi A1"></div>
                <div><label>Mã bộ đề *</label><input type="text" id="setCode" placeholder="VD: DE001" style="text-transform:uppercase"></div>
              </div>
+             <label>Loại xe *</label>
+             <select id="setVehicleType" style="margin-bottom:14px;">
+               <option value="moto">🏍️ Xe Mô tô</option>
+               <option value="oto">🚗 Xe Ô tô</option>
+             </select>
              <label>Mô tả</label><textarea id="setDescription" placeholder="Mô tả bộ đề..." rows="2"></textarea>
            </div>
          </div>
@@ -1008,8 +1035,19 @@
           <div><label>Tên</label><input type="text" id="configName" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
           <div><label>Mã</label><input type="text" id="configCode" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
         </div>
-        <label>Tổng số câu hỏi *</label>
-        <input type="number" id="configTotalQuestions" min="1" max="200" placeholder="30" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
+        <div class="form-row" style="margin-bottom:14px">
+          <div>
+            <label>⏱ Thời gian thi (phút) *</label>
+            <input type="number" id="configExamTime" min="1" max="180" placeholder="VD: 19" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
+          </div>
+          <div>
+            <label>📝 Số câu hỏi trong đề thi *</label>
+            <input type="number" id="configExamQuestions" min="1" max="200" placeholder="VD: 25" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
+          </div>
+        </div>
+        <label>📦 Tổng số câu hỏi (tự động)</label>
+        <input type="number" id="configTotalQuestions" min="1" max="9999" placeholder="Tự động tính từ ngân hàng câu hỏi" readonly style="font-size:16px;font-weight:700;color:var(--success);background:var(--bg-hover);cursor:not-allowed" title="Tự động tính tổng câu hỏi từ tất cả nhóm">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-bottom:10px;">⚙️ Trường này tự động cập nhật khi phân bổ câu hỏi nhóm</div>
       </div>
     </div>
 
@@ -1021,8 +1059,9 @@
         </div>
         <div id="configGroupsContainer"></div>
         <div style="margin-top:14px;padding:12px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:4px">
-          <div style="display:flex;justify-content:space-between"><span style="font-weight:600;color:var(--accent)">Đã phân bổ:</span><span id="totalAllocated" style="font-size:18px;font-weight:700;color:var(--accent)">0</span></div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:13px;color:var(--text-muted)">Còn lại:</span><span id="remainingQuestions" style="font-size:16px;font-weight:600;color:var(--success)">0</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;color:var(--accent)">📦 Tổng câu hỏi (ngân hàng):</span><span id="totalAllocated" style="font-size:18px;font-weight:700;color:var(--accent)">0</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">⚡ Tổng câu hỏi tự động = tổng các nhóm. Trường "Tổng số câu hỏi" cập nhật tự động.</div>
+          <span id="remainingQuestions" style="display:none"></span>
         </div>
       </div>
     </div>
@@ -1072,7 +1111,9 @@
 
     <div class="summary-box">
       <div style="font-weight:700;margin-bottom:10px">📊 Tổng quan</div>
-      <div class="summary-item"><span class="label">Tổng câu:</span><span class="value" id="configSummaryTotal">0</span></div>
+      <div class="summary-item"><span class="label">⏱ Thời gian thi:</span><span class="value" id="configSummaryTime">—</span></div>
+      <div class="summary-item"><span class="label">📝 Câu hỏi/đề thi:</span><span class="value" id="configSummaryExamQ">—</span></div>
+      <div class="summary-item"><span class="label">📦 Tổng câu ngân hàng:</span><span class="value" id="configSummaryTotal">0</span></div>
       <div class="summary-item"><span class="label">Số nhóm:</span><span class="value" id="configSummaryGroups">0</span></div>
       <div class="summary-item"><span class="label">Câu liệt:</span><span class="value" id="configSummaryLiet">Không</span></div>
     </div>
@@ -1454,7 +1495,7 @@ D. Đáp án D
    <div id="changePasswordModal" class="modal">
      <div class="modal-content" style="max-width:480px;">
        <h3>🔑 Đổi mật khẩu Admin</h3>
-       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Email xác nhận: <b>trunglq002@gmail.com</b></p>
+       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Email xác nhận: <b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bfcbcdcad1d8d3ce8f8f8dffd8d2ded6d391dcd0d2">[email&#160;protected]</a></b></p>
        
        <label>Mật khẩu hiện tại *</label>
        <input type="password" id="oldPassword" placeholder="Nhập mật khẩu hiện tại">
@@ -1500,17 +1541,22 @@ D. Đáp án D
     <label>Khóa học</label>
     <input type="text" id="studentCourse" placeholder="VD: K2025">
 
-    <div class="warning-box">
+    <!-- Note chỉ hiện khi thêm mới -->
+    <div id="addStudentNote" class="warning-box">
       <div class="warning-title">⚠ Lưu ý</div>
       <div class="warning-text">• Hệ thống tự tạo mã HV duy nhất<br>• Mật khẩu mặc định: <b>123456</b><br>• Phát hiện trùng khi tất cả trường giống nhau</div>
     </div>
 
-    <!-- Reset password section - chỉ hiện khi sửa -->
+    <!-- Password section - hiện khi sửa -->
     <div id="resetPasswordSection" style="display:none">
       <div class="reset-password-section">
-        <div class="reset-title">🔑 Quản lý mật khẩu</div>
-        <p style="font-size:12px;color:#856404;margin:0 0 8px;">Mật khẩu hiện tại của học viên đã được mã hóa. Bạn có thể reset về mặc định (123456).</p>
-        <button class="btn btn-warning btn-sm" onclick="resetStudentPassword()">🔄 Reset mật khẩu về 123456</button>
+        <div class="reset-title">🔑 Mật khẩu tài khoản</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <label style="font-size:12px;color:#856404;margin:0;font-weight:600;">Mật khẩu hiện tại:</label>
+          <span id="currentStudentPwDisplay" style="font-family:monospace;font-size:14px;font-weight:700;background:rgba(0,0,0,0.06);padding:4px 12px;border-radius:6px;letter-spacing:2px;">123456</span>
+          <button class="btn btn-outline btn-sm" onclick="toggleStudentPwVisibility()" id="togglePwBtn" title="Hiện/Ẩn">👁</button>
+        </div>
+        <button class="btn btn-warning btn-sm" onclick="resetStudentPassword()">🔄 Reset về 123456</button>
       </div>
     </div>
 
@@ -1553,7 +1599,7 @@ D. Đáp án D
     <input type="password" id="confirmAdminPw" placeholder="Nhập lại mật khẩu mới">
     <div class="warning-box" style="margin-top:10px;">
       <div class="warning-title">📧 Xác thực email</div>
-      <div class="warning-text">Sau khi đổi mật khẩu thành công, mã xác thực sẽ được gửi đến email: <b>trunglq002@gmail.com</b></div>
+      <div class="warning-text">Sau khi đổi mật khẩu thành công, mã xác thực sẽ được gửi đến email: <b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d797f78636a617c3d3d3f4d6a606c6461236e6260">[email&#160;protected]</a></b></div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
       <button class="btn btn-secondary" onclick="closeModal('changeAdminPwModal')">Hủy</button>
@@ -1566,7 +1612,7 @@ D. Đáp án D
 <div id="emailVerifyModal" class="modal">
   <div class="modal-content" style="max-width:420px;text-align:center;">
     <h3>📧 Xác thực Email</h3>
-    <p style="color:var(--text-secondary);margin-bottom:20px;">Mã xác thực đã được gửi đến<br><b>trunglq002@gmail.com</b></p>
+    <p style="color:var(--text-secondary);margin-bottom:20px;">Mã xác thực đã được gửi đến<br><b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="017573746f666d7031313341666c60686d2f626e6c">[email&#160;protected]</a></b></p>
     <input type="text" id="verifyCode" class="verify-code-input" maxlength="6" placeholder="000000">
     <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
       <button class="btn btn-secondary" onclick="closeModal('emailVerifyModal')">Hủy</button>
@@ -1600,7 +1646,7 @@ D. Đáp án D
   <p>Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn. Vui lòng quay lại sau.</p>
   <p style="font-size:14px;opacity:0.6;">Xin cảm ơn sự thông cảm của bạn!</p>
 </div>
- <script>
+ <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
  // =====================================================================
 // FIREBASE + AUTH
 // =====================================================================
@@ -1684,7 +1730,7 @@ function updateClock() {
   const n = new Date();
   const timeStr = n.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateStr = n.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-  document.getElementById('currentTime').innerHTML = `<span style="font-size:16px;font-weight:800;letter-spacing:1px;">🕐 ${timeStr}</span><span style="opacity:0.5;margin:0 8px;">|</span><span style="font-size:13px;">📅 ${dateStr}</span>`;
+  document.getElementById('currentTime').innerHTML = `<span style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#fff,#a5d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⏱ ${timeStr}</span><span style="opacity:0.4;margin:0 10px;">|</span><span style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;opacity:0.9;">📅 ${dateStr}</span>`;
 }
 
 async function initializeSystem() {
@@ -1948,7 +1994,7 @@ function renderDashboardCharts() {
     const passed = allStudents.filter(s => (s.bestScore||0) >= 80).length;
     const failed = allStudents.length - passed;
     if (chartInstances.passRate) chartInstances.passRate.destroy();
-    chartInstances.passRate = new Chart(ctx2, { type:'doughnut', data:{ labels:['Đạt','Không đạt'], datasets:[{ data:[passed||1,failed||1], backgroundColor:['rgba(25,135,84,0.8)','rgba(220,53,69,0.8)'], borderWidth:0, cutout:'65%' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:16 } } } } });
+    chartInstances.passRate = new Chart(ctx2, { type:'doughnut', data:{ labels:['Đạt','Không đạt'], datasets:[{ data:[passed||1,failed||1], backgroundColor:['#10b981','#f43f5e'], borderWidth:0, cutout:'65%' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:16 } } } } });
   }
 }
 
@@ -1968,7 +2014,7 @@ function renderStatsCharts() {
     const oc = {};
     allStudents.forEach(s => { oc[s.object] = (oc[s.object]||0)+1; });
     if (chartInstances.byObject) chartInstances.byObject.destroy();
-    chartInstances.byObject = new Chart(ctx4, { type:'pie', data:{ labels:Object.keys(oc), datasets:[{ data:Object.values(oc), backgroundColor:['rgba(13,110,253,0.7)','rgba(25,135,84,0.7)','rgba(255,193,7,0.7)','rgba(124,58,237,0.7)'], borderWidth:2, borderColor:isDark?'#1a1d24':'white' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:14 } } } } });
+    chartInstances.byObject = new Chart(ctx4, { type:'pie', data:{ labels:Object.keys(oc), datasets:[{ data:Object.values(oc), backgroundColor:['#2563eb','#f97316','#10b981','#e11d48','#7c3aed','#0891b2'], borderWidth:2, borderColor:isDark?'#1a1d24':'white' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:14 } } } } });
   }
 }
 
@@ -2025,10 +2071,11 @@ function renderStudentTable() {
     const sc = s.status==='active' ? 'status-active' : 'status-locked';
     const st2 = s.status==='active' ? '● Hoạt động' : '● Đã khóa';
     const pwDisplay = s.passwordChanged ? '••••••' : DEFAULT_PASSWORD;
+    const rawPw = s.passwordChanged ? (s.password || '••••••') : DEFAULT_PASSWORD;
     h += `<tr>
       <td>${(currentPage-1)*itemsPerPage+i+1}</td>
       <td><b>${escapeHtml(s.code)}</b></td>
-      <td class="no-print"><span class="password-mask" title="Click để xem">${pwDisplay}</span></td>
+      <td class="no-print"><span id="pwd_${s.code}" class="password-mask" onclick="togglePasswordView('${s.code}','${rawPw}')" title="Click để xem/ẩn mật khẩu">${pwDisplay}</span></td>
       <td style="text-align:left">${escapeHtml(s.name)}</td>
       <td style="text-align:left">${escapeHtml(s.unit)}</td>
       <td>${formatDate(s.dob)}</td>
@@ -2118,6 +2165,7 @@ function openAddModal() {
   document.getElementById('studentCourse').value = '';
   toggleOtherField();
   document.getElementById('resetPasswordSection').style.display = 'none';
+  document.getElementById('addStudentNote').style.display = 'block';
   document.getElementById('studentModal').classList.add('show');
   setTimeout(() => document.getElementById('studentName').focus(), 300);
 }
@@ -2134,11 +2182,33 @@ function editStudent(c) {
   if (['Học viên','Sĩ quan','Chuyên nghiệp'].includes(s.object)) { document.getElementById('studentObject').value = s.object; }
   else { document.getElementById('studentObject').value = 'other'; document.getElementById('otherObjectName').value = s.object||''; }
   toggleOtherField();
-  // Show reset password section when editing
+  // Show reset password section when editing, hide note
+  document.getElementById('addStudentNote').style.display = 'none';
   document.getElementById('resetPasswordSection').style.display = 'block';
+  // Show current password (plain text if default, masked otherwise)
+  const pwEl = document.getElementById('currentStudentPwDisplay');
+  const pwRaw = s.passwordChanged ? '(Đã thay đổi)' : DEFAULT_PASSWORD;
+  pwEl.textContent = pwRaw;
+  pwEl.setAttribute('data-password', s.password || '');
+  pwEl.setAttribute('data-changed', s.passwordChanged ? '1' : '0');
   document.getElementById('studentModal').classList.add('show');
 }
 
+function toggleStudentPwVisibility() {
+  const el = document.getElementById('currentStudentPwDisplay');
+  const btn = document.getElementById('togglePwBtn');
+  const changed = el.getAttribute('data-changed') === '1';
+  if (el.getAttribute('data-visible') === '1') {
+    el.textContent = changed ? '(Đã thay đổi)' : DEFAULT_PASSWORD;
+    el.setAttribute('data-visible','0');
+    btn.textContent = '👁';
+  } else {
+    const raw = changed ? el.getAttribute('data-password') : DEFAULT_PASSWORD;
+    el.textContent = raw || DEFAULT_PASSWORD;
+    el.setAttribute('data-visible','1');
+    btn.textContent = '🙈';
+  }
+}
 async function resetStudentPassword() {
   if (!currentEditingCode) return;
   const s = allStudents.find(x => x.code === currentEditingCode);
@@ -2154,6 +2224,9 @@ async function resetStudentPassword() {
     });
     s.passwordChanged = false;
     showToast(`Đã reset mật khẩu của ${s.name} về ${DEFAULT_PASSWORD}`, 'success');
+    // Update display
+    const pwEl = document.getElementById('currentStudentPwDisplay');
+    if (pwEl) { pwEl.textContent = DEFAULT_PASSWORD; pwEl.setAttribute('data-changed','0'); pwEl.setAttribute('data-visible','0'); }
     renderStudentTable();
   } catch(e) { showToast('Lỗi: '+e.message, 'error'); }
   finally { hideLoading(); }
@@ -2755,15 +2828,32 @@ async function disableMaintenanceMode() {
  // QUESTION SETS
  // =====================================================================
  function loadQuestionSets() {
-   const tb = document.getElementById('setTableBody');
-   if (!allQuestionSets.length) { tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Chưa có đề thi</td></tr>'; return; }
-   let h='';
-   allQuestionSets.forEach((s,i)=>{
-     const isLocked=s.status==='locked';
-     const badge=isLocked?`<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','active')">● Khóa</span>`:`<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','locked')">● Hoạt động</span>`;
-     h+=`<tr><td>${i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td><b style="color:var(--accent)">${s.actualCount !== undefined ? s.actualCount : (s.totalQuestions||0)}</b></td><td>${s.groups||0}</td><td>${badge}</td><td><button class="btn btn-info btn-sm" onclick="showConfigPage('${s.code}')" title="Cài đặt">⚙️</button> <button class="btn btn-primary btn-sm" onclick="showViewQuestionsPage('${s.code}')" title="Xem câu hỏi">👁️</button> <button class="btn btn-success btn-sm" onclick="showAddQuestionsPage('${s.code}')" title="Thêm câu hỏi">➕</button> <button class="btn btn-danger btn-sm" onclick="deleteSet('${s.code}')" title="Xóa bộ đề">🗑️</button></td></tr>`;
-   });
-   tb.innerHTML=h;
+   const motoSets = allQuestionSets.filter(s => !s.vehicleType || s.vehicleType === 'moto');
+   const otoSets = allQuestionSets.filter(s => s.vehicleType === 'oto');
+   
+   function buildSetRows(sets) {
+     if (!sets.length) return '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Chưa có đề thi</td></tr>';
+     let h='';
+     sets.forEach((s,i)=>{
+       const isLocked=s.status==='locked';
+       const badge=isLocked?`<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','active')">● Khóa</span>`:`<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${s.code}','locked')">● Hoạt động</span>`;
+       const timeStr=s.examTime?`<b style="color:var(--accent)">${s.examTime}</b> phút`:'<span style="color:var(--text-muted)">—</span>';
+       const examQStr=s.examQuestions?`<b style="color:var(--accent)">${s.examQuestions}</b> câu`:'<span style="color:var(--text-muted)">—</span>';
+       const totalQ=s.actualCount !== undefined ? s.actualCount : (s.totalQuestions||0);
+       h+=`<tr><td>${i+1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td>${timeStr}</td><td>${examQStr}</td><td><b style="color:var(--success)">${totalQ}</b></td><td>${s.groups||0}</td><td>${badge}</td><td><button class="btn btn-info btn-sm" onclick="showConfigPage('${s.code}')" title="Cài đặt">⚙️</button> <button class="btn btn-primary btn-sm" onclick="showViewQuestionsPage('${s.code}')" title="Xem câu hỏi">👁️</button> <button class="btn btn-success btn-sm" onclick="showAddQuestionsPage('${s.code}')" title="Thêm câu hỏi">➕</button> <button class="btn btn-danger btn-sm" onclick="deleteSet('${s.code}')" title="Xóa bộ đề">🗑️</button></td></tr>`;
+     });
+     return h;
+   }
+   
+   const motoTb = document.getElementById('motoSetTableBody');
+   const otoTb = document.getElementById('otoSetTableBody');
+   if (motoTb) motoTb.innerHTML = buildSetRows(motoSets);
+   if (otoTb) otoTb.innerHTML = buildSetRows(otoSets);
+   
+   const motoCount = document.getElementById('motoSetCount');
+   const otoCount = document.getElementById('otoSetCount');
+   if (motoCount) motoCount.textContent = motoSets.length + ' bộ đề';
+   if (otoCount) otoCount.textContent = otoSets.length + ' bộ đề';
  }
  async function toggleSetStatus(code, newStatus) {
    try {
@@ -2901,21 +2991,30 @@ function toggleConfigLiet() {
 }
 
 function updateConfigSummary() {
-  const t = parseInt(document.getElementById('configTotalQuestions').value) || 0;
   const gi = document.querySelectorAll('.group-count');
   const hl = document.getElementById('configHasLiet').checked;
   const lietCount = hl ? (parseInt(document.getElementById('configLietCount').value) || 0) : 0;
   const lietPositions = hl ? getLietPositions() : [];
 
+  // Tổng câu = tự động từ tổng các nhóm (admin không tự điền)
   let a = 0;
   gi.forEach(i => { a += parseInt(i.value) || 0; });
-  const r = t - a;
+  
+  // Auto set totalQuestions = sum of groups
+  const totalEl = document.getElementById('configTotalQuestions');
+  if (totalEl) { totalEl.value = a > 0 ? a : ''; }
 
   document.getElementById('totalAllocated').textContent = a;
-  document.getElementById('remainingQuestions').textContent = r;
-  document.getElementById('remainingQuestions').style.color = r < 0 ? 'var(--danger)' : r === 0 ? 'var(--success)' : 'var(--warning)';
-  document.getElementById('configSummaryTotal').textContent = t;
+  document.getElementById('remainingQuestions').textContent = 0;
+  document.getElementById('remainingQuestions').style.color = 'var(--success)';
+  document.getElementById('configSummaryTotal').textContent = a;
   document.getElementById('configSummaryGroups').textContent = gi.length;
+  const et = document.getElementById('configExamTime'); 
+  const eq = document.getElementById('configExamQuestions');
+  const stEl = document.getElementById('configSummaryTime');
+  const seEl = document.getElementById('configSummaryExamQ');
+  if (stEl && et) stEl.textContent = et.value ? et.value + ' phút' : '—';
+  if (seEl && eq) seEl.textContent = eq.value ? eq.value + ' câu' : '—';
 
   if (hl && lietCount > 0) {
     const posStr = lietPositions.length > 0 ? lietPositions.join(', ') : '?';
@@ -2938,7 +3037,8 @@ function updateConfigSummary() {
    for(let i of gi){const gn=i.value.trim();if(!gn){showToast('Nhập tên nhóm!','error');return;}gs.push({name:gn,count:0});}
    showLoading('Đang lưu...');
    try {
-     const ns={ code:cd, name:nm, description:ds, groups:gs.length, groupDetails:gs, totalQuestions:0, status:'active', lietQuestion:hl?1:0, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
+     const vt=document.getElementById('setVehicleType').value||'moto';
+   const ns={ code:cd, name:nm, description:ds, groups:gs.length, groupDetails:gs, totalQuestions:0, examTime:0, examQuestions:0, vehicleType:vt, status:'active', lietQuestion:hl?1:0, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
      await db.collection('questionSets').doc(cd).set(ns);
      ns.createdAt=new Date(); allQuestionSets.unshift(ns);
      showToast('Tạo bộ đề OK!','success');
@@ -2955,6 +3055,8 @@ function updateConfigSummary() {
   document.getElementById('configName').value = s.name;
   document.getElementById('configCode').value = s.code;
   document.getElementById('configTotalQuestions').value = s.totalQuestions || '';
+  document.getElementById('configExamTime').value = s.examTime || '';
+  document.getElementById('configExamQuestions').value = s.examQuestions || '';
 
   // Liet config
   const hasLiet = (s.lietCount || s.lietQuestion || 0) > 0;
@@ -3101,7 +3203,7 @@ function updateConfigSummary() {
   const gc = document.querySelectorAll('.group-count');
   let tc = 0; const gv = [];
   gc.forEach(i => { const v = parseInt(i.value) || 0; tc += v; gv.push(v); });
-  if (tc > tq) { showToast(`Tổng nhóm (${tc}) > tổng đề (${tq})!`, 'error'); return; }
+  // tq = tc (auto), no check needed
 
   // Collect new groups
   const newGroupCards = document.querySelectorAll('.group-card[data-new="true"]');
@@ -3122,6 +3224,8 @@ function updateConfigSummary() {
     newGroups.forEach((ng, i) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length] || ng.count }); });
 
     s.totalQuestions = tq;
+    s.examTime = examTime;
+    s.examQuestions = examQuestions;
     s.lietCount = lietCount;
     s.lietPositions = lietPositions;
     s.lietQuestion = lietCount; // backward compat
@@ -3130,6 +3234,8 @@ function updateConfigSummary() {
 
     await db.collection('questionSets').doc(c).update({
       totalQuestions: tq,
+      examTime: examTime,
+      examQuestions: examQuestions,
       lietCount: lietCount,
       lietPositions: lietPositions,
       lietQuestion: lietCount,
@@ -3855,33 +3961,7 @@ function togglePasswordView(code, password) {
   }
 }
 
-// Reset student password to default
-async function resetStudentPassword() {
-  if (!currentEditingCode) return;
-  const ok = await showConfirm(
-    'Reset mật khẩu',
-    'Reset mật khẩu học viên về mặc định (123456)?',
-    '🔄'
-  );
-  if (!ok) return;
-  
-  showLoading('Đang reset mật khẩu...');
-  try {
-    await db.collection('students').doc(currentEditingCode).update({
-      password: DEFAULT_PASSWORD,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    
-    const s = allStudents.find(x => x.code === currentEditingCode);
-    if (s) s.password = DEFAULT_PASSWORD;
-    
-    showToast('Đã reset mật khẩu về 123456', 'success');
-  } catch(e) {
-    showToast('Lỗi: ' + e.message, 'error');
-  } finally {
-    hideLoading();
-  }
-}
+// resetStudentPassword - defined earlier
 
 // Delete all system data
 async function deleteAllSystemData() {
@@ -4145,22 +4225,17 @@ async function saveNewAdminPassword() {
       password: newPwd,
       email: ADMIN_EMAIL,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, {merge: true});
+    }, { merge: true });
     
     closeModal('changePasswordModal');
-    showToast('✅ Đã đổi mật khẩu thành công!', 'success');
-    
-    // Clear form
-    ['oldPassword', 'newPassword', 'confirmPassword'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
+    showToast('Đổi mật khẩu thành công!', 'success');
+    ['oldPassword','newPassword','confirmPassword'].forEach(id => document.getElementById(id).value = '');
   } catch(e) {
     showToast('Lỗi: ' + e.message, 'error');
   } finally {
     hideLoading();
   }
 }
-
 </script>
 </body>
 </html>
