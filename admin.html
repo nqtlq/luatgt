@@ -739,6 +739,9 @@
        <button class="active" onclick="showPage('dashboard',this)">
          <span class="menu-icon">📊</span><span class="menu-text">Tổng quan</span>
        </button>
+       <button onclick="showPage('online_users_page',this)">
+         <span class="menu-icon">🟢</span><span class="menu-text">Người online</span>
+       </button>
        <button onclick="showPage('students',this)">
          <span class="menu-icon">👥</span><span class="menu-text">Quản lý học viên</span>
        </button>
@@ -794,7 +797,7 @@
            <div class="card-value" id="totalSets">0</div>
            <div class="card-subtitle">Đang hoạt động</div>
          </div>
-         <div class="dash-card" onclick="showOnlineUsers()" style="cursor:pointer">
+         <div class="dash-card" onclick="showPage('online_users_page', null); renderOnlinePage();" style="cursor:pointer">
            <div class="card-stripe purple"></div>
            <div class="card-icon purple">🟢</div>
            <div class="card-label">Người đang online</div>
@@ -803,21 +806,7 @@
          </div>
        </div>
 
-       <!-- Online modal -->
-       <div id="onlineModal" class="modal">
-         <div class="modal-content" style="max-width: 680px;">
-           <h3>🟢 Danh sách người đang online</h3>
-           <div class="tableWrap" style="max-height:420px;">
-             <table>
-               <thead><tr><th>Học viên</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Lần cuối</th></tr></thead>
-               <tbody id="onlineTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr></tbody>
-             </table>
-           </div>
-           <div style="text-align:right;margin-top:14px;">
-             <button class="btn btn-secondary" onclick="closeModal('onlineModal')">Đóng</button>
-           </div>
-         </div>
-       </div>
+       <!-- Placeholder - online modal replaced by page -->
 
        <div class="chart-grid">
          <div class="chart-card">
@@ -966,18 +955,38 @@
        <div class="box">
          <h3>➕ Thêm bộ đề thi mới</h3>
          <div class="info-section">
-           <div class="section-card">
-             <div class="section-title">📌 Thông tin cơ bản</div>
-             <div class="form-row" style="margin-bottom:14px">
-               <div><label>Tên bộ đề *</label><input type="text" id="setName" placeholder="VD: Bộ đề thi A1"></div>
-               <div><label>Mã bộ đề *</label><input type="text" id="setCode" placeholder="VD: DE001" style="text-transform:uppercase"></div>
+           <div class="section-card" style="border:2px solid var(--accent);border-radius:var(--radius-md);padding:20px;background:var(--bg-card);">
+             <div class="section-title" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--border);">
+               <span style="font-size:20px;">📌</span>
+               <span style="font-size:15px;font-weight:800;color:var(--text-primary);">Thông tin cơ bản</span>
              </div>
-             <label>Loại xe *</label>
-             <select id="setVehicleType" style="margin-bottom:14px;">
-               <option value="moto">🏍️ Xe Mô tô</option>
-               <option value="oto">🚗 Xe Ô tô</option>
-             </select>
-             <label>Mô tả</label><textarea id="setDescription" placeholder="Mô tả bộ đề..." rows="2"></textarea>
+             <div class="form-row" style="margin-bottom:18px;gap:16px;">
+               <div style="flex:2;">
+                 <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Tên bộ đề <span style="color:var(--danger)">*</span></label>
+                 <input type="text" id="setName" placeholder="VD: Bộ đề thi xe máy A1" style="font-size:15px;font-weight:600;height:48px;margin-top:6px;">
+               </div>
+               <div style="flex:1;">
+                 <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Mã bộ đề <span style="color:var(--danger)">*</span></label>
+                 <input type="text" id="setCode" placeholder="VD: DE001" style="text-transform:uppercase;font-size:15px;font-weight:700;height:48px;margin-top:6px;letter-spacing:1px;">
+               </div>
+             </div>
+             <div class="form-row" style="margin-bottom:18px;gap:16px;">
+               <div style="flex:1;">
+                 <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Loại phương tiện <span style="color:var(--danger)">*</span></label>
+                 <select id="setVehicleType" style="height:48px;font-size:14px;font-weight:600;margin-top:6px;">
+                   <option value="moto">🏍️ Xe Mô tô</option>
+                   <option value="oto">🚗 Xe Ô tô</option>
+                 </select>
+               </div>
+               <div style="flex:1;">
+                 <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Phiên bản / Năm</label>
+                 <input type="text" id="setVersion" placeholder="VD: 2024, Phiên bản 2" style="height:48px;font-size:14px;margin-top:6px;">
+               </div>
+             </div>
+             <div>
+               <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Mô tả chi tiết</label>
+               <textarea id="setDescription" placeholder="Mô tả nội dung, phạm vi áp dụng của bộ đề thi..." rows="3" style="margin-top:6px;font-size:14px;resize:vertical;min-height:80px;"></textarea>
+             </div>
            </div>
          </div>
          <div class="groups-section">
@@ -1028,50 +1037,80 @@
   <div class="back-btn"><button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button></div>
   <div class="box">
     <h3>⚙ Cài đặt: <span id="configSetName" style="color:var(--success)"></span></h3>
-    <div class="info-section">
-      <div class="section-card">
-        <div class="section-title">📋 Thông tin</div>
-        <div class="form-row" style="margin-bottom:14px">
-          <div><label>Tên</label><input type="text" id="configName" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
-          <div><label>Mã</label><input type="text" id="configCode" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
-        </div>
-        <div class="form-row" style="margin-bottom:14px">
-          <div>
-            <label>⏱ Thời gian thi (phút) *</label>
-            <input type="number" id="configExamTime" min="1" max="180" placeholder="VD: 19" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
-          </div>
-          <div>
-            <label>📝 Số câu hỏi trong đề thi *</label>
-            <input type="number" id="configExamQuestions" min="1" max="200" placeholder="VD: 25" oninput="updateConfigSummary()" style="font-size:16px;font-weight:700;color:var(--accent)">
-          </div>
-        </div>
-        <label>📦 Tổng số câu hỏi (tự động)</label>
-        <input type="number" id="configTotalQuestions" min="1" max="9999" placeholder="Tự động tính từ ngân hàng câu hỏi" readonly style="font-size:16px;font-weight:700;color:var(--success);background:var(--bg-hover);cursor:not-allowed" title="Tự động tính tổng câu hỏi từ tất cả nhóm">
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-bottom:10px;">⚙️ Trường này tự động cập nhật khi phân bổ câu hỏi nhóm</div>
-      </div>
-    </div>
 
-    <div class="groups-section">
-      <div class="section-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <div class="section-title" style="margin:0;border:none;padding:0;">📦 Phân bổ câu hỏi</div>
-          <button class="btn btn-success btn-sm" onclick="addConfigGroup()">➕ Thêm nhóm</button>
+    <!-- THÔNG TIN (readonly - không khung input) -->
+    <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:14px;">📋 Thông tin bộ đề</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Tên bộ đề</div>
+          <div id="configName" style="font-size:15px;font-weight:700;color:var(--text-primary);"></div>
         </div>
-        <div id="configGroupsContainer"></div>
-        <div style="margin-top:14px;padding:12px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:4px">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;color:var(--accent)">📦 Tổng câu hỏi (ngân hàng):</span><span id="totalAllocated" style="font-size:18px;font-weight:700;color:var(--accent)">0</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">⚡ Tổng câu hỏi tự động = tổng các nhóm. Trường "Tổng số câu hỏi" cập nhật tự động.</div>
-          <span id="remainingQuestions" style="display:none"></span>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Mã bộ đề</div>
+          <div id="configCode" style="font-size:15px;font-weight:700;color:var(--accent);letter-spacing:1px;"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Tổng câu hỏi của bộ đề</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="configTotalDisplay" style="font-size:22px;font-weight:900;color:var(--success);">0</span>
+            <span style="font-size:12px;color:var(--text-muted);">/ <span id="configActualDisplay" style="font-weight:700;color:var(--accent);">0</span> trong CSDL</span>
+          </div>
+          <input type="hidden" id="configTotalQuestions">
         </div>
       </div>
     </div>
 
-    <div class="liet-section">
-      <div class="section-card">
-        <div class="section-title">⚠ Câu hỏi liệt</div>
-        <div class="liet-checkbox">
-          <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()">
-          <label for="configHasLiet">Có câu liệt</label>
+    <!-- CÀI ĐẶT THI (editable - có khung rõ ràng) -->
+    <div style="border:2px solid var(--accent);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;background:var(--bg-card);">
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span>🎯</span> Cài đặt bài thi
+      </div>
+      <div class="form-row" style="gap:20px;">
+        <div style="flex:1;">
+          <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">⏱ Thời gian thi (phút) <span style="color:var(--danger)">*</span></label>
+          <input type="number" id="configExamTime" min="1" max="180" placeholder="VD: 19" oninput="updateConfigSummary()" style="font-size:20px;font-weight:800;color:var(--accent);height:56px;margin-top:8px;text-align:center;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-weight:700;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">📝 Số câu hỏi/đề thi <span style="color:var(--danger)">*</span></label>
+          <input type="number" id="configExamQuestions" min="1" max="200" placeholder="VD: 25" oninput="updateConfigSummary()" style="font-size:20px;font-weight:800;color:var(--accent);height:56px;margin-top:8px;text-align:center;">
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;background:var(--accent-light);border-radius:var(--radius-sm);padding:12px;">
+          <div style="font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;">Điểm đạt tối thiểu</div>
+          <div style="font-size:26px;font-weight:900;color:var(--accent);">80<span style="font-size:16px;">đ</span></div>
+          <div style="font-size:11px;color:var(--text-muted);">Cố định theo quy định</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-section" style="display:none"><div class="section-card"><div class="section-title">📋 Thông tin</div></div></div>
+
+    <div class="groups-section" style="border:2px solid var(--border);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;background:var(--bg-card);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;"><span>📂</span> Phân bổ nhóm câu hỏi</div>
+        <button class="btn btn-success btn-sm" onclick="addConfigGroup()">➕ Thêm nhóm</button>
+      </div>
+      <div id="configGroupsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div style="margin-top:16px;padding:14px;background:var(--accent-light);border:1px solid rgba(13,110,253,0.2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">📊</span>
+          <div>
+            <div style="font-size:12px;color:var(--accent);font-weight:700;">Tổng số câu hỏi của bộ đề</div>
+            <div style="font-size:11px;color:var(--text-muted);">Tự động tính = tổng tất cả nhóm</div>
+          </div>
+        </div>
+        <span id="totalAllocated" style="font-size:28px;font-weight:900;color:var(--accent);">0</span>
+        <span id="remainingQuestions" style="display:none"></span>
+      </div>
+    </div>
+
+    <div class="liet-section" style="border:2px solid var(--warning);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;background:var(--bg-card);">
+      <div style="margin-bottom:12px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#856404;">
+        ⚠ Câu hỏi liệt
+      </div>
+      <div>
+        <div class="liet-checkbox" style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="configHasLiet" onchange="toggleConfigLiet()" style="width:18px;height:18px;">
+          <label for="configHasLiet" style="cursor:pointer;font-weight:600;">Đề thi có câu hỏi liệt</label>
         </div>
         <div id="configLietContainer" style="display:none;margin-top:12px">
           <!-- Số lượng câu liệt -->
@@ -1386,22 +1425,69 @@ D. Đáp án D
      </div>
 
      <!-- ========== RESULTS PAGE ========== -->
-     <div id="results" class="page">
+     <!-- ========== ONLINE USERS PAGE ========== -->
+     <div id="online_users_page" class="page">
+       <div class="back-btn"><button class="btn btn-outline" onclick="showPage('dashboard', document.querySelector('.menu button'))">⬅ Quay lại</button></div>
        <div class="box">
-         <h3>📝 Kết quả thi</h3>
-         <div class="toolbar">
-           <input type="date" id="resultDateFrom" onchange="loadExamResults()">
-           <span style="color:var(--text-muted)">→</span>
-           <input type="date" id="resultDateTo" onchange="loadExamResults()">
-           <button class="btn btn-warning" onclick="exportResults()">📤 Xuất báo cáo</button>
+         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+           <div style="display:flex;align-items:center;gap:12px;">
+             <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:22px;">🟢</div>
+             <div>
+               <h3 style="margin:0;font-size:18px;">Người dùng đang online</h3>
+               <p style="margin:2px 0 0;font-size:13px;color:var(--text-muted);">Cập nhật theo thời gian thực</p>
+             </div>
+           </div>
+           <div style="display:flex;align-items:center;gap:12px;">
+             <div style="background:var(--success-light);border:1px solid var(--success);padding:8px 18px;border-radius:20px;text-align:center;">
+               <div style="font-size:11px;color:var(--success);font-weight:700;">ĐANG ONLINE</div>
+               <div style="font-size:26px;font-weight:900;color:var(--success);line-height:1;" id="onlinePageCount">0</div>
+             </div>
+             <button class="btn btn-outline btn-sm" onclick="refreshOnlinePage()">🔄 Làm mới</button>
+           </div>
          </div>
+
+         <div id="onlineCardsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:20px;"></div>
+
          <div class="tableWrap">
            <table>
-             <thead><tr><th>#</th><th>Thời gian</th><th>Mã HV</th><th>Họ tên</th><th>Đề thi</th><th>Điểm</th><th>Kết quả</th></tr></thead>
-             <tbody id="resultsTableBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Chọn ngày để xem</td></tr></tbody>
+             <thead><tr><th>#</th><th>Học viên</th><th>Mã</th><th>Đơn vị</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Hoạt động cuối</th><th>Thời gian online</th></tr></thead>
+             <tbody id="onlineTableBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px;">⏳ Chưa có dữ liệu</td></tr></tbody>
            </table>
          </div>
        </div>
+     </div>
+
+          <div id="results" class="page">
+       <div class="box">
+         <h3>📝 Kết quả thi</h3>
+         <div class="toolbar" style="flex-wrap:wrap;gap:10px;">
+           <input type="text" id="resultSearchStudent" placeholder="🔍 Tìm mã HV, họ tên..." onkeyup="filterResultsTable()" style="flex:1;min-width:180px;">
+           <input type="date" id="resultDateFrom" onchange="loadExamResults()">
+           <span style="color:var(--text-muted)">→</span>
+           <input type="date" id="resultDateTo" onchange="loadExamResults()">
+           <button class="btn btn-primary" onclick="loadExamResults()">🔍 Tải kết quả</button>
+           <button class="btn btn-warning" onclick="exportResults()">📤 Xuất Excel</button>
+         </div>
+         <div id="resultsSummaryBar" style="display:none;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;display:flex;gap:24px;flex-wrap:wrap;">
+           <div style="text-align:center;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;">TỔNG LƯỢT THI</div><div style="font-size:22px;font-weight:900;color:var(--accent);" id="rSumTotal">0</div></div>
+           <div style="text-align:center;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;">ĐẠT</div><div style="font-size:22px;font-weight:900;color:var(--success);" id="rSumPass">0</div></div>
+           <div style="text-align:center;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;">TRƯỢT</div><div style="font-size:22px;font-weight:900;color:var(--danger);" id="rSumFail">0</div></div>
+           <div style="text-align:center;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;">TỶ LỆ ĐẠT</div><div style="font-size:22px;font-weight:900;color:var(--warning);" id="rSumRate">0%</div></div>
+           <div style="text-align:center;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;">ĐIỂM TB</div><div style="font-size:22px;font-weight:900;color:var(--info);" id="rSumAvg">0</div></div>
+         </div>
+         <div class="tableWrap">
+           <table>
+             <thead><tr><th>#</th><th>Thời gian</th><th>Mã HV</th><th>Họ tên</th><th>Đề thi</th><th>Điểm</th><th>Đúng/Sai</th><th>Kết quả</th><th>Chi tiết</th></tr></thead>
+             <tbody id="resultsTableBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:30px;">Chọn khoảng thời gian và nhấn Tải kết quả</td></tr></tbody>
+           </table>
+         </div>
+       </div>
+     </div>
+
+     <!-- ========== RESULT DETAIL PAGE ========== -->
+     <div id="result_detail_page" class="page">
+       <div class="back-btn"><button class="btn btn-outline" onclick="showPage('results', null)">⬅ Quay lại</button></div>
+       <div id="resultDetailContent"></div>
      </div>
 
      <!-- ========== STATS ========== -->
@@ -1495,23 +1581,29 @@ D. Đáp án D
    <div id="changePasswordModal" class="modal">
      <div class="modal-content" style="max-width:480px;">
        <h3>🔑 Đổi mật khẩu Admin</h3>
-       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Email xác nhận: <b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bfcbcdcad1d8d3ce8f8f8dffd8d2ded6d391dcd0d2">[email&#160;protected]</a></b></p>
-       
+       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Email xác nhận: <b>trunglq002@gmail.com</b></p>
        <label>Mật khẩu hiện tại *</label>
-       <input type="password" id="oldPassword" placeholder="Nhập mật khẩu hiện tại">
-       
-       <label>Mật khẩu mới *</label>
-       <input type="password" id="newPassword" placeholder="Ít nhất 6 ký tự">
-       
-       <label>Xác nhận mật khẩu mới *</label>
-       <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
-       
-       <div style="background:var(--warning-light);padding:12px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--warning);">
-         <div style="font-size:12px;color:#856404;">
-           <b>⚠️ Lưu ý:</b> Sau khi đổi mật khẩu, bạn cần đăng nhập lại với mật khẩu mới.
-         </div>
+       <div style="position:relative;">
+         <input type="password" id="oldPassword" placeholder="Nhập mật khẩu hiện tại" style="padding-right:44px;">
+         <button type="button" onclick="toggleAdminPwField('oldPassword','eyeOld')" id="eyeOld" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
        </div>
-       
+       <label style="margin-top:12px;">Mật khẩu mới *</label>
+       <div style="position:relative;">
+         <input type="password" id="newPassword" placeholder="Ít nhất 6 ký tự" style="padding-right:44px;">
+         <button type="button" onclick="toggleAdminPwField('newPassword','eyeNew')" id="eyeNew" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
+       </div>
+       <label style="margin-top:12px;">Xác nhận mật khẩu mới *</label>
+       <div style="position:relative;">
+         <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới" style="padding-right:44px;">
+         <button type="button" onclick="toggleAdminPwField('confirmPassword','eyeConf')" id="eyeConf" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
+       </div>
+       <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none;font-weight:500;">
+         <input type="checkbox" id="showPwAll2" onchange="toggleAllPw2(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+         <span style="font-size:13px;color:var(--text-secondary);">👁 Hiển thị tất cả mật khẩu</span>
+       </label>
+       <div style="background:var(--warning-light);padding:12px;border-radius:6px;margin:12px 0;border-left:3px solid var(--warning);">
+         <div style="font-size:12px;color:#856404;"><b>⚠️ Lưu ý:</b> Sau khi đổi mật khẩu, bạn cần đăng nhập lại.</div>
+       </div>
        <div style="display:flex;gap:10px;justify-content:flex-end;">
          <button class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Hủy</button>
          <button class="btn btn-success" onclick="saveNewAdminPassword()">💾 Đổi mật khẩu</button>
@@ -1592,14 +1684,27 @@ D. Đáp án D
   <div class="modal-content" style="max-width:480px;">
     <h3>🔐 Đổi mật khẩu Admin</h3>
     <label>Mật khẩu hiện tại *</label>
-    <input type="password" id="currentAdminPw" placeholder="Nhập mật khẩu hiện tại">
-    <label>Mật khẩu mới *</label>
-    <input type="password" id="newAdminPw" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
-    <label>Xác nhận mật khẩu mới *</label>
-    <input type="password" id="confirmAdminPw" placeholder="Nhập lại mật khẩu mới">
-    <div class="warning-box" style="margin-top:10px;">
+    <div style="position:relative;">
+      <input type="password" id="currentAdminPw" placeholder="Nhập mật khẩu hiện tại" style="padding-right:44px;">
+      <button type="button" onclick="toggleAdminPwField('currentAdminPw','eyeC')" id="eyeC" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
+    </div>
+    <label style="margin-top:12px;">Mật khẩu mới *</label>
+    <div style="position:relative;">
+      <input type="password" id="newAdminPw" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" style="padding-right:44px;">
+      <button type="button" onclick="toggleAdminPwField('newAdminPw','eyeN')" id="eyeN" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
+    </div>
+    <label style="margin-top:12px;">Xác nhận mật khẩu mới *</label>
+    <div style="position:relative;">
+      <input type="password" id="confirmAdminPw" placeholder="Nhập lại mật khẩu mới" style="padding-right:44px;">
+      <button type="button" onclick="toggleAdminPwField('confirmAdminPw','eyeCo')" id="eyeCo" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">👁</button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none;font-weight:500;">
+      <input type="checkbox" id="showAdminPwAll" onchange="toggleAllAdminPw(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+      <span style="font-size:13px;color:var(--text-secondary);">👁 Hiển thị tất cả mật khẩu</span>
+    </label>
+    <div class="warning-box" style="margin-top:12px;">
       <div class="warning-title">📧 Xác thực email</div>
-      <div class="warning-text">Sau khi đổi mật khẩu thành công, mã xác thực sẽ được gửi đến email: <b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d797f78636a617c3d3d3f4d6a606c6461236e6260">[email&#160;protected]</a></b></div>
+      <div class="warning-text">Sau khi đổi mật khẩu thành công, mã xác thực sẽ được gửi đến email: <b>trunglq002@gmail.com</b></div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
       <button class="btn btn-secondary" onclick="closeModal('changeAdminPwModal')">Hủy</button>
@@ -1936,20 +2041,75 @@ function updateOnlineUI() {
   });
   const el = document.getElementById('onlineCount');
   if (el) el.textContent = onlineCount;
+  // Also update the online page if it's active
+  const onlinePage = document.getElementById('online_users_page');
+  if (onlinePage && onlinePage.classList.contains('active')) {
+    renderOnlinePage();
+  }
 }
 
 function showOnlineUsers() {
+  // Navigate to online page instead of modal
+  showPage('online_users_page', null);
+  renderOnlinePage();
+}
+
+function refreshOnlinePage() {
+  renderOnlinePage();
+  showToast('Đã cập nhật danh sách online', 'info');
+}
+
+function renderOnlinePage() {
   const onlineList = allStudents.filter(s => s.isOnline);
-  const tb = document.getElementById('onlineTableBody');
-  tb.innerHTML = '';
-  if (onlineList.length === 0) {
-    tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Không có ai online</td></tr>';
-  } else {
-    onlineList.forEach(s => {
-      tb.innerHTML += `<tr><td>${escapeHtml(s.name)} <span style="color:var(--text-muted)">(${escapeHtml(s.code)})</span></td><td><span class="status-badge status-active">${escapeHtml(s.currentSection||'Đang chờ')}</span></td><td>${s.startAt ? formatDateTime(s.startAt) : '-'}</td><td>${s.lastActive ? formatDateTime(s.lastActive) : '-'}</td></tr>`;
-    });
+  const countEl = document.getElementById('onlinePageCount');
+  if (countEl) countEl.textContent = onlineList.length;
+  
+  // Cards grid
+  const grid = document.getElementById('onlineCardsGrid');
+  if (grid) {
+    if (onlineList.length === 0) {
+      grid.innerHTML = '';
+    } else {
+      grid.innerHTML = onlineList.map(s => {
+        const elapsed = s.startAt ? Math.floor((Date.now() - s.startAt.getTime()) / 60000) : 0;
+        return `<div style="background:var(--bg-card);border:2px solid var(--success);border-radius:var(--radius-md);padding:16px;display:flex;gap:12px;align-items:center;">
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white;flex-shrink:0;">${escapeHtml((s.name||'?').charAt(0).toUpperCase())}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(s.name||'')}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(s.code||'')} · ${escapeHtml(s.unit||'')}</div>
+            <div style="margin-top:6px;"><span style="background:var(--success-light);color:var(--success);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;">${escapeHtml(s.currentSection||'Đang chờ')}</span></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:18px;font-weight:800;color:var(--accent);">${elapsed}<span style="font-size:11px;font-weight:500;">ph</span></div>
+            <div style="font-size:10px;color:var(--text-muted);">online</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
   }
-  document.getElementById('onlineModal').classList.add('show');
+
+  // Table
+  const tb = document.getElementById('onlineTableBody');
+  if (!tb) return;
+  if (onlineList.length === 0) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">🟡 Hiện không có học viên nào đang online</td></tr>';
+    return;
+  }
+  let h = '';
+  onlineList.forEach((s, i) => {
+    const elapsed = s.startAt ? Math.floor((Date.now() - s.startAt.getTime()) / 60000) : 0;
+    h += `<tr>
+      <td>${i+1}</td>
+      <td><b>${escapeHtml(s.name||'')}</b></td>
+      <td><span style="font-family:monospace;font-weight:700;color:var(--accent);">${escapeHtml(s.code||'')}</span></td>
+      <td style="text-align:left;">${escapeHtml(s.unit||'—')}</td>
+      <td><span class="status-badge status-active">${escapeHtml(s.currentSection||'Đang chờ')}</span></td>
+      <td>${s.startAt ? formatDateTime(s.startAt) : '—'}</td>
+      <td>${s.lastActive ? formatDateTime(s.lastActive) : '—'}</td>
+      <td><b style="color:var(--accent);">${elapsed > 0 ? elapsed + ' phút' : '< 1 phút'}</b></td>
+    </tr>`;
+  });
+  tb.innerHTML = h;
 }
 
 // =====================================================================
@@ -2071,11 +2231,10 @@ function renderStudentTable() {
     const sc = s.status==='active' ? 'status-active' : 'status-locked';
     const st2 = s.status==='active' ? '● Hoạt động' : '● Đã khóa';
     const pwDisplay = s.passwordChanged ? '••••••' : DEFAULT_PASSWORD;
-    const rawPw = s.passwordChanged ? (s.password || '••••••') : DEFAULT_PASSWORD;
     h += `<tr>
       <td>${(currentPage-1)*itemsPerPage+i+1}</td>
       <td><b>${escapeHtml(s.code)}</b></td>
-      <td class="no-print"><span id="pwd_${s.code}" class="password-mask" onclick="togglePasswordView('${s.code}','${rawPw}')" title="Click để xem/ẩn mật khẩu">${pwDisplay}</span></td>
+      <td class="no-print"><span class="password-mask" title="Click để xem">${pwDisplay}</span></td>
       <td style="text-align:left">${escapeHtml(s.name)}</td>
       <td style="text-align:left">${escapeHtml(s.unit)}</td>
       <td>${formatDate(s.dob)}</td>
@@ -2992,23 +3151,28 @@ function toggleConfigLiet() {
 
 function updateConfigSummary() {
   const gi = document.querySelectorAll('.group-count');
-  const hl = document.getElementById('configHasLiet').checked;
+  const hl = document.getElementById('configHasLiet') ? document.getElementById('configHasLiet').checked : false;
   const lietCount = hl ? (parseInt(document.getElementById('configLietCount').value) || 0) : 0;
   const lietPositions = hl ? getLietPositions() : [];
 
-  // Tổng câu = tự động từ tổng các nhóm (admin không tự điền)
   let a = 0;
   gi.forEach(i => { a += parseInt(i.value) || 0; });
   
-  // Auto set totalQuestions = sum of groups
+  // Auto update all total displays
   const totalEl = document.getElementById('configTotalQuestions');
-  if (totalEl) { totalEl.value = a > 0 ? a : ''; }
+  if (totalEl) totalEl.value = a;
+  const totalDisp = document.getElementById('configTotalDisplay');
+  if (totalDisp) totalDisp.textContent = a;
+  
+  const taEl = document.getElementById('totalAllocated');
+  if (taEl) taEl.textContent = a;
+  const remEl = document.getElementById('remainingQuestions');
+  if (remEl) remEl.textContent = 0;
+  const cstEl = document.getElementById('configSummaryTotal');
+  if (cstEl) cstEl.textContent = a;
+  const csgEl = document.getElementById('configSummaryGroups');
+  if (csgEl) csgEl.textContent = gi.length;
 
-  document.getElementById('totalAllocated').textContent = a;
-  document.getElementById('remainingQuestions').textContent = 0;
-  document.getElementById('remainingQuestions').style.color = 'var(--success)';
-  document.getElementById('configSummaryTotal').textContent = a;
-  document.getElementById('configSummaryGroups').textContent = gi.length;
   const et = document.getElementById('configExamTime'); 
   const eq = document.getElementById('configExamQuestions');
   const stEl = document.getElementById('configSummaryTime');
@@ -3016,11 +3180,14 @@ function updateConfigSummary() {
   if (stEl && et) stEl.textContent = et.value ? et.value + ' phút' : '—';
   if (seEl && eq) seEl.textContent = eq.value ? eq.value + ' câu' : '—';
 
-  if (hl && lietCount > 0) {
-    const posStr = lietPositions.length > 0 ? lietPositions.join(', ') : '?';
-    document.getElementById('configSummaryLiet').textContent = `${lietCount} câu (vị trí: ${posStr})`;
-  } else {
-    document.getElementById('configSummaryLiet').textContent = 'Không';
+  const cslEl = document.getElementById('configSummaryLiet');
+  if (cslEl) {
+    if (hl && lietCount > 0) {
+      const posStr = lietPositions.length > 0 ? lietPositions.join(', ') : '?';
+      cslEl.textContent = `\${lietCount} câu (vị trí: \${posStr})`;
+    } else {
+      cslEl.textContent = 'Không';
+    }
   }
 }
 
@@ -3038,7 +3205,8 @@ function updateConfigSummary() {
    showLoading('Đang lưu...');
    try {
      const vt=document.getElementById('setVehicleType').value||'moto';
-   const ns={ code:cd, name:nm, description:ds, groups:gs.length, groupDetails:gs, totalQuestions:0, examTime:0, examQuestions:0, vehicleType:vt, status:'active', lietQuestion:hl?1:0, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
+   const vr=(document.getElementById('setVersion')?document.getElementById('setVersion').value.trim():'');
+   const ns={ code:cd, name:nm, description:ds, version:vr, groups:gs.length, groupDetails:gs, totalQuestions:0, examTime:0, examQuestions:0, vehicleType:vt, status:'active', lietQuestion:hl?1:0, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
      await db.collection('questionSets').doc(cd).set(ns);
      ns.createdAt=new Date(); allQuestionSets.unshift(ns);
      showToast('Tạo bộ đề OK!','success');
@@ -3054,7 +3222,20 @@ function updateConfigSummary() {
   document.getElementById('configSetName').textContent = s.name;
   document.getElementById('configName').value = s.name;
   document.getElementById('configCode').value = s.code;
-  document.getElementById('configTotalQuestions').value = s.totalQuestions || '';
+  // Populate read-only info display
+  const configNameEl = document.getElementById('configName');
+  const configCodeEl = document.getElementById('configCode');
+  if (configNameEl) { configNameEl.textContent = s.name || ''; }
+  if (configCodeEl) { configCodeEl.textContent = s.code || ''; }
+  // Set hidden total
+  const tqEl = document.getElementById('configTotalQuestions');
+  if (tqEl) tqEl.value = s.totalQuestions || 0;
+  // Update display
+  const totalDisp = document.getElementById('configTotalDisplay');
+  const actualDisp = document.getElementById('configActualDisplay');
+  if (totalDisp) totalDisp.textContent = s.totalQuestions || 0;
+  if (actualDisp) actualDisp.textContent = s.actualCount !== undefined ? s.actualCount : (s.totalQuestions || 0);
+  // Editable fields
   document.getElementById('configExamTime').value = s.examTime || '';
   document.getElementById('configExamQuestions').value = s.examQuestions || '';
 
@@ -3176,23 +3357,26 @@ function updateConfigSummary() {
   const c = currentSetForQuestions;
   const s = allQuestionSets.find(x => x.code === c);
   if (!s) return;
-  const tq = parseInt(document.getElementById('configTotalQuestions').value) || 0;
+
+  // Read editable fields
+  const examTime = parseInt(document.getElementById('configExamTime').value) || 0;
+  const examQuestions = parseInt(document.getElementById('configExamQuestions').value) || 0;
   const hl = document.getElementById('configHasLiet').checked;
   const lietCount = hl ? (parseInt(document.getElementById('configLietCount').value) || 0) : 0;
   const lietPositions = hl ? getLietPositions() : [];
 
-  if (tq <= 0) { showToast('Nhập tổng câu!', 'error'); return; }
+  if (examTime <= 0) { showToast('Vui lòng nhập thời gian thi (phút)!', 'error'); document.getElementById('configExamTime').focus(); return; }
+  if (examQuestions <= 0) { showToast('Vui lòng nhập số câu hỏi trong đề thi!', 'error'); document.getElementById('configExamQuestions').focus(); return; }
 
   if (hl) {
     if (lietCount <= 0) { showToast('Nhập số lượng câu liệt!', 'error'); return; }
-    // Validate positions
+    const tqForLiet = examQuestions;
     for (const pos of lietPositions) {
-      if (pos < 1 || pos > tq) {
-        showToast(`Vị trí câu liệt phải từ 1 đến ${tq}!`, 'error');
+      if (pos < 1 || pos > tqForLiet) {
+        showToast(\`Vị trí câu liệt phải từ 1 đến \${tqForLiet}!\`, 'error');
         return;
       }
     }
-    // Check duplicates
     const uniquePos = new Set(lietPositions);
     if (uniquePos.size !== lietPositions.length) {
       showToast('Vị trí câu liệt không được trùng nhau!', 'error');
@@ -3200,10 +3384,11 @@ function updateConfigSummary() {
     }
   }
 
+  // Calculate tq from groups
   const gc = document.querySelectorAll('.group-count');
   let tc = 0; const gv = [];
   gc.forEach(i => { const v = parseInt(i.value) || 0; tc += v; gv.push(v); });
-  // tq = tc (auto), no check needed
+  const tq = tc; // auto-calculated from groups
 
   // Collect new groups
   const newGroupCards = document.querySelectorAll('.group-card[data-new="true"]');
@@ -3212,23 +3397,24 @@ function updateConfigSummary() {
     const nameInput = card.querySelector('.config-group-name-new');
     const countInput = card.querySelector('.group-count');
     const gName = nameInput ? nameInput.value.trim() : '';
-    if (!gName) { showToast('Nhập tên nhóm mới!', 'error'); nameInput.focus(); return; }
+    if (!gName) { showToast('Nhập tên nhóm mới!', 'error'); if(nameInput) nameInput.focus(); return; }
     newGroups.push({ name: gName, count: parseInt(countInput?.value) || 0 });
   }
 
-  showLoading('Đang lưu...');
+  showLoading('Đang lưu cài đặt...');
   try {
     const updatedGroupDetails = s.groupDetails ? [...s.groupDetails] : [];
     let gcIdx = 0;
-    updatedGroupDetails.forEach((g, i) => { g.count = gv[gcIdx++] || 0; });
-    newGroups.forEach((ng, i) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length] || ng.count }); });
+    updatedGroupDetails.forEach((g) => { g.count = gv[gcIdx++] || 0; });
+    newGroups.forEach((ng) => { updatedGroupDetails.push({ name: ng.name, count: gv[updatedGroupDetails.length] || ng.count }); });
 
+    // Update local cache
     s.totalQuestions = tq;
     s.examTime = examTime;
     s.examQuestions = examQuestions;
     s.lietCount = lietCount;
     s.lietPositions = lietPositions;
-    s.lietQuestion = lietCount; // backward compat
+    s.lietQuestion = lietCount;
     s.groupDetails = updatedGroupDetails;
     s.groups = updatedGroupDetails.length;
 
@@ -3243,9 +3429,11 @@ function updateConfigSummary() {
       groups: updatedGroupDetails.length,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showToast('Lưu OK!', 'success');
-    backToQuestionSets(); loadQuestionSets(); loadDashboard();
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); } finally { hideLoading(); }
+    showToast('✅ Đã lưu cài đặt bộ đề thành công!', 'success');
+    backToQuestionSets();
+    await loadQuestionSets();
+    loadDashboard();
+  } catch (e) { showToast('Lỗi khi lưu: ' + e.message, 'error'); } finally { hideLoading(); }
 }
 
  // =====================================================================
@@ -3567,35 +3755,209 @@ function updateConfigSummary() {
  async function loadExamResults(){
    const f=document.getElementById('resultDateFrom').value;
    const t=document.getElementById('resultDateTo').value;
-   if(!f){showToast('Chọn ngày bắt đầu','info');return;}
-   showLoading('Đang tải...');
+   const searchQ=document.getElementById('resultSearchStudent');
+   if(searchQ) searchQ.value='';
+   showLoading('Đang tải kết quả thi...');
    try{
      let q=db.collection('examResults').orderBy('timestamp','desc');
-     const fd=new Date(f);fd.setHours(0,0,0,0);
-     q=q.where('timestamp','>=',fd);
-     if(t){const td=new Date(t);td.setHours(23,59,59,999);q=q.where('timestamp','<=',td);}
-     const snap=await q.limit(500).get();
-     allResults=snap.docs.map(d=>{const dt=d.data();const st=allStudents.find(s=>s.code===dt.studentCode);return{id:d.id,...dt,studentName:st?.name||'?',timestamp:dt.timestamp?.toDate?dt.timestamp.toDate():new Date()};});
-     renderResultsTable();
-   }catch(e){showToast('Lỗi: '+e.message,'error');}finally{hideLoading();}
+     if(f){ const fd=new Date(f); fd.setHours(0,0,0,0); q=q.where('timestamp','>=',fd); }
+     if(t){ const td=new Date(t); td.setHours(23,59,59,999); q=q.where('timestamp','<=',td); }
+     const snap=await q.limit(1000).get();
+     allResults=snap.docs.map(d=>{
+       const dt=d.data();
+       const st=allStudents.find(s=>s.code===dt.studentCode);
+       return{id:d.id,...dt,studentName:st?.name||dt.studentName||'?',studentUnit:st?.unit||'',timestamp:dt.timestamp?.toDate?dt.timestamp.toDate():new Date()};
+     });
+     renderResultsTable(allResults);
+     updateResultsSummary(allResults);
+   }catch(e){showToast('Lỗi tải kết quả: '+e.message,'error');}finally{hideLoading();}
  }
- function renderResultsTable(){
+
+ function filterResultsTable(){
+   const q=(document.getElementById('resultSearchStudent')?.value||'').toLowerCase().trim();
+   if(!q){ renderResultsTable(allResults); updateResultsSummary(allResults); return; }
+   const filtered=allResults.filter(r=>
+     (r.studentCode||'').toLowerCase().includes(q)||(r.studentName||'').toLowerCase().includes(q)
+   );
+   renderResultsTable(filtered);
+   updateResultsSummary(filtered);
+ }
+
+ function updateResultsSummary(data){
+   const bar=document.getElementById('resultsSummaryBar');
+   if(!bar) return;
+   if(!data.length){ bar.style.display='none'; return; }
+   bar.style.display='flex';
+   const pass=data.filter(r=>(r.score||0)>=80).length;
+   const fail=data.length-pass;
+   const rate=Math.round(pass/data.length*100);
+   const avg=Math.round(data.reduce((a,r)=>a+(r.score||0),0)/data.length);
+   document.getElementById('rSumTotal').textContent=data.length;
+   document.getElementById('rSumPass').textContent=pass;
+   document.getElementById('rSumFail').textContent=fail;
+   document.getElementById('rSumRate').textContent=rate+'%';
+   document.getElementById('rSumAvg').textContent=avg;
+ }
+
+ function renderResultsTable(data){
    const tb=document.getElementById('resultsTableBody');
-   if(!allResults.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Không có kết quả</td></tr>';return;}
+   if(!data||!data.length){
+     tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:30px;">Không tìm thấy kết quả nào</td></tr>';
+     return;
+   }
    let h='';
-   allResults.forEach((r,i)=>{
+   data.forEach((r,i)=>{
      const pass=(r.score||0)>=80;
-     h+=`<tr><td>${i+1}</td><td>${formatDateTime(r.timestamp)}</td><td><b>${escapeHtml(r.studentCode||'')}</b></td><td style="text-align:left">${escapeHtml(r.studentName)}</td><td>${escapeHtml(r.setName||r.setCode||'')}</td><td><b>${r.score||0}</b></td><td><span class="rate ${pass?'good':'bad'}">${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span></td></tr>`;
+     const correct=r.correctCount!==undefined?r.correctCount:(r.answers?Object.values(r.answers).filter(a=>a.isCorrect).length:'-');
+     const total=r.totalCount!==undefined?r.totalCount:(r.answers?Object.keys(r.answers).length:'-');
+     const wrong=typeof correct==='number'&&typeof total==='number'?total-correct:'-';
+     h+=\`<tr>
+       <td>\${i+1}</td>
+       <td style="font-size:12px;">\${formatDateTime(r.timestamp)}</td>
+       <td><b style="font-family:monospace;">\${escapeHtml(r.studentCode||'')}</b></td>
+       <td style="text-align:left;">\${escapeHtml(r.studentName)}</td>
+       <td style="text-align:left;font-size:12px;">\${escapeHtml(r.setName||r.setCode||'')}</td>
+       <td><b style="font-size:16px;">\${r.score||0}</b></td>
+       <td>
+         <span style="color:var(--success);font-weight:700;">\${correct !== '-' ? '✓' + correct : '?'}</span>
+         <span style="color:var(--text-muted);margin:0 4px;">/</span>
+         <span style="color:var(--danger);font-weight:700;">\${wrong !== '-' ? '✗' + wrong : '?'}</span>
+       </td>
+       <td><span class="rate \${pass?'good':'bad'}">\${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span></td>
+       <td><button class="btn btn-info btn-sm" onclick="viewExamDetail('\${r.id}')">🔍 Xem</button></td>
+     </tr>\`;
    });
    tb.innerHTML=h;
  }
+
+ async function viewExamDetail(resultId){
+   showLoading('Đang tải chi tiết...');
+   try{
+     const doc=await db.collection('examResults').doc(resultId).get();
+     if(!doc.exists){showToast('Không tìm thấy kết quả!','error');hideLoading();return;}
+     const r={id:doc.id,...doc.data()};
+     r.timestamp=r.timestamp?.toDate?r.timestamp.toDate():new Date();
+     const st=allStudents.find(s=>s.code===r.studentCode);
+     r.studentName=r.studentName||st?.name||'?';
+     r.studentUnit=r.studentUnit||st?.unit||'';
+
+     const pass=(r.score||0)>=80;
+     const answers=r.answers||{};
+     const answerKeys=Object.keys(answers);
+     const correctCount=answerKeys.filter(k=>answers[k].isCorrect).length;
+     const wrongCount=answerKeys.length-correctCount;
+
+     // Build detail HTML
+     let detailHtml=\`
+       <div class="box" style="margin-bottom:20px;">
+         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+           <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,\${pass?'#10b981,#059669':'#ef4444,#dc2626'});display:flex;align-items:center;justify-content:center;font-size:26px;color:white;font-weight:900;flex-shrink:0;">
+             \${r.score||0}
+           </div>
+           <div style="flex:1;">
+             <div style="font-size:20px;font-weight:800;">\${escapeHtml(r.studentName)}</div>
+             <div style="font-size:13px;color:var(--text-muted);">\${escapeHtml(r.studentCode||'')} · \${escapeHtml(r.studentUnit||'')} · \${formatDateTime(r.timestamp)}</div>
+             <div style="margin-top:6px;">
+               <span style="background:\${pass?'var(--success-light)':'var(--danger-light)'};color:\${pass?'var(--success)':'var(--danger)'};padding:4px 14px;border-radius:20px;font-weight:700;font-size:13px;">\${pass?'✓ ĐẠT':'✗ TRƯỢT'}</span>
+             </div>
+           </div>
+           <div style="display:flex;gap:16px;text-align:center;">
+             <div style="background:var(--success-light);border-radius:var(--radius-sm);padding:12px 18px;">
+               <div style="font-size:11px;color:var(--success);font-weight:700;">CÂU ĐÚNG</div>
+               <div style="font-size:28px;font-weight:900;color:var(--success);">\${correctCount}</div>
+             </div>
+             <div style="background:var(--danger-light);border-radius:var(--radius-sm);padding:12px 18px;">
+               <div style="font-size:11px;color:var(--danger);font-weight:700;">CÂU SAI</div>
+               <div style="font-size:28px;font-weight:900;color:var(--danger);">\${wrongCount}</div>
+             </div>
+             <div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:12px 18px;">
+               <div style="font-size:11px;color:var(--accent);font-weight:700;">TỔNG SỐ</div>
+               <div style="font-size:28px;font-weight:900;color:var(--accent);">\${answerKeys.length}</div>
+             </div>
+           </div>
+         </div>
+         <div style="margin-top:16px;padding:12px;background:var(--bg-hover);border-radius:var(--radius-sm);display:flex;gap:20px;flex-wrap:wrap;font-size:13px;">
+           <span>📋 Đề: <b>\${escapeHtml(r.setName||r.setCode||'?')}</b></span>
+           <span>⏱ Thời gian làm bài: <b>\${r.duration||'?'} phút</b></span>
+           <span>🏍 Loại xe: <b>\${r.vehicleType==='oto'?'Ô tô':'Mô tô'}</b></span>
+         </div>
+       </div>\`;
+
+     // Only show detailed questions if answers data exists
+     if(answerKeys.length>0){
+       // First show wrong answers, then right
+       const wrongAnswers=answerKeys.filter(k=>!answers[k].isCorrect);
+       const rightAnswers=answerKeys.filter(k=>answers[k].isCorrect);
+
+       if(wrongAnswers.length>0){
+         detailHtml+=\`<div class="box" style="margin-bottom:16px;border-left:4px solid var(--danger);">
+           <h4 style="color:var(--danger);margin-bottom:16px;">✗ Câu trả lời SAI (\${wrongAnswers.length} câu)</h4>
+           <div style="display:flex;flex-direction:column;gap:16px;">\`;
+
+         wrongAnswers.forEach((key,idx)=>{
+           const a=answers[key];
+           const qNum=parseInt(key.replace('q',''))+1||idx+1;
+           detailHtml+=\`
+             <div style="border:1px solid var(--danger-light);border-radius:var(--radius-md);padding:16px;background:var(--bg-card);">
+               <div style="font-weight:700;margin-bottom:12px;">Câu \${qNum}: <span style="font-weight:500;">\${escapeHtml(a.question||a.content||'(Nội dung câu hỏi)')}</span></div>
+               \${a.imageUrl?\`<img src="\${escapeHtml(a.imageUrl)}" style="max-width:100%;max-height:200px;border-radius:8px;margin-bottom:10px;" onerror="this.style.display='none'">\`:''}
+               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                 \${(a.allAnswers||[]).map((ans,ai)=>{
+                   const isChosen=a.chosen===ai||a.chosen===ai+1||a.chosenIndex===ai;
+                   const isCorrect=a.correctAnswer===ai||a.correctAnswer===ai+1||a.correctIndex===ai;
+                   let bg='var(--bg-hover)';let cl='var(--text-primary)';let prefix='';
+                   if(isCorrect){bg='var(--success-light)';cl='var(--success)';prefix='✓ ';}
+                   if(isChosen&&!isCorrect){bg='var(--danger-light)';cl='var(--danger)';prefix='✗ ';}
+                   return \`<div style="padding:8px 12px;border-radius:6px;background:\${bg};color:\${cl};font-size:13px;\${isChosen||isCorrect?'font-weight:600;':''}">\${prefix}<b>\${String.fromCharCode(65+ai)}.</b> \${escapeHtml(ans||'')}</div>\`;
+                 }).join('')}
+               </div>
+               <div style="display:flex;gap:16px;font-size:12px;">
+                 <span style="color:var(--danger);">❌ Đã chọn: <b>\${escapeHtml(a.chosenText||a.allAnswers?.[a.chosen]||a.allAnswers?.[a.chosenIndex]||'?')}</b></span>
+                 <span style="color:var(--success);">✅ Đáp án đúng: <b>\${escapeHtml(a.correctText||a.allAnswers?.[a.correctAnswer]||a.allAnswers?.[a.correctIndex]||'?')}</b></span>
+               </div>
+             </div>\`;
+         });
+         detailHtml+=\`</div></div>\`;
+       }
+
+       if(rightAnswers.length>0){
+         detailHtml+=\`<div class="box" style="border-left:4px solid var(--success);">
+           <h4 style="color:var(--success);margin-bottom:16px;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+             ✓ Câu trả lời ĐÚNG (\${rightAnswers.length} câu) <span style="font-size:12px;opacity:0.7;">▼ click để xem/ẩn</span>
+           </h4>
+           <div style="display:none;flex-direction:column;gap:10px;">\`;
+         rightAnswers.forEach((key,idx)=>{
+           const a=answers[key];
+           const qNum=parseInt(key.replace('q',''))+1||idx+1;
+           detailHtml+=\`<div style="padding:12px;background:var(--success-light);border-radius:var(--radius-sm);font-size:13px;">
+             <b>Câu \${qNum}:</b> \${escapeHtml(a.question||a.content||'?')} 
+             <span style="color:var(--success);margin-left:8px;">✅ \${escapeHtml(a.chosenText||a.correctText||'Đúng')}</span>
+           </div>\`;
+         });
+         detailHtml+=\`</div></div>\`;
+       }
+     } else {
+       detailHtml+=\`<div class="box"><p style="color:var(--text-muted);text-align:center;padding:20px;">⚠ Dữ liệu chi tiết câu hỏi không được lưu trong kết quả thi này.<br>Chỉ hiển thị điểm tổng.</p></div>\`;
+     }
+
+     document.getElementById('resultDetailContent').innerHTML=detailHtml;
+     showPage('result_detail_page',null);
+   }catch(e){showToast('Lỗi tải chi tiết: '+e.message,'error');}finally{hideLoading();}
+ }
+
  function exportResults(){
    if(!allResults.length){showToast('Không có dữ liệu!','warning');return;}
-   const d=[['STT','Thời gian','Mã HV','Họ tên','Đề','Điểm','Kết quả']];
-   allResults.forEach((r,i)=>{d.push([i+1,formatDateTime(r.timestamp),r.studentCode,r.studentName,r.setName||'',r.score||0,(r.score||0)>=80?'Đạt':'Trượt']);});
+   const d=[['STT','Thời gian','Mã HV','Họ tên','Đơn vị','Đề thi','Điểm','Câu đúng','Câu sai','Kết quả']];
+   allResults.forEach((r,i)=>{
+     const answers=r.answers||{};
+     const keys=Object.keys(answers);
+     const correct=keys.filter(k=>answers[k].isCorrect).length;
+     const wrong=keys.length-correct;
+     d.push([i+1,formatDateTime(r.timestamp),r.studentCode,r.studentName,r.studentUnit||'',r.setName||'',r.score||0,correct,wrong,(r.score||0)>=80?'Đạt':'Trượt']);
+   });
    const ws=XLSX.utils.aoa_to_sheet(d);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'KetQua');
-   XLSX.writeFile(wb,`KetQua_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
-   showToast('Đã xuất báo cáo','success');
+   XLSX.writeFile(wb,\`KetQua_\${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx\`);
+   showToast('Đã xuất báo cáo Excel','success');
  }
 
  // =====================================================================
@@ -3637,6 +3999,8 @@ function showPage(id, btn) {
     case 'dashboard': loadDashboard(); break;
     case 'students': loadStudents(); break;
     case 'question_sets': loadQuestionSets(); break;
+    case 'results': break;
+    case 'online_users_page': renderOnlinePage(); break;
     case 'stats': loadStats(); break;
     case 'system': loadMaintenanceState(); break;
   }
@@ -3947,6 +4311,38 @@ window.onclick = function(e){ if(e.target.classList.contains('modal'))e.target.c
 // =====================================================================
 
 // Toggle password visibility
+
+function toggleAdminPwField(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (btn) btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    if (btn) btn.textContent = '👁';
+  }
+}
+function toggleAllAdminPw(show) {
+  ['currentAdminPw','newAdminPw','confirmAdminPw'].forEach((id, i) => {
+    const inp = document.getElementById(id);
+    const eyeId = ['eyeC','eyeN','eyeCo'][i];
+    const btn = document.getElementById(eyeId);
+    if (inp) { inp.type = show ? 'text' : 'password'; }
+    if (btn) btn.textContent = show ? '🙈' : '👁';
+  });
+}
+function toggleAllPw2(show) {
+  ['oldPassword','newPassword','confirmPassword'].forEach((id, i) => {
+    const inp = document.getElementById(id);
+    const eyeId = ['eyeOld','eyeNew','eyeConf'][i];
+    const btn = document.getElementById(eyeId);
+    if (inp) { inp.type = show ? 'text' : 'password'; }
+    if (btn) btn.textContent = show ? '🙈' : '👁';
+  });
+}
+
 function togglePasswordView(code, password) {
   const pwdEl = document.getElementById('pwd_' + code);
   if (!pwdEl) return;
@@ -3961,7 +4357,48 @@ function togglePasswordView(code, password) {
   }
 }
 
-// resetStudentPassword - defined earlier
+// Reset student password to default
+function toggleStudentPwVisibility() {
+  const el = document.getElementById('currentStudentPwDisplay');
+  const btn = document.getElementById('togglePwBtn');
+  const changed = el.getAttribute('data-changed') === '1';
+  if (el.getAttribute('data-visible') === '1') {
+    el.textContent = changed ? '(Đã thay đổi)' : DEFAULT_PASSWORD;
+    el.setAttribute('data-visible','0');
+    btn.textContent = '👁';
+  } else {
+    const raw = changed ? el.getAttribute('data-password') : DEFAULT_PASSWORD;
+    el.textContent = raw || DEFAULT_PASSWORD;
+    el.setAttribute('data-visible','1');
+    btn.textContent = '🙈';
+  }
+}
+async function resetStudentPassword() {
+  if (!currentEditingCode) return;
+  const ok = await showConfirm(
+    'Reset mật khẩu',
+    'Reset mật khẩu học viên về mặc định (123456)?',
+    '🔄'
+  );
+  if (!ok) return;
+  
+  showLoading('Đang reset mật khẩu...');
+  try {
+    await db.collection('students').doc(currentEditingCode).update({
+      password: DEFAULT_PASSWORD,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    const s = allStudents.find(x => x.code === currentEditingCode);
+    if (s) s.password = DEFAULT_PASSWORD;
+    
+    showToast('Đã reset mật khẩu về 123456', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
 
 // Delete all system data
 async function deleteAllSystemData() {
@@ -4224,14 +4661,14 @@ async function saveNewAdminPassword() {
     await db.collection('system').doc('admin').set({
       password: newPwd,
       email: ADMIN_EMAIL,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      updatedAt: fir
+ebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
-    
-    closeModal('changePasswordModal');
-    showToast('Đổi mật khẩu thành công!', 'success');
-    ['oldPassword','newPassword','confirmPassword'].forEach(id => document.getElementById(id).value = '');
+    closeModal("changePasswordModal");
+    showToast("Đổi mật khẩu thành công!", "success");
+    ["oldPassword","newPassword","confirmPassword"].forEach(id => document.getElementById(id).value = "");
   } catch(e) {
-    showToast('Lỗi: ' + e.message, 'error');
+    showToast("Lỗi: " + e.message, "error");
   } finally {
     hideLoading();
   }
