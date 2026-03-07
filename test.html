@@ -521,5 +521,38 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 setupUI();
 loadSets();
 </script>
+ <script>
+// =================================================================
+// BẢO VỆ TÀI KHOẢN (REAL-TIME KICK OUT)
+// =================================================================
+(function initRealtimeSecurity() {
+    const studentCode = localStorage.getItem('studentCode');
+    const userType = localStorage.getItem('userType');
+
+    // Chỉ kiểm tra nếu là tài khoản Học viên
+    if(userType !== 'student' || !studentCode) return;
+
+    // Phải chắc chắn biến db đã có (đã khởi tạo firebase ở phía trên)
+    const db = firebase.firestore();
+
+    // Lắng nghe liên tục sự thay đổi của tài khoản trên Database
+    db.collection('students').doc(studentCode).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            // Nếu bị admin bấm KHÓA
+            if (data.status === 'locked') {
+                // Xóa trạng thái Online
+                db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
+                
+                alert('🔒 TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nTài khoản của bạn vừa bị vô hiệu hóa bởi Quản trị viên.\nVui lòng liên hệ Admin để biết thêm chi tiết.');
+                
+                // Xóa phiên làm việc và đá văng ngay lập tức
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+    });
+})();
+</script>
 </body>
 </html>
