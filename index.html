@@ -230,7 +230,7 @@ return{render:render};
 })();
 <script>
 // =====================================================================
-// 1. FIREBASE & CẤU HÌNH
+// 1. KẾT NỐI FIREBASE
 // =====================================================================
 let db = null, firebaseReady = false;
 try {
@@ -251,7 +251,6 @@ function showError(m){const e=document.getElementById('loginError');e.innerHTML=
 function hideError(){document.getElementById('loginError').classList.remove('show');}
 function showSuccess(m){const e=document.getElementById('loginSuccess');e.innerHTML=m;e.classList.add('show');document.getElementById('loginError').classList.remove('show');clearTimeout(window._st);window._st=setTimeout(()=>e.classList.remove('show'),5000);}
 function showLoginLoading(s){const e=document.getElementById('loginLoading'),b=document.getElementById('loginBtn');if(s){e.classList.add('show');b.disabled=true;}else{e.classList.remove('show');b.disabled=false;}}
-function normalize(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
 
 // =====================================================================
 // 2. LOGIC BẢO TRÌ & ĐỒNG HỒ
@@ -271,8 +270,6 @@ function showMaintenancePage() {
     isSystemMaintenance = true;
     document.getElementById('maintenancePage').classList.add('show');
     document.getElementById('mainLoginContent').style.display = 'none';
-    
-    // Bắt đầu chạy đồng hồ
     updateMaintClock();
     if(maintClockInterval) clearInterval(maintClockInterval);
     maintClockInterval = setInterval(updateMaintClock, 1000);
@@ -282,43 +279,26 @@ function hideMaintenancePage() {
     isSystemMaintenance = false;
     document.getElementById('maintenancePage').classList.remove('show');
     document.getElementById('mainLoginContent').style.display = '';
-    
-    // Dừng đồng hồ
     if(maintClockInterval) clearInterval(maintClockInterval);
 }
 
 function updateMaintClock() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
-    const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-    document.getElementById('maintClock').textContent = timeStr;
-    document.getElementById('maintDate').textContent = dateStr;
+    document.getElementById('maintClock').textContent = now.toLocaleTimeString('vi-VN', {hour12:false});
+    document.getElementById('maintDate').textContent = now.toLocaleDateString('vi-VN', {weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
 }
 
-function goBackFromMaintenance() {
-    hideMaintenancePage();
-}
+function goBackFromMaintenance() { hideMaintenancePage(); }
 
 // =====================================================================
-// 3. KHỞI TẠO (INIT)
+// 3. KHỞI TẠO
 // =====================================================================
 window.onload = async function() {
-    // A. XÓA SẠCH DỮ LIỆU CŨ (FIX LỖI TỰ ĐĂNG NHẬP)
-    localStorage.clear(); 
-    sessionStorage.clear();
-    
-    // B. Render QR Code
+    localStorage.clear(); sessionStorage.clear(); // Xóa sạch phiên cũ
     const siteUrl = window.location.href.split('?')[0].replace(/\/[^\/]*$/,'/');
     QRCode.render(document.getElementById('qrCanvas'), siteUrl, 110);
-
     setupEventListeners();
-
-    // C. Check bảo trì ngay lập tức
-    try {
-        if(await checkMaintenanceMode()){
-            showMaintenancePage();
-        }
-    } catch(e) {}
+    try { if(await checkMaintenanceMode()) showMaintenancePage(); } catch(e) {}
 };
 
 function setupEventListeners(){
@@ -340,20 +320,19 @@ async function login() {
     const raw = document.getElementById('loginInput').value.trim();
     const pass = document.getElementById('password').value;
 
-    if (!raw) { showError('⚠ Vui lòng nhập mã học viên.'); return; }
+    if (!raw) { showError('⚠ Vui lòng nhập Mã học viên hoặc Họ tên.'); return; }
     if (!pass) { showError('⚠ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
 
     showLoginLoading(true);
 
     try {
-        // Kiểm tra Admin trước
         if (raw.toLowerCase() === 'admin') {
             await processAdminLogin(pass);
         } else {
             await processStudentLogin(raw, pass);
         }
     } catch (error) {
-        console.error("Login Error:", error);
+        console.error(error);
         showError('⚠ Lỗi kết nối. Vui lòng thử lại.');
     } finally {
         showLoginLoading(false);
@@ -363,7 +342,6 @@ async function login() {
 async function processAdminLogin(pass) {
     let matched = false;
     if (pass === _AF) matched = true;
-    
     if (!matched && firebaseReady && db) {
         try {
             const d = await db.collection('systemConfig').doc('admin').get();
@@ -374,7 +352,6 @@ async function processAdminLogin(pass) {
             }
         } catch(e) {}
     }
-
     if (matched) {
         localStorage.setItem('userType', 'admin');
         localStorage.setItem('adminName', 'Admin');
@@ -382,72 +359,41 @@ async function processAdminLogin(pass) {
         setTimeout(() => { location.href = 'admin.html'; }, 800);
     } else {
         showError('❌ Mật khẩu Admin không đúng.');
-        document.getElementById('password').value = '';
-        document.getElementById('password').focus();
     }
 }
 
 async function processStudentLogin(raw, pass) {
-    if (!firebaseReady || !db) {
-        showError('⚠ Mất kết nối máy chủ.');
-        return;
-    }
+    if (!firebaseReady || !db) { showError('⚠ Mất kết nối máy chủ.'); return; }
 
     let st = null, sid = null;
-    const cu = raw.toUpperCase(); // Chuyển mã nhập vào thành chữ hoa
+    const inputUpper = raw.toUpperCase(); // Mã thì viết hoa
+    const inputNormal = raw; // Tên thì giữ nguyên hoặc tùy data
 
-    // FIX LỖI TÌM SAI TÀI KHOẢN:
-    // Bước 1: Ưu tiên tìm chính xác Mã Code nhập vào
+    // --- LOGIC TÌM KIẾM CHẶT CHẼ (YÊU CẦU 1) ---
+    // 1. Tìm chính xác theo CODE (Mã học viên)
     try { 
-        const s = await db.collection('students').where('code','==',cu).limit(1).get(); 
-        if (!s.empty) { 
-            st = { id: s.docs[0].id, ...s.docs[0].data() }; 
-            sid = s.docs[0].id; 
-        } 
+        const s = await db.collection('students').where('code','==',inputUpper).limit(1).get(); 
+        if (!s.empty) { st = { id: s.docs[0].id, ...s.docs[0].data() }; sid = s.docs[0].id; } 
     } catch(e){}
 
-    // Bước 2: Nếu không tìm thấy bằng Code, thử tìm bằng Document ID (trường hợp cũ)
+    // 2. Nếu không ra Code, tìm chính xác theo HỌ TÊN (Name)
+    // Lưu ý: Firebase tìm chuỗi phân biệt hoa thường. 
     if (!st) {
-        try { 
-            const d = await db.collection('students').doc(cu).get(); 
-            if (d.exists) { 
-                st = { id: d.id, ...d.data() }; 
-                sid = d.id; 
-            } 
+        try {
+            // Tìm chính xác theo tên người dùng nhập
+            const n = await db.collection('students').where('name','==',inputNormal).limit(1).get();
+            if (!n.empty) { st = { id: n.docs[0].id, ...n.docs[0].data() }; sid = n.docs[0].id; }
         } catch(e){}
     }
 
-    // Bước 3: Chỉ khi nhập TOÀN SỐ (ví dụ: "123") thì mới được phép đoán tiền tố
-    // Nếu nhập có chữ cái (ví dụ: "HV003") thì tuyệt đối không được vào đây.
-    if (!st && /^\d+$/.test(raw)) {
-        const dg = raw; // Chuỗi số nguyên gốc
-        const prefixes = ['HV', 'SQ', 'CN', 'KH'];
-        
-        for(const p of prefixes){
-            try{
-                // Thử ghép: HV + 0003
-                const tc = p + dg.padStart(4,'0');
-                const s = await db.collection('students').where('code','==',tc).limit(1).get();
-                if (!s.empty) {
-                    st = { id: s.docs[0].id, ...s.docs[0].data() };
-                    sid = s.docs[0].id;
-                    break; // Tìm thấy là dừng ngay, tránh lấy nhầm loại khác
-                }
-            }catch(e){}
-        }
-    }
-
-    // Bỏ qua tìm kiếm bằng Tên (bước 4 cũ) vì dễ gây nhầm lẫn tài khoản trùng tên.
-    
-    // --- XỬ LÝ KẾT QUẢ ---
     if (!st) {
-        showError('⚠ Không tìm thấy mã học viên <b>' + raw + '</b>.');
+        showError('⚠ Không tìm thấy thông tin học viên.<br>Vui lòng nhập chính xác <b>Mã HV</b> hoặc <b>Họ tên đầy đủ</b>.');
         return;
     }
     
     // Kiểm tra khóa tài khoản
     if (st.status === 'locked') {
-        showError('🔒 Tài khoản này đang bị khóa.');
+        showError('🔒 Tài khoản này đang bị khóa.<br>Vui lòng liên hệ Quản trị viên.');
         return;
     }
 
@@ -459,18 +405,14 @@ async function processStudentLogin(raw, pass) {
     if (!ok && !st.password && pass === _DP) ok = true;
 
     if (!ok) {
-        showError('❌ Sai mật khẩu.');
+        showError('❌ Mật khẩu không đúng.');
         document.getElementById('password').value = '';
         document.getElementById('password').focus();
         return;
     }
 
-    // KIỂM TRA BẢO TRÌ SAU CÙNG (Để đảm bảo user nhập đúng mới báo bảo trì)
     const isMaint = await checkMaintenanceMode();
-    if (isMaint) {
-        showMaintenancePage();
-        return;
-    }
+    if (isMaint) { showMaintenancePage(); return; }
 
     // ĐĂNG NHẬP THÀNH CÔNG
     localStorage.setItem('userType','student');
@@ -479,62 +421,48 @@ async function processStudentLogin(raw, pass) {
     localStorage.setItem('studentUnit', st.unit||'');
     localStorage.setItem('studentObject', st.object||'');
 
-    if (!st.passwordChanged && pass === _DP) {
+    // --- LOGIC ĐỔI MẬT KHẨU (YÊU CẦU 2) ---
+    // Chỉ hỏi nếu passwordChanged = false (tức là đang dùng mật khẩu mặc định)
+    if (!st.passwordChanged && (pass === _DP || simpleHash(pass) === simpleHash(_DP))) {
         showSuccess('✅ Đăng nhập thành công!');
         setTimeout(() => {
-            if (confirm('Chào ' + st.name + '!\n\nĐể bảo mật, bạn nên đổi mật khẩu mặc định.\nĐổi ngay bây giờ?')) {
+            if (confirm('CẢNH BÁO BẢO MẬT:\n\nTài khoản đang sử dụng mật khẩu mặc định.\nBạn có muốn đổi mật khẩu ngay bây giờ không?')) {
                 openChangePwModal(sid);
             } else {
                 location.href = 'exam.html';
             }
         }, 500);
     } else {
-        showSuccess('✅ Xin chào ' + st.name + '!');
+        showSuccess('✅ Xin chào ' + st.name + '! Đang vào hệ thống...');
         setTimeout(() => { location.href = 'exam.html'; }, 800);
     }
 }
 
-// ... (Giữ nguyên các hàm Đổi mật khẩu changePw...) ...
-// Bạn nhớ copy lại các hàm openChangePwModal, closeChangePwModal, submitChangePassword 
-// từ file cũ vào đây nếu đoạn trên bị cắt bớt. 
-// Nếu cần tôi sẽ paste lại đầy đủ bên dưới.
+// ... (Giữ nguyên các hàm Đổi mật khẩu changePw...)
+// BẠN VUI LÒNG GIỮ NGUYÊN CÁC HÀM: openChangePwModal, closeChangePwModal, submitChangePassword, checkPasswordStrength, checkConfirmMatch, toggleModalPasswords
+// TỪ CODE TRƯỚC ĐỂ ĐẢM BẢO CHỨC NĂNG ĐỔI MẬT KHẨU HOẠT ĐỘNG.
 
-// =====================================================================
-// CÁC HÀM HỖ TRỢ ĐỔI MẬT KHẨU (BẮT BUỘC PHẢI CÓ)
-// =====================================================================
 let changePwSid='';
 function openChangePwModal(id){changePwSid=id;['cpOldPw','cpNewPw','cpConfirmPw'].forEach(x=>document.getElementById(x).value='');document.getElementById('cpShowPw').checked=false;toggleModalPasswords();['changePwError','changePwSuccess'].forEach(x=>document.getElementById(x).classList.remove('show'));document.getElementById('confirmMatchMsg').textContent='';document.getElementById('pwStrengthFill').style.width='0';document.getElementById('pwStrengthText').textContent='';['tipLen','tipUpper','tipLower','tipNum','tipSpec'].forEach(id=>{const e=document.getElementById(id);e.className='unmet';e.querySelector('.icon').textContent='○';});document.getElementById('changePwModal').classList.add('show');setTimeout(()=>document.getElementById('cpOldPw').focus(),200);}
 function closeChangePwModal(){document.getElementById('changePwModal').classList.remove('show');if(localStorage.getItem('userType')==='student')location.href='exam.html';}
-
 async function submitChangePassword(){
  const o=document.getElementById('cpOldPw').value, n=document.getElementById('cpNewPw').value, c=document.getElementById('cpConfirmPw').value, err=document.getElementById('changePwError'), suc=document.getElementById('changePwSuccess'), btn=document.getElementById('cpSubmitBtn');
  err.classList.remove('show'); suc.classList.remove('show');
- 
  if(!o||!n||!c){err.textContent='⚠ Nhập đầy đủ thông tin!';err.classList.add('show');return;}
  if(n.length<6){err.textContent='⚠ Mật khẩu quá ngắn!';err.classList.add('show');return;}
  if(n!==c){err.textContent='⚠ Mật khẩu xác nhận không khớp!';err.classList.add('show');return;}
  if(n===o){err.textContent='⚠ Mật khẩu mới trùng mật khẩu cũ!';err.classList.add('show');return;}
- 
  btn.disabled=true; btn.textContent='⏳ Đang xử lý...';
  try{
   const d=await db.collection('students').doc(changePwSid).get();
   if(!d.exists){err.textContent='❌ Lỗi dữ liệu!';err.classList.add('show');btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';return;}
-  
   const sh=d.data().password||simpleHash(_DP); let ok=false;
   if(simpleHash(o)===sh)ok=true; if(!ok&&o===sh)ok=true; if(!ok&&!d.data().password&&o===_DP)ok=true;
-  
   if(!ok){err.textContent='Sai mật khẩu hiện tại!';err.classList.add('show');btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';return;}
-  
   await db.collection('students').doc(changePwSid).update({password:simpleHash(n),passwordChanged:true,passwordUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-  suc.textContent='✅ Đổi thành công!';suc.classList.add('show');
-  setTimeout(()=>closeChangePwModal(),1500);
- }catch(e){
-  err.textContent='❌ Lỗi kết nối.';err.classList.add('show');
- }finally{
-  btn.disabled=false; btn.textContent='🔒 Đổi mật khẩu';
- }
+  suc.textContent='✅ Đổi thành công!';suc.classList.add('show');setTimeout(()=>closeChangePwModal(),1500);
+ }catch(e){err.textContent='❌ Lỗi kết nối.';err.classList.add('show');}finally{btn.disabled=false;btn.textContent='🔒 Đổi mật khẩu';}
 }
-
 function checkPasswordStrength(){
  const pw=document.getElementById('cpNewPw').value,fill=document.getElementById('pwStrengthFill'),txt=document.getElementById('pwStrengthText');
  const hl=pw.length>=8,hu=/[A-Z]/.test(pw),hlo=/[a-z]/.test(pw),hn=/[0-9]/.test(pw),hs=/[^A-Za-z0-9]/.test(pw);
@@ -547,7 +475,6 @@ function checkPasswordStrength(){
  else{fill.style.width='100%';fill.style.background='#198754';txt.textContent='🟢 Mạnh';txt.style.color='#198754';}
  checkConfirmMatch();
 }
-
 function updTip(id,m){const e=document.getElementById(id);e.className=m?'met':'unmet';e.querySelector('.icon').textContent=m?'✔':'○';}
 function checkConfirmMatch(){const p=document.getElementById('cpNewPw').value,c=document.getElementById('cpConfirmPw').value,m=document.getElementById('confirmMatchMsg');if(!c){m.textContent='';return;}if(p===c){m.textContent='✔ Khớp';m.style.color='#198754';}else{m.textContent='✘ Chưa khớp';m.style.color='#dc3545';}}
 function toggleModalPasswords(){const s=document.getElementById('cpShowPw').checked,t=s?'text':'password';document.getElementById('cpOldPw').type=t;document.getElementById('cpNewPw').type=t;document.getElementById('cpConfirmPw').type=t;}
