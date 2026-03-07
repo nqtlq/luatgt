@@ -390,6 +390,89 @@ initPage();
     });
 })();
 </script>
+    <script>
+// =================================================================
+// HỆ THỐNG BẢO VỆ VÀ CẬP NHẬT TRẠNG THÁI REAL-TIME
+// =================================================================
+(function initRealtimeListeners() {
+    const studentCode = localStorage.getItem('studentCode');
+    const userType = localStorage.getItem('userType');
+
+    if (userType !== 'student' || !studentCode) return;
+
+    if (typeof firebase === 'undefined' || !firebase.firestore) return;
+    const db = firebase.firestore();
+
+    let studentUnsub = null, maintUnsub = null;
+    let isKicked = false;
+
+    function kickOut(title, message, icon) {
+        if (isKicked) return;
+        isKicked = true;
+
+        if (studentUnsub) studentUnsub();
+        if (maintUnsub) maintUnsub();
+
+        db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
+        
+        const modal = document.getElementById('kickoutModal');
+        if (modal) {
+            document.getElementById('kickoutIcon').textContent = icon;
+            document.getElementById('kickoutTitle').textContent = title;
+            document.getElementById('kickoutMessage').textContent = message;
+            modal.classList.add('show');
+        }
+
+        let seconds = 5;
+        const countdownEl = document.getElementById('kickoutCountdown');
+        const countdownInterval = setInterval(() => {
+            seconds--;
+            if (countdownEl) countdownEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+    }
+
+    // 1. Lắng nghe lệnh KHÓA TÀI KHOẢN
+    studentUnsub = db.collection('students').doc(studentCode).onSnapshot((doc) => {
+        if (doc.exists && doc.data().status === 'locked') {
+            kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa. Vui lòng liên hệ Admin để biết thêm chi tiết.', '🔒');
+        }
+    });
+
+    // 2. Lắng nghe lệnh BẬT BẢO TRÌ
+    maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
+        if (doc.exists && doc.data().enabled === true) {
+            kickOut('🔧 Hệ thống đang bảo trì', 'Hệ thống vừa được chuyển sang chế độ bảo trì để nâng cấp. Bạn sẽ được đăng xuất tự động.', '🔧');
+        }
+    });
+
+    // 3. Cập nhật trạng thái Online (Heartbeat)
+    const presenceRef = db.collection('presence').doc(studentCode);
+    const sendHeartbeat = (sectionName = 'Đang học thi') => {
+        if (!isKicked) { // Chỉ gửi khi chưa bị kick
+            presenceRef.set({
+                isOnline: true,
+                currentSection: sectionName,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).catch(()=>{});
+        }
+    };
+    sendHeartbeat();
+    const heartbeatInterval = setInterval(sendHeartbeat, 20000);
+
+    // 4. Báo Offline khi đóng tab
+    window.addEventListener('beforeunload', () => {
+        clearInterval(heartbeatInterval);
+        if (!isKicked) { // Chỉ báo offline nếu không phải do bị kick
+            presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+        }
+    });
+})();
+</script>
     <!-- MODAL THÔNG BÁO BỊ KHÓA / BẢO TRÌ -->
 <div class="kickout-modal" id="kickoutModal">
     <div class="kickout-box">
