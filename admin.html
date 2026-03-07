@@ -1083,6 +1083,42 @@
          </div>
          </div>
        </div>
+       <!-- Online modal -->
+       <div id="onlineModal" class="modal">
+         <div class="modal-content" style="max-width: 680px;">
+           <h3>🟢 Danh sách người đang online</h3>
+           <div class="tableWrap" style="max-height:420px;">
+             <table>
+               <thead><tr><th>Học viên</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Lần cuối</th></tr></thead>
+               <tbody id="onlineTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr></tbody>
+             </table>
+           </div>
+           <div style="text-align:right;margin-top:14px;">
+             <button class="btn btn-secondary" onclick="closeModal('onlineModal')">Đóng</button>
+           </div>
+         </div>
+       </div>
+
+       <div class="chart-grid">
+         <div class="chart-card">
+           <h4>📊 Lượt thi 7 ngày gần nhất</h4>
+           <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
+         </div>
+         <div class="chart-card">
+           <h4>🎯 Tỷ lệ đạt / không đạt</h4>
+           <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
+         </div>
+       </div>
+       <div class="activity-section">
+         <h3>⚡ Hoạt động gần đây</h3>
+         <div style="max-height:350px; overflow-y:auto;">
+           <table class="activity-table">
+             <thead><tr><th>Thời gian</th><th>Học viên</th><th>Hoạt động</th><th>Chi tiết</th></tr></thead>
+             <tbody id="activityTableBody"><tr><td colspan="4" class="activity-empty">Đang tải...</td></tr></tbody>
+           </table>
+         </div>
+       </div>
+     </div>
   <div class="page" id="online_detail">
     <div class="page-header">
      <h2>👥 Chi tiết người dùng Online</h2>
@@ -1169,41 +1205,6 @@
     <div id="onlineDetailPagination" style="margin-top:12px;"></div>
   </div>
 </div>
-       <!-- Online modal -->
-       <div id="onlineModal" class="modal">
-         <div class="modal-content" style="max-width: 680px;">
-           <h3>🟢 Danh sách người đang online</h3>
-           <div class="tableWrap" style="max-height:420px;">
-             <table>
-               <thead><tr><th>Học viên</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Lần cuối</th></tr></thead>
-               <tbody id="onlineTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr></tbody>
-             </table>
-           </div>
-           <div style="text-align:right;margin-top:14px;">
-             <button class="btn btn-secondary" onclick="closeModal('onlineModal')">Đóng</button>
-           </div>
-         </div>
-       </div>
-
-       <div class="chart-grid">
-         <div class="chart-card">
-           <h4>📊 Lượt thi 7 ngày gần nhất</h4>
-           <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
-         </div>
-         <div class="chart-card">
-           <h4>🎯 Tỷ lệ đạt / không đạt</h4>
-           <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
-         </div>
-       </div>
-       <div class="activity-section">
-         <h3>⚡ Hoạt động gần đây</h3>
-         <div style="max-height:350px; overflow-y:auto;">
-           <table class="activity-table">
-             <thead><tr><th>Thời gian</th><th>Học viên</th><th>Hoạt động</th><th>Chi tiết</th></tr></thead>
-             <tbody id="activityTableBody"><tr><td colspan="4" class="activity-empty">Đang tải...</td></tr></tbody>
-           </table>
-         </div>
-       </div>
 
   <div class="page" id="students">
     <div class="page-header">
@@ -2167,7 +2168,6 @@ D. Đáp án D
   </div>
 </div>
    </main>
- </div>
 
  <!-- ========== MODAL HỌC VIÊN ========== -->
 <div id="studentModal" class="modal">
