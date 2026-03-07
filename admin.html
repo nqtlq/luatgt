@@ -64,6 +64,13 @@
     --danger-light: rgba(220,53,69,0.15);
     --warning-light: rgba(255,193,7,0.15);
 }
+    #question_sets table th,
+    #question_sets table td {
+      padding: 10px 8px;
+    }
+    #question_sets table td:nth-child(3){
+      text-align:left;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-main); color: var(--text-primary); line-height: 1.5; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -835,7 +842,7 @@ tbody tr:hover { background: var(--bg-hover); }
                             <button class="btn btn-secondary" onclick="printTable()">🖨 In</button>
                         </div>
                         <div class="toolbar-filters">
-                            <input type="text" id="searchAll" placeholder="🔍 Tìm tên, mã, đơn vị..." oninput="debounceFilter()" style="min-width:180px;">
+                            <input type="text" id="searchAll"  placeholder=" Tìm tên, Mã HV, Đơn vị..."  oninput="debounceFilter()"  style="flex:1; min-width:420px;">
                             <select id="filterCourse" onchange="applyFilters()">
                                 <option value="">-- Tất cả khóa --</option>
                             </select>
@@ -927,15 +934,14 @@ tbody tr:hover { background: var(--bg-hover); }
           <table>
             <thead>
               <tr>
-                <th style="width:40px">STT</th>
-                <th style="width:90px">Mã đề</th>
-                <th>Tên đề thi</th>
-                <th style="width:70px">Số câu</th>
-                <th style="width:70px">Nhóm</th>
-                <th style="width:90px">Thời gian</th>
-                <th style="width:100px">Trạng thái</th>
-                <th style="width:180px">Thao tác</th>
-              </tr>
+                  <th style="width:50px">STT</th>
+                  <th style="width:110px">Mã đề</th>
+                  <th style="min-width:360px;text-align:left;">TÊN ĐỀ THI</th>
+                  <th style="width:90px">Số câu</th>
+                  <th style="width:90px">Nhóm</th>
+                  <th style="width:110px">Trạng thái</th>
+                  <th style="width:220px">Thao tác</th>
+            </tr>
             </thead>
             <tbody id="setTableBody"></tbody>
           </table>
@@ -1956,7 +1962,7 @@ let filteredNotifications = [];
 
 let currentEditingCode = null;
 let currentPage = 1;
-const itemsPerPage = 20;
+const itemsPerPage = 10;
 
 let currentSetForQuestions = null;
 let currentViewSetCode = null;
