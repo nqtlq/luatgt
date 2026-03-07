@@ -5,13 +5,10 @@
  <title>ADMIN | Hệ thống thi luật giao thông</title>
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
- <script defer src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
- <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
- <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
- <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+ <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
  <style>
  /* ===== ANSWER GRID ===== */
  .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -2299,11 +2296,7 @@ const firebaseConfig = {
   projectId: "thi-luat-giao-thong"
 };
 
-try {
- if (!firebase.apps.length) {
-   firebase.initializeApp(firebaseConfig);
- }
-} catch(e){console.error("Firebase init error",e);}
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 const DEFAULT_PASSWORD = '123456';
@@ -6405,10 +6398,5 @@ window.onload = async function () {
   await initializeSystem();
 };
 </script> 
-<script>
-window.addEventListener("error",function(e){
- console.error("GLOBAL ERROR:",e.message);
-});
-</script>
 </body>
 </html>
