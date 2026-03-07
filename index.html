@@ -251,18 +251,33 @@ function checkConfirmMatch(){const p=document.getElementById('cpNewPw').value,c=
 function toggleModalPasswords(){const s=document.getElementById('cpShowPw').checked,t=s?'text':'password';document.getElementById('cpOldPw').type=t;document.getElementById('cpNewPw').type=t;document.getElementById('cpConfirmPw').type=t;}
 
 // =====================================================================
-// INIT
+// =====================================================================
+// INIT & SỬA LỖI
 // =====================================================================
 window.onload=async function(){
- // QR Code
+ // 1. QR Code
  const siteUrl=window.location.href.split('?')[0].replace(/\/[^\/]*$/,'/');
  QRCode.render(document.getElementById('qrCanvas'),siteUrl,110);
 
- try{if(await checkMaintenanceMode()){showMaintenancePage();return;}}catch(e){}
- const ut=localStorage.getItem('userType');
- if(ut==='admin'){location.href='admin.html';return;}
- if(ut==='student'){location.href='exam.html';return;}
+ // 2. FIX LỖI TỰ ĐỘNG ĐĂNG NHẬP:
+ // Chủ động xóa thông tin đăng nhập cũ mỗi khi load lại trang index
+ // Điều này ép buộc mọi người dùng phải đăng nhập lại từ đầu.
+ localStorage.removeItem('userType');
+ localStorage.removeItem('studentCode');
+ localStorage.removeItem('studentName');
+ localStorage.removeItem('studentUnit');
+ localStorage.removeItem('studentObject');
+ localStorage.removeItem('adminName');
+
+ // 3. Cài đặt sự kiện luôn (để form hoạt động khi Admin ẩn bảng bảo trì)
  setupEventListeners();
+
+ // 4. Kiểm tra chế độ bảo trì
+ try {
+  if(await checkMaintenanceMode()){
+   showMaintenancePage();
+  }
+ } catch(e){}
 };
 
 function setupEventListeners(){
@@ -276,13 +291,31 @@ function setupEventListeners(){
  li.focus();
 }
 
+// FIX LỖI KHÔNG THỂ QUAY LẠI TỪ MÀN HÌNH BẢO TRÌ
+function goBackFromMaintenance(){
+ // Cho phép đóng lớp phủ (overlay) bảo trì để hiện ra Form Đăng nhập.
+ // Lý do: Admin phải thấy form thì mới gõ chữ "admin" để đăng nhập vào hệ thống được.
+ // (Nếu học viên bình thường thấy form và cố đăng nhập, hàm login() bên dưới vẫn sẽ chặn lại)
+ hideMaintenancePage();
+}
+
 async function login(){
  hideError();
  const raw=document.getElementById('loginInput').value.trim(),pass=document.getElementById('password').value;
  if(!raw){showError('⚠ Vui lòng nhập mã học viên.');return;}
  if(!pass){showError('⚠ Vui lòng nhập mật khẩu.');document.getElementById('password').focus();return;}
- try{const m=await checkMaintenanceMode();if(m&&raw.toLowerCase()!=='admin'){showMaintenancePage();return;}}catch(e){}
- if(raw.toLowerCase()==='admin')await loginAsAdmin(pass);else await loginAsStudent(raw,pass);
+ 
+ // Logic an toàn: Nếu đang bảo trì và KHÔNG PHẢI gõ "admin" -> chặn lại
+ try {
+  const m=await checkMaintenanceMode();
+  if(m && raw.toLowerCase()!=='admin'){
+   showMaintenancePage();
+   return;
+  }
+ } catch(e){}
+ 
+ if(raw.toLowerCase()==='admin') await loginAsAdmin(pass);
+ else await loginAsStudent(raw,pass);
 }
 
 async function loginAsAdmin(pass){
@@ -339,7 +372,6 @@ async function submitChangePassword(){
 
 function tryExam(){if(isSystemMaintenance){showMaintenancePage();return;}localStorage.setItem('userType','guest');location.href='test.html';}
 document.addEventListener('click',e=>{if(e.target.id==='changePwModal')closeChangePwModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('changePwModal').classList.contains('show'))closeChangePwModal();if(e.key==='Enter'&&document.getElementById('changePwModal').classList.contains('show'))submitChangePassword();});
-</script>
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('changePwModal').classList.contains('show'))closeChangePwModal();if(e.key==='Enter'&&document.getElementById('changePwModal').classList.contains('show'))submitChangePassword();});</script>
 </body>
 </html>
