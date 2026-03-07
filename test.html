@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chọn đề thi - Hệ thống thi luật Giao thông</title>
 <style>
+/* GENERAL */
 *{box-sizing:border-box;margin:0;}
 body{font-family:"Segoe UI",Roboto,Arial,sans-serif;background:#f0f4f8;}
 header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.25);flex-wrap:wrap;gap:10px;}
@@ -20,7 +21,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .btn-login:hover{opacity:.9;}
 .btn-logout{background:#e63946;color:white;}
 
-/* ===== BANNER KHÁCH ===== */
+/* BANNER KHÁCH */
 .guest-banner{background:linear-gradient(135deg,#fff3cd,#ffeeba);border:1px solid #ffc107;border-radius:14px;padding:20px 24px;margin:20px auto;max-width:1200px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
 .guest-banner .gb-left{flex:1;min-width:280px;}
 .guest-banner h2{color:#856404;font-size:17px;margin-bottom:10px;}
@@ -34,7 +35,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .lcard.danger .lv{color:#dc3545;}
 .lcard.ok .lv{color:#198754;}
 
-/* ===== BANNER HỌC VIÊN ===== */
+/* BANNER HỌC VIÊN */
 .student-banner{background:linear-gradient(135deg,#d1e7dd,#c3e6cb);border:1px solid #a3cfbb;border-radius:14px;padding:20px 24px;margin:20px auto;max-width:1200px;}
 .student-banner h2{color:#0f5132;font-size:17px;margin-bottom:6px;}
 .student-banner p{color:#155724;font-size:13.5px;line-height:1.5;margin:3px 0;}
@@ -42,10 +43,8 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .student-banner .sv-item{background:rgba(255,255,255,.6);padding:8px 14px;border-radius:8px;font-size:13px;color:#155724;}
 .student-banner .sv-item b{color:#0f5132;}
 
-/* ===== CONTAINER ===== */
+/* LAYOUT */
 .container{max-width:1200px;margin:20px auto;padding:0 20px;}
-
-/* ===== TABS ===== */
 .cat-tabs{display:flex;gap:0;margin-bottom:24px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1);}
 .cat-tab{flex:1;padding:18px 20px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#666;transition:all .25s;border-bottom:3px solid transparent;}
 .cat-tab:hover{background:#f8f9fa;color:#1d3557;}
@@ -54,7 +53,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .cat-tab .cat-count{display:inline-block;background:#e9ecef;color:#555;padding:2px 8px;border-radius:10px;font-size:11px;margin-top:4px;}
 .cat-tab.active .cat-count{background:#0d6efd;color:white;}
 
-/* ===== SECTIONS ===== */
+/* SECTIONS */
 .sets-section{display:none;}
 .sets-section.active{display:block;}
 .sets-section h2{color:#1d3557;font-size:17px;margin-bottom:16px;padding-left:4px;}
@@ -72,7 +71,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .badge-oto{background:#e0f2f1;color:#00695c;}
 .no-sets{text-align:center;padding:50px;color:#888;font-style:italic;font-size:15px;}
 
-/* ===== MODAL ===== */
+/* MODAL EXAM INFO */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
 .modal-bg.show{display:flex;}
 .modal-content{background:white;width:500px;max-width:100%;border-radius:18px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:modalIn .3s;max-height:90vh;overflow-y:auto;}
@@ -105,6 +104,24 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .maintenance-page h1{font-size:24px;font-weight:800;}
 .maintenance-page p{font-size:15px;opacity:.85;max-width:500px;line-height:1.8;}
 
+/* MODAL KICKOUT (BẢO TRÌ/BỊ KHÓA) - THÊM CSS MỚI */
+.kickout-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
+    align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
+}
+.kickout-modal.show { display: flex; }
+.kickout-box {
+    background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px;
+    text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kickoutFadeIn .4s;
+    border-top: 6px solid #dc3545;
+}
+@keyframes kickoutFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.kickout-box .icon { font-size: 56px; margin-bottom: 15px; color: #dc3545; }
+.kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
+.kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
+.kickout-box .countdown { font-size: 13px; color: #888; }
+.kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+
 @media(max-width:768px){
  header{padding:12px 16px;}
  .header-left h1{font-size:14px;}
@@ -117,7 +134,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 </head>
 <body>
 
-<!-- BẢO TRÌ -->
+<!-- BẢO TRÌ CHẶN NGAY TỪ ĐẦU (NẾU CẦN) -->
 <div class="maintenance-page" id="maintPage">
 <div class="maint-icon">🔧</div>
 <h1>Hệ thống đang bảo trì</h1>
@@ -125,6 +142,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 <button onclick="location.href='index.html'" style="padding:12px 32px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:white;font-size:15px;cursor:pointer;">← Quay lại</button>
 </div>
 
+<!-- HEADER -->
 <header>
  <div class="header-left">
   <h1>📝 CHỌN ĐỀ THI - LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
@@ -136,7 +154,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
  <div class="header-right" id="headerBtns"></div>
 </header>
 
-<!-- ===== BANNER KHÁCH (chỉ hiện cho guest) ===== -->
+<!-- ===== BANNER KHÁCH ===== -->
 <div class="guest-banner" id="guestBanner" style="display:none;">
  <div class="gb-left">
   <h2>👋 Xin chào vị khách số <span id="guestNum">----</span>!</h2>
@@ -152,7 +170,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
  </div>
 </div>
 
-<!-- ===== BANNER HỌC VIÊN (chỉ hiện cho student) ===== -->
+<!-- ===== BANNER HỌC VIÊN ===== -->
 <div class="student-banner" id="studentBanner" style="display:none;">
  <h2>👋 Xin chào, <span id="svName"></span>!</h2>
  <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
@@ -186,7 +204,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
  </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL BẮT ĐẦU THI -->
 <div class="modal-bg" id="examModal">
 <div class="modal-content">
  <h3 id="mTitle"></h3>
@@ -213,11 +231,25 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 </div>
 </div>
 
+<!-- MODAL BỊ KHÓA / BẢO TRÌ (Đá văng) -->
+<div class="kickout-modal" id="kickoutModal">
+    <div class="kickout-box">
+        <div class="icon" id="kickoutIcon"></div>
+        <h3 id="kickoutTitle"></h3>
+        <p id="kickoutMessage"></p>
+        <div class="countdown">
+            Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
+        </div>
+    </div>
+</div>
+
+<!-- LIBRARIES -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
 // =====================================================================
-// FIREBASE
+// FIREBASE CONFIG
 // =====================================================================
 let db = null;
 try {
@@ -226,14 +258,14 @@ try {
 } catch(e) { console.error('Firebase:', e); }
 
 // =====================================================================
-// NHẬN DIỆN USER TYPE → THAY ĐỔI NỘI DUNG
+// AUTH & USER TYPE
 // =====================================================================
 const userType = localStorage.getItem('userType'); // 'guest' | 'student'
 const studentCode = localStorage.getItem('studentCode') || '';
 const studentName = localStorage.getItem('studentName') || '';
 const studentUnit = localStorage.getItem('studentUnit') || '';
 
-// Nếu không phải guest hoặc student → về trang đăng nhập
+// Bảo vệ cơ bản: Nếu không phải guest/student -> về trang chủ
 if (userType !== 'guest' && userType !== 'student') {
  location.href = 'index.html';
 }
@@ -242,7 +274,7 @@ const IS_GUEST = (userType === 'guest');
 const IS_STUDENT = (userType === 'student');
 
 // =====================================================================
-// ĐỒNG HỒ REALTIME
+// CLOCK
 // =====================================================================
 function updateClock() {
  const now = new Date();
@@ -253,13 +285,13 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // =====================================================================
-// SETUP UI THEO LOẠI NGƯỜI DÙNG
+// UI SETUP
 // =====================================================================
 function setupUI() {
  const headerBtns = document.getElementById('headerBtns');
 
  if (IS_GUEST) {
-  // ─── KHÁCH ───
+  // GUEST
   headerBtns.innerHTML = `
    <button class="btn-back" onclick="location.href='index.html'">⬅ Trang chủ</button>
    <button class="btn-login" onclick="location.href='index.html'">🔐 Đăng nhập</button>`;
@@ -270,7 +302,7 @@ function setupUI() {
   updateLimitDisplay();
 
  } else {
-  // ─── HỌC VIÊN ───
+  // STUDENT
   headerBtns.innerHTML = `
    <button class="btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
    <button class="btn-logout" onclick="doLogout()">🚪 Đăng xuất</button>`;
@@ -284,16 +316,16 @@ function setupUI() {
 }
 
 function doLogout() {
- // Update presence offline
- if (db && studentCode) {
-  try { db.collection('presence').doc(studentCode).update({isOnline:false,lastActive:firebase.firestore.FieldValue.serverTimestamp()}); } catch(e){}
+ // Update offline trước khi logout
+ if (IS_STUDENT && db && studentCode) {
+  try { db.collection('presence').doc(studentCode).set({isOnline:false, lastActive:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}); } catch(e){}
  }
  localStorage.clear();
  location.href = 'index.html';
 }
 
 // =====================================================================
-// GUEST LIMIT SYSTEM (chỉ áp dụng cho guest)
+// GUEST LIMIT SYSTEM
 // =====================================================================
 const DAILY_LIMIT = 1, WEEKLY_LIMIT = 3;
 
@@ -314,7 +346,7 @@ function saveGuestLog() { const l = getGuestLogs(); l.push({date:getTodayKey(),w
 function getTodayCount() { return getGuestLogs().filter(l=>l.date===getTodayKey()).length; }
 function getWeekCount() { return getGuestLogs().filter(l=>l.week===getWeekKey()).length; }
 function canTakeExam() {
- if (IS_STUDENT) return true; // Học viên không giới hạn
+ if (IS_STUDENT) return true;
  return getTodayCount() < DAILY_LIMIT && getWeekCount() < WEEKLY_LIMIT;
 }
 
@@ -330,30 +362,18 @@ function updateLimitDisplay() {
 }
 
 // =====================================================================
-// CATEGORY TABS
+// DATA LOADING
 // =====================================================================
+let allSets = [], selectedSet = null;
+
 function switchCat(cat) {
  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
  document.getElementById('motoSection').classList.toggle('active', cat === 'moto');
  document.getElementById('otoSection').classList.toggle('active', cat === 'oto');
 }
 
-// =====================================================================
-// LOAD QUESTION SETS
-// =====================================================================
-let allSets = [], selectedSet = null;
-
 async function loadSets() {
  if (!db) { document.getElementById('loadingBox').innerHTML = '<p>❌ Không thể kết nối.</p>'; return; }
-
- // Maintenance
- try {
-  const md = await db.collection('systemConfig').doc('maintenance').get();
-  if (md.exists && md.data().enabled) {
-   // Admin vẫn không bị chặn, nhưng guest/student thì chặn
-   document.getElementById('maintPage').classList.add('show'); return;
-  }
- } catch(e) {}
 
  try {
   const snap = await db.collection('questionSets').get();
@@ -395,7 +415,7 @@ function renderCard(s, type) {
 }
 
 // =====================================================================
-// MODAL - TỰ THAY ĐỔI THEO LOẠI NGƯỜI DÙNG
+// EXAM MODAL
 // =====================================================================
 function openModal(setId) {
  selectedSet = allSets.find(s => s.id === setId);
@@ -415,21 +435,14 @@ function openModal(setId) {
  document.getElementById('mQuestions').textContent = tq;
  document.getElementById('mTime').textContent = time + "'";
 
- // ★ THAY ĐỔI THEO LOẠI NGƯỜI DÙNG
  const warnEl = document.getElementById('mLimitWarn');
  const startBtn = document.getElementById('mStartBtn');
  const ruleLimit = document.getElementById('mRuleLimit');
 
  if (IS_GUEST) {
   ruleLimit.textContent = '🏍️🚗 Khách: tối đa 1 lần/ngày, 3 lần/tuần';
-
   if (!canTakeExam()) {
-   const td = getTodayCount(), wk = getWeekCount();
-   let msg = '';
-   if (td >= DAILY_LIMIT) msg = '⚠ Bạn đã hết lượt thi thử hôm nay (tối đa ' + DAILY_LIMIT + ' lần/ngày).';
-   else if (wk >= WEEKLY_LIMIT) msg = '⚠ Bạn đã hết lượt thi thử tuần này (tối đa ' + WEEKLY_LIMIT + ' lần/tuần).';
-   msg += '\n\n👉 Đăng ký tài khoản học viên để thi không giới hạn!';
-   warnEl.innerText = msg;
+   warnEl.innerText = '⚠ Bạn đã hết lượt thi thử hôm nay.\n\n👉 Đăng ký tài khoản để thi không giới hạn!';
    warnEl.style.display = 'block';
    startBtn.disabled = true;
    startBtn.textContent = '🚫 Đã hết lượt thi thử';
@@ -439,62 +452,25 @@ function openModal(setId) {
    startBtn.textContent = '▶ Bắt đầu thi thử';
   }
  } else {
-  // Học viên - không giới hạn
   ruleLimit.textContent = '💾 Kết quả thi được ghi nhận tự động';
   warnEl.style.display = 'none';
   startBtn.disabled = false;
   startBtn.textContent = '▶ Bắt đầu làm bài';
  }
 
- // Load stats cho student
- if (IS_STUDENT && db) {
-  loadStudentStats(selectedSet.code || selectedSet.id);
- }
-
  document.getElementById('examModal').classList.add('show');
-}
-
-// Load thống kê cho học viên
-async function loadStudentStats(setCode) {
- try {
-  let total = 0, pass = 0;
-  const snap = await db.collection('examResults')
-   .where('studentCode', '==', studentCode)
-   .where('setCode', '==', setCode)
-   .get();
-  snap.forEach(d => {
-   total++;
-   const data = d.data();
-   const score = data.score || 0;
-   const totalQ = data.totalQuestions || 30;
-   const passQ = data.passQuestions || Math.ceil(totalQ * 0.8);
-   if (score >= passQ) pass++;
-  });
-  // Có thể hiển thị thêm nếu muốn
- } catch(e) { console.warn('Stats:', e.message); }
 }
 
 function closeModal() { document.getElementById('examModal').classList.remove('show'); }
 
-// =====================================================================
-// START EXAM
-// =====================================================================
 function startExam() {
  if (!selectedSet) return;
+ if (IS_GUEST && !canTakeExam()) { alert('Hết lượt thi thử!'); return; }
 
- if (IS_GUEST && !canTakeExam()) {
-  alert('Bạn đã hết lượt thi thử!\n\nĐăng ký tài khoản để thi không giới hạn.');
-  return;
- }
-
- // Ghi log lượt thi (guest)
  if (IS_GUEST) {
   saveGuestLog();
   updateLimitDisplay();
- }
-
- // Update presence (student)
- if (IS_STUDENT && db && studentCode) {
+ } else if (IS_STUDENT && db && studentCode) {
   try {
    db.collection('presence').doc(studentCode).set({
     isOnline: true,
@@ -504,93 +480,27 @@ function startExam() {
   } catch(e) {}
  }
 
- // Lưu đề thi + mode
  localStorage.setItem('examSet', JSON.stringify(selectedSet));
  localStorage.setItem('examMode', IS_GUEST ? 'trial' : 'official');
-
+ 
+ // Điều hướng sang trang làm bài (đảm bảo bạn có file do_exam.html)
  location.href = 'do_exam.html';
 }
 
-// Modal events
+// Modal Events
 document.getElementById('examModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
 // =====================================================================
-// INIT
+// SECURITY & REAL-TIME (TÍCH HỢP SẴN)
 // =====================================================================
-setupUI();
-loadSets();
-</script>
- <script>
-// =================================================================
-// BẢO VỆ TÀI KHOẢN (REAL-TIME KICK OUT)
-// =================================================================
 (function initRealtimeSecurity() {
-    const studentCode = localStorage.getItem('studentCode');
-    const userType = localStorage.getItem('userType');
-
-    // Chỉ kiểm tra nếu là tài khoản Học viên
-    if(userType !== 'student' || !studentCode) return;
-
-    // Phải chắc chắn biến db đã có (đã khởi tạo firebase ở phía trên)
-    const db = firebase.firestore();
-
-    // Lắng nghe liên tục sự thay đổi của tài khoản trên Database
-    db.collection('students').doc(studentCode).onSnapshot((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            // Nếu bị admin bấm KHÓA
-            if (data.status === 'locked') {
-                // Xóa trạng thái Online
-                db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-                
-                alert('🔒 TÀI KHOẢN ĐÃ BỊ KHÓA!\n\nTài khoản của bạn vừa bị vô hiệu hóa bởi Quản trị viên.\nVui lòng liên hệ Admin để biết thêm chi tiết.');
-                
-                // Xóa phiên làm việc và đá văng ngay lập tức
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }
-    });
-})();
-</script>
- <!-- MODAL BỊ KHÓA -->
-<div class="kickout-modal" id="kickoutModal">
-    <div class="kickout-box">
-        <div class="icon">🔒</div>
-        <h3>Tài khoản đã bị khóa!</h3>
-        <p>Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa. Vui lòng liên hệ Admin để biết thêm chi tiết.</p>
-        <div class="countdown">
-            Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
-        </div>
-    </div>
-</div>
- <!-- MODAL THÔNG BÁO BỊ KHÓA / BẢO TRÌ -->
-<div class="kickout-modal" id="kickoutModal">
-    <div class="kickout-box">
-        <div class="icon" id="kickoutIcon"></div>
-        <h3 id="kickoutTitle"></h3>
-        <p id="kickoutMessage"></p>
-        <div class="countdown">
-            Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
-        </div>
-    </div>
-</div>
- <script>
-// =================================================================
-// HỆ THỐNG BẢO VỆ VÀ CẬP NHẬT TRẠNG THÁI REAL-TIME
-// =================================================================
-(function initRealtimeListeners() {
-    const studentCode = localStorage.getItem('studentCode');
-    const userType = localStorage.getItem('userType');
-
-    if (userType !== 'student' || !studentCode) return;
-
+    // Chỉ kích hoạt nếu có DB
     if (typeof firebase === 'undefined' || !firebase.firestore) return;
     const db = firebase.firestore();
 
-    let studentUnsub = null, maintUnsub = null;
     let isKicked = false;
+    let studentUnsub = null, maintUnsub = null;
 
     function kickOut(title, message, icon) {
         if (isKicked) return;
@@ -599,65 +509,71 @@ loadSets();
         if (studentUnsub) studentUnsub();
         if (maintUnsub) maintUnsub();
 
-        db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-        
-        const modal = document.getElementById('kickoutModal');
-        if (modal) {
-            document.getElementById('kickoutIcon').textContent = icon;
-            document.getElementById('kickoutTitle').textContent = title;
-            document.getElementById('kickoutMessage').textContent = message;
-            modal.classList.add('show');
+        // Nếu là học viên, set offline
+        if (IS_STUDENT && studentCode) {
+            db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
         }
+        
+        // Hiện Modal Kickout
+        const modal = document.getElementById('kickoutModal');
+        document.getElementById('kickoutIcon').textContent = icon;
+        document.getElementById('kickoutTitle').textContent = title;
+        document.getElementById('kickoutMessage').textContent = message;
+        modal.classList.add('show');
 
+        // Đếm ngược
         let seconds = 5;
         const countdownEl = document.getElementById('kickoutCountdown');
-        const countdownInterval = setInterval(() => {
+        setInterval(() => {
             seconds--;
             if (countdownEl) countdownEl.textContent = seconds;
             if (seconds <= 0) {
-                clearInterval(countdownInterval);
                 localStorage.clear();
                 window.location.href = 'index.html';
             }
         }, 1000);
     }
 
-    // 1. Lắng nghe lệnh KHÓA TÀI KHOẢN
-    studentUnsub = db.collection('students').doc(studentCode).onSnapshot((doc) => {
-        if (doc.exists && doc.data().status === 'locked') {
-            kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa. Vui lòng liên hệ Admin để biết thêm chi tiết.', '🔒');
-        }
-    });
+    // 1. Lắng nghe khóa tài khoản (Chỉ dành cho Student)
+    if (IS_STUDENT && studentCode) {
+        studentUnsub = db.collection('students').doc(studentCode).onSnapshot((doc) => {
+            if (doc.exists && doc.data().status === 'locked') {
+                kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+            }
+        });
+    }
 
-    // 2. Lắng nghe lệnh BẬT BẢO TRÌ
+    // 2. Lắng nghe bảo trì hệ thống (Dành cho cả Student và Guest)
     maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
         if (doc.exists && doc.data().enabled === true) {
-            kickOut('🔧 Hệ thống đang bảo trì', 'Hệ thống vừa được chuyển sang chế độ bảo trì để nâng cấp. Bạn sẽ được đăng xuất tự động.', '🔧');
+            kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
         }
     });
 
-    // 3. Cập nhật trạng thái Online (Heartbeat)
-    const presenceRef = db.collection('presence').doc(studentCode);
-    const sendHeartbeat = (sectionName = 'Đang học thi') => {
-        if (!isKicked) { // Chỉ gửi khi chưa bị kick
-            presenceRef.set({
-                isOnline: true,
-                currentSection: sectionName,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(()=>{});
-        }
-    };
-    sendHeartbeat();
-    const heartbeatInterval = setInterval(sendHeartbeat, 20000);
+    // 3. Heartbeat Online (Chỉ dành cho Student)
+    if (IS_STUDENT && studentCode) {
+        const presenceRef = db.collection('presence').doc(studentCode);
+        const sendHeartbeat = () => {
+            if (!isKicked) {
+                presenceRef.set({
+                    isOnline: true,
+                    currentSection: 'Đang chọn đề',
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).catch(()=>{});
+            }
+        };
+        sendHeartbeat();
+        setInterval(sendHeartbeat, 20000);
 
-    // 4. Báo Offline khi đóng tab
-    window.addEventListener('beforeunload', () => {
-        clearInterval(heartbeatInterval);
-        if (!isKicked) { // Chỉ báo offline nếu không phải do bị kick
-            presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
-        }
-    });
+        window.addEventListener('beforeunload', () => {
+            if(!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+        });
+    }
 })();
+
+// START
+setupUI();
+loadSets();
 </script>
 </body>
 </html>
