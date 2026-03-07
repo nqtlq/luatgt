@@ -52,6 +52,22 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .maint-back-btn.loading .btn-spinner{display:inline-block;}
 .maint-back-btn.loading .btn-text-icon{display:none;}
 @keyframes maintPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+ /* Maintenance Clock */
+.maint-clock {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 10px 0;
+    font-family: 'Consolas', monospace; /* Font monospace để số không bị nhảy */
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    letter-spacing: 2px;
+}
+.maint-date {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;}
 .modal-overlay.show{display:flex;}
@@ -95,15 +111,21 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <body>
 
 <!-- BẢO TRÌ -->
+<!-- BẢO TRÌ -->
 <div class="maintenance-page" id="maintenancePage">
-<div class="maint-icon">🔧</div>
-<h1>Hệ thống đang bảo trì</h1>
-<p class="maint-desc">Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.</p>
-<p class="maint-sub" id="maintSubText">Vui lòng quay lại sau.</p>
-<button class="maint-back-btn" id="maintBackBtn" onclick="goBackFromMaintenance()">
- <span class="btn-text-icon">← Quay lại trang đăng nhập</span>
- <span class="btn-spinner"></span>
-</button>
+    <div class="maint-icon">🔧</div>
+    <h1>Hệ thống đang bảo trì</h1>
+    
+    <!-- ĐỒNG HỒ THÊM MỚI -->
+    <div class="maint-clock" id="maintClock">00:00:00</div>
+    <div class="maint-date" id="maintDate">Ngày ... tháng ... năm ...</div>
+    
+    <p class="maint-desc">Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.</p>
+    <p class="maint-sub" id="maintSubText">Vui lòng quay lại sau.</p>
+    <button class="maint-back-btn" id="maintBackBtn" onclick="goBackFromMaintenance()">
+        <span class="btn-text-icon">← Quay lại trang đăng nhập</span>
+        <span class="btn-spinner"></span>
+    </button>
 </div>
 
 <!-- MODAL ĐỔI MẬT KHẨU -->
@@ -246,16 +268,37 @@ async function checkMaintenanceMode() {
     } catch(e) { return false; }
 }
 
+let maintClockInterval = null;
+
 function showMaintenancePage() {
     isSystemMaintenance = true;
     document.getElementById('maintenancePage').classList.add('show');
     document.getElementById('mainLoginContent').style.display = 'none';
+    
+    // Bắt đầu chạy đồng hồ
+    updateMaintClock();
+    if(maintClockInterval) clearInterval(maintClockInterval);
+    maintClockInterval = setInterval(updateMaintClock, 1000);
 }
 
 function hideMaintenancePage() {
     isSystemMaintenance = false;
     document.getElementById('maintenancePage').classList.remove('show');
     document.getElementById('mainLoginContent').style.display = '';
+    
+    // Dừng đồng hồ để tiết kiệm hiệu năng
+    if(maintClockInterval) clearInterval(maintClockInterval);
+}
+
+function updateMaintClock() {
+    const now = new Date();
+    // Giờ : Phút : Giây
+    const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+    // Ngày tháng năm
+    const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+    
+    document.getElementById('maintClock').textContent = timeStr;
+    document.getElementById('maintDate').textContent = dateStr;
 }
 
 function goBackFromMaintenance() {
