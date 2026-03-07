@@ -546,7 +546,7 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
     // 2. Lắng nghe bảo trì hệ thống (Dành cho cả Student và Guest)
     maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
         if (doc.exists && doc.data().enabled === true) {
-            kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+            kickOut( '🔧','Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được tự động đăng xuất.' <b>'Vui lòng quay lại sau'</b>);
         }
     });
 
