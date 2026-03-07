@@ -9,6 +9,7 @@
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
  <style>
  /* ===== ANSWER GRID ===== */
  .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1083,42 +1084,6 @@
          </div>
          </div>
        </div>
-       <!-- Online modal -->
-       <div id="onlineModal" class="modal">
-         <div class="modal-content" style="max-width: 680px;">
-           <h3>🟢 Danh sách người đang online</h3>
-           <div class="tableWrap" style="max-height:420px;">
-             <table>
-               <thead><tr><th>Học viên</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Lần cuối</th></tr></thead>
-               <tbody id="onlineTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr></tbody>
-             </table>
-           </div>
-           <div style="text-align:right;margin-top:14px;">
-             <button class="btn btn-secondary" onclick="closeModal('onlineModal')">Đóng</button>
-           </div>
-         </div>
-       </div>
-
-       <div class="chart-grid">
-         <div class="chart-card">
-           <h4>📊 Lượt thi 7 ngày gần nhất</h4>
-           <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
-         </div>
-         <div class="chart-card">
-           <h4>🎯 Tỷ lệ đạt / không đạt</h4>
-           <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
-         </div>
-       </div>
-       <div class="activity-section">
-         <h3>⚡ Hoạt động gần đây</h3>
-         <div style="max-height:350px; overflow-y:auto;">
-           <table class="activity-table">
-             <thead><tr><th>Thời gian</th><th>Học viên</th><th>Hoạt động</th><th>Chi tiết</th></tr></thead>
-             <tbody id="activityTableBody"><tr><td colspan="4" class="activity-empty">Đang tải...</td></tr></tbody>
-           </table>
-         </div>
-       </div>
-     </div>
   <div class="page" id="online_detail">
     <div class="page-header">
      <h2>👥 Chi tiết người dùng Online</h2>
@@ -1127,6 +1092,10 @@
        <button class="btn btn-primary" onclick="refreshOnlineDetail()">🔄 Làm mới</button>
      </div>
    </div>
+  <div class="page" id="students">
+    <div class="page-header">
+      <h2>👥 Quản lý học viên</h2>
+    </div>
 <!-- TRANG CHI TIẾT ONLINE -->
 
   <!-- Thống kê tổng quan online -->
@@ -1205,11 +1174,43 @@
     <div id="onlineDetailPagination" style="margin-top:12px;"></div>
   </div>
 </div>
+       <!-- Online modal -->
+       <div id="onlineModal" class="modal">
+         <div class="modal-content" style="max-width: 680px;">
+           <h3>🟢 Danh sách người đang online</h3>
+           <div class="tableWrap" style="max-height:420px;">
+             <table>
+               <thead><tr><th>Học viên</th><th>Đang thi phần</th><th>Bắt đầu</th><th>Lần cuối</th></tr></thead>
+               <tbody id="onlineTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr></tbody>
+             </table>
+           </div>
+           <div style="text-align:right;margin-top:14px;">
+             <button class="btn btn-secondary" onclick="closeModal('onlineModal')">Đóng</button>
+           </div>
+         </div>
+       </div>
 
-  <div class="page" id="students">
-    <div class="page-header">
-      <h2>👥 Quản lý học viên</h2>
-    </div>
+       <div class="chart-grid">
+         <div class="chart-card">
+           <h4>📊 Lượt thi 7 ngày gần nhất</h4>
+           <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
+         </div>
+         <div class="chart-card">
+           <h4>🎯 Tỷ lệ đạt / không đạt</h4>
+           <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
+         </div>
+       </div>
+       <div class="activity-section">
+         <h3>⚡ Hoạt động gần đây</h3>
+         <div style="max-height:350px; overflow-y:auto;">
+           <table class="activity-table">
+             <thead><tr><th>Thời gian</th><th>Học viên</th><th>Hoạt động</th><th>Chi tiết</th></tr></thead>
+             <tbody id="activityTableBody"><tr><td colspan="4" class="activity-empty">Đang tải...</td></tr></tbody>
+           </table>
+         </div>
+       </div>
+     </div>
+
   <!-- Stats cards giữ nguyên -->
   <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px;">
     <div class="stat-card">
@@ -2168,6 +2169,7 @@ D. Đáp án D
   </div>
 </div>
    </main>
+ </div>
 
  <!-- ========== MODAL HỌC VIÊN ========== -->
 <div id="studentModal" class="modal">
@@ -2295,7 +2297,15 @@ const firebaseConfig = {
   projectId: "thi-luat-giao-thong"
 };
 
-firebase.initializeApp(firebaseConfig);
+
+try {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+} catch(e){
+  console.error("Firebase init error:", e);
+}
+
 const db = firebase.firestore();
 
 const DEFAULT_PASSWORD = '123456';
