@@ -530,8 +530,38 @@ tbody tr:hover { background: var(--bg-hover); }
     .toolbar-filters { flex-direction: column; }
     .toolbar-filters input, .toolbar-filters select { width: 100%; }
 }
+    /* MODAL BỊ KHÓA */
+.kickout-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+.kickout-modal.show { display: flex; }
+.kickout-box {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: kickoutFadeIn .4s;
+    border-top: 6px solid #dc3545;
+}
+@keyframes kickoutFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.kickout-box .icon { font-size: 56px; margin-bottom: 15px; color: #dc3545; }
+.kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
+.kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
+.kickout-box .countdown { font-size: 13px; color: #888; }
+.kickout-box .countdown b { color: #1d3557; font-size: 15px; }
 </style>
 </head>
+    
 <body>
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -2259,33 +2289,58 @@ async function loadActivitiesFromDB() {
 // Lắng nghe người dùng Online
 function startPresenceListener() {
     if (presenceUnsub) presenceUnsub();
-    presenceUnsub = db.collection('presence').onSnapshot(snap => {
-        presenceMap.clear();
-        snap.forEach(doc => presenceMap.set(doc.id, doc.data()));
+
+    presenceUnsub = db.collection('presence').onSnapshot((snap) => {
+        // Cập nhật dữ liệu từ Firebase vào presenceMap
+        snap.forEach(doc => {
+            presenceMap.set(doc.id, doc.data());
+        });
+        
+        // LUÔN LUÔN GỌI HÀM UPDATE UI NGAY SAU KHI CÓ DỮ LIỆU MỚI
         updateOnlineUI();
-    }, err => console.warn('Lỗi listener online:', err));
-    updateOnlineUI();
+
+    }, (err) => { 
+        console.warn('Lỗi listener online:', err); 
+    });
 }
 
 function updateOnlineUI() {
     let onlineCount = 0;
+    const now = new Date();
+    
+    // Chỉ cập nhật UI nếu đã có danh sách học viên
+    if (!allStudents || allStudents.length === 0) return;
+
     allStudents.forEach(s => {
         const p = presenceMap.get(s.code);
-        if (p) {
-            s.isOnline = !!p.isOnline;
-            s.currentSection = p.currentSection || '';
-            s.startAt = p.startAt?.toDate ? p.startAt.toDate() : (p.startAt ? new Date(p.startAt) : null);
-            s.lastActive = p.lastActive?.toDate ? p.lastActive.toDate() : (p.lastActive ? new Date(p.lastActive) : null);
+        
+        if (p && p.isOnline && p.lastActive) {
+            const lastActive = p.lastActive.toDate ? p.lastActive.toDate() : new Date(p.lastActive);
+            const diffSeconds = (now - lastActive) / 1000;
+            
+            // Nếu phát tín hiệu trong vòng 60 giây -> Đang Online
+            if (diffSeconds < 60) {
+                s.isOnline = true;
+                s.currentSection = p.currentSection || 'Đang hoạt động';
+                s.startAt = p.startAt?.toDate ? p.startAt.toDate() : null;
+                s.lastActive = lastActive;
+                onlineCount++;
+            } else {
+                s.isOnline = false;
+                s.currentSection = 'Mất kết nối'; // Ghi nhận trạng thái mất kết nối
+            }
         } else {
             s.isOnline = false;
-            s.currentSection = '';
-            s.startAt = null;
-            s.lastActive = null;
         }
-        if (s.isOnline) onlineCount++;
     });
+
     const el = document.getElementById('onlineCount');
     if (el) el.textContent = onlineCount;
+    
+    // Nếu đang mở trang Chi tiết Online, cập nhật bảng
+    if (document.getElementById('online_detail')?.classList.contains('active')) {
+        filterOnlineDetail();
+    }
 }
 
 // ==========================================
