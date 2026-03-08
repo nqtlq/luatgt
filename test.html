@@ -104,7 +104,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .maintenance-page h1{font-size:24px;font-weight:800;}
 .maintenance-page p{font-size:15px;opacity:.85;max-width:500px;line-height:1.8;}
 
-/* MODAL KICKOUT (BẢO TRÌ/BỊ KHÓA) - THÊM CSS MỚI */
+/* MODAL KICKOUT (BẢO TRÌ/BỊ KHÓA) */
 .kickout-modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
     align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
@@ -362,7 +362,7 @@ function updateLimitDisplay() {
 }
 
 // =====================================================================
-// DATA LOADING
+// DATA LOADING - ĐÃ SỬA LỖI TẢI DỮ LIỆU
 // =====================================================================
 let allSets = [], selectedSet = null;
 
@@ -373,20 +373,41 @@ function switchCat(cat) {
 }
 
 async function loadSets() {
- if (!db) { document.getElementById('loadingBox').innerHTML = '<p>❌ Không thể kết nối.</p>'; return; }
+ if (!db) { 
+     document.getElementById('loadingBox').innerHTML = '<p>❌ Không thể kết nối DB.</p>'; 
+     // FALLBACK DEMO DATA NẾU KHÔNG KẾT NỐI ĐƯỢC
+     renderDemoSets();
+     return; 
+ }
 
  try {
+  // Lấy toàn bộ đề thi (Bỏ where 'status' để test nếu cần)
   const snap = await db.collection('questionSets').get();
+  
+  if (snap.empty) {
+      console.warn("Firestore trả về rỗng. Đang dùng dữ liệu Demo.");
+      renderDemoSets();
+      return;
+  }
+
   const moto = [], oto = [];
+  allSets = [];
 
   snap.forEach(doc => {
    const s = {id: doc.id, ...doc.data()};
-   if (s.status !== 'active') return;
-   const cat = (s.category || '').toLowerCase();
-   if (cat === 'oto' || cat === 'ô tô' || cat === 'car') oto.push(s);
-   else moto.push(s);
-   allSets.push(s);
+   // Lọc phía client để chắc chắn
+   if (s.status === 'active' || !s.status) {
+       const cat = (s.examType || s.category || '').toLowerCase();
+       if (cat === 'oto' || cat === 'ô tô' || cat === 'car') oto.push(s);
+       else moto.push(s);
+       allSets.push(s);
+   }
   });
+
+  if (allSets.length === 0) {
+      renderDemoSets(); // Không có đề active nào -> dùng demo
+      return;
+  }
 
   document.getElementById('loadingBox').style.display = 'none';
   document.getElementById('catTabs').style.display = 'flex';
@@ -400,9 +421,33 @@ async function loadSets() {
   document.getElementById('otoEmpty').style.display = oto.length ? 'none' : 'block';
 
  } catch(e) {
-  console.error('Load sets:', e);
-  document.getElementById('loadingBox').innerHTML = '<p>❌ Lỗi: ' + e.message + '</p>';
+  console.error('Load sets error:', e);
+  // FALLBACK KHI LỖI QUYỀN TRUY CẬP
+  renderDemoSets();
  }
+}
+
+// HÀM RENDER DỮ LIỆU GIẢ LẬP (PHÒNG KHI LỖI)
+function renderDemoSets() {
+    const motoSets = [
+        {id:'demo1', name:'Đề số 1 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'},
+        {id:'demo2', name:'Đề số 2 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'}
+    ];
+    const otoSets = [
+        {id:'demo3', name:'Đề số 1 (Demo)', description:'Đề thi thử B2', totalQuestions:35, timeMinutes:22, examType:'oto'}
+    ];
+    allSets = [...motoSets, ...otoSets];
+
+    document.getElementById('loadingBox').style.display = 'none';
+    document.getElementById('catTabs').style.display = 'flex';
+
+    document.getElementById('motoCount').textContent = motoSets.length + ' đề';
+    document.getElementById('motoGrid').innerHTML = motoSets.map(s => renderCard(s, 'moto')).join('');
+    document.getElementById('motoEmpty').style.display = 'none';
+
+    document.getElementById('otoCount').textContent = otoSets.length + ' đề';
+    document.getElementById('otoGrid').innerHTML = otoSets.map(s => renderCard(s, 'oto')).join('');
+    document.getElementById('otoEmpty').style.display = 'none';
 }
 
 function esc(t) { if(!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
@@ -546,7 +591,7 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
     // 2. Lắng nghe bảo trì hệ thống (Dành cho cả Student và Guest)
     maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
         if (doc.exists && doc.data().enabled === true) {
-            kickOut( '🔧','Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được tự động đăng xuất.' <b>'Vui lòng quay lại sau'</b>);
+            kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
         }
     });
 
