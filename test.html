@@ -98,29 +98,23 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 .loading-box .spinner{display:inline-block;width:40px;height:40px;border:4px solid #ddd;border-top-color:#0d6efd;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-.maintenance-page{position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36,#1e3a5f,#0d6efd);display:none;align-items:center;justify-content:center;z-index:99999;color:white;text-align:center;flex-direction:column;gap:18px;padding:20px;}
-.maintenance-page.show{display:flex;}
-.maintenance-page .maint-icon{font-size:64px;}
-.maintenance-page h1{font-size:24px;font-weight:800;}
-.maintenance-page p{font-size:15px;opacity:.85;max-width:500px;line-height:1.8;}
+/* MODAL KICKOUT */
+.kickout-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(5px);}
+.kickout-modal.show{display:flex;}
+.kickout-box{background:white;padding:30px;border-radius:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:kickoutFadeIn .4s;border-top:6px solid #dc3545;}
+@keyframes kickoutFadeIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+.kickout-box .icon{font-size:56px;margin-bottom:15px;color:#dc3545;}
+.kickout-box h3{margin:0 0 12px;font-size:20px;color:#1d3557;}
+.kickout-box p{font-size:14px;color:#444;line-height:1.6;margin:0 0 20px;}
+.kickout-box .countdown{font-size:13px;color:#888;}
+.kickout-box .countdown b{color:#1d3557;font-size:15px;}
 
-/* MODAL KICKOUT (BẢO TRÌ/BỊ KHÓA) */
-.kickout-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
-    align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
-}
-.kickout-modal.show { display: flex; }
-.kickout-box {
-    background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px;
-    text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kickoutFadeIn .4s;
-    border-top: 6px solid #dc3545;
-}
-@keyframes kickoutFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
-.kickout-box .icon { font-size: 56px; margin-bottom: 15px; color: #dc3545; }
-.kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
-.kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
-.kickout-box .countdown { font-size: 13px; color: #888; }
-.kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+/* STARTING OVERLAY */
+.start-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(4px);}
+.start-overlay.show{display:flex;}
+.start-box{background:white;padding:30px 40px;border-radius:18px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);}
+.start-box .spinner{display:inline-block;width:44px;height:44px;border:5px solid #ddd;border-top-color:#198754;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:16px;}
+.start-box p{font-size:15px;color:#1d3557;font-weight:600;}
 
 @media(max-width:768px){
  header{padding:12px 16px;}
@@ -133,14 +127,6 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 </style>
 </head>
 <body>
-
-<!-- BẢO TRÌ CHẶN NGAY TỪ ĐẦU (NẾU CẦN) -->
-<div class="maintenance-page" id="maintPage">
-<div class="maint-icon">🔧</div>
-<h1>Hệ thống đang bảo trì</h1>
-<p>Vui lòng quay lại sau.</p>
-<button onclick="location.href='index.html'" style="padding:12px 32px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:white;font-size:15px;cursor:pointer;">← Quay lại</button>
-</div>
 
 <!-- HEADER -->
 <header>
@@ -157,7 +143,7 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 <!-- ===== BANNER KHÁCH ===== -->
 <div class="guest-banner" id="guestBanner" style="display:none;">
  <div class="gb-left">
-  <h2>👋 Xin chào vị khách số <span id="guestNum">----</span>!</h2>
+  <h2>👋 Xin chào, Khách viếng thăm!</h2>
   <p>Bạn đang đăng nhập với tư cách <b>khách</b>.</p>
   <p>Bạn được phép thi thử <span class="hl">01 lần/ngày</span> và <span class="hl">03 lần/tuần</span>.</p>
   <p>Để sử dụng đầy đủ tính năng của Website, vui lòng liên hệ Admin để đăng ký tài khoản.</p>
@@ -206,41 +192,49 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 
 <!-- MODAL BẮT ĐẦU THI -->
 <div class="modal-bg" id="examModal">
-<div class="modal-content">
- <h3 id="mTitle"></h3>
- <div class="modal-info" id="mInfo"></div>
- <div class="modal-limit-warn" id="mLimitWarn"></div>
- <div class="modal-stats">
-  <div class="modal-stat"><b>📋 Số câu hỏi</b><span id="mQuestions">0</span></div>
-  <div class="modal-stat"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
+ <div class="modal-content">
+  <h3 id="mTitle"></h3>
+  <div class="modal-info" id="mInfo"></div>
+  <div class="modal-limit-warn" id="mLimitWarn"></div>
+  <div class="modal-stats">
+   <div class="modal-stat"><b>📋 Số câu hỏi</b><span id="mQuestions">0</span></div>
+   <div class="modal-stat"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
+  </div>
+  <div class="modal-rules">
+   <b>⚠ NỘI QUY THI</b>
+   <ul>
+    <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
+    <li>🔄 Không tải lại trang</li>
+    <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
+    <li>⏰ Hết thời gian hệ thống tự động nộp bài</li>
+    <li id="mRuleLimit"></li>
+   </ul>
+  </div>
+  <div class="modal-btns">
+   <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
+   <button class="mbtn-start" id="mStartBtn" onclick="startExam()">▶ Bắt đầu làm bài</button>
+  </div>
  </div>
- <div class="modal-rules">
-  <b>⚠ NỘI QUY THI</b>
-  <ul>
-   <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
-   <li>🔄 Không tải lại trang</li>
-   <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
-   <li>⏰ Hết thời gian hệ thống tự động nộp bài</li>
-   <li id="mRuleLimit"></li>
-  </ul>
- </div>
- <div class="modal-btns">
-  <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
-  <button class="mbtn-start" id="mStartBtn" onclick="startExam()">▶ Bắt đầu làm bài</button>
- </div>
-</div>
 </div>
 
-<!-- MODAL BỊ KHÓA / BẢO TRÌ (Đá văng) -->
+<!-- OVERLAY ĐANG XỬ LÝ -->
+<div class="start-overlay" id="startOverlay">
+ <div class="start-box">
+  <div class="spinner"></div>
+  <p id="startOverlayMsg">⏳ Đang xử lý, vui lòng chờ...</p>
+ </div>
+</div>
+
+<!-- MODAL BỊ KHÓA / BẢO TRÌ -->
 <div class="kickout-modal" id="kickoutModal">
-    <div class="kickout-box">
-        <div class="icon" id="kickoutIcon"></div>
-        <h3 id="kickoutTitle"></h3>
-        <p id="kickoutMessage"></p>
-        <div class="countdown">
-            Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
-        </div>
-    </div>
+ <div class="kickout-box">
+  <div class="icon" id="kickoutIcon"></div>
+  <h3 id="kickoutTitle"></h3>
+  <p id="kickoutMessage"></p>
+  <div class="countdown">
+   Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
+  </div>
+ </div>
 </div>
 
 <!-- LIBRARIES -->
@@ -253,33 +247,41 @@ header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14p
 // =====================================================================
 let db = null;
 try {
- if (firebase.apps.length === 0) firebase.initializeApp({apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",authDomain:"thi-luat-giao-thong.firebaseapp.com",projectId:"thi-luat-giao-thong"});
+ if (!firebase.apps.length) {
+  firebase.initializeApp({
+   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+   authDomain: "thi-luat-giao-thong.firebaseapp.com",
+   projectId: "thi-luat-giao-thong"
+  });
+ }
  db = firebase.firestore();
-} catch(e) { console.error('Firebase:', e); }
+} catch(e) { console.error('Firebase init error:', e); }
 
 // =====================================================================
 // AUTH & USER TYPE
 // =====================================================================
-const userType = localStorage.getItem('userType'); // 'guest' | 'student'
+const userType    = localStorage.getItem('userType');   // 'guest' | 'student'
 const studentCode = localStorage.getItem('studentCode') || '';
 const studentName = localStorage.getItem('studentName') || '';
 const studentUnit = localStorage.getItem('studentUnit') || '';
 
-// Bảo vệ cơ bản: Nếu không phải guest/student -> về trang chủ
+// Bảo vệ cơ bản
 if (userType !== 'guest' && userType !== 'student') {
  location.href = 'index.html';
 }
 
-const IS_GUEST = (userType === 'guest');
+const IS_GUEST   = (userType === 'guest');
 const IS_STUDENT = (userType === 'student');
 
 // =====================================================================
-// CLOCK
+// CLOCK (hiển thị giờ Việt Nam)
 // =====================================================================
 function updateClock() {
  const now = new Date();
- document.getElementById('liveClock').textContent = now.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
- document.getElementById('liveDate').textContent = now.toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+ document.getElementById('liveClock').textContent =
+  now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+ document.getElementById('liveDate').textContent =
+  now.toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -291,23 +293,19 @@ function setupUI() {
  const headerBtns = document.getElementById('headerBtns');
 
  if (IS_GUEST) {
-  // GUEST
   headerBtns.innerHTML = `
    <button class="btn-back" onclick="location.href='index.html'">⬅ Trang chủ</button>
    <button class="btn-login" onclick="location.href='index.html'">🔐 Đăng nhập</button>`;
-
-  document.getElementById('guestBanner').style.display = 'flex';
+  document.getElementById('guestBanner').style.display  = 'flex';
   document.getElementById('studentBanner').style.display = 'none';
-  document.getElementById('guestNum').textContent = getGuestNumber();
   updateLimitDisplay();
 
  } else {
-  // STUDENT
+  // [SỬA] Quay lại index.html thay vì exam.html không tồn tại
   headerBtns.innerHTML = `
-   <button class="btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
+   <button class="btn-back" onclick="location.href='index.html'">⬅ Quay lại</button>
    <button class="btn-logout" onclick="doLogout()">🚪 Đăng xuất</button>`;
-
-  document.getElementById('guestBanner').style.display = 'none';
+  document.getElementById('guestBanner').style.display  = 'none';
   document.getElementById('studentBanner').style.display = 'block';
   document.getElementById('svName').textContent = studentName;
   document.getElementById('svCode').textContent = studentCode;
@@ -316,9 +314,11 @@ function setupUI() {
 }
 
 function doLogout() {
- // Update offline trước khi logout
  if (IS_STUDENT && db && studentCode) {
-  try { db.collection('presence').doc(studentCode).set({isOnline:false, lastActive:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}); } catch(e){}
+  try {
+   db.collection('presence').doc(studentCode)
+    .set({isOnline: false, lastActive: firebase.firestore.FieldValue.serverTimestamp()}, {merge: true});
+  } catch(e) {}
  }
  localStorage.clear();
  location.href = 'index.html';
@@ -327,24 +327,45 @@ function doLogout() {
 // =====================================================================
 // GUEST LIMIT SYSTEM
 // =====================================================================
-const DAILY_LIMIT = 1, WEEKLY_LIMIT = 3;
+const DAILY_LIMIT  = 1;
+const WEEKLY_LIMIT = 3;
 
-function getGuestId() {
- let gid = localStorage.getItem('guestId');
- if (!gid) { gid = 'G' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2,3).toUpperCase(); localStorage.setItem('guestId', gid); }
- return gid;
+// Lấy ngày hôm nay theo múi giờ Việt Nam (GMT+7)
+function getTodayVN() {
+ const now = new Date();
+ const vn  = new Date(now.getTime() + 7 * 3600 * 1000);
+ return vn.toISOString().slice(0, 10); // YYYY-MM-DD
 }
-function getGuestNumber() {
- const g = getGuestId(); let n = 0;
- for (let i = 0; i < g.length; i++) n += g.charCodeAt(i);
- return String(n % 9000 + 1000);
+
+// Lấy tuần theo múi giờ Việt Nam (lấy ngày Thứ Hai đầu tuần)
+function getWeekKeyVN() {
+ const now = new Date();
+ const vn  = new Date(now.getTime() + 7 * 3600 * 1000);
+ const day = vn.getUTCDay() || 7;               // 1=T2 ... 7=CN
+ vn.setUTCDate(vn.getUTCDate() - day + 1);      // lùi về Thứ Hai
+ return 'W' + vn.toISOString().slice(0, 10);    // W2025-01-06
 }
-function getTodayKey() { return new Date().toISOString().slice(0,10); }
-function getWeekKey() { const d = new Date(); const day = d.getDay()||7; d.setDate(d.getDate()-day+1); return 'W'+d.toISOString().slice(0,10); }
-function getGuestLogs() { try { return JSON.parse(localStorage.getItem('guestExamLogs')||'[]'); } catch(e) { return []; } }
-function saveGuestLog() { const l = getGuestLogs(); l.push({date:getTodayKey(),week:getWeekKey(),time:Date.now()}); localStorage.setItem('guestExamLogs',JSON.stringify(l)); }
-function getTodayCount() { return getGuestLogs().filter(l=>l.date===getTodayKey()).length; }
-function getWeekCount() { return getGuestLogs().filter(l=>l.week===getWeekKey()).length; }
+
+function getGuestLogs() {
+ try { return JSON.parse(localStorage.getItem('guestExamLogs') || '[]'); }
+ catch(e) { return []; }
+}
+
+// Ghi log SAU KHI được cấp số và trước khi chuyển trang
+function saveGuestLog() {
+ const logs = getGuestLogs();
+ logs.push({ date: getTodayVN(), week: getWeekKeyVN(), time: Date.now() });
+ localStorage.setItem('guestExamLogs', JSON.stringify(logs));
+}
+
+function getTodayCount() {
+ return getGuestLogs().filter(l => l.date === getTodayVN()).length;
+}
+
+function getWeekCount() {
+ return getGuestLogs().filter(l => l.week === getWeekKeyVN()).length;
+}
+
 function canTakeExam() {
  if (IS_STUDENT) return true;
  return getTodayCount() < DAILY_LIMIT && getWeekCount() < WEEKLY_LIMIT;
@@ -352,111 +373,156 @@ function canTakeExam() {
 
 function updateLimitDisplay() {
  if (!IS_GUEST) return;
- const td = getTodayCount(), wk = getWeekCount(), rm = Math.max(0, DAILY_LIMIT - td);
- document.getElementById('todayUsed').textContent = td;
- document.getElementById('weekUsed').textContent = wk;
+ const td = getTodayCount();
+ const wk = getWeekCount();
+ const rm = Math.max(0, DAILY_LIMIT - td);
+ document.getElementById('todayUsed').textContent  = td;
+ document.getElementById('weekUsed').textContent   = wk;
  document.getElementById('remainCount').textContent = rm;
- document.getElementById('lcToday').className = 'lcard' + (td >= DAILY_LIMIT ? ' danger' : ' ok');
- document.getElementById('lcWeek').className = 'lcard' + (wk >= WEEKLY_LIMIT ? ' danger' : ' ok');
- document.getElementById('lcRemain').className = 'lcard' + (rm <= 0 ? ' danger' : ' ok');
+ document.getElementById('lcToday').className  = 'lcard' + (td >= DAILY_LIMIT  ? ' danger' : ' ok');
+ document.getElementById('lcWeek').className   = 'lcard' + (wk >= WEEKLY_LIMIT ? ' danger' : ' ok');
+ document.getElementById('lcRemain').className = 'lcard' + (rm <= 0            ? ' danger' : ' ok');
 }
 
 // =====================================================================
-// DATA LOADING - ĐÃ SỬA LỖI TẢI DỮ LIỆU
+// SỐ THỨ TỰ KHÁCH — CẤP TẠI THỜI ĐIỂM BẤM "BẮT ĐẦU THI"
 // =====================================================================
-let allSets = [], selectedSet = null;
+// Nếu khách này đã được cấp số trong phiên trước (còn localStorage) thì giữ nguyên.
+// Nếu chưa, gọi Firestore để lấy số tiếp theo (transaction an toàn).
+async function assignGuestSequentialNumber() {
+ const saved = localStorage.getItem('guestSeqNumber');
+ if (saved) return saved; // Khách đã có số từ lần trước
+
+ if (db) {
+  try {
+   const counterRef = db.collection('systemConfig').doc('guestCounter');
+   const seqNum = await db.runTransaction(async (tx) => {
+    const doc   = await tx.get(counterRef);
+    const current = (doc.exists && doc.data().total) ? doc.data().total : 0;
+    const next    = current + 1;
+    tx.set(counterRef, { total: next }, { merge: true });
+    return next;
+   });
+   const formatted = String(seqNum).padStart(4, '0'); // 0001, 0002, ...
+   localStorage.setItem('guestSeqNumber', formatted);
+   return formatted;
+  } catch(e) {
+   console.warn('Không thể cấp số thứ tự từ server, dùng fallback:', e);
+  }
+ }
+
+ // Fallback khi không có DB: dùng timestamp cuối (không đảm bảo liên tục nhưng tránh crash)
+ const fallback = 'L' + String(Date.now()).slice(-4);
+ localStorage.setItem('guestSeqNumber', fallback);
+ return fallback;
+}
+
+// =====================================================================
+// DATA LOADING
+// =====================================================================
+let allSets     = [];
+let selectedSet = null;
 
 function switchCat(cat) {
- document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+ document.querySelectorAll('.cat-tab').forEach(t =>
+  t.classList.toggle('active', t.dataset.cat === cat));
  document.getElementById('motoSection').classList.toggle('active', cat === 'moto');
  document.getElementById('otoSection').classList.toggle('active', cat === 'oto');
 }
 
 async function loadSets() {
- if (!db) { 
-     document.getElementById('loadingBox').innerHTML = '<p>❌ Không thể kết nối DB.</p>'; 
-     // FALLBACK DEMO DATA NẾU KHÔNG KẾT NỐI ĐƯỢC
-     renderDemoSets();
-     return; 
+ if (!db) {
+  document.getElementById('loadingBox').innerHTML = '<p>❌ Không thể kết nối cơ sở dữ liệu.</p>';
+  renderDemoSets();
+  return;
  }
 
  try {
-  // Lấy toàn bộ đề thi (Bỏ where 'status' để test nếu cần)
   const snap = await db.collection('questionSets').get();
-  
+
   if (snap.empty) {
-      console.warn("Firestore trả về rỗng. Đang dùng dữ liệu Demo.");
-      renderDemoSets();
-      return;
+   console.warn('Firestore trả về rỗng, dùng dữ liệu demo.');
+   renderDemoSets();
+   return;
   }
 
   const moto = [], oto = [];
   allSets = [];
 
   snap.forEach(doc => {
-   const s = {id: doc.id, ...doc.data()};
-   // Lọc phía client để chắc chắn
+   const s = { id: doc.id, ...doc.data() };
    if (s.status === 'active' || !s.status) {
-       const cat = (s.examType || s.category || '').toLowerCase();
-       if (cat === 'oto' || cat === 'ô tô' || cat === 'car') oto.push(s);
-       else moto.push(s);
-       allSets.push(s);
+    const cat = (s.examType || s.category || '').toLowerCase();
+    if (cat === 'oto' || cat === 'ô tô' || cat === 'car') oto.push(s);
+    else moto.push(s);
+    allSets.push(s);
    }
   });
 
-  if (allSets.length === 0) {
-      renderDemoSets(); // Không có đề active nào -> dùng demo
-      return;
-  }
+  if (allSets.length === 0) { renderDemoSets(); return; }
 
-  document.getElementById('loadingBox').style.display = 'none';
-  document.getElementById('catTabs').style.display = 'flex';
-
-  document.getElementById('motoCount').textContent = moto.length + ' đề';
-  document.getElementById('motoGrid').innerHTML = moto.map(s => renderCard(s, 'moto')).join('');
-  document.getElementById('motoEmpty').style.display = moto.length ? 'none' : 'block';
-
-  document.getElementById('otoCount').textContent = oto.length + ' đề';
-  document.getElementById('otoGrid').innerHTML = oto.map(s => renderCard(s, 'oto')).join('');
-  document.getElementById('otoEmpty').style.display = oto.length ? 'none' : 'block';
+  renderGrids(moto, oto);
 
  } catch(e) {
   console.error('Load sets error:', e);
-  // FALLBACK KHI LỖI QUYỀN TRUY CẬP
   renderDemoSets();
  }
 }
 
-// HÀM RENDER DỮ LIỆU GIẢ LẬP (PHÒNG KHI LỖI)
 function renderDemoSets() {
-    const motoSets = [
-        {id:'demo1', name:'Đề số 1 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'},
-        {id:'demo2', name:'Đề số 2 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'}
-    ];
-    const otoSets = [
-        {id:'demo3', name:'Đề số 1 (Demo)', description:'Đề thi thử B2', totalQuestions:35, timeMinutes:22, examType:'oto'}
-    ];
-    allSets = [...motoSets, ...otoSets];
-
-    document.getElementById('loadingBox').style.display = 'none';
-    document.getElementById('catTabs').style.display = 'flex';
-
-    document.getElementById('motoCount').textContent = motoSets.length + ' đề';
-    document.getElementById('motoGrid').innerHTML = motoSets.map(s => renderCard(s, 'moto')).join('');
-    document.getElementById('motoEmpty').style.display = 'none';
-
-    document.getElementById('otoCount').textContent = otoSets.length + ' đề';
-    document.getElementById('otoGrid').innerHTML = otoSets.map(s => renderCard(s, 'oto')).join('');
-    document.getElementById('otoEmpty').style.display = 'none';
+ const motoSets = [
+  {id:'demo1', name:'Đề số 01 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'},
+  {id:'demo2', name:'Đề số 02 (Demo)', description:'Đề thi thử A1', totalQuestions:25, timeMinutes:19, examType:'moto'}
+ ];
+ const otoSets = [
+  {id:'demo3', name:'Đề số 01 (Demo)', description:'Đề thi thử B2', totalQuestions:35, timeMinutes:22, examType:'oto'}
+ ];
+ allSets = [...motoSets, ...otoSets];
+ renderGrids(motoSets, otoSets);
 }
 
-function esc(t) { if(!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function renderGrids(moto, oto) {
+ document.getElementById('loadingBox').style.display = 'none';
+ document.getElementById('catTabs').style.display    = 'flex';
 
+ document.getElementById('motoCount').textContent = moto.length + ' đề';
+ document.getElementById('motoGrid').innerHTML    = moto.map(s => renderCard(s, 'moto')).join('');
+ document.getElementById('motoEmpty').style.display = moto.length ? 'none' : 'block';
+
+ document.getElementById('otoCount').textContent  = oto.length + ' đề';
+ document.getElementById('otoGrid').innerHTML     = oto.map(s => renderCard(s, 'oto')).join('');
+ document.getElementById('otoEmpty').style.display  = oto.length ? 'none' : 'block';
+}
+
+// [SỬA] Dùng dataset thay vì inline onclick để tránh vấn đề escape ký tự đặc biệt
 function renderCard(s, type) {
- const tq = s.totalQuestions || 0, time = s.timeMinutes || s.duration || 20;
+ const tq   = s.totalQuestions || 0;
+ const time = s.timeMinutes || s.duration || 20;
  const liet = s.lietCount || s.lietQuestion || 0;
- const badge = type === 'oto' ? '<span class="badge badge-oto">🚗 Ô tô</span>' : '<span class="badge badge-moto">🏍️ Mô tô</span>';
- return `<div class="set-card ${type}" onclick='openModal("${s.id}")'>${badge}<h3>📝 ${esc(s.name)}</h3><p>${esc(s.description||'Bộ đề thi lý thuyết')}</p><div class="set-meta"><span class="meta-item">📋 ${tq} câu</span><span class="meta-item">⏱ ${time} phút</span>${liet>0?'<span class="meta-item" style="color:#dc3545;">⚡ '+liet+' câu liệt</span>':''}</div></div>`;
+ const badge = type === 'oto'
+  ? '<span class="badge badge-oto">🚗 Ô tô</span>'
+  : '<span class="badge badge-moto">🏍️ Mô tô</span>';
+ const lietTag = liet > 0
+  ? `<span class="meta-item" style="color:#dc3545;">⚡ ${liet} câu liệt</span>`
+  : '';
+ return `
+  <div class="set-card ${type}" data-setid="${esc(s.id)}" onclick="openModal(this.dataset.setid)">
+   ${badge}
+   <h3>📝 ${esc(s.name)}</h3>
+   <p>${esc(s.description || 'Bộ đề thi lý thuyết')}</p>
+   <div class="set-meta">
+    <span class="meta-item">📋 ${tq} câu</span>
+    <span class="meta-item">⏱ ${time} phút</span>
+    ${lietTag}
+   </div>
+  </div>`;
+}
+
+function esc(t) {
+ if (!t) return '';
+ const d = document.createElement('div');
+ d.textContent = t;
+ return d.innerHTML;
 }
 
 // =====================================================================
@@ -466,157 +532,193 @@ function openModal(setId) {
  selectedSet = allSets.find(s => s.id === setId);
  if (!selectedSet) return;
 
- const tq = selectedSet.totalQuestions || 0;
+ const tq   = selectedSet.totalQuestions || 0;
  const time = selectedSet.timeMinutes || selectedSet.duration || 20;
  const liet = selectedSet.lietCount || selectedSet.lietQuestion || 0;
 
  document.getElementById('mTitle').textContent = selectedSet.name;
 
  let info = selectedSet.description || 'Bộ đề thi lý thuyết';
- info += '\n\n• Số câu: ' + tq + '\n• Thời gian: ' + time + ' phút';
- if (liet > 0) info += '\n• Câu liệt: ' + liet + ' câu (trả lời sai = KHÔNG ĐẠT)';
+ info += `\n\n• Số câu: ${tq}\n• Thời gian: ${time} phút`;
+ if (liet > 0) info += `\n• Câu liệt: ${liet} câu (trả lời sai = KHÔNG ĐẠT)`;
  document.getElementById('mInfo').innerText = info;
 
  document.getElementById('mQuestions').textContent = tq;
- document.getElementById('mTime').textContent = time + "'";
+ document.getElementById('mTime').textContent       = time + "'";
 
- const warnEl = document.getElementById('mLimitWarn');
- const startBtn = document.getElementById('mStartBtn');
+ const warnEl    = document.getElementById('mLimitWarn');
+ const startBtn  = document.getElementById('mStartBtn');
  const ruleLimit = document.getElementById('mRuleLimit');
 
  if (IS_GUEST) {
   ruleLimit.textContent = '🏍️🚗 Khách: tối đa 1 lần/ngày, 3 lần/tuần';
   if (!canTakeExam()) {
    warnEl.innerText = '⚠ Bạn đã hết lượt thi thử hôm nay.\n\n👉 Đăng ký tài khoản để thi không giới hạn!';
-   warnEl.style.display = 'block';
-   startBtn.disabled = true;
-   startBtn.textContent = '🚫 Đã hết lượt thi thử';
+   warnEl.style.display  = 'block';
+   startBtn.disabled     = true;
+   startBtn.textContent  = '🚫 Đã hết lượt thi thử';
   } else {
    warnEl.style.display = 'none';
-   startBtn.disabled = false;
+   startBtn.disabled    = false;
    startBtn.textContent = '▶ Bắt đầu thi thử';
   }
  } else {
   ruleLimit.textContent = '💾 Kết quả thi được ghi nhận tự động';
   warnEl.style.display = 'none';
-  startBtn.disabled = false;
+  startBtn.disabled    = false;
   startBtn.textContent = '▶ Bắt đầu làm bài';
  }
 
  document.getElementById('examModal').classList.add('show');
 }
 
-function closeModal() { document.getElementById('examModal').classList.remove('show'); }
+function closeModal() {
+ document.getElementById('examModal').classList.remove('show');
+}
 
-function startExam() {
+// =====================================================================
+// BẮT ĐẦU THI — Cấp số thứ tự khách TẠI ĐÂY
+// =====================================================================
+async function startExam() {
  if (!selectedSet) return;
- if (IS_GUEST && !canTakeExam()) { alert('Hết lượt thi thử!'); return; }
+ if (IS_GUEST && !canTakeExam()) { alert('Bạn đã hết lượt thi thử!'); return; }
+
+ // Vô hiệu hóa nút để tránh bấm 2 lần
+ const startBtn = document.getElementById('mStartBtn');
+ startBtn.disabled    = true;
+ startBtn.textContent = '⏳ Đang chuẩn bị...';
 
  if (IS_GUEST) {
+  // [MỚI] Cấp số thứ tự tại đúng thời điểm bấm bắt đầu thi
+  showStartOverlay('🔢 Đang cấp mã khách...');
+  const seqNum = await assignGuestSequentialNumber();
+
+  // Sau khi có số mới ghi log (để không tiêu tốn lượt nếu việc cấp số thất bại)
   saveGuestLog();
   updateLimitDisplay();
+
+  // Lưu thông tin khách vào localStorage để trang thi có thể dùng
+  localStorage.setItem('guestSeqDisplay', seqNum);
+
  } else if (IS_STUDENT && db && studentCode) {
+  showStartOverlay('📡 Đang kết nối...');
   try {
-   db.collection('presence').doc(studentCode).set({
+   await db.collection('presence').doc(studentCode).set({
     isOnline: true,
     currentSection: 'Đang thi: ' + selectedSet.name,
     lastActive: firebase.firestore.FieldValue.serverTimestamp()
    }, {merge: true});
-  } catch(e) {}
+  } catch(e) { console.warn('Presence update failed:', e); }
  }
 
- localStorage.setItem('examSet', JSON.stringify(selectedSet));
+ showStartOverlay('🚀 Đang chuyển sang trang thi...');
+ localStorage.setItem('examSet',  JSON.stringify(selectedSet));
  localStorage.setItem('examMode', IS_GUEST ? 'trial' : 'official');
- 
- // Điều hướng sang trang làm bài (đảm bảo bạn có file do_exam.html)
+
+ // Chuyển trang
  location.href = 'do_exam.html';
 }
 
-// Modal Events
-document.getElementById('examModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+function showStartOverlay(msg) {
+ document.getElementById('startOverlayMsg').textContent = msg || '⏳ Đang xử lý...';
+ document.getElementById('startOverlay').classList.add('show');
+}
 
 // =====================================================================
-// SECURITY & REAL-TIME (TÍCH HỢP SẴN)
+// MODAL EVENTS
+// =====================================================================
+document.getElementById('examModal').addEventListener('click', function(e) {
+ if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// =====================================================================
+// SECURITY & REAL-TIME LISTENER
 // =====================================================================
 (function initRealtimeSecurity() {
-    // Chỉ kích hoạt nếu có DB
-    if (typeof firebase === 'undefined' || !firebase.firestore) return;
-    const db = firebase.firestore();
+ // [SỬA] Dùng biến db outer scope thay vì khai báo lại
+ if (!db) return;
 
-    let isKicked = false;
-    let studentUnsub = null, maintUnsub = null;
+ let isKicked     = false;
+ let studentUnsub = null;
+ let maintUnsub   = null;
 
-    function kickOut(title, message, icon) {
-        if (isKicked) return;
-        isKicked = true;
+ function kickOut(title, message, icon) {
+  if (isKicked) return;
+  isKicked = true;
 
-        if (studentUnsub) studentUnsub();
-        if (maintUnsub) maintUnsub();
+  if (studentUnsub) studentUnsub();
+  if (maintUnsub)   maintUnsub();
 
-        // Nếu là học viên, set offline
-        if (IS_STUDENT && studentCode) {
-            db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-        }
-        
-        // Hiện Modal Kickout
-        const modal = document.getElementById('kickoutModal');
-        document.getElementById('kickoutIcon').textContent = icon;
-        document.getElementById('kickoutTitle').textContent = title;
-        document.getElementById('kickoutMessage').textContent = message;
-        modal.classList.add('show');
+  // Set offline nếu là học viên
+  if (IS_STUDENT && studentCode) {
+   try {
+    db.collection('presence').doc(studentCode)
+     .set({ isOnline: false, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+   } catch(e) {}
+  }
 
-        // Đếm ngược
-        let seconds = 5;
-        const countdownEl = document.getElementById('kickoutCountdown');
-        setInterval(() => {
-            seconds--;
-            if (countdownEl) countdownEl.textContent = seconds;
-            if (seconds <= 0) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }, 1000);
-    }
+  // Hiện modal đá văng
+  document.getElementById('kickoutIcon').textContent    = icon;
+  document.getElementById('kickoutTitle').textContent   = title;
+  document.getElementById('kickoutMessage').textContent = message;
+  document.getElementById('kickoutModal').classList.add('show');
 
-    // 1. Lắng nghe khóa tài khoản (Chỉ dành cho Student)
-    if (IS_STUDENT && studentCode) {
-        studentUnsub = db.collection('students').doc(studentCode).onSnapshot((doc) => {
-            if (doc.exists && doc.data().status === 'locked') {
-                kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
-            }
-        });
-    }
+  // Đếm ngược 5s rồi về trang chủ
+  let seconds = 5;
+  const cdEl  = document.getElementById('kickoutCountdown');
+  const timer = setInterval(() => {
+   seconds--;
+   if (cdEl) cdEl.textContent = seconds;
+   if (seconds <= 0) {
+    clearInterval(timer);
+    localStorage.clear();
+    window.location.href = 'index.html';
+   }
+  }, 1000);
+ }
 
-    // 2. Lắng nghe bảo trì hệ thống (Dành cho cả Student và Guest)
-    maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
-        if (doc.exists && doc.data().enabled === true) {
-            kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
-        }
-    });
+ // 1. Theo dõi trạng thái khóa tài khoản (chỉ Student)
+ if (IS_STUDENT && studentCode) {
+  studentUnsub = db.collection('students').doc(studentCode).onSnapshot(doc => {
+   if (doc.exists && doc.data().status === 'locked') {
+    kickOut('Tài khoản bị khóa', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+   }
+  }, err => console.warn('Student snapshot error:', err));
+ }
 
-    // 3. Heartbeat Online (Chỉ dành cho Student)
-    if (IS_STUDENT && studentCode) {
-        const presenceRef = db.collection('presence').doc(studentCode);
-        const sendHeartbeat = () => {
-            if (!isKicked) {
-                presenceRef.set({
-                    isOnline: true,
-                    currentSection: 'Đang chọn đề',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true }).catch(()=>{});
-            }
-        };
-        sendHeartbeat();
-        setInterval(sendHeartbeat, 20000);
+ // 2. Theo dõi bảo trì hệ thống (cả Guest lẫn Student)
+ maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot(doc => {
+  if (doc.exists && doc.data().enabled === true) {
+   kickOut('Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+  }
+ }, err => console.warn('Maintenance snapshot error:', err));
 
-        window.addEventListener('beforeunload', () => {
-            if(!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
-        });
-    }
+ // 3. Heartbeat presence (chỉ Student)
+ if (IS_STUDENT && studentCode) {
+  const presenceRef = db.collection('presence').doc(studentCode);
+  const sendHeartbeat = () => {
+   if (isKicked) return;
+   presenceRef.set({
+    isOnline: true,
+    currentSection: 'Đang chọn đề',
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+   }, {merge: true}).catch(() => {});
+  };
+  sendHeartbeat();
+  setInterval(sendHeartbeat, 20000);
+
+  window.addEventListener('beforeunload', () => {
+   if (!isKicked) {
+    presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+   }
+  });
+ }
 })();
 
-// START
+// =====================================================================
+// KHỞI ĐỘNG
+// =====================================================================
 setupUI();
 loadSets();
 </script>
