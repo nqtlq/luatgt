@@ -3,722 +3,1252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chọn đề thi - Hệ thống thi luật Giao thông</title>
+<title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
 <style>
-/* GENERAL */
-*{box-sizing:border-box;margin:0;}
-body{font-family:"Segoe UI",Roboto,Arial,sans-serif;background:#f0f4f8;}
-header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.25);flex-wrap:wrap;gap:10px;}
-.header-left{display:flex;align-items:center;gap:14px;}
-.header-left h1{font-size:17px;font-weight:700;}
-.clock-box{background:rgba(255,255,255,.12);padding:8px 16px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:14px;}
-.clock-box .time{font-weight:700;font-size:16px;font-family:'Courier New',monospace;letter-spacing:1px;}
-.header-right{display:flex;gap:10px;}
-.header-right button{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
-.btn-back{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);}
-.btn-back:hover{background:rgba(255,255,255,.25);}
-.btn-login{background:#2a9d8f;color:white;}
-.btn-login:hover{opacity:.9;}
-.btn-logout{background:#e63946;color:white;}
+/* =====================================================================
+   RESET & BASE
+===================================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Segoe UI", Roboto, Arial, sans-serif; background: #f0f4f8; color: #333; }
 
-/* ===== BANNER KHÁCH ===== */
-.guest-banner{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:1px solid #ffc107;border-radius:16px;padding:22px 24px;margin:20px auto;max-width:1200px;display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;}
-.guest-banner .gb-left{flex:1;min-width:260px;}
-.guest-banner h2{color:#856404;font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.gb-guestnum{display:inline-flex;align-items:center;gap:6px;background:#856404;color:white;font-size:12.5px;font-weight:700;padding:3px 11px;border-radius:20px;}
+/* =====================================================================
+   HEADER
+===================================================================== */
+header {
+  background: linear-gradient(90deg, #1d3557, #264a8a);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,.25);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.header-left h1 { font-size: 17px; font-weight: 700; }
+.clock-box {
+  background: rgba(255,255,255,.12);
+  padding: 8px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.clock-box .time {
+  font-weight: 700;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+.clock-box .date-str { font-size: 12px; opacity: .8; margin-left: 4px; }
+.header-right { display: flex; gap: 10px; }
+.header-right button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all .2s;
+}
+.btn-back  { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
+.btn-back:hover  { background: rgba(255,255,255,.28); }
+.btn-login { background: #2a9d8f; color: white; }
+.btn-login:hover { opacity: .9; }
+.btn-logout { background: #e63946; color: white; }
+.btn-logout:hover { opacity: .9; }
+
+/* =====================================================================
+   WRAPPERS & BANNERS
+===================================================================== */
+.page-wrap { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
+
+/* --- BANNER KHÁCH --- */
+.guest-banner {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1px solid #ffc107;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.gb-left { flex: 1; min-width: 260px; }
+.gb-title {
+  color: #856404;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gb-seq {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #856404;
+  color: white;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 20px;
+  letter-spacing: .3px;
+}
+.gb-seq .seq-loading {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+}
 
 /* Bảng so sánh quyền */
-.perm-table{width:100%;border-collapse:collapse;margin-top:2px;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:12.5px;}
-.perm-table th{padding:9px 12px;font-size:12px;font-weight:700;text-align:center;}
-.perm-table th:first-child{text-align:left;background:#f8f9fa;color:#555;width:55%;}
-.perm-table th:nth-child(2){background:#fff3cd;color:#856404;width:22%;}
-.perm-table th:nth-child(3){background:#d1f0e4;color:#0f5132;width:23%;}
-.perm-table td{padding:7px 12px;border-top:1px solid #f0f0f0;color:#444;}
-.perm-table td:first-child{font-weight:500;}
-.perm-table td:nth-child(2),.perm-table td:nth-child(3){text-align:center;}
-.perm-table tr:hover td{background:#fafafa;}
-.perm-yes{color:#198754;font-size:14px;font-weight:700;}
-.perm-no{color:#dc3545;font-size:14px;font-weight:700;}
-.perm-limit{color:#856404;font-size:11px;font-weight:700;line-height:1.3;}
+.perm-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  font-size: 12.5px;
+}
+.perm-table th {
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.perm-table th:first-child { text-align: left; background: #f8f9fa; color: #555; width: 55%; }
+.perm-table th:nth-child(2) { background: #fff3cd; color: #856404; width: 22%; }
+.perm-table th:nth-child(3) { background: #d1f0e4; color: #0f5132; width: 23%; }
+.perm-table td { padding: 7px 12px; border-top: 1px solid #f0f0f0; color: #444; }
+.perm-table td:first-child { font-weight: 500; }
+.perm-table td:nth-child(2), .perm-table td:nth-child(3) { text-align: center; }
+.perm-table tr:hover td { background: #fafafa; }
+.p-yes   { color: #198754; font-size: 15px; font-weight: 700; }
+.p-no    { color: #dc3545; font-size: 15px; font-weight: 700; }
+.p-limit { color: #856404; font-size: 11px; font-weight: 700; line-height: 1.4; }
 
 /* Liên hệ Admin */
-.contact-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed #ffc107;}
-.contact-item{display:flex;align-items:center;gap:5px;font-size:13px;color:#664d03;font-weight:600;}
-.contact-item a{color:#664d03;text-decoration:none;}
-.zalo-btn{display:inline-flex;align-items:center;gap:5px;background:#0068ff;color:white !important;font-size:12px;font-weight:700;padding:5px 13px;border-radius:20px;text-decoration:none !important;transition:all .2s;cursor:pointer;box-shadow:0 2px 8px rgba(0,104,255,.3);}
-.zalo-btn:hover{opacity:.88;transform:scale(1.04);}
+.contact-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ffc107;
+}
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #664d03;
+  font-weight: 600;
+}
+.contact-item a { color: #664d03; text-decoration: none; }
+.contact-item a:hover { text-decoration: underline; }
+.zalo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #0068ff;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,104,255,.35);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.zalo-btn:hover { opacity: .88; transform: scale(1.04); }
+.contact-note {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: #856404;
+  line-height: 1.5;
+}
 
-/* Thẻ lượt -->
-.guest-banner .gb-right{display:flex;gap:10px;flex-wrap:wrap;align-self:flex-start;}
-.lcard{background:white;border-radius:12px;padding:13px 16px;text-align:center;min-width:96px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
-.lcard .ll{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:5px;}
-.lcard .lv{font-size:26px;font-weight:800;color:#1d3557;}
-.lcard .ls{font-size:11px;color:#666;margin-top:3px;}
-.lcard.danger .lv{color:#dc3545;}
-.lcard.ok .lv{color:#198754;}
+/* Thẻ lượt thi */
+.gb-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+.lcard {
+  background: white;
+  border-radius: 12px;
+  padding: 13px 16px;
+  text-align: center;
+  min-width: 96px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  transition: all .2s;
+}
+.lcard .ll { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+.lcard .lv { font-size: 28px; font-weight: 800; color: #1d3557; line-height: 1; }
+.lcard .ls { font-size: 11px; color: #666; margin-top: 4px; }
+.lcard.ok .lv    { color: #198754; }
+.lcard.danger .lv { color: #dc3545; }
 
-/* ===== BANNER HỌC VIÊN ===== */
-.student-banner{background:linear-gradient(135deg,#d1e7dd,#c3e6cb);border:1px solid #a3cfbb;border-radius:16px;padding:22px 24px;margin:20px auto;max-width:1200px;display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;}
-.student-banner .sb-left{flex:1;min-width:240px;}
-.student-banner h2{color:#0f5132;font-size:17px;margin-bottom:6px;}
-.student-banner p{color:#155724;font-size:13.5px;line-height:1.5;margin:3px 0;}
-.sv-info{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-.sv-item{background:rgba(255,255,255,.6);padding:7px 13px;border-radius:8px;font-size:13px;color:#155724;}
-.sv-item b{color:#0f5132;}
-.sv-perm-list{background:rgba(255,255,255,.55);border-radius:12px;padding:12px 16px;font-size:13px;color:#155724;min-width:210px;}
-.sv-perm-title{font-weight:700;font-size:12px;color:#0f5132;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
-.sv-perm-list ul{padding-left:16px;margin:0;}
-.sv-perm-list li{margin-bottom:5px;line-height:1.4;}
+/* --- BANNER HỌC VIÊN --- */
+.student-banner {
+  background: linear-gradient(135deg, #d1e7dd, #c3e6cb);
+  border: 1px solid #a3cfbb;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.sb-left { flex: 1; min-width: 240px; }
+.sb-left h2 { color: #0f5132; font-size: 17px; margin-bottom: 6px; }
+.sb-left p  { color: #155724; font-size: 13.5px; line-height: 1.5; margin: 3px 0; }
+.sv-info { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.sv-item {
+  background: rgba(255,255,255,.6);
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #155724;
+}
+.sv-item b { color: #0f5132; }
+.sv-perm-list {
+  background: rgba(255,255,255,.55);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #155724;
+  min-width: 210px;
+  align-self: flex-start;
+}
+.sv-perm-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: #0f5132;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.sv-perm-list ul { padding-left: 16px; }
+.sv-perm-list li { margin-bottom: 5px; line-height: 1.45; }
 
-/* ===== BANNER MỜI CHỌN ĐỀ ===== */
-.invite-banner{background:linear-gradient(90deg,#1d3557,#1565c0);border-radius:14px;padding:18px 28px;margin:0 auto 24px;max-width:1200px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 4px 18px rgba(13,110,253,.28);}
-.invite-banner .ib-text{color:white;}
-.invite-banner .ib-text h3{font-size:17px;font-weight:700;margin-bottom:4px;}
-.invite-banner .ib-text p{font-size:13px;opacity:.87;line-height:1.5;}
-.invite-banner .ib-icon{font-size:28px;animation:bounce 1.2s ease-in-out infinite;}
-@keyframes bounce{0%,100%{transform:translateX(0);}50%{transform:translateX(7px);}}
+/* --- BANNER MỜI CHỌN ĐỀ --- */
+.invite-banner {
+  background: linear-gradient(90deg, #1d3557, #1565c0);
+  border-radius: 14px;
+  padding: 18px 28px;
+  margin-bottom: 24px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  box-shadow: 0 4px 18px rgba(13,110,253,.28);
+}
+.ib-text h3 { color: white; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.ib-text p  { color: rgba(255,255,255,.87); font-size: 13px; line-height: 1.5; }
+.ib-icon    { font-size: 28px; animation: bounce 1.2s ease-in-out infinite; }
+@keyframes bounce { 0%,100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
 
-/* LAYOUT */
-.container{max-width:1200px;margin:0 auto 30px;padding:0 20px;}
-.cat-tabs{display:flex;gap:0;margin-bottom:24px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1);}
-.cat-tab{flex:1;padding:18px 20px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#666;transition:all .25s;border-bottom:3px solid transparent;}
-.cat-tab:hover{background:#f8f9fa;color:#1d3557;}
-.cat-tab.active{color:#1d3557;background:#f0f4ff;border-bottom-color:#0d6efd;}
-.cat-tab .cat-icon{font-size:28px;display:block;margin-bottom:6px;}
-.cat-tab .cat-count{display:inline-block;background:#e9ecef;color:#555;padding:2px 8px;border-radius:10px;font-size:11px;margin-top:4px;}
-.cat-tab.active .cat-count{background:#0d6efd;color:white;}
-.sets-section{display:none;}
-.sets-section.active{display:block;}
-.sets-section h2{color:#1d3557;font-size:17px;margin-bottom:16px;padding-left:4px;}
-.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
-.set-card{background:white;border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .25s;cursor:pointer;border-left:5px solid #0d6efd;position:relative;}
-.set-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.18);}
-.set-card.moto{border-left-color:#e63946;}
-.set-card.oto{border-left-color:#2a9d8f;}
-.set-card h3{font-size:15px;color:#1d3557;margin-bottom:8px;}
-.set-card p{font-size:13px;color:#666;margin:4px 0;line-height:1.4;}
-.set-card .set-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-.set-card .meta-item{background:#f1f4f8;padding:4px 10px;border-radius:8px;font-size:12px;color:#555;font-weight:600;}
-.set-card .badge{position:absolute;top:14px;right:14px;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;}
-.badge-moto{background:#fce4ec;color:#c62828;}
-.badge-oto{background:#e0f2f1;color:#00695c;}
-.no-sets{text-align:center;padding:50px;color:#888;font-style:italic;font-size:15px;}
+/* =====================================================================
+   TABS & ĐỀ THI
+===================================================================== */
+.cat-tabs {
+  display: flex;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.1);
+  margin-bottom: 24px;
+}
+.cat-tab {
+  flex: 1;
+  padding: 18px 20px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  transition: all .25s;
+  border-bottom: 3px solid transparent;
+  user-select: none;
+}
+.cat-tab:hover  { background: #f8f9fa; color: #1d3557; }
+.cat-tab.active { color: #1d3557; background: #f0f4ff; border-bottom-color: #0d6efd; }
+.cat-tab .cat-icon  { font-size: 28px; display: block; margin-bottom: 6px; }
+.cat-tab .cat-count {
+  display: inline-block;
+  background: #e9ecef;
+  color: #555;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.cat-tab.active .cat-count { background: #0d6efd; color: white; }
 
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
-.modal-bg.show{display:flex;}
-.modal-content{background:white;width:500px;max-width:100%;border-radius:18px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:modalIn .3s;max-height:90vh;overflow-y:auto;}
-@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.modal-content h3{margin:0 0 14px;color:#1d3557;font-size:18px;}
-.modal-info{background:#f1f4f8;padding:14px;border-radius:12px;margin-bottom:14px;font-size:14px;line-height:1.6;white-space:pre-line;}
-.modal-stats{display:flex;gap:14px;margin-bottom:16px;}
-.modal-stat{flex:1;background:#eaf6ff;border-radius:14px;padding:14px;text-align:center;}
-.modal-stat b{display:block;font-size:13px;color:#1d3557;margin-bottom:6px;}
-.modal-stat span{font-size:24px;font-weight:bold;color:#0d6efd;}
-.modal-rules{background:#fff3cd;border:2px solid #ffca2c;padding:16px;border-radius:14px;font-size:14px;}
-.modal-rules ul{padding-left:20px;margin:8px 0 0;}
-.modal-rules li{margin-bottom:6px;}
-.modal-limit-warn{background:#f8d7da;border:1px solid #f5c2c7;color:#842029;padding:12px;border-radius:10px;margin-bottom:14px;font-size:13px;text-align:center;font-weight:600;display:none;}
-.modal-btns{display:flex;gap:14px;margin-top:20px;}
-.modal-btns button{flex:1;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-.mbtn-back{background:#6c757d;color:white;}
-.mbtn-start{background:#198754;color:white;}
-.mbtn-start:hover{opacity:.9;}
-.mbtn-back:hover{opacity:.85;}
-.mbtn-start:disabled{opacity:.4;cursor:not-allowed;}
+.sets-section       { display: none; }
+.sets-section.active { display: block; }
+.sets-section > h2  { color: #1d3557; font-size: 17px; margin-bottom: 16px; padding-left: 4px; }
 
-/* LOADING */
-.loading-box{text-align:center;padding:60px;color:#666;}
-.loading-box .spinner{display:inline-block;width:40px;height:40px;border:4px solid #ddd;border-top-color:#0d6efd;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px;}
-@keyframes spin{to{transform:rotate(360deg);}}
+.set-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.set-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  transition: all .25s;
+  cursor: pointer;
+  border-left: 5px solid #0d6efd;
+  position: relative;
+}
+.set-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,.18); }
+.set-card.moto  { border-left-color: #e63946; }
+.set-card.oto   { border-left-color: #2a9d8f; }
+.set-card h3    { font-size: 15px; color: #1d3557; margin-bottom: 8px; }
+.set-card p     { font-size: 13px; color: #666; margin: 4px 0; line-height: 1.4; }
+.set-card .set-meta { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.meta-item {
+  background: #f1f4f8;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 600;
+}
+.set-card .badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-moto { background: #fce4ec; color: #c62828; }
+.badge-oto  { background: #e0f2f1; color: #00695c; }
+.no-sets    { text-align: center; padding: 50px 20px; color: #aaa; font-style: italic; font-size: 15px; }
 
-/* KICKOUT MODAL */
-.kickout-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(5px);}
-.kickout-modal.show{display:flex;}
-.kickout-box{background:white;padding:30px;border-radius:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:kFadeIn .4s;border-top:6px solid #dc3545;}
-@keyframes kFadeIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
-.kickout-box .icon{font-size:56px;margin-bottom:15px;}
-.kickout-box h3{margin:0 0 12px;font-size:20px;color:#1d3557;}
-.kickout-box p{font-size:14px;color:#444;line-height:1.6;margin:0 0 20px;}
-.kickout-box .countdown{font-size:13px;color:#888;}
-.kickout-box .countdown b{color:#1d3557;font-size:15px;}
+/* =====================================================================
+   LOADING BOX
+===================================================================== */
+.loading-box { text-align: center; padding: 60px 20px; color: #888; }
+.spinner {
+  display: inline-block;
+  width: 40px; height: 40px;
+  border: 4px solid #ddd;
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-bottom: 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* START OVERLAY */
-.start-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(4px);}
-.start-overlay.show{display:flex;}
-.start-box{background:white;padding:30px 40px;border-radius:18px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);}
-.start-box .spinner{display:inline-block;width:44px;height:44px;border:5px solid #ddd;border-top-color:#198754;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:16px;}
-.start-box p{font-size:15px;color:#1d3557;font-weight:600;}
+/* =====================================================================
+   MODAL BẮT ĐẦU THI
+===================================================================== */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-bg.show { display: flex; }
+.modal-content {
+  background: white;
+  width: 500px;
+  max-width: 100%;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  animation: modalIn .3s;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-content h3   { margin: 0 0 14px; color: #1d3557; font-size: 18px; }
+.modal-info {
+  background: #f1f4f8;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+.modal-stats         { display: flex; gap: 14px; margin-bottom: 16px; }
+.modal-stat          { flex: 1; background: #eaf6ff; border-radius: 14px; padding: 14px; text-align: center; }
+.modal-stat b        { display: block; font-size: 13px; color: #1d3557; margin-bottom: 6px; }
+.modal-stat span     { font-size: 26px; font-weight: 800; color: #0d6efd; }
+.modal-rules         { background: #fff3cd; border: 2px solid #ffca2c; padding: 16px; border-radius: 14px; font-size: 14px; }
+.modal-rules b       { font-size: 14px; }
+.modal-rules ul      { padding-left: 20px; margin: 8px 0 0; }
+.modal-rules li      { margin-bottom: 6px; line-height: 1.5; }
+.modal-limit-warn {
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+  color: #842029;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  text-align: center;
+  font-weight: 600;
+  white-space: pre-line;
+  display: none;
+}
+.modal-btns          { display: flex; gap: 14px; margin-top: 20px; }
+.modal-btns button   { flex: 1; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+.mbtn-back           { background: #6c757d; color: white; }
+.mbtn-back:hover     { opacity: .85; }
+.mbtn-start          { background: #198754; color: white; }
+.mbtn-start:hover    { opacity: .9; }
+.mbtn-start:disabled { opacity: .4; cursor: not-allowed; }
 
-@media(max-width:768px){
- header{padding:12px 16px;}
- .header-left h1{font-size:14px;}
- .guest-banner,.student-banner{flex-direction:column;}
- .cat-tab{padding:14px 10px;font-size:13px;}
- .cat-tab .cat-icon{font-size:22px;}
- .set-grid{grid-template-columns:1fr;}
- .invite-banner{flex-direction:column;text-align:center;}
- .perm-table{font-size:11.5px;}
+/* =====================================================================
+   OVERLAY ĐANG VÀO THI
+===================================================================== */
+.start-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+.start-overlay.show { display: flex; }
+.start-box {
+  background: white;
+  padding: 34px 44px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.start-box .spinner { width: 44px; height: 44px; border-width: 5px; border-top-color: #198754; margin-bottom: 16px; }
+.start-box p        { font-size: 15px; color: #1d3557; font-weight: 600; }
+
+/* =====================================================================
+   MODAL BỊ KHÓA / BẢO TRÌ
+===================================================================== */
+.kickout-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.72);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+}
+.kickout-modal.show { display: flex; }
+.kickout-box {
+  background: white;
+  padding: 32px 28px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  animation: kIn .4s;
+  border-top: 6px solid #dc3545;
+}
+@keyframes kIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.kickout-box .k-icon    { font-size: 56px; margin-bottom: 14px; display: block; }
+.kickout-box h3         { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
+.kickout-box p          { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 18px; }
+.kickout-box .countdown { font-size: 13px; color: #888; }
+.kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+
+/* =====================================================================
+   RESPONSIVE
+===================================================================== */
+@media (max-width: 768px) {
+  header { padding: 12px 16px; }
+  .header-left h1 { font-size: 14px; }
+  .guest-banner, .student-banner { flex-direction: column; }
+  .invite-banner { flex-direction: column; text-align: center; }
+  .cat-tab { padding: 14px 10px; font-size: 13px; }
+  .cat-tab .cat-icon { font-size: 22px; }
+  .set-grid { grid-template-columns: 1fr; }
+  .perm-table { font-size: 12px; }
+  .modal-stats { flex-direction: column; gap: 10px; }
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ================================================================
+     HEADER
+================================================================ -->
 <header>
- <div class="header-left">
-  <h1>📝 CHỌN ĐỀ THI - LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
- </div>
- <div class="clock-box">
-  🕐 <span class="time" id="liveClock">--:--:--</span>
-  <span id="liveDate" style="font-size:12px;opacity:.8;margin-left:6px;"></span>
- </div>
- <div class="header-right" id="headerBtns"></div>
+  <div class="header-left">
+    <h1>📝 CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</h1>
+  </div>
+  <div class="clock-box">
+    🕐 <span class="time" id="liveClock">--:--:--</span>
+    <span class="date-str" id="liveDate"></span>
+  </div>
+  <div class="header-right" id="headerBtns"></div>
 </header>
 
-<!-- ===== BANNER KHÁCH ===== -->
-<div class="guest-banner" id="guestBanner" style="display:none;">
+<div class="page-wrap">
 
- <div class="gb-left">
-  <h2>
-   👋 Xin chào, Khách viếng thăm
-   <span class="gb-guestnum">🔢 Khách số <span id="guestSeqDisplay">...</span></span>
-  </h2>
+  <!-- =============================================================
+       BANNER KHÁCH
+  ============================================================= -->
+  <div class="guest-banner" id="guestBanner" style="display:none;">
+    <div class="gb-left">
 
-  <!-- BẢNG SO SÁNH QUYỀN -->
-  <table class="perm-table">
-   <thead>
-    <tr>
-     <th>Tính năng</th>
-     <th>👤 Khách</th>
-     <th>🎓 Học viên</th>
-    </tr>
-   </thead>
-   <tbody>
-    <tr>
-     <td>Xem danh sách đề thi</td>
-     <td><span class="perm-yes">✔</span></td>
-     <td><span class="perm-yes">✔</span></td>
-    </tr>
-    <tr>
-     <td>Làm bài thi thử</td>
-     <td><span class="perm-limit">1 lần / ngày<br>3 lần / tuần</span></td>
-     <td><span class="perm-yes">✔ Không giới hạn</span></td>
-    </tr>
-    <tr>
-     <td>Kết quả ghi nhận chính thức</td>
-     <td><span class="perm-no">✘</span></td>
-     <td><span class="perm-yes">✔</span></td>
-    </tr>
-    <tr>
-     <td>Xem lịch sử & điểm số</td>
-     <td><span class="perm-no">✘</span></td>
-     <td><span class="perm-yes">✔</span></td>
-    </tr>
-    <tr>
-     <td>Hỗ trợ ưu tiên từ Admin</td>
-     <td><span class="perm-no">✘</span></td>
-     <td><span class="perm-yes">✔</span></td>
-    </tr>
-   </tbody>
-  </table>
+      <div class="gb-title">
+        👋 Xin chào, Khách viếng thăm
+        <span class="gb-seq">🔢 Khách số&nbsp;<span id="guestSeqDisplay"><span class="seq-loading"></span></span></span>
+      </div>
 
-  <!-- LIÊN HỆ ADMIN -->
-  <div class="contact-row">
-   <span class="contact-item">📞 <b>0973.306.802</b></span>
-   <!-- Zalo: click mở app Zalo nhắn tin trực tiếp đến SĐT admin -->
-   <a class="zalo-btn" href="https://zalo.me/0973306802" target="_blank" rel="noopener" title="Nhắn tin Zalo cho Admin">
-    <svg width="17" height="17" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-     <rect width="48" height="48" rx="9" fill="white"/>
-     <path d="M24 6C14.06 6 6 13.16 6 21.97c0 4.7 2.3 8.93 5.94 11.87L10.5 39l6.24-2.04C18.73 37.6 21.3 38.2 24 38.2c9.94 0 18-7.16 18-16.23C42 13.16 33.94 6 24 6z" fill="#0068FF"/>
-     <path d="M17.2 25.7l5.6-7.2H17v-2h9.2v2l-5.6 7.2H26.4v2H17.2v-2zM28.2 18.5h2v9.2h-2V18.5zM28.2 16h2v1.8h-2V16z" fill="white"/>
-    </svg>
-    Zalo
-   </a>
-   <span class="contact-item">📧 <a href="mailto:trunglq002@gmail.com">trunglq002@gmail.com</a></span>
+      <!-- So sánh quyền -->
+      <table class="perm-table">
+        <thead>
+          <tr>
+            <th>Tính năng</th>
+            <th>👤 Khách</th>
+            <th>🎓 Học viên</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Xem danh sách đề thi</td>
+            <td><span class="p-yes">✔</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+          <tr>
+            <td>Làm bài thi thử</td>
+            <td><span class="p-limit">1 lần / ngày<br>3 lần / tuần</span></td>
+            <td><span class="p-yes">✔ Không giới hạn</span></td>
+          </tr>
+          <tr>
+            <td>Kết quả ghi nhận chính thức</td>
+            <td><span class="p-no">✘</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+          <tr>
+            <td>Xem lịch sử thi & điểm số</td>
+            <td><span class="p-no">✘</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+          <tr>
+            <td>Hỗ trợ ưu tiên từ Admin</td>
+            <td><span class="p-no">✘</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Liên hệ Admin -->
+      <div class="contact-row">
+        <span class="contact-item">
+          📞
+          <!-- Zalo ngay sau biểu tượng điện thoại, trước số máy -->
+          <a class="zalo-btn" href="https://zalo.me/0973306802" target="_blank" rel="noopener" title="Nhắn tin Zalo cho Admin">
+            <svg width="16" height="16" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <rect width="48" height="48" rx="9" fill="white"/>
+              <path d="M24 6C14.06 6 6 13.16 6 21.97c0 4.7 2.3 8.93 5.94 11.87L10.5 39l6.24-2.04C18.73 37.6 21.3 38.2 24 38.2c9.94 0 18-7.16 18-16.23C42 13.16 33.94 6 24 6z" fill="#0068FF"/>
+              <path d="M17.2 25.7l5.6-7.2H17v-2h9.2v2l-5.6 7.2H26.4v2H17.2v-2zM28.2 18.5h2v9.2h-2V18.5zM28.2 16h2v1.8h-2V16z" fill="white"/>
+            </svg>
+            Zalo
+          </a>
+          <b>0973.306.802</b>
+        </span>
+        <span class="contact-item">📧 <a href="mailto:trunglq002@gmail.com">trunglq002@gmail.com</a></span>
+      </div>
+      <p class="contact-note">👉 Liên hệ Admin để <b>đăng ký tài khoản Học viên</b> và sử dụng đầy đủ tính năng!</p>
+
+    </div><!-- /gb-left -->
+
+    <!-- Thẻ đếm lượt -->
+    <div class="gb-right">
+      <div class="lcard" id="lcToday">
+        <div class="ll">Hôm nay</div>
+        <div class="lv" id="todayUsed">0</div>
+        <div class="ls">/ 1 lượt</div>
+      </div>
+      <div class="lcard" id="lcWeek">
+        <div class="ll">Tuần này</div>
+        <div class="lv" id="weekUsed">0</div>
+        <div class="ls">/ 3 lượt</div>
+      </div>
+      <div class="lcard ok" id="lcRemain">
+        <div class="ll">Còn lại</div>
+        <div class="lv" id="remainCount">–</div>
+        <div class="ls">lượt hôm nay</div>
+      </div>
+    </div>
+
+  </div><!-- /guest-banner -->
+
+  <!-- =============================================================
+       BANNER HỌC VIÊN
+  ============================================================= -->
+  <div class="student-banner" id="studentBanner" style="display:none;">
+    <div class="sb-left">
+      <h2>👋 Xin chào, <span id="svName"></span>!</h2>
+      <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
+      <div class="sv-info">
+        <div class="sv-item">🎫 Mã HV: <b id="svCode"></b></div>
+        <div class="sv-item">🏢 Đơn vị: <b id="svUnit"></b></div>
+      </div>
+    </div>
+    <div class="sv-perm-list">
+      <div class="sv-perm-title">✅ Quyền của Học viên</div>
+      <ul>
+        <li>🔓 Thi không giới hạn số lần</li>
+        <li>💾 Kết quả ghi nhận chính thức</li>
+        <li>📊 Xem toàn bộ lịch sử thi</li>
+        <li>📋 Xem đáp án & giải thích</li>
+        <li>🎯 Hỗ trợ ưu tiên từ Admin</li>
+      </ul>
+    </div>
   </div>
-  <p style="margin-top:8px;font-size:12.5px;color:#856404;">
-   👉 Liên hệ Admin để <b>đăng ký tài khoản Học viên</b> và sử dụng đầy đủ tính năng!
-  </p>
- </div>
 
- <!-- THẺ ĐẾM LƯỢT -->
- <div class="gb-right">
-  <div class="lcard" id="lcToday">
-   <div class="ll">Hôm nay</div>
-   <div class="lv" id="todayUsed">0</div>
-   <div class="ls">/ 1 lượt</div>
+  <!-- =============================================================
+       BANNER MỜI CHỌN ĐỀ
+  ============================================================= -->
+  <div class="invite-banner" id="inviteBanner">
+    <div class="ib-text">
+      <h3>🎯 Hãy chọn một đề thi bên dưới để bắt đầu!</h3>
+      <p>Chọn loại xe phù hợp → Bấm vào đề thi → Đọc nội quy → Bấm <b>Bắt đầu làm bài</b></p>
+    </div>
+    <div class="ib-icon">👇</div>
   </div>
-  <div class="lcard" id="lcWeek">
-   <div class="ll">Tuần này</div>
-   <div class="lv" id="weekUsed">0</div>
-   <div class="ls">/ 3 lượt</div>
+
+  <!-- =============================================================
+       LOADING
+  ============================================================= -->
+  <div class="loading-box" id="loadingBox">
+    <div class="spinner"></div>
+    <p>⏳ Đang tải danh sách đề thi…</p>
   </div>
-  <div class="lcard ok" id="lcRemain">
-   <div class="ll">Còn lại</div>
-   <div class="lv" id="remainCount">-</div>
-   <div class="ls">lượt hôm nay</div>
+
+  <!-- =============================================================
+       TABS LOẠI XE
+  ============================================================= -->
+  <div class="cat-tabs" id="catTabs" style="display:none;">
+    <div class="cat-tab active" data-cat="moto" onclick="switchCat('moto')">
+      <span class="cat-icon">🏍️</span>
+      Thi xe Mô tô
+      <span class="cat-count" id="motoCount">0 đề</span>
+    </div>
+    <div class="cat-tab" data-cat="oto" onclick="switchCat('oto')">
+      <span class="cat-icon">🚗</span>
+      Thi xe Ô tô
+      <span class="cat-count" id="otoCount">0 đề</span>
+    </div>
   </div>
- </div>
 
-</div><!-- /guest-banner -->
-
-<!-- ===== BANNER HỌC VIÊN ===== -->
-<div class="student-banner" id="studentBanner" style="display:none;">
- <div class="sb-left">
-  <h2>👋 Xin chào, <span id="svName"></span>!</h2>
-  <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
-  <div class="sv-info">
-   <div class="sv-item">🎫 Mã HV: <b id="svCode"></b></div>
-   <div class="sv-item">🏢 Đơn vị: <b id="svUnit"></b></div>
+  <!-- =============================================================
+       DANH SÁCH ĐỀ THI
+  ============================================================= -->
+  <div class="sets-section active" id="motoSection">
+    <h2>🏍️ Đề thi lý thuyết xe Mô tô (Hạng A1, A2)</h2>
+    <div class="set-grid" id="motoGrid"></div>
+    <div class="no-sets" id="motoEmpty" style="display:none;">📋 Chưa có đề thi mô tô nào.</div>
   </div>
- </div>
- <div class="sv-perm-list">
-  <div class="sv-perm-title">✅ Quyền của Học viên</div>
-  <ul>
-   <li>🔓 Thi không giới hạn lần</li>
-   <li>💾 Kết quả ghi nhận chính thức</li>
-   <li>📊 Xem lịch sử thi đầy đủ</li>
-   <li>📋 Xem đáp án & giải thích</li>
-   <li>🎯 Hỗ trợ ưu tiên từ Admin</li>
-  </ul>
- </div>
-</div>
-
-<!-- ===== BANNER MỜI CHỌN ĐỀ ===== -->
-<div class="invite-banner" id="inviteBanner">
- <div class="ib-text">
-  <h3>🎯 Hãy chọn một đề thi bên dưới để bắt đầu!</h3>
-  <p>Chọn loại xe phù hợp → Bấm vào đề thi → Đọc nội quy → <b>Bắt đầu làm bài</b></p>
- </div>
- <div class="ib-icon">👇</div>
-</div>
-
-<div class="container">
- <div class="loading-box" id="loadingBox">
-  <div class="spinner"></div>
-  <p>⏳ Đang tải danh sách đề thi...</p>
- </div>
-
- <div class="cat-tabs" id="catTabs" style="display:none;">
-  <div class="cat-tab active" data-cat="moto" onclick="switchCat('moto')">
-   <span class="cat-icon">🏍️</span>Thi xe Mô tô<span class="cat-count" id="motoCount">0 đề</span>
+  <div class="sets-section" id="otoSection">
+    <h2>🚗 Đề thi lý thuyết xe Ô tô (Hạng B1, B2, C, D, E)</h2>
+    <div class="set-grid" id="otoGrid"></div>
+    <div class="no-sets" id="otoEmpty" style="display:none;">📋 Chưa có đề thi ô tô nào.</div>
   </div>
-  <div class="cat-tab" data-cat="oto" onclick="switchCat('oto')">
-   <span class="cat-icon">🚗</span>Thi xe Ô tô<span class="cat-count" id="otoCount">0 đề</span>
-  </div>
- </div>
 
- <div class="sets-section active" id="motoSection">
-  <h2>🏍️ Đề thi lý thuyết xe Mô tô (Hạng A1, A2)</h2>
-  <div class="set-grid" id="motoGrid"></div>
-  <div class="no-sets" id="motoEmpty" style="display:none;">📋 Chưa có đề thi mô tô nào</div>
- </div>
- <div class="sets-section" id="otoSection">
-  <h2>🚗 Đề thi lý thuyết xe Ô tô (Hạng B1, B2, C, D, E)</h2>
-  <div class="set-grid" id="otoGrid"></div>
-  <div class="no-sets" id="otoEmpty" style="display:none;">📋 Chưa có đề thi ô tô nào</div>
- </div>
-</div>
+</div><!-- /page-wrap -->
 
-<!-- MODAL BẮT ĐẦU THI -->
+<!-- ================================================================
+     MODAL BẮT ĐẦU THI
+================================================================ -->
 <div class="modal-bg" id="examModal">
- <div class="modal-content">
-  <h3 id="mTitle"></h3>
-  <div class="modal-info" id="mInfo"></div>
-  <div class="modal-limit-warn" id="mLimitWarn"></div>
-  <div class="modal-stats">
-   <div class="modal-stat"><b>📋 Số câu hỏi</b><span id="mQuestions">0</span></div>
-   <div class="modal-stat"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
+  <div class="modal-content">
+    <h3 id="mTitle"></h3>
+    <div class="modal-info" id="mInfo"></div>
+    <div class="modal-limit-warn" id="mLimitWarn"></div>
+    <div class="modal-stats">
+      <div class="modal-stat"><b>📋 Số câu hỏi</b><span id="mQuestions">0</span></div>
+      <div class="modal-stat"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
+    </div>
+    <div class="modal-rules">
+      <b>⚠ NỘI QUY THI</b>
+      <ul>
+        <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
+        <li>🔄 Không tải lại trang trong quá trình thi</li>
+        <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
+        <li>⏰ Hết thời gian, hệ thống tự động nộp bài</li>
+        <li id="mRuleLimit"></li>
+      </ul>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
+      <button class="mbtn-start" id="mStartBtn" onclick="startExam()">▶ Bắt đầu làm bài</button>
+    </div>
   </div>
-  <div class="modal-rules">
-   <b>⚠ NỘI QUY THI</b>
-   <ul>
-    <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
-    <li>🔄 Không tải lại trang</li>
-    <li>📵 Không sử dụng tài liệu hoặc thiết bị khác</li>
-    <li>⏰ Hết thời gian hệ thống tự động nộp bài</li>
-    <li id="mRuleLimit"></li>
-   </ul>
-  </div>
-  <div class="modal-btns">
-   <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
-   <button class="mbtn-start" id="mStartBtn" onclick="startExam()">▶ Bắt đầu làm bài</button>
-  </div>
- </div>
 </div>
 
-<!-- OVERLAY ĐANG XỬ LÝ -->
+<!-- ================================================================
+     OVERLAY ĐANG VÀO THI
+================================================================ -->
 <div class="start-overlay" id="startOverlay">
- <div class="start-box">
-  <div class="spinner"></div>
-  <p id="startOverlayMsg">⏳ Đang xử lý, vui lòng chờ...</p>
- </div>
-</div>
-
-<!-- MODAL BỊ KHÓA / BẢO TRÌ -->
-<div class="kickout-modal" id="kickoutModal">
- <div class="kickout-box">
-  <div class="icon" id="kickoutIcon"></div>
-  <h3 id="kickoutTitle"></h3>
-  <p id="kickoutMessage"></p>
-  <div class="countdown">
-   Tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
+  <div class="start-box">
+    <div class="spinner"></div>
+    <p id="startOverlayMsg">⏳ Đang xử lý…</p>
   </div>
- </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- ================================================================
+     MODAL BỊ KHÓA / BẢO TRÌ
+================================================================ -->
+<div class="kickout-modal" id="kickoutModal">
+  <div class="kickout-box">
+    <span class="k-icon" id="kickoutIcon"></span>
+    <h3 id="kickoutTitle"></h3>
+    <p id="kickoutMessage"></p>
+    <div class="countdown">
+      Tự động quay về trang đăng nhập sau <b id="kickoutCountdown">5</b> giây…
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     FIREBASE SDK
+================================================================ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
+/* ==================================================================
+   FIREBASE INIT
+================================================================== */
 let db = null;
 try {
- if (!firebase.apps.length) {
-  firebase.initializeApp({
-   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-   authDomain: "thi-luat-giao-thong.firebaseapp.com",
-   projectId: "thi-luat-giao-thong"
-  });
- }
- db = firebase.firestore();
-} catch(e) { console.error('Firebase init error:', e); }
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey:     "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+      authDomain: "thi-luat-giao-thong.firebaseapp.com",
+      projectId:  "thi-luat-giao-thong"
+    });
+  }
+  db = firebase.firestore();
+} catch (e) { console.error("Firebase init:", e); }
 
-// ============================================================
-// AUTH
-// ============================================================
-const userType    = localStorage.getItem('userType');
-const studentCode = localStorage.getItem('studentCode') || '';
-const studentName = localStorage.getItem('studentName') || '';
-const studentUnit = localStorage.getItem('studentUnit') || '';
+/* ==================================================================
+   AUTH — đọc từ localStorage sau khi trang thi gọi setItem
+================================================================== */
+const userType    = localStorage.getItem("userType");    // "guest" | "student"
+const studentCode = localStorage.getItem("studentCode") || "";
+const studentName = localStorage.getItem("studentName") || "";
+const studentUnit = localStorage.getItem("studentUnit") || "";
 
-if (userType !== 'guest' && userType !== 'student') location.href = 'index.html';
+// Chưa đăng nhập → về trang chủ
+if (userType !== "guest" && userType !== "student") location.href = "index.html";
 
-const IS_GUEST   = (userType === 'guest');
-const IS_STUDENT = (userType === 'student');
+const IS_GUEST   = userType === "guest";
+const IS_STUDENT = userType === "student";
 
-// ============================================================
-// CLOCK
-// ============================================================
-function updateClock() {
- const now = new Date();
- document.getElementById('liveClock').textContent =
-  now.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
- document.getElementById('liveDate').textContent =
-  now.toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
-}
-setInterval(updateClock,1000);
-updateClock();
+/* ==================================================================
+   ĐỒNG HỒ — múi giờ máy cục bộ (VN sử dụng GMT+7)
+================================================================== */
+(function startClock() {
+  const clockEl = document.getElementById("liveClock");
+  const dateEl  = document.getElementById("liveDate");
+  function tick() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    dateEl.textContent  = now.toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 
-// ============================================================
-// GUEST LIMIT — THEO MÚI GIỜ VIỆT NAM (GMT+7)
-// ============================================================
-const DAILY_LIMIT = 1, WEEKLY_LIMIT = 3;
-
+/* ==================================================================
+   HELPER — ngày / tuần theo múi giờ Việt Nam (GMT+7)
+================================================================== */
 function getTodayVN() {
- return new Date(Date.now() + 7*3600*1000).toISOString().slice(0,10);
+  return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
 }
 function getWeekKeyVN() {
- const d = new Date(Date.now() + 7*3600*1000);
- const day = d.getUTCDay() || 7;
- d.setUTCDate(d.getUTCDate() - day + 1);
- return 'W' + d.toISOString().slice(0,10);
+  const d   = new Date(Date.now() + 7 * 3600000);
+  const day = d.getUTCDay() || 7;             // 1=T2 … 7=CN
+  d.setUTCDate(d.getUTCDate() - day + 1);     // Thứ Hai đầu tuần
+  return "W" + d.toISOString().slice(0, 10);  // e.g. "W2025-03-03"
 }
-function getGuestLogs() {
- try { return JSON.parse(localStorage.getItem('guestExamLogs')||'[]'); } catch(e) { return []; }
+
+/* ==================================================================
+   GUEST ID — ổn định theo trình duyệt/thiết bị
+   Được lưu vào localStorage key "guestId" và KHÔNG xóa khi
+   do_exam.html gọi localStorage.clear() vì ta sẽ lưu kép lên
+   Firestore.
+================================================================== */
+function getGuestId() {
+  let gid = localStorage.getItem("guestId");
+  if (!gid) {
+    gid = "G" + Date.now().toString(36).toUpperCase()
+            + Math.random().toString(36).substr(2, 4).toUpperCase();
+    localStorage.setItem("guestId", gid);
+  }
+  return gid;
 }
-function saveGuestLog() {
- const l = getGuestLogs();
- l.push({date:getTodayVN(), week:getWeekKeyVN(), time:Date.now()});
- localStorage.setItem('guestExamLogs', JSON.stringify(l));
+
+/* ==================================================================
+   GUEST LIMIT — LƯU KÉP: localStorage + Firestore
+   Khi localStorage bị xóa (do_exam.html gọi clear sau nộp bài),
+   hàm restoreLogsFromFirestore() sẽ kéo lại dữ liệu từ Firestore
+   để đảm bảo số lượt không bị reset về 0.
+================================================================== */
+const DAILY_LIMIT  = 1;
+const WEEKLY_LIMIT = 3;
+
+function getLogsLocal() {
+  try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); }
+  catch (e) { return []; }
 }
-function getTodayCount() { return getGuestLogs().filter(l=>l.date===getTodayVN()).length; }
-function getWeekCount()  { return getGuestLogs().filter(l=>l.week===getWeekKeyVN()).length; }
-function canTakeExam()   { return IS_STUDENT || (getTodayCount()<DAILY_LIMIT && getWeekCount()<WEEKLY_LIMIT); }
+function saveLogsLocal(logs) {
+  try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); } catch (e) {}
+}
+
+async function getLogsRemote() {
+  if (!db) return [];
+  try {
+    const doc = await db.collection("guestUsage").doc(getGuestId()).get();
+    if (doc.exists && Array.isArray(doc.data().logs)) return doc.data().logs;
+  } catch (e) { console.warn("guestUsage read:", e); }
+  return [];
+}
+
+async function pushLogsRemote(logs) {
+  if (!db) return;
+  try {
+    await db.collection("guestUsage").doc(getGuestId()).set(
+      { logs, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+  } catch (e) { console.warn("guestUsage write:", e); }
+}
+
+// Gọi khi vào trang: merge remote → local để phục hồi lượt thi bị mất
+async function restoreLogsFromFirestore() {
+  const remote = await getLogsRemote();
+  if (!remote.length) return;
+  const local  = getLogsLocal();
+  // Dedup theo trường time
+  const merged = [...local];
+  remote.forEach(r => { if (!merged.find(l => l.time === r.time)) merged.push(r); });
+  merged.sort((a, b) => a.time - b.time);
+  saveLogsLocal(merged);
+}
+
+// Ghi một lượt thi: local ngay lập tức, Firestore không block UI
+async function saveGuestLog() {
+  const logs  = getLogsLocal();
+  const entry = { date: getTodayVN(), week: getWeekKeyVN(), time: Date.now() };
+  logs.push(entry);
+  saveLogsLocal(logs);
+  await pushLogsRemote(logs); // await để đảm bảo lưu trước khi chuyển trang
+}
+
+function getTodayCount() { return getLogsLocal().filter(l => l.date === getTodayVN()).length; }
+function getWeekCount()  { return getLogsLocal().filter(l => l.week === getWeekKeyVN()).length; }
+function canTakeExam()   { return IS_STUDENT || (getTodayCount() < DAILY_LIMIT && getWeekCount() < WEEKLY_LIMIT); }
 
 function updateLimitDisplay() {
- if (!IS_GUEST) return;
- const td=getTodayCount(), wk=getWeekCount(), rm=Math.max(0,DAILY_LIMIT-td);
- document.getElementById('todayUsed').textContent  = td;
- document.getElementById('weekUsed').textContent   = wk;
- document.getElementById('remainCount').textContent= rm;
- document.getElementById('lcToday').className  = 'lcard'+(td>=DAILY_LIMIT ?' danger':' ok');
- document.getElementById('lcWeek').className   = 'lcard'+(wk>=WEEKLY_LIMIT?' danger':' ok');
- document.getElementById('lcRemain').className = 'lcard'+(rm<=0          ?' danger':' ok');
+  if (!IS_GUEST) return;
+  const td = getTodayCount();
+  const wk = getWeekCount();
+  const rm = Math.max(0, DAILY_LIMIT - td);
+  document.getElementById("todayUsed").textContent   = td;
+  document.getElementById("weekUsed").textContent    = wk;
+  document.getElementById("remainCount").textContent = rm;
+  document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT  ? "danger" : "ok");
+  document.getElementById("lcWeek").className   = "lcard " + (wk >= WEEKLY_LIMIT ? "danger" : "ok");
+  document.getElementById("lcRemain").className = "lcard " + (rm <= 0            ? "danger" : "ok");
 }
 
-// ============================================================
-// CẤP SỐ THỨ TỰ KHÁCH — NGAY KHI VÀO TRANG
-// Nếu khách đã có số (localStorage) → hiện lại, không cấp mới.
-// Nếu chưa có → Firestore Transaction → số tăng dần 0001, 0002...
-// ============================================================
+/* ==================================================================
+   SỐ THỨ TỰ KHÁCH — cấp ngay khi vào trang
+   Nếu đã có trong localStorage → dùng lại (không tăng thêm).
+   Nếu chưa có → Firestore Transaction → số tăng dần: 0001, 0002…
+   Fallback khi mất mạng: "L" + 4 chữ số cuối timestamp.
+================================================================== */
 async function assignGuestSequentialNumber() {
- const el = document.getElementById('guestSeqDisplay');
- const saved = localStorage.getItem('guestSeqNumber');
- if (saved) { el.textContent = saved; return saved; }
+  const el    = document.getElementById("guestSeqDisplay");
+  const saved = localStorage.getItem("guestSeqNumber");
 
- el.textContent = '...';
-
- if (db) {
-  try {
-   const counterRef = db.collection('systemConfig').doc('guestCounter');
-   const num = await db.runTransaction(async tx => {
-    const doc = await tx.get(counterRef);
-    const next = (doc.exists && doc.data().total ? doc.data().total : 0) + 1;
-    tx.set(counterRef, {total: next}, {merge: true});
-    return next;
-   });
-   const fmt = String(num).padStart(4,'0');  // 0001 → 9999 → 10000...
-   localStorage.setItem('guestSeqNumber', fmt);
-   el.textContent = fmt;
-   return fmt;
-  } catch(e) {
-   console.warn('Firestore guestCounter error, dùng fallback:', e);
+  if (saved) {
+    el.textContent = saved;
+    return saved;
   }
- }
 
- // Fallback nếu mất kết nối
- const fb = 'L' + String(Date.now()).slice(-4);
- localStorage.setItem('guestSeqNumber', fb);
- el.textContent = fb;
- return fb;
+  if (db) {
+    try {
+      const counterRef = db.collection("systemConfig").doc("guestCounter");
+      const num = await db.runTransaction(async tx => {
+        const snap = await tx.get(counterRef);
+        const next = ((snap.exists && snap.data().total) ? snap.data().total : 0) + 1;
+        tx.set(counterRef, { total: next }, { merge: true });
+        return next;
+      });
+      const fmt = String(num).padStart(4, "0"); // 0001 → 0099 → … → 10000 khi > 9999
+      localStorage.setItem("guestSeqNumber", fmt);
+      el.textContent = fmt;
+      return fmt;
+    } catch (e) {
+      console.warn("guestCounter transaction error, dùng fallback:", e);
+    }
+  }
+
+  // Fallback
+  const fb = "L" + String(Date.now()).slice(-4);
+  localStorage.setItem("guestSeqNumber", fb);
+  el.textContent = fb;
+  return fb;
 }
 
-// ============================================================
-// SETUP UI
-// ============================================================
+/* ==================================================================
+   SETUP UI
+================================================================== */
 async function setupUI() {
- const headerBtns = document.getElementById('headerBtns');
+  const headerBtns = document.getElementById("headerBtns");
 
- if (IS_GUEST) {
-  headerBtns.innerHTML = `
-   <button class="btn-back" onclick="location.href='index.html'">⬅ Trang chủ</button>
-   <button class="btn-login" onclick="location.href='index.html'">🔐 Đăng nhập</button>`;
-  document.getElementById('guestBanner').style.display   = 'flex';
-  document.getElementById('studentBanner').style.display = 'none';
-  updateLimitDisplay();
-  // ▶ Cấp số thứ tự NGAY KHI VÀO TRANG
-  await assignGuestSequentialNumber();
+  if (IS_GUEST) {
+    headerBtns.innerHTML = `
+      <button class="btn-back"  onclick="location.href='index.html'">⬅ Trang chủ</button>
+      <button class="btn-login" onclick="location.href='index.html'">🔐 Đăng nhập</button>`;
 
- } else {
-  headerBtns.innerHTML = `
-   <button class="btn-back" onclick="location.href='index.html'">⬅ Quay lại</button>
-   <button class="btn-logout" onclick="doLogout()">🚪 Đăng xuất</button>`;
-  document.getElementById('guestBanner').style.display   = 'none';
-  document.getElementById('studentBanner').style.display = 'flex';
-  document.getElementById('svName').textContent = studentName;
-  document.getElementById('svCode').textContent = studentCode;
-  document.getElementById('svUnit').textContent = studentUnit || 'Chưa xác định';
- }
+    document.getElementById("guestBanner").style.display   = "flex";
+    document.getElementById("studentBanner").style.display = "none";
 
- // Hiện banner mời sau khi setup
- document.getElementById('inviteBanner').style.display = 'flex';
+    // 1. Khôi phục log từ Firestore (phòng localStorage bị xóa sau khi thi)
+    await restoreLogsFromFirestore();
+    // 2. Hiển thị số lượt chính xác
+    updateLimitDisplay();
+    // 3. Cấp số thứ tự khách ngay khi vào trang
+    await assignGuestSequentialNumber();
+
+  } else {
+    headerBtns.innerHTML = `
+      <button class="btn-back"   onclick="location.href='index.html'">⬅ Quay lại</button>
+      <button class="btn-logout" onclick="doLogout()">🚪 Đăng xuất</button>`;
+
+    document.getElementById("guestBanner").style.display   = "none";
+    document.getElementById("studentBanner").style.display = "flex";
+    document.getElementById("svName").textContent = studentName;
+    document.getElementById("svCode").textContent = studentCode;
+    document.getElementById("svUnit").textContent = studentUnit || "Chưa xác định";
+  }
+
+  // Hiện banner mời chọn đề sau khi setup xong
+  document.getElementById("inviteBanner").style.display = "flex";
 }
 
 function doLogout() {
- if (IS_STUDENT && db && studentCode) {
-  try {
-   db.collection('presence').doc(studentCode)
-    .set({isOnline:false, lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-  } catch(e){}
- }
- localStorage.clear();
- location.href = 'index.html';
+  if (IS_STUDENT && db && studentCode) {
+    try {
+      db.collection("presence").doc(studentCode).set(
+        { isOnline: false, lastActive: firebase.firestore.FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+    } catch (e) {}
+  }
+  localStorage.clear();
+  location.href = "index.html";
 }
 
-// ============================================================
-// DATA LOADING
-// ============================================================
-let allSets=[], selectedSet=null;
+/* ==================================================================
+   TẢI DANH SÁCH ĐỀ THI
+================================================================== */
+let allSets     = [];
+let selectedSet = null;
 
 function switchCat(cat) {
- document.querySelectorAll('.cat-tab').forEach(t=>t.classList.toggle('active',t.dataset.cat===cat));
- document.getElementById('motoSection').classList.toggle('active', cat==='moto');
- document.getElementById('otoSection').classList.toggle('active',  cat==='oto');
+  document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.dataset.cat === cat));
+  document.getElementById("motoSection").classList.toggle("active", cat === "moto");
+  document.getElementById("otoSection").classList.toggle("active",  cat === "oto");
 }
 
 async function loadSets() {
- if (!db) { document.getElementById('loadingBox').innerHTML='<p>❌ Không kết nối được CSDL.</p>'; renderDemoSets(); return; }
- try {
-  const snap = await db.collection('questionSets').get();
-  if (snap.empty) { renderDemoSets(); return; }
-  const moto=[], oto=[];
-  allSets=[];
-  snap.forEach(doc => {
-   const s = {id:doc.id, ...doc.data()};
-   if (s.status==='active' || !s.status) {
-    const cat=(s.examType||s.category||'').toLowerCase();
-    (cat==='oto'||cat==='ô tô'||cat==='car' ? oto : moto).push(s);
-    allSets.push(s);
-   }
-  });
-  if (!allSets.length) { renderDemoSets(); return; }
-  renderGrids(moto, oto);
- } catch(e) { console.error(e); renderDemoSets(); }
+  if (!db) {
+    document.getElementById("loadingBox").innerHTML = "<p>❌ Không thể kết nối cơ sở dữ liệu.</p>";
+    renderDemoSets();
+    return;
+  }
+  try {
+    const snap = await db.collection("questionSets").get();
+    if (snap.empty) { renderDemoSets(); return; }
+
+    const moto = [], oto = [];
+    allSets = [];
+    snap.forEach(doc => {
+      const s = { id: doc.id, ...doc.data() };
+      if (s.status === "active" || !s.status) {
+        const cat = (s.examType || s.category || "").toLowerCase();
+        (cat === "oto" || cat === "ô tô" || cat === "car" ? oto : moto).push(s);
+        allSets.push(s);
+      }
+    });
+    if (!allSets.length) { renderDemoSets(); return; }
+    renderGrids(moto, oto);
+  } catch (e) {
+    console.error("loadSets error:", e);
+    renderDemoSets();
+  }
 }
 
 function renderDemoSets() {
- const m=[
-  {id:'d1',name:'Đề số 01 (Demo)',description:'Đề thi thử A1',totalQuestions:25,timeMinutes:19,examType:'moto'},
-  {id:'d2',name:'Đề số 02 (Demo)',description:'Đề thi thử A1',totalQuestions:25,timeMinutes:19,examType:'moto'}
- ];
- const o=[{id:'d3',name:'Đề số 01 (Demo)',description:'Đề thi thử B2',totalQuestions:35,timeMinutes:22,examType:'oto'}];
- allSets=[...m,...o];
- renderGrids(m,o);
+  const m = [
+    { id: "d1", name: "Đề số 01 (Demo)", description: "Đề thi thử hạng A1", totalQuestions: 25, timeMinutes: 19, examType: "moto" },
+    { id: "d2", name: "Đề số 02 (Demo)", description: "Đề thi thử hạng A1", totalQuestions: 25, timeMinutes: 19, examType: "moto" }
+  ];
+  const o = [
+    { id: "d3", name: "Đề số 01 (Demo)", description: "Đề thi thử hạng B2", totalQuestions: 35, timeMinutes: 22, examType: "oto" }
+  ];
+  allSets = [...m, ...o];
+  renderGrids(m, o);
 }
 
-function renderGrids(moto,oto) {
- document.getElementById('loadingBox').style.display='none';
- document.getElementById('catTabs').style.display='flex';
- document.getElementById('motoCount').textContent=moto.length+' đề';
- document.getElementById('motoGrid').innerHTML=moto.map(s=>renderCard(s,'moto')).join('');
- document.getElementById('motoEmpty').style.display=moto.length?'none':'block';
- document.getElementById('otoCount').textContent=oto.length+' đề';
- document.getElementById('otoGrid').innerHTML=oto.map(s=>renderCard(s,'oto')).join('');
- document.getElementById('otoEmpty').style.display=oto.length?'none':'block';
+function renderGrids(moto, oto) {
+  document.getElementById("loadingBox").style.display = "none";
+  document.getElementById("catTabs").style.display    = "flex";
+
+  document.getElementById("motoCount").textContent   = moto.length + " đề";
+  document.getElementById("motoGrid").innerHTML      = moto.map(s => renderCard(s, "moto")).join("");
+  document.getElementById("motoEmpty").style.display = moto.length ? "none" : "block";
+
+  document.getElementById("otoCount").textContent    = oto.length + " đề";
+  document.getElementById("otoGrid").innerHTML       = oto.map(s => renderCard(s, "oto")).join("");
+  document.getElementById("otoEmpty").style.display  = oto.length ? "none" : "block";
 }
 
-function esc(t){ if(!t)return''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
-
-function renderCard(s,type) {
- const tq=s.totalQuestions||0, time=s.timeMinutes||s.duration||20, liet=s.lietCount||s.lietQuestion||0;
- const badge=type==='oto'?'<span class="badge badge-oto">🚗 Ô tô</span>':'<span class="badge badge-moto">🏍️ Mô tô</span>';
- const lt=liet>0?`<span class="meta-item" style="color:#dc3545;">⚡ ${liet} câu liệt</span>`:'';
- return `<div class="set-card ${type}" data-setid="${esc(s.id)}" onclick="openModal(this.dataset.setid)">
-  ${badge}<h3>📝 ${esc(s.name)}</h3><p>${esc(s.description||'Bộ đề thi lý thuyết')}</p>
-  <div class="set-meta"><span class="meta-item">📋 ${tq} câu</span><span class="meta-item">⏱ ${time} phút</span>${lt}</div>
- </div>`;
+function esc(t) {
+  if (!t) return "";
+  const d = document.createElement("div");
+  d.textContent = t;
+  return d.innerHTML;
 }
 
-// ============================================================
-// EXAM MODAL
-// ============================================================
+function renderCard(s, type) {
+  const tq   = s.totalQuestions || 0;
+  const time = s.timeMinutes || s.duration || 20;
+  const liet = s.lietCount || s.lietQuestion || 0;
+  const badge = type === "oto"
+    ? '<span class="badge badge-oto">🚗 Ô tô</span>'
+    : '<span class="badge badge-moto">🏍️ Mô tô</span>';
+  const lietTag = liet > 0
+    ? `<span class="meta-item" style="color:#dc3545;">⚡ ${liet} câu liệt</span>` : "";
+  return `
+    <div class="set-card ${type}" data-setid="${esc(s.id)}" onclick="openModal(this.dataset.setid)">
+      ${badge}
+      <h3>📝 ${esc(s.name)}</h3>
+      <p>${esc(s.description || "Bộ đề thi lý thuyết")}</p>
+      <div class="set-meta">
+        <span class="meta-item">📋 ${tq} câu</span>
+        <span class="meta-item">⏱ ${time} phút</span>
+        ${lietTag}
+      </div>
+    </div>`;
+}
+
+/* ==================================================================
+   MODAL ĐỀ THI
+================================================================== */
 function openModal(setId) {
- selectedSet = allSets.find(s=>s.id===setId);
- if (!selectedSet) return;
- const tq=selectedSet.totalQuestions||0, time=selectedSet.timeMinutes||selectedSet.duration||20, liet=selectedSet.lietCount||selectedSet.lietQuestion||0;
- document.getElementById('mTitle').textContent=selectedSet.name;
- let info=selectedSet.description||'Bộ đề thi lý thuyết';
- info+=`\n\n• Số câu: ${tq}\n• Thời gian: ${time} phút`;
- if(liet>0) info+=`\n• Câu liệt: ${liet} câu (sai = KHÔNG ĐẠT)`;
- document.getElementById('mInfo').innerText=info;
- document.getElementById('mQuestions').textContent=tq;
- document.getElementById('mTime').textContent=time+"'";
- const warnEl=document.getElementById('mLimitWarn');
- const startBtn=document.getElementById('mStartBtn');
- const ruleLimit=document.getElementById('mRuleLimit');
- if(IS_GUEST) {
-  ruleLimit.textContent='🏍️🚗 Khách: tối đa 1 lần/ngày, 3 lần/tuần';
-  if(!canTakeExam()) {
-   warnEl.innerText='⚠ Bạn đã hết lượt thi thử hôm nay.\n\n👉 Đăng ký tài khoản để thi không giới hạn!';
-   warnEl.style.display='block'; startBtn.disabled=true; startBtn.textContent='🚫 Đã hết lượt thi thử';
+  selectedSet = allSets.find(s => s.id === setId);
+  if (!selectedSet) return;
+
+  const tq   = selectedSet.totalQuestions || 0;
+  const time = selectedSet.timeMinutes || selectedSet.duration || 20;
+  const liet = selectedSet.lietCount || selectedSet.lietQuestion || 0;
+
+  document.getElementById("mTitle").textContent = selectedSet.name;
+
+  let info = selectedSet.description || "Bộ đề thi lý thuyết";
+  info += `\n\n• Số câu hỏi : ${tq} câu\n• Thời gian  : ${time} phút`;
+  if (liet > 0) info += `\n• Câu liệt   : ${liet} câu (trả lời sai = KHÔNG ĐẠT)`;
+  document.getElementById("mInfo").innerText = info;
+
+  document.getElementById("mQuestions").textContent = tq;
+  document.getElementById("mTime").textContent      = time + "'";
+
+  const warnEl    = document.getElementById("mLimitWarn");
+  const startBtn  = document.getElementById("mStartBtn");
+  const ruleLimit = document.getElementById("mRuleLimit");
+
+  if (IS_GUEST) {
+    ruleLimit.textContent = "🏍️🚗 Khách: tối đa 1 lần/ngày và 3 lần/tuần";
+    if (!canTakeExam()) {
+      warnEl.innerText     = "⚠ Bạn đã hết lượt thi thử.\n\n👉 Liên hệ Admin để đăng ký tài khoản Học viên và thi không giới hạn!";
+      warnEl.style.display = "block";
+      startBtn.disabled    = true;
+      startBtn.textContent = "🚫 Đã hết lượt thi thử";
+    } else {
+      warnEl.style.display = "none";
+      startBtn.disabled    = false;
+      startBtn.textContent = "▶ Bắt đầu thi thử";
+    }
   } else {
-   warnEl.style.display='none'; startBtn.disabled=false; startBtn.textContent='▶ Bắt đầu thi thử';
+    ruleLimit.textContent = "💾 Kết quả thi được ghi nhận tự động";
+    warnEl.style.display  = "none";
+    startBtn.disabled     = false;
+    startBtn.textContent  = "▶ Bắt đầu làm bài";
   }
- } else {
-  ruleLimit.textContent='💾 Kết quả thi được ghi nhận tự động';
-  warnEl.style.display='none'; startBtn.disabled=false; startBtn.textContent='▶ Bắt đầu làm bài';
- }
- document.getElementById('examModal').classList.add('show');
+
+  document.getElementById("examModal").classList.add("show");
 }
 
-function closeModal(){ document.getElementById('examModal').classList.remove('show'); }
+function closeModal() {
+  document.getElementById("examModal").classList.remove("show");
+}
 
-// ============================================================
-// BẮT ĐẦU THI
-// ============================================================
+document.getElementById("examModal").addEventListener("click", function (e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+/* ==================================================================
+   BẮT ĐẦU THI
+================================================================== */
 async function startExam() {
- if(!selectedSet) return;
- if(IS_GUEST && !canTakeExam()) { alert('Bạn đã hết lượt thi thử!'); return; }
- const startBtn=document.getElementById('mStartBtn');
- startBtn.disabled=true; startBtn.textContent='⏳ Đang chuẩn bị...';
+  if (!selectedSet) return;
+  if (IS_GUEST && !canTakeExam()) { alert("Bạn đã hết lượt thi thử!"); return; }
 
- if(IS_GUEST) {
-  showStartOverlay('⏳ Đang ghi nhận lượt thi...');
-  saveGuestLog();
-  updateLimitDisplay();
-  // Số thứ tự đã được cấp lúc vào trang, chỉ cần đảm bảo lưu
-  localStorage.setItem('guestSeqDisplay', localStorage.getItem('guestSeqNumber')||'----');
- } else if(IS_STUDENT && db && studentCode) {
-  showStartOverlay('📡 Đang kết nối...');
-  try {
-   await db.collection('presence').doc(studentCode).set({
-    isOnline:true, currentSection:'Đang thi: '+selectedSet.name,
-    lastActive:firebase.firestore.FieldValue.serverTimestamp()
-   },{merge:true});
-  } catch(e){ console.warn(e); }
- }
+  // Vô hiệu hoá nút để tránh bấm 2 lần
+  const startBtn = document.getElementById("mStartBtn");
+  startBtn.disabled    = true;
+  startBtn.textContent = "⏳ Đang chuẩn bị…";
 
- showStartOverlay('🚀 Đang vào phòng thi...');
- localStorage.setItem('examSet', JSON.stringify(selectedSet));
- localStorage.setItem('examMode', IS_GUEST?'trial':'official');
- location.href='do_exam.html';
-}
+  if (IS_GUEST) {
+    showOverlay("⏳ Đang ghi nhận lượt thi…");
+    // Ghi log local + đẩy Firestore (await → đảm bảo lưu trước khi chuyển trang)
+    await saveGuestLog();
+    updateLimitDisplay();
+    // Truyền seqNumber sang trang thi để hiển thị nếu cần
+    localStorage.setItem("guestSeqDisplay", localStorage.getItem("guestSeqNumber") || "----");
 
-function showStartOverlay(msg){
- document.getElementById('startOverlayMsg').textContent=msg||'⏳ Đang xử lý...';
- document.getElementById('startOverlay').classList.add('show');
-}
-
-// ============================================================
-// MODAL EVENTS
-// ============================================================
-document.getElementById('examModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-
-// ============================================================
-// SECURITY & REAL-TIME LISTENER
-// ============================================================
-(function initRealtimeSecurity(){
- if(!db) return; // dùng db outer scope — không khai báo lại
-
- let isKicked=false, studentUnsub=null, maintUnsub=null;
-
- function kickOut(title,message,icon){
-  if(isKicked) return;
-  isKicked=true;
-  if(studentUnsub) studentUnsub();
-  if(maintUnsub)   maintUnsub();
-  if(IS_STUDENT&&studentCode){
-   try{ db.collection('presence').doc(studentCode).set({isOnline:false,lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}); }catch(e){}
+  } else if (IS_STUDENT && db && studentCode) {
+    showOverlay("📡 Đang kết nối…");
+    try {
+      await db.collection("presence").doc(studentCode).set({
+        isOnline: true,
+        currentSection: "Đang thi: " + selectedSet.name,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (e) { console.warn("Presence update:", e); }
   }
-  document.getElementById('kickoutIcon').textContent   =icon;
-  document.getElementById('kickoutTitle').textContent  =title;
-  document.getElementById('kickoutMessage').textContent=message;
-  document.getElementById('kickoutModal').classList.add('show');
-  let s=5; const cd=document.getElementById('kickoutCountdown');
-  const t=setInterval(()=>{s--; if(cd)cd.textContent=s; if(s<=0){clearInterval(t);localStorage.clear();location.href='index.html';}},1000);
- }
 
- if(IS_STUDENT&&studentCode){
-  studentUnsub=db.collection('students').doc(studentCode).onSnapshot(doc=>{
-   if(doc.exists&&doc.data().status==='locked')
-    kickOut('Tài khoản bị khóa','Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.','🔒');
-  },err=>console.warn('Student snapshot:',err));
- }
+  showOverlay("🚀 Đang vào phòng thi…");
+  localStorage.setItem("examSet",  JSON.stringify(selectedSet));
+  localStorage.setItem("examMode", IS_GUEST ? "trial" : "official");
+  location.href = "do_exam.html";
+}
 
- maintUnsub=db.collection('systemConfig').doc('maintenance').onSnapshot(doc=>{
-  if(doc.exists&&doc.data().enabled===true)
-   kickOut('Hệ thống bảo trì','Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.','🔧');
- },err=>console.warn('Maintenance snapshot:',err));
+function showOverlay(msg) {
+  document.getElementById("startOverlayMsg").textContent = msg || "⏳ Đang xử lý…";
+  document.getElementById("startOverlay").classList.add("show");
+}
 
- if(IS_STUDENT&&studentCode){
-  const pRef=db.collection('presence').doc(studentCode);
-  const hb=()=>{if(!isKicked)pRef.set({isOnline:true,currentSection:'Đang chọn đề',lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{});};
-  hb(); setInterval(hb,20000);
-  window.addEventListener('beforeunload',()=>{if(!isKicked)pRef.set({isOnline:false,currentSection:'Đã thoát'},{merge:true});});
- }
+/* ==================================================================
+   SECURITY — lắng nghe real-time: khóa tài khoản & bảo trì
+================================================================== */
+(function initSecurity() {
+  if (!db) return;
+
+  let isKicked     = false;
+  let studentUnsub = null;
+  let maintUnsub   = null;
+
+  function kickOut(title, message, icon) {
+    if (isKicked) return;
+    isKicked = true;
+
+    if (studentUnsub) studentUnsub();
+    if (maintUnsub)   maintUnsub();
+
+    if (IS_STUDENT && studentCode) {
+      try {
+        db.collection("presence").doc(studentCode).set(
+          { isOnline: false, lastActive: firebase.firestore.FieldValue.serverTimestamp() },
+          { merge: true }
+        );
+      } catch (e) {}
+    }
+
+    document.getElementById("kickoutIcon").textContent    = icon;
+    document.getElementById("kickoutTitle").textContent   = title;
+    document.getElementById("kickoutMessage").textContent = message;
+    document.getElementById("kickoutModal").classList.add("show");
+
+    let s = 5;
+    const cdEl  = document.getElementById("kickoutCountdown");
+    const timer = setInterval(() => {
+      s--;
+      if (cdEl) cdEl.textContent = s;
+      if (s <= 0) { clearInterval(timer); localStorage.clear(); location.href = "index.html"; }
+    }, 1000);
+  }
+
+  // 1. Theo dõi khoá tài khoản (chỉ Student)
+  if (IS_STUDENT && studentCode) {
+    studentUnsub = db.collection("students").doc(studentCode).onSnapshot(doc => {
+      if (doc.exists && doc.data().status === "locked")
+        kickOut("Tài khoản bị khóa", "Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.", "🔒");
+    }, err => console.warn("Student snapshot:", err));
+  }
+
+  // 2. Theo dõi bảo trì hệ thống (Guest & Student)
+  maintUnsub = db.collection("systemConfig").doc("maintenance").onSnapshot(doc => {
+    if (doc.exists && doc.data().enabled === true)
+      kickOut("Hệ thống bảo trì", "Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.", "🔧");
+  }, err => console.warn("Maintenance snapshot:", err));
+
+  // 3. Heartbeat presence (chỉ Student)
+  if (IS_STUDENT && studentCode) {
+    const pRef = db.collection("presence").doc(studentCode);
+    const hb   = () => {
+      if (isKicked) return;
+      pRef.set({
+        isOnline: true,
+        currentSection: "Đang chọn đề",
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(() => {});
+    };
+    hb();
+    setInterval(hb, 20000);
+    window.addEventListener("beforeunload", () => {
+      if (!isKicked) pRef.set({ isOnline: false, currentSection: "Đã thoát" }, { merge: true });
+    });
+  }
 })();
 
-// ============================================================
-// KHỞI ĐỘNG
-// ============================================================
-setupUI();   // async — cấp số thứ tự ngay khi vào trang
-loadSets();
+/* ==================================================================
+   KHỞI ĐỘNG
+================================================================== */
+setupUI();   // async: restore logs + cấp số thứ tự khách ngay khi vào trang
+loadSets();  // async: tải danh sách đề thi song song
 </script>
 </body>
 </html>
