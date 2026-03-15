@@ -456,7 +456,25 @@ tbody tr:hover { background: var(--bg-hover); }
 .liet-pos-item input { width: 60px; padding: 6px 8px; border: 1px solid var(--warning); border-radius: 4px; font-size: 14px; font-weight: 700; text-align: center; color: var(--warning); background: var(--bg-input); }
 .liet-pos-item input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(13,110,253,0.15); }
 
-/* ===== MAINTENANCE BANNER ===== */
+/* ===== REALTIME BLINK ===== */
+@keyframes rtBlink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.live-feed-item { padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-card); display:flex; flex-direction:column; gap:2px; }
+.live-feed-item.lf-pass  { border-left:3px solid var(--success); }
+.live-feed-item.lf-fail  { border-left:3px solid var(--danger); }
+.live-feed-item.lf-login { border-left:3px solid var(--accent); }
+.live-feed-item .lf-top  { display:flex; justify-content:space-between; align-items:center; }
+.live-feed-item .lf-name { font-weight:700; font-size:12px; color:var(--text-primary); }
+.live-feed-item .lf-time { font-size:10px; color:var(--text-muted); }
+.live-feed-item .lf-sub  { font-size:11px; color:var(--text-secondary); }
+
+/* ===== ACTIVITY TABLE ENHANCED ===== */
+.activity-table td.cell-pass { color:var(--success); font-weight:700; }
+.activity-table td.cell-fail { color:var(--danger); font-weight:700; }
+.activity-table td.cell-score { font-weight:700; font-size:13px; }
+
+/* ===== RESPONSIVE DASH CHART GRID ===== */
+@media (max-width:1100px) { #dashChartGrid { grid-template-columns:1fr 1fr !important; } #dashChartGrid > .chart-card:last-child { grid-column:1/-1; } }
+@media (max-width:768px)  { #dashChartGrid { grid-template-columns:1fr !important; } }
 .maintenance-banner { background: linear-gradient(135deg, #dc3545, #c82333); color: white; text-align: center; padding: 6px 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; animation: maintBlink 2s infinite; position: sticky; top: var(--header-height); z-index: 99; display: none; }
 .maintenance-banner.show { display: block; }
 @keyframes maintBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
@@ -500,8 +518,17 @@ tbody tr:hover { background: var(--bg-hover); }
     .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
     .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
     #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-    .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
-    table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
+    .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+    .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+    #studentTable { width: 100% !important; }
+    #studentTable th:nth-child(1) { width: 4% !important; }
+    #studentTable th:nth-child(2) { width: 9% !important; }
+    #studentTable th:nth-child(3) { width: 18% !important; }
+    #studentTable th:nth-child(4) { width: 12% !important; }
+    #studentTable th:nth-child(5) { width: 9% !important; }
+    #studentTable th:nth-child(6) { width: 9% !important; }
+    #studentTable th:nth-child(7) { width: 9% !important; }
+    table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; border-collapse: collapse !important; }
     th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
     th { background: #e8e8e8 !important; font-weight: bold !important; }
     tbody tr:nth-child(even) { background: #f9f9f9 !important; }
@@ -661,46 +688,74 @@ tbody tr:hover { background: var(--bg-hover); }
     <main>
         <!-- ========== DASHBOARD ========== -->
         <div id="dashboard" class="page active">
-            <h2 style="font-size:20px; font-weight:800; margin-bottom:20px; color:var(--text-primary);">📊 Tổng quan hệ thống</h2>
-            <div class="dash-grid">
-                <div class="dash-card">
-                    <div class="card-stripe blue"></div>
-                    <div class="card-icon blue">👥</div>
-                    <div class="card-label">Tổng học viên</div>
-                    <div class="card-value" id="totalStudents">0</div>
-                    <div class="card-subtitle">Hoạt động: <strong id="activeStudents">0</strong></div>
-                </div>
-                <div class="dash-card">
-                    <div class="card-stripe green"></div>
-                    <div class="card-icon green">📝</div>
-                    <div class="card-label">Lượt thi hôm nay</div>
-                    <div class="card-value" id="todayExams">0</div>
-                    <div class="card-subtitle" style="color:var(--success);">● Realtime</div>
-                </div>
-                <div class="dash-card">
-                    <div class="card-stripe red"></div>
-                    <div class="card-icon red">🔒</div>
-                    <div class="card-label">Tài khoản khóa</div>
-                    <div class="card-value" id="warningCount">0</div>
-                    <div class="card-subtitle">Cần xử lý</div>
-                </div>
-                <div class="dash-card">
-                    <div class="card-stripe purple"></div>
-                    <div class="card-icon purple">📝</div>
-                    <div class="card-label">Bộ đề thi</div>
-                    <div class="card-value" id="totalSets">0</div>
-                    <div class="card-subtitle">Đang hoạt động</div>
-                </div>
-                <div class="dash-card" onclick="showPage('online_detail', null)" style="cursor:pointer">
-                    <div class="card-stripe blue"></div>
-                    <div class="card-icon blue">👤</div>
-                    <div class="card-label">Đang online</div>
-                    <div class="card-value" id="onlineCount">0</div>
-                    <div class="card-subtitle">Realtime</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                <h2 style="font-size:20px;font-weight:800;color:var(--text-primary);">📊 Tổng quan hệ thống</h2>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);">
+                    <span style="display:inline-flex;align-items:center;gap:4px;"><span id="rtPulse" style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:rtBlink 1.5s infinite;"></span> Realtime</span>
+                    <span>Cập nhật: <b id="lastUpdateTime">—</b></span>
                 </div>
             </div>
 
-            <div class="chart-grid">
+            <!-- STAT CARDS ROW 1 -->
+            <div class="dash-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px;">
+                <div class="dash-card" style="cursor:pointer;" onclick="showPage('students',document.querySelectorAll('.menu button')[1])">
+                    <div class="card-stripe blue"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="card-icon blue" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">👥</div>
+                        <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:10px;font-weight:700;">TỔNG</span>
+                    </div>
+                    <div class="card-label">Học viên</div>
+                    <div class="card-value" id="totalStudents">0</div>
+                    <div class="card-subtitle">Hoạt động: <strong id="activeStudents" style="color:var(--success);">0</strong> · Khóa: <strong id="lockedStudentsD" style="color:var(--danger);">0</strong></div>
+                </div>
+
+                <div class="dash-card" style="cursor:pointer;" onclick="showPage('online_detail',null)">
+                    <div class="card-stripe green"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="card-icon green" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">🟢</div>
+                        <span id="onlineLiveBadge" style="font-size:10px;background:rgba(25,135,84,0.15);color:var(--success);padding:2px 7px;border-radius:10px;font-weight:700;display:none;">● LIVE</span>
+                    </div>
+                    <div class="card-label">Đang Online</div>
+                    <div class="card-value" id="onlineCount" style="color:var(--success);">0</div>
+                    <div class="card-subtitle">Đang thi: <strong id="examingCount" style="color:var(--warning);">0</strong> · Xem đề: <strong id="browsingCount">0</strong></div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="card-stripe purple"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="card-icon purple" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;background:rgba(124,58,237,0.1);">📝</div>
+                        <span style="font-size:10px;background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:700;">HÔM NAY</span>
+                    </div>
+                    <div class="card-label">Lượt thi</div>
+                    <div class="card-value" id="todayExams">0</div>
+                    <div class="card-subtitle">Đạt: <strong id="todayPass" style="color:var(--success);">0</strong> · Trượt: <strong id="todayFail" style="color:var(--danger);">0</strong></div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="card-stripe blue"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="card-icon blue" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">🏆</div>
+                        <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:10px;font-weight:700;">TỔNG</span>
+                    </div>
+                    <div class="card-label">Tổng lượt thi</div>
+                    <div class="card-value" id="totalExamsD">0</div>
+                    <div class="card-subtitle">Tỷ lệ đạt: <strong id="passRateD" style="color:var(--success);">—</strong></div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="card-stripe red"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="card-icon red" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">📊</div>
+                        <span style="font-size:10px;background:var(--danger-light);color:var(--danger);padding:2px 7px;border-radius:10px;font-weight:700;">TB</span>
+                    </div>
+                    <div class="card-label">Điểm trung bình</div>
+                    <div class="card-value" id="avgScoreD">—</div>
+                    <div class="card-subtitle">Điểm cao nhất hôm nay: <strong id="bestTodayD" style="color:var(--accent);">—</strong></div>
+                </div>
+            </div>
+
+            <!-- CHARTS + LIVE FEED -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 340px;gap:16px;margin-bottom:16px;" id="dashChartGrid">
                 <div class="chart-card">
                     <h4>📊 Lượt thi 7 ngày gần nhất</h4>
                     <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
@@ -709,14 +764,27 @@ tbody tr:hover { background: var(--bg-hover); }
                     <h4>🎯 Tỷ lệ đạt / không đạt</h4>
                     <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
                 </div>
+                <div class="chart-card" style="display:flex;flex-direction:column;">
+                    <h4 style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+                        ⚡ Hoạt động trực tiếp
+                        <span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:rtBlink 1.5s infinite;margin-left:auto;"></span>
+                    </h4>
+                    <div id="liveFeed" style="flex:1;overflow-y:auto;max-height:260px;display:flex;flex-direction:column;gap:6px;font-size:12px;">
+                        <div style="text-align:center;color:var(--text-muted);padding:20px;">Đang theo dõi...</div>
+                    </div>
+                </div>
             </div>
 
+            <!-- ACTIVITY TABLE -->
             <div class="activity-section">
-                <h3>⚡ Hoạt động gần đây</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 style="margin:0;">📋 Lịch sử thi hôm nay</h3>
+                    <span style="font-size:12px;color:var(--text-muted);" id="activityCount">0 bài</span>
+                </div>
                 <div style="max-height:350px; overflow-y:auto;">
                     <table class="activity-table">
-                        <thead><tr><th>Thời gian</th><th>Học viên</th><th>Hoạt động</th><th>Chi tiết</th></tr></thead>
-                        <tbody id="activityTableBody"><tr><td colspan="4" class="activity-empty">Đang tải...</td></tr></tbody>
+                        <thead><tr><th>Thời gian</th><th>Học viên</th><th>Đề thi</th><th>Điểm</th><th>Kết quả</th></tr></thead>
+                        <tbody id="activityTableBody"><tr><td colspan="5" class="activity-empty">Đang tải...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -1158,11 +1226,16 @@ tbody tr:hover { background: var(--bg-hover); }
         </div>
         
         <!-- Cấu hình nhóm -->
-        <h4 style="margin-bottom:12px;">📚 Phân bổ nhóm câu hỏi</h4>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <div style="font-size:13px;">
-            Đã phân bổ: <b id="totalAllocated">0</b> | Còn lại: <b id="remainingQuestions" style="color:var(--warning)">0</b>
-          </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h4 style="margin:0;">📚 Phân bổ nhóm câu hỏi</h4>
+          <button class="btn btn-success btn-sm" onclick="addConfigGroup()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;">
+            ➕ Thêm nhóm
+          </button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:10px 14px;background:var(--bg-hover);border-radius:var(--radius-sm);font-size:13px;">
+          <span>Đã phân bổ: <b id="totalAllocated">0</b> câu</span>
+          <span>Còn lại: <b id="remainingQuestions" style="color:var(--warning)">0</b> câu</span>
+          <span style="color:var(--text-muted);">Số nhóm: <b id="configGroupCount">0</b></span>
         </div>
         <div id="configGroupsContainer"></div>
         
@@ -1661,7 +1734,7 @@ D. Đáp án D
 
     <!-- MODAL XEM HỒ SƠ THÍ SINH -->
     <div class="modal" id="studentProfileModal">
-      <div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto;">
+      <div class="modal-content" style="max-width:900px;max-height:92vh;overflow-y:auto;">
         <div class="modal-header">
           <h3 id="studentProfileTitle">Hồ sơ thí sinh</h3>
           <button class="close-btn" onclick="closeModal('studentProfileModal')" style="position:absolute;top:16px;right:16px;background:transparent;border:none;font-size:24px;cursor:pointer;color:var(--text-muted);">✕</button>
@@ -1869,90 +1942,7 @@ D. Đáp án D
       </div>
     </div>
 
-    <!-- TRANG CHI TIẾT ONLINE -->
-    <div class="page" id="online_detail">
-      <div class="page-header">
-        <h2>🟢 Chi tiết người dùng Online</h2>
-        <div>
-          <button class="btn btn-secondary" onclick="showPage('dashboard',document.querySelector('.menu button'))">← Quay lại</button>
-          <button class="btn btn-primary" onclick="refreshOnlineDetail()">🔄 Làm mới</button>
-        </div>
-      </div>
-      
-      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(25,135,84,0.15);color:#198754">🟢</div>
-          <div class="stat-info">
-            <div class="stat-number" id="onlineTotal">0</div>
-            <div class="stat-label">Tổng online</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(13,110,253,0.15);color:#0d6efd">📖</div>
-          <div class="stat-info">
-            <div class="stat-number" id="onlineStudying">0</div>
-            <div class="stat-label">Đang học</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(255,193,7,0.15);color:#ffc107">✍</div>
-          <div class="stat-info">
-            <div class="stat-number" id="onlineExaming">0</div>
-            <div class="stat-label">Đang thi</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(124,58,237,0.15);color:#7c3aed">⏸</div>
-          <div class="stat-info">
-            <div class="stat-number" id="onlineIdle">0</div>
-            <div class="stat-label">Đang chờ</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card" style="margin-bottom:20px;">
-        <h3 style="margin-bottom:12px;">📊 Phân bố online theo đối tượng</h3>
-        <div style="height:250px;">
-          <canvas id="chartOnlineByObject"></canvas>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-          <h3>📋 Danh sách chi tiết</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <input type="text" id="onlineSearchInput" placeholder="🔍 Tìm kiếm..." oninput="filterOnlineDetail()" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;">
-            <select id="onlineFilterSection" onchange="filterOnlineDetail()" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;">
-              <option value="">Tất cả trạng thái</option>
-              <option value="studying">Đang học</option>
-              <option value="exam">Đang thi</option>
-              <option value="idle">Đang chờ</option>
-            </select>
-          </div>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:45px">STT</th>
-                <th style="width:100px">Mã HV</th>
-                <th>Họ và tên</th>
-                <th>Đơn vị</th>
-                <th>Đối tượng</th>
-                <th style="width:120px">Trạng thái</th>
-                <th style="width:140px">Thời gian vào</th>
-                <th style="width:140px">Hoạt động cuối</th>
-              </tr>
-            </thead>
-            <tbody id="onlineDetailTableBody">
-              <tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="onlineDetailPagination" style="margin-top:12px;"></div>
-      </div>
-    </div>
-
+    
   </main>
 </div>
 
@@ -1991,7 +1981,7 @@ D. Đáp án D
       <input type="password" id="pwConfirm" placeholder="Nhập lại mật khẩu mới..." style="font-size:15px;padding:12px 14px;">
     </div>
     <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;color:var(--accent);">
-      ℹ Sau khi đổi mật khẩu thành công, email xác nhận sẽ được gửi đến <b>trunglq002@gmail.com</b>.
+      ℹ Sau khi đổi mật khẩu thành công, email xác nhận sẽ được gửi đến <b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="403432352e272c3170707200272d21292c6e232f2d">[email&#160;protected]</a></b>.
     </div>
     <div style="display:flex;gap:10px;margin-top:16px;">
       <button class="btn btn-secondary" onclick="closeModal('changeAdminPwModal')" style="flex:1;padding:12px;">Hủy</button>
@@ -2084,7 +2074,7 @@ D. Đáp án D
 
 <!-- BẮT ĐẦU PASTE TỪ ĐÂY TRỞ XUỐNG -->
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ==========================================
 // 1. KHỞI TẠO FIREBASE
 // ==========================================
@@ -2112,6 +2102,16 @@ let allQuestionSets = [];
 let allResults = [];
 let allNotifications = [];
 let filteredNotifications = [];
+// Alias for backward compatibility
+Object.defineProperty(window,'allExamResults',{ get:()=>allResults, set:(v)=>{ allResults=v; } });
+let filteredResults = [];
+let resultCurrentPage = 1;
+let resultFilterTimeout = null;
+let currentExamDetailResult = null;
+let notiCurrentPage = 1;
+let currentEditingNotiId = null;
+let filteredOnlineList = [];
+let refreshOnlineDetailFn = null;
 
 let currentEditingCode = null;
 let currentPage = 1;
@@ -2377,92 +2377,308 @@ async function loadAllResultsFromDB(limit = 3000) {
 }
 
 async function loadTodayExamsFromDB() {
+    // Kept for initial load compatibility – real-time handled by startRealtimeDashboard()
     try {
-        const t = new Date();
-        t.setHours(0, 0, 0, 0);
-        const snap = await db.collection('examResults').where('timestamp', '>=', t).get();
-        const el = document.getElementById('todayExams');
-        if (el) el.textContent = snap.size;
+        const t = new Date(); t.setHours(0,0,0,0);
+        const snap = await db.collection('examResults').where('timestamp','>=',t).get();
+        let pass = 0, fail = 0, scores = [], bestScore = 0;
+        snap.forEach(d => {
+            const data = d.data();
+            if (data.passed) pass++; else fail++;
+            const sc = Number(data.correctCount || data.score) || 0;
+            scores.push(sc);
+            if (sc > bestScore) bestScore = sc;
+        });
+        safeSet('todayExams', snap.size);
+        safeSet('todayPass', pass);
+        safeSet('todayFail', fail);
+        safeSet('bestTodayD', bestScore > 0 ? bestScore : '—');
+        const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '—';
+        safeSet('avgScoreD', avg);
     } catch (e) { console.warn('Lỗi loadTodayExamsFromDB:', e.message); }
 }
 
 async function loadActivitiesFromDB() {
     try {
-        const t = new Date();
-        t.setHours(0, 0, 0, 0);
-        const snap = await db.collection('examResults').where('timestamp', '>=', t).orderBy('timestamp', 'desc').limit(30).get();
-        const activities = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const st = allStudents.find(x => x.code === d.studentCode);
-            const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp || Date.now());
-            activities.push({
-                time: formatDateTime(ts),
-                student: st ? `${st.name} (${st.code})` : (d.studentCode || '?'),
-                action: 'Hoàn thành bài thi',
-                detail: `${d.setName || d.setCode || ''} - Điểm: ${d.score || 0}`
+        const t = new Date(); t.setHours(0,0,0,0);
+        const snap = await db.collection('examResults').where('timestamp','>=',t).orderBy('timestamp','desc').limit(30).get();
+        renderActivityTable(snap);
+    } catch (e) { renderActivityTable(null); }
+}
+
+// ==========================================
+// REAL-TIME DASHBOARD LISTENERS
+// ==========================================
+let rtExamUnsub = null;      // today's exams
+let rtAllExamUnsub = null;   // all-time stats
+let rtStudentUnsub = null;   // student counts
+let liveFeedItems = [];      // circular buffer for live feed
+
+function safeSet(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+function startRealtimeDashboard() {
+    startRealtimeTodayExams();
+    startRealtimeAllExams();
+    startRealtimeStudents();
+}
+
+function startRealtimeTodayExams() {
+    if (rtExamUnsub) rtExamUnsub();
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    rtExamUnsub = db.collection('examResults')
+        .where('timestamp','>=', todayStart)
+        .orderBy('timestamp','desc')
+        .onSnapshot(snap => {
+            let pass = 0, fail = 0, scores = [], bestScore = 0;
+            const activities = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.passed) pass++; else fail++;
+                const sc = Number(data.correctCount || data.score) || 0;
+                scores.push(sc);
+                if (sc > bestScore) bestScore = sc;
+                activities.push({ id: d.id, ...data });
             });
-        });
-        renderActivityTable(activities);
-    } catch (e) {
-        renderActivityTable([]);
+            const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '—';
+            safeSet('todayExams', snap.size);
+            safeSet('todayPass', pass);
+            safeSet('todayFail', fail);
+            safeSet('avgScoreD', avg);
+            safeSet('bestTodayD', bestScore > 0 ? bestScore : '—');
+            renderActivityTable(snap);
+            updateLastUpdateTime();
+
+            // Update live feed for new entries
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const d2 = change.doc.data();
+                    const st = allStudents.find(s => s.code === d2.studentCode);
+                    const name = st ? st.name : (d2.studentName || d2.studentCode || '?');
+                    const ts = d2.timestamp?.toDate ? d2.timestamp.toDate() : new Date();
+                    addLiveFeedItem({
+                        type: d2.passed ? 'pass' : 'fail',
+                        name,
+                        text: `${d2.setName||d2.setCode||'—'} • ${d2.correctCount||d2.score||0}/${d2.totalQuestions||0}`,
+                        time: ts.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+                        badge: d2.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'
+                    });
+                }
+            });
+
+            // Update dashboard chart series
+            buildDashboardSeriesFromResults();
+            if (document.getElementById('dashboard')?.classList.contains('active')) {
+                destroyCharts(); renderDashboardCharts();
+            }
+        }, err => console.warn('RT Today Exams error:', err));
+}
+
+function startRealtimeAllExams() {
+    if (rtAllExamUnsub) rtAllExamUnsub();
+    rtAllExamUnsub = db.collection('examResults')
+        .orderBy('timestamp','desc')
+        .limit(500)
+        .onSnapshot(snap => {
+            let total = 0, passed = 0;
+            snap.forEach(d => {
+                total++;
+                if (d.data().passed) passed++;
+            });
+            safeSet('totalExamsD', total);
+            const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
+            safeSet('passRateD', rate);
+            // Rebuild series for charts
+            allResults = snap.docs.map(d => {
+                const data = d.data();
+                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+                const st = allStudents.find(s => s.code === data.studentCode);
+                return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+            });
+            buildDashboardSeriesFromResults();
+        }, err => console.warn('RT All Exams error:', err));
+}
+
+function startRealtimeStudents() {
+    if (rtStudentUnsub) rtStudentUnsub();
+    rtStudentUnsub = db.collection('students').onSnapshot(snap => {
+        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' }));
+        const active = allStudents.filter(s => s.status === 'active').length;
+        const locked = allStudents.filter(s => s.status === 'locked').length;
+        safeSet('totalStudents', allStudents.length);
+        safeSet('activeStudents', active);
+        safeSet('lockedStudentsD', locked);
+        safeSet('warningCount', locked);
+        safeSet('totalCount', allStudents.length);
+        safeSet('activeCount', active);
+        safeSet('lockedCount', locked);
+        // Update student-related UI
+        if (document.getElementById('students')?.classList.contains('active')) {
+            updateStudentStats();
+            filteredStudents = [...allStudents];
+            renderStudentTable();
+        }
+        updateOnlineUI();
+        loadCourseFilter();
+        updateLastUpdateTime();
+    }, err => console.warn('RT Students error:', err));
+}
+
+function updateLastUpdateTime() {
+    const el = document.getElementById('lastUpdateTime');
+    if (el) el.textContent = new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function addLiveFeedItem({ type, name, text, time, badge }) {
+    liveFeedItems.unshift({ type, name, text, time, badge });
+    if (liveFeedItems.length > 20) liveFeedItems.pop();
+    renderLiveFeed();
+}
+
+function renderLiveFeed() {
+    const feed = document.getElementById('liveFeed');
+    if (!feed) return;
+    if (!liveFeedItems.length) {
+        feed.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:12px;">Chưa có hoạt động nào hôm nay</div>';
+        return;
     }
+    feed.innerHTML = liveFeedItems.map(item => {
+        const icon = item.type === 'pass' ? '✅' : item.type === 'fail' ? '❌' : '🔵';
+        return `<div class="live-feed-item lf-${item.type}">
+            <div class="lf-top"><span class="lf-name">${escapeHtml(item.name)}</span><span class="lf-time">${item.time}</span></div>
+            <div class="lf-sub">${icon} ${escapeHtml(item.text)}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderActivityTable(snap) {
+    const tb = document.getElementById('activityTableBody');
+    const countEl = document.getElementById('activityCount');
+    if (!tb) return;
+    
+    let docs = [];
+    if (snap && snap.docs) {
+        docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else if (Array.isArray(snap)) {
+        docs = snap;
+    }
+    
+    if (countEl) countEl.textContent = `${docs.length} bài`;
+    
+    if (!docs.length) {
+        tb.innerHTML = '<tr><td colspan="5" class="activity-empty">Chưa có bài thi nào hôm nay</td></tr>';
+        return;
+    }
+    tb.innerHTML = docs.slice(0, 30).map(d => {
+        const st = allStudents.find(s => s.code === d.studentCode);
+        const name = st ? `${st.name} (${d.studentCode})` : (d.studentCode || '?');
+        const ts   = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp || Date.now());
+        const sc   = d.correctCount ?? d.score ?? 0;
+        const total= d.totalQuestions || 0;
+        const pass = d.passed === true;
+        return `<tr>
+            <td>${ts.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td>
+            <td style="text-align:left;">${escapeHtml(name)}</td>
+            <td style="text-align:left;">${escapeHtml(d.setName||d.setCode||'—')}</td>
+            <td class="cell-score">${sc}/${total}</td>
+            <td class="${pass ? 'cell-pass':'cell-fail'}">${pass?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}</td>
+        </tr>`;
+    }).join('');
 }
 
 // Lắng nghe người dùng Online
 function startPresenceListener() {
     if (presenceUnsub) presenceUnsub();
 
+    // Use docChanges for efficient real-time updates
     presenceUnsub = db.collection('presence').onSnapshot((snap) => {
-        // Cập nhật dữ liệu từ Firebase vào presenceMap
-        snap.forEach(doc => {
-            presenceMap.set(doc.id, doc.data());
+        // Process all changes: added/modified/removed
+        snap.docChanges().forEach(change => {
+            if (change.type === 'removed') {
+                presenceMap.delete(change.doc.id);
+            } else {
+                presenceMap.set(change.doc.id, change.doc.data());
+            }
         });
-        
-        // LUÔN LUÔN GỌI HÀM UPDATE UI NGAY SAU KHI CÓ DỮ LIỆU MỚI
+        // Also handle initial load (all docs)
+        if (snap.docChanges().length === 0 || snap.metadata.hasPendingWrites === false) {
+            snap.forEach(doc => presenceMap.set(doc.id, doc.data()));
+        }
         updateOnlineUI();
-
-    }, (err) => { 
-        console.warn('Lỗi listener online:', err); 
+    }, (err) => {
+        console.warn('Lỗi listener online:', err);
     });
+
+    // Periodic refresh every 30s to catch stale connections
+    setInterval(updateOnlineUI, 30000);
 }
 
 function updateOnlineUI() {
     let onlineCount = 0;
     const now = new Date();
-    
-    // Chỉ cập nhật UI nếu đã có danh sách học viên
-    if (!allStudents || allStudents.length === 0) return;
 
-    allStudents.forEach(s => {
-        const p = presenceMap.get(s.code);
-        
-        if (p && p.isOnline && p.lastActive) {
-            const lastActive = p.lastActive.toDate ? p.lastActive.toDate() : new Date(p.lastActive);
-            const diffSeconds = (now - lastActive) / 1000;
-            
-            // Nếu phát tín hiệu trong vòng 60 giây -> Đang Online
-            if (diffSeconds < 60) {
-                s.isOnline = true;
-                s.currentSection = p.currentSection || 'Đang hoạt động';
-                s.startAt = p.startAt?.toDate ? p.startAt.toDate() : null;
-                s.lastActive = lastActive;
-                onlineCount++;
-            } else {
-                s.isOnline = false;
-                s.currentSection = 'Mất kết nối'; // Ghi nhận trạng thái mất kết nối
-            }
-        } else {
-            s.isOnline = false;
+    // Build online set from presenceMap (independent of allStudents)
+    const onlineByCode = new Map();
+    presenceMap.forEach((data, code) => {
+        if (!data.isOnline) return;
+        const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : (data.lastActive ? new Date(data.lastActive) : null);
+        if (!lastActive) return;
+        const diffSeconds = (now - lastActive) / 1000;
+        if (diffSeconds < 90) { // 90s threshold (heartbeat is 20s)
+            onlineByCode.set(code, { ...data, lastActiveDate: lastActive });
         }
     });
 
+    // Update allStudents with online status
+    if (allStudents && allStudents.length > 0) {
+        allStudents.forEach(s => {
+            const onlineData = onlineByCode.get(s.code);
+            if (onlineData) {
+                s.isOnline = true;
+                s.currentSection = onlineData.currentSection || 'Đang hoạt động';
+                s.startAt = onlineData.startAt?.toDate ? onlineData.startAt.toDate() : null;
+                s.lastActive = onlineData.lastActiveDate;
+                onlineCount++;
+            } else {
+                s.isOnline = false;
+                s.currentSection = null;
+                s.lastActive = null;
+            }
+        });
+    } else {
+        onlineCount = onlineByCode.size;
+    }
+
     const el = document.getElementById('onlineCount');
-    if (el) el.textContent = onlineCount;
-    
-    // Nếu đang mở trang Chi tiết Online, cập nhật bảng
-    if (document.getElementById('online_detail')?.classList.contains('active')) {
-        filterOnlineDetail();
+    if (el) {
+        el.textContent = onlineCount;
+        el.style.color = onlineCount > 0 ? 'var(--success)' : '';
+    }
+
+    // Update sub-stats: examing vs browsing
+    let examingCnt = 0, browsingCnt = 0;
+    onlineByCode.forEach(data => {
+        const sec = (data.currentSection || '').toLowerCase();
+        if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
+        else browsingCnt++;
+    });
+    safeSet('examingCount', examingCnt);
+    safeSet('browsingCount', browsingCnt);
+
+    // Show LIVE badge when anyone online
+    const liveBadge = document.getElementById('onlineLiveBadge');
+    if (liveBadge) liveBadge.style.display = onlineCount > 0 ? 'inline-block' : 'none';
+
+    // Update dashboard active students count
+    const dashActive = document.getElementById('activeStudents');
+    if (dashActive) dashActive.textContent = (allStudents || []).filter(s => s.status === 'active').length;
+
+    // Refresh online detail page if visible
+    const detailPage = document.getElementById('online_detail');
+    if (detailPage && detailPage.classList.contains('active')) {
+        renderOnlineDetailPage();
     }
 }
 
@@ -2470,13 +2686,16 @@ function updateOnlineUI() {
 // 6. DASHBOARD CHỨC NĂNG
 // ==========================================
 function loadDashboard() {
-    const total = allStudents.length;
+    const total  = allStudents.length;
     const active = allStudents.filter(s => s.status === 'active').length;
     const locked = allStudents.filter(s => s.status === 'locked').length;
-    document.getElementById('totalStudents').textContent = total;
-    document.getElementById('activeStudents').textContent = active;
-    document.getElementById('warningCount').textContent = locked;
-    document.getElementById('totalSets').textContent = allQuestionSets.filter(s => s.status === 'active').length;
+    safeSet('totalStudents', total);
+    safeSet('activeStudents', active);
+    safeSet('lockedStudentsD', locked);
+    safeSet('warningCount', locked);
+    safeSet('totalSets', allQuestionSets.filter(s => s.status === 'active').length);
+    // Live feed initial state
+    if (!liveFeedItems.length) renderLiveFeed();
 }
 
 function buildDashboardSeriesFromResults() {
@@ -2505,23 +2724,6 @@ function buildDashboardSeriesFromResults() {
     });
     dashboardExamSeries = labels.map((label, i) => ({ label, value: counts[i] }));
     dashboardPassFail = passFail;
-}
-
-function renderActivityTable(data) {
-    const tb = document.getElementById('activityTableBody');
-    if (!tb) return;
-    if (!data || !data.length) {
-        tb.innerHTML = '<tr><td colspan="4" class="activity-empty">Chưa có hoạt động hôm nay</td></tr>';
-        return;
-    }
-    tb.innerHTML = data.slice(0, 15).map(x => `
-        <tr>
-            <td>${escapeHtml(x.time)}</td>
-            <td>${escapeHtml(x.student)}</td>
-            <td>${escapeHtml(x.action)}</td>
-            <td>${escapeHtml(x.detail)}</td>
-        </tr>
-    `).join('');
 }
 
 function destroyCharts() {
@@ -2688,8 +2890,9 @@ function renderStudentTable() {
                 <td>${escapeHtml(s.course || '—')}</td>
                 <td class="no-print"><span class="status-badge ${statusClass}" style="cursor:pointer" onclick="toggleStatus('${escapeHtml(s.code)}')">${statusText}</span></td>
                 <td class="no-print">
-                    <button class="btn btn-primary btn-sm" onclick="editStudent('${escapeHtml(s.code)}')">✎</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteStudent('${escapeHtml(s.code)}')">🗑</button>
+                    <button class="btn btn-info btn-sm" title="Xem hồ sơ & lịch sử thi" onclick="showStudentProfile('${escapeHtml(s.code)}')">📊</button>
+                    <button class="btn btn-primary btn-sm" title="Sửa thông tin" onclick="editStudent('${escapeHtml(s.code)}')">✎</button>
+                    <button class="btn btn-danger btn-sm" title="Xóa" onclick="deleteStudent('${escapeHtml(s.code)}')">🗑</button>
                 </td>
             </tr>
         `;
@@ -3252,17 +3455,9 @@ function showConfigPage(code) {
     const ct = document.getElementById('configGroupsContainer');
     ct.innerHTML = '';
     (s.groupDetails || []).forEach((g, i) => {
-        const d = document.createElement('div');
-        d.className = 'group-card';
-        d.innerHTML = `
-            <div class="group-header"><span class="group-number">Nhóm ${i + 1}</span></div>
-            <div class="form-row" style="margin:0">
-                <div><label>Tên</label><input value="${escapeHtml(g.name)}" readonly style="background:var(--bg-hover);cursor:not-allowed"></div>
-                <div><label style="color:var(--accent)">Số câu *</label><input type="number" class="group-count" min="0" max="200" value="${g.count || 0}" oninput="updateConfigSummary()"></div>
-            </div>
-        `;
-        ct.appendChild(d);
+        renderConfigGroupCard(ct, i, g.name, g.count || 0);
     });
+    document.getElementById('configGroupCount').textContent = (s.groupDetails || []).length;
     
     if (hasLiet && s.lietPositions?.length) {
         setTimeout(() => {
@@ -3279,7 +3474,69 @@ function showConfigPage(code) {
     pendingLietQuestions = [];
 }
 
-function getLietPositions() {
+function renderConfigGroupCard(container, index, name, count) {
+    const d = document.createElement('div');
+    d.className = 'group-card';
+    d.dataset.groupIdx = index;
+    d.innerHTML = `
+        <div class="group-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span class="group-number">Nhóm ${index + 1}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeConfigGroup(this)" title="Xóa nhóm này" style="padding:4px 10px;font-size:12px;">✕ Xóa</button>
+        </div>
+        <div class="form-row" style="margin:0;gap:12px;">
+            <div class="form-group" style="margin:0;">
+                <label style="font-weight:700;color:var(--text-secondary);font-size:12px;">Tên nhóm *</label>
+                <input type="text" class="group-name-input" value="${escapeHtml(name)}"
+                    placeholder="VD: Khái niệm cơ bản, Biển báo..."
+                    oninput="updateConfigSummary()"
+                    style="font-size:14px;padding:9px 12px;">
+            </div>
+            <div class="form-group" style="margin:0;max-width:160px;">
+                <label style="font-weight:700;color:var(--accent);font-size:12px;">Số câu lấy / đề *</label>
+                <input type="number" class="group-count" min="0" max="500" value="${count}"
+                    oninput="updateConfigSummary()"
+                    style="font-size:15px;padding:9px 12px;font-weight:700;border:2px solid var(--accent);">
+            </div>
+        </div>
+    `;
+    container.appendChild(d);
+}
+
+function addConfigGroup() {
+    const ct = document.getElementById('configGroupsContainer');
+    const newIndex = ct.querySelectorAll('.group-card').length;
+    renderConfigGroupCard(ct, newIndex, '', 0);
+    // Re-number all group badges
+    renumberConfigGroups();
+    updateConfigSummary();
+    // Scroll to new group
+    const cards = ct.querySelectorAll('.group-card');
+    if (cards.length > 0) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showToast(`Đã thêm Nhóm ${newIndex + 1}. Nhập tên và số câu cần lấy.`, 'success', 2500);
+}
+
+function removeConfigGroup(btn) {
+    const ct = document.getElementById('configGroupsContainer');
+    const cards = ct.querySelectorAll('.group-card');
+    if (cards.length <= 1) {
+        showToast('Phải có ít nhất 1 nhóm câu hỏi!', 'warning');
+        return;
+    }
+    btn.closest('.group-card').remove();
+    renumberConfigGroups();
+    updateConfigSummary();
+}
+
+function renumberConfigGroups() {
+    const ct = document.getElementById('configGroupsContainer');
+    ct.querySelectorAll('.group-card').forEach((card, i) => {
+        const badge = card.querySelector('.group-number');
+        if (badge) badge.textContent = `Nhóm ${i + 1}`;
+        card.dataset.groupIdx = i;
+    });
+    const countEl = document.getElementById('configGroupCount');
+    if (countEl) countEl.textContent = ct.querySelectorAll('.group-card').length;
+}
     return [...document.querySelectorAll('.liet-position-input')].map(inp => parseInt(inp.value, 10) || 0).filter(v => v > 0);
 }
 
@@ -3326,6 +3583,9 @@ function updateConfigSummary() {
     document.getElementById('remainingQuestions').style.color = remain < 0 ? 'var(--danger)' : remain === 0 ? 'var(--success)' : 'var(--warning)';
     document.getElementById('configSummaryTotal').textContent = total;
     document.getElementById('configSummaryGroups').textContent = groupInputs.length;
+    // Update group count badge in header
+    const gcEl = document.getElementById('configGroupCount');
+    if (gcEl) gcEl.textContent = groupInputs.length;
     document.getElementById('configSummaryTime').textContent = examTime || '-';
     document.getElementById('configSummaryPass').textContent = passScore > 0 ? `${passScore}/${total}` : '-';
     document.getElementById('configSummaryLiet').textContent = hasLiet && lietCount > 0 ? `${lietCount} câu (vị trí: ${lietPositions.join(', ') || '?'})` : 'Không';
@@ -3431,12 +3691,33 @@ async function saveQuestionSetConfig() {
     if (passScore > totalQuestions) return showToast('Số câu đạt không thể > tổng câu!', 'error');
     
     const groupCounts = [...document.querySelectorAll('.group-count')].map(i => parseInt(i.value, 10) || 0);
+    const groupNameInputs = [...document.querySelectorAll('.group-name-input')];
     const sum = groupCounts.reduce((a, b) => a + b, 0);
     if (sum > totalQuestions) return showToast(`Tổng phân bổ nhóm (${sum}) > tổng câu (${totalQuestions})!`, 'error');
-    
+
+    // Validate all groups have names
+    for (let i = 0; i < groupNameInputs.length; i++) {
+        if (!groupNameInputs[i].value.trim()) {
+            showToast(`Nhóm ${i + 1} chưa có tên! Vui lòng nhập tên nhóm.`, 'error');
+            groupNameInputs[i].focus();
+            return;
+        }
+    }
+
     showLoading('Đang lưu cấu hình...');
     try {
-        const groupDetails = (s.groupDetails || []).map((g, i) => ({ ...g, count: groupCounts[i] || 0 }));
+        // Merge editable group names into groupDetails
+        // Preserve existing groups, apply new names/counts; add truly new groups
+        const existingDetails = s.groupDetails || [];
+        const groupDetails = groupNameInputs.map((inp, i) => {
+            const name = inp.value.trim();
+            const count = groupCounts[i] || 0;
+            // If existing group at this index: preserve its other props, update name+count
+            const existing = existingDetails[i];
+            return existing
+                ? { ...existing, name, count }
+                : { name, count };
+        });
         const updateData = {
             totalQuestions, examTime, passScore, passRequireLiet,
             lietCount, lietPositions, lietQuestion: lietCount,
@@ -4220,33 +4501,199 @@ async function renderExamDetailQuestions(result, page) {
     currentExamDetailResult = result;
 }
 
-function showStudentProfile(code) {
+let currentProfileCode = null;
+let currentProfileExamDetailId = null;
+
+async function showStudentProfile(code) {
     const student = allStudents.find(s => s.code === code);
     if (!student) return showToast('Không tìm thấy học viên!', 'error');
-    document.getElementById('studentProfileTitle').textContent = `Hồ sơ: ${student.name}`;
-    
-    const results = allExamResults.filter(r => r.studentCode === code);
-    const passed = results.filter(r => r.passed).length;
-    const bestScore = results.reduce((m, r) => Math.max(m, Number(r.score) || 0), 0);
-    const avgScore = results.length > 0 ? Math.round(results.reduce((a, r) => a + (Number(r.score) || 0), 0) / results.length) : 0;
-    
+    currentProfileCode = code;
+
+    document.getElementById('studentProfileTitle').textContent = `📋 Hồ sơ học viên: ${student.name}`;
+
+    // Load fresh results from DB for this student
+    showLoading('Đang tải lịch sử thi...');
+    let results = [];
+    try {
+        const snap = await db.collection('examResults')
+            .where('studentCode', '==', code)
+            .orderBy('timestamp', 'desc')
+            .get();
+        results = snap.docs.map(d => {
+            const data = d.data();
+            const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now());
+            return { id: d.id, ...data, timestamp: ts };
+        });
+    } catch(e) {
+        results = allExamResults.filter(r => r.studentCode === code)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    } finally { hideLoading(); }
+
+    const passed     = results.filter(r => r.passed).length;
+    const bestScore  = results.reduce((m, r) => Math.max(m, Number(r.score) || 0), 0);
+    const avgScore   = results.length > 0
+        ? Math.round(results.reduce((a, r) => a + (Number(r.score) || 0), 0) / results.length) : 0;
+
     document.getElementById('studentProfileContent').innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding:16px;background:var(--bg-hover);border-radius:var(--radius-sm);">
-            <div><strong>Mã HV:</strong> ${escapeHtml(student.code)}</div>
-            <div><strong>Họ tên:</strong> ${escapeHtml(student.name)}</div>
-            <div><strong>Đơn vị:</strong> ${escapeHtml(student.unit)}</div>
-            <div><strong>Đối tượng:</strong> ${escapeHtml(student.object)}</div>
-            <div><strong>Ngày sinh:</strong> ${formatDate(student.dob)}</div>
-            <div><strong>Khóa:</strong> ${escapeHtml(student.course || '-')}</div>
+        <!-- Student Info -->
+        <div style="background:var(--bg-hover);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:14px;">
+            <div><b style="color:var(--text-secondary);font-size:12px;">MÃ HỌC VIÊN</b><div style="font-size:16px;font-weight:700;color:var(--accent);">${escapeHtml(student.code)}</div></div>
+            <div><b style="color:var(--text-secondary);font-size:12px;">HỌ VÀ TÊN</b><div style="font-size:15px;font-weight:700;">${escapeHtml(student.name)}</div></div>
+            <div><b style="color:var(--text-secondary);font-size:12px;">ĐƠN VỊ</b><div>${escapeHtml(student.unit || '—')}</div></div>
+            <div><b style="color:var(--text-secondary);font-size:12px;">ĐỐI TƯỢNG</b><div>${escapeHtml(student.object || '—')}</div></div>
+            <div><b style="color:var(--text-secondary);font-size:12px;">NGÀY SINH</b><div>${formatDate(student.dob)}</div></div>
+            <div><b style="color:var(--text-secondary);font-size:12px;">KHÓA HỌC</b><div>${escapeHtml(student.course || '—')}</div></div>
         </div>
-        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
-            <div class="stat-card"><div class="stat-info"><div class="stat-number">${results.length}</div><div class="stat-label">Lần thi</div></div></div>
-            <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--success)">${passed}</div><div class="stat-label">Đạt</div></div></div>
-            <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--accent)">${bestScore}</div><div class="stat-label">Điểm cao nhất</div></div></div>
-            <div class="stat-card"><div class="stat-info"><div class="stat-number">${avgScore}</div><div class="stat-label">Điểm TB</div></div></div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+                <div style="font-size:24px;font-weight:800;color:var(--accent);">${results.length}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;">LƯỢT THI</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+                <div style="font-size:24px;font-weight:800;color:var(--success);">${passed}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;">ĐẠT</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+                <div style="font-size:24px;font-weight:800;color:var(--danger);">${results.length - passed}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;">KHÔNG ĐẠT</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+                <div style="font-size:24px;font-weight:800;">${bestScore}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:600;">ĐIỂM CAO NHẤT</div>
+            </div>
         </div>
+
+        <!-- Exam History Table -->
+        <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">📜 Lịch sử thi (mới nhất đến cũ nhất)</h4>
+        ${results.length === 0 ? '<div style="text-align:center;padding:30px;color:var(--text-muted);">Chưa có lần thi nào</div>' : `
+        <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:var(--bg-table-head);">
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Lần</th>
+                        <th style="padding:9px 10px;text-align:left;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Thời gian thi</th>
+                        <th style="padding:9px 10px;text-align:left;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Tên đề thi</th>
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Điểm</th>
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Kết quả</th>
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map((r, i) => {
+                        const pass = r.passed === true;
+                        const score = `${r.correctCount || r.score || 0}/${r.totalQuestions || 0}`;
+                        return `<tr style="border-bottom:1px solid var(--border-light);transition:background 0.15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background=''">
+                            <td style="padding:9px 10px;text-align:center;color:var(--text-muted);">${i + 1}</td>
+                            <td style="padding:9px 10px;font-size:12px;">${formatDateTime(r.timestamp)}</td>
+                            <td style="padding:9px 10px;font-weight:600;">${escapeHtml(r.setName || r.setCode || '—')}</td>
+                            <td style="padding:9px 10px;text-align:center;font-weight:700;">${score}</td>
+                            <td style="padding:9px 10px;text-align:center;">
+                                <span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${pass ? 'rgba(25,135,84,0.12)' : 'rgba(220,53,69,0.12)'};color:${pass ? 'var(--success)' : 'var(--danger)'};">
+                                    ${pass ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}
+                                </span>
+                            </td>
+                            <td style="padding:9px 10px;text-align:center;">
+                                <button class="btn btn-info btn-sm" onclick="showProfileExamDetail('${r.id}')">🔍 Xem</button>
+                            </td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>`}
+
+        <!-- Exam Detail Area (populated on demand) -->
+        <div id="profileExamDetailArea" style="margin-top:20px;display:none;"></div>
     `;
+
+    // Store results for detail lookup
+    window._profileResults = results;
     document.getElementById('studentProfileModal').classList.add('show');
+}
+
+function showProfileExamDetail(resultId) {
+    const r = (window._profileResults || []).find(x => x.id === resultId);
+    if (!r) {
+        // Try allExamResults
+        const found = allExamResults.find(x => x.id === resultId);
+        if (found) return renderProfileExamDetail(found);
+        return showToast('Không tìm thấy dữ liệu bài thi!', 'error');
+    }
+    renderProfileExamDetail(r);
+}
+
+function renderProfileExamDetail(r) {
+    const labels = ['A', 'B', 'C', 'D', 'E'];
+    const questions = r.questions || [];
+    const answers = r.answers || [];
+    const pass = r.passed === true;
+    const score = `${r.correctCount || r.score || 0}/${r.totalQuestions || 0}`;
+
+    const area = document.getElementById('profileExamDetailArea');
+    if (!area) return;
+    area.style.display = 'block';
+
+    let html = `
+        <div style="background:linear-gradient(135deg,var(--accent),#0a58ca);color:white;padding:16px 18px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+                <div style="font-size:13px;opacity:0.85;margin-bottom:3px;">Chi tiết bài thi: <b>${escapeHtml(r.setName || r.setCode || '')}</b></div>
+                <div style="font-size:12px;opacity:0.8;">${formatDateTime(r.timestamp)}</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;">
+                <div style="text-align:center;"><div style="font-size:22px;font-weight:800;">${score}</div><div style="font-size:11px;opacity:0.8;">Số câu đúng</div></div>
+                <span style="padding:5px 14px;border-radius:14px;font-weight:700;font-size:13px;background:${pass ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};border:1px solid ${pass ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'};">${pass ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</span>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('profileExamDetailArea').style.display='none'" style="color:white;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">✕ Đóng</button>
+            </div>
+        </div>`;
+
+    if (!questions.length) {
+        html += `<div style="text-align:center;padding:30px;color:var(--text-muted);">Không có dữ liệu chi tiết bài làm</div>`;
+        area.innerHTML = html;
+        area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+    }
+
+    questions.forEach((q, i) => {
+        const ua = (answers[i] !== undefined && answers[i] !== null) ? answers[i] : (q.userAnswer ?? null);
+        const isCorrect = ua === q.correctAnswer;
+        const isSkipped = ua === null || ua === undefined;
+        const isLiet = q.isLiet === true;
+
+        const borderColor = isSkipped ? 'var(--border)' : (isCorrect ? 'var(--success)' : 'var(--danger)');
+        const bgColor = isSkipped ? 'var(--bg-hover)' : (isCorrect ? 'var(--success-light)' : 'var(--danger-light)');
+        const icon = isSkipped ? '⬜' : (isCorrect ? '✅' : '❌');
+
+        html += `<div style="border:1px solid ${borderColor};border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;background:${bgColor};${isLiet ? 'border-left:4px solid var(--warning);' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px;">
+                <div>
+                    <span style="font-weight:700;font-size:13px;color:var(--text-primary);">Câu ${i + 1}</span>
+                    ${isLiet ? `<span style="display:inline-block;background:#fff3cd;border:1px solid #f4a261;color:#c05621;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px;">⚡ Liệt</span>` : ''}
+                </div>
+                <span style="font-size:12px;font-weight:700;white-space:nowrap;${isSkipped ? 'color:var(--text-muted)' : (isCorrect ? 'color:var(--success)' : 'color:var(--danger)')};">${icon} ${isSkipped ? 'Chưa trả lời' : (isCorrect ? 'Đúng' : 'Sai')}</span>
+            </div>
+            <div style="font-size:13px;line-height:1.6;margin-bottom:10px;color:var(--text-primary);">${escapeHtml(q.content || '')}</div>
+            ${q.imageUrl ? `<img src="${escapeHtml(q.imageUrl)}" style="max-width:100%;max-height:180px;border-radius:6px;margin-bottom:10px;display:block;" onerror="this.style.display='none'">` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                ${(q.answers || []).map((a, j) => {
+                    const num = j + 1;
+                    const isRight = num === q.correctAnswer;
+                    const isChosen = num === ua;
+                    let bg = 'var(--bg-card)', color = 'var(--text-secondary)', brd = 'var(--border)', fw = '400';
+                    if (isRight) { bg = 'rgba(25,135,84,0.15)'; color = 'var(--success)'; brd = 'var(--success)'; fw = '700'; }
+                    if (isChosen && !isRight) { bg = 'rgba(220,53,69,0.12)'; color = 'var(--danger)'; brd = 'var(--danger)'; fw = '600'; }
+                    return `<div style="padding:8px 10px;border-radius:6px;border:1px solid ${brd};background:${bg};color:${color};font-weight:${fw};font-size:12px;display:flex;gap:6px;align-items:flex-start;">
+                        <b>${labels[j]}.</b><span>${escapeHtml(a)}</span>
+                        ${isRight ? `<span style="margin-left:auto;flex-shrink:0;">✓</span>` : ''}
+                        ${isChosen && !isRight ? `<span style="margin-left:auto;flex-shrink:0;">← Bạn chọn</span>` : ''}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    });
+
+    area.innerHTML = html;
+    area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ==========================================
@@ -4374,95 +4821,74 @@ async function saveNotification() {
     else if (sendTime === 'schedule') {
         const scheduleVal = document.getElementById('notiScheduleTime').value;
         if (!scheduleVal) return showToast('Chọn thời gian gửi!', 'error');
-        status = 'scheduled'; scheduledAt = new Date(scheduleVal);
+        status = 'scheduled';
+        scheduledAt = firebase.firestore.Timestamp.fromDate(new Date(scheduleVal));
+    }
+
+    // Count estimated recipients for display
+    let recipientCount = 0;
+    if (status === 'sent') {
+        if (targetType === 'all') recipientCount = allStudents.filter(s => s.status === 'active').length;
+        else if (targetType === 'individual') recipientCount = targetDetail.split(',').filter(Boolean).length;
+        else if (targetType === 'course') recipientCount = allStudents.filter(s => s.status === 'active' && s.course === targetDetail).length;
+        else recipientCount = allStudents.filter(s => s.status === 'active' && s.object === target).length;
     }
     
     showLoading('Đang lưu thông báo...');
     try {
-        const now = firebase.firestore.FieldValue.serverTimestamp();
+        // All notifications stored in `notifications` collection only.
+        // Clients (exam.html) listen to this collection and filter by target - no separate per-student collection needed.
+        // This avoids "Missing or insufficient permissions" because only admins write to `notifications`.
         const notiData = {
-            title, content, type, target, targetType, targetDetail,
-            status, scheduledAt: scheduledAt ? firebase.firestore.Timestamp.fromDate(scheduledAt) : null,
-            createdAt: now,
+            title, content, type,
+            target, targetType, targetDetail,
+            status,
+            scheduledAt: scheduledAt || null,
+            recipientCount,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             createdBy: localStorage.getItem('adminName') || 'Admin'
         };
         
         if (currentEditingNotiId) {
-            // Update existing
             await db.collection('notifications').doc(currentEditingNotiId).update(notiData);
             showToast('Đã cập nhật thông báo!', 'success');
         } else {
-            // Determine recipients
-            let recipients = [];
+            await db.collection('notifications').add(notiData);
             if (status === 'sent') {
-                if (targetType === 'all') {
-                    recipients = allStudents.filter(s => s.status === 'active').map(s => s.code);
-                } else if (targetType === 'individual') {
-                    // targetDetail is student code
-                    const codes = targetDetail.split(',').map(c => c.trim()).filter(Boolean);
-                    recipients = codes;
-                } else if (targetType === 'course') {
-                    recipients = allStudents.filter(s => s.status === 'active' && s.course === targetDetail).map(s => s.code);
-                } else {
-                    // by object type
-                    recipients = allStudents.filter(s => s.status === 'active' && s.object === target).map(s => s.code);
-                }
-            }
-            
-            notiData.recipientCount = recipients.length;
-            const docRef = await db.collection('notifications').add(notiData);
-            
-            // Send to individual students
-            if (status === 'sent' && recipients.length > 0) {
-                for (let i = 0; i < recipients.length; i += 500) {
-                    const batch = db.batch();
-                    recipients.slice(i, i + 500).forEach(code => {
-                        const ref = db.collection('studentNotifications').doc();
-                        batch.set(ref, {
-                            notificationId: docRef.id,
-                            studentCode: code,
-                            title,
-                            content,
-                            type,
-                            read: false,
-                            sentAt: now
-                        });
-                    });
-                    await batch.commit();
-                }
-                showToast(`✅ Đã gửi thông báo đến ${recipients.length} học viên!`, 'success', 5000);
+                showToast(`✅ Đã gửi thông báo đến ~${recipientCount} học viên!`, 'success', 5000);
             } else if (status === 'draft') {
                 showToast('Đã lưu bản nháp!', 'info');
-            } else if (status === 'scheduled') {
+            } else {
                 showToast('Đã lên lịch gửi thông báo!', 'warning');
-            } else if (status === 'sent' && recipients.length === 0) {
-                showToast('⚠ Không có học viên phù hợp để gửi!', 'warning');
             }
-        }
-        
-        // Update notif badge in header
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-            const c = parseInt(badge.textContent || '0') + 1;
-            badge.textContent = c;
-            badge.style.display = 'flex';
         }
         
         closeModal('createNotificationModal');
         await loadNotificationsFromDB();
     } catch (e) {
-        showToast('Lỗi: ' + e.message, 'error');
+        showToast('Lỗi lưu thông báo: ' + e.message, 'error');
         console.error('saveNotification error:', e);
     } finally {
         hideLoading();
     }
 }
 
-async function sendNotificationNow(id) {
-    const ok = await showConfirm('Gửi thông báo', `Gửi ngay thông báo này?`, '🚀');
+async function sendNotificationNow(notiId) {
+    const ok = await showConfirm('Gửi thông báo', 'Gửi ngay thông báo này đến học viên?', '🚀');
     if (!ok) return;
-    // Tương tự logic gửi ở trên - viết ngắn gọn
-    saveNotification(); // Sẽ cần refactor nếu file thực tế lớn
+    showLoading('Đang gửi...');
+    try {
+        await db.collection('notifications').doc(notiId).update({
+            status: 'sent',
+            sentAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('✅ Đã gửi thông báo!', 'success');
+        await loadNotificationsFromDB();
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    } finally {
+        hideLoading();
+    }
 }
 
 async function deleteNotification(id) {
@@ -4791,6 +5217,143 @@ async function sendAdminPasswordEmail(newPassword) {
 // ==========================================
 // 16. KHỞI TẠO HỆ THỐNG CHÍNH (ONLOAD)
 // ==========================================
+// ==========================================
+// MISSING FUNCTIONS – COMPLETION
+// ==========================================
+
+// Edit existing notification
+async function editNotification(id) {
+    const n = allNotifications.find(x => x.id === id);
+    if (!n) return showToast('Không tìm thấy thông báo!', 'error');
+    currentEditingNotiId = id;
+    document.getElementById('notiModalTitle').textContent = 'Chỉnh sửa thông báo';
+    document.getElementById('notiTitle').value   = n.title || '';
+    document.getElementById('notiContent').value = n.content || '';
+    document.getElementById('notiTarget').value  = n.target || 'all';
+    document.getElementById('notiType').value    = n.type   || 'info';
+    document.getElementById('notiSendTime').value= n.status === 'scheduled' ? 'schedule' : (n.status === 'draft' ? 'draft' : 'now');
+    toggleNotiTargetDetail();
+    toggleScheduleTime();
+    if (n.targetDetail) document.getElementById('notiTargetDetail').value = n.targetDetail;
+    if (n.scheduledAt) document.getElementById('notiScheduleTime').value = new Date(n.scheduledAt).toISOString().slice(0,16);
+    document.getElementById('createNotificationModal').classList.add('show');
+}
+
+// Load all exam results for Results page
+async function loadAllExamResults() {
+    showLoading('Đang tải kết quả thi...');
+    try {
+        const dateFrom = document.getElementById('resultDateFrom')?.value;
+        const dateTo   = document.getElementById('resultDateTo')?.value;
+        let query = db.collection('examResults').orderBy('timestamp', 'desc');
+        if (dateFrom) { const d = new Date(dateFrom); d.setHours(0,0,0,0); query = query.where('timestamp', '>=', d); }
+        if (dateTo)   { const d = new Date(dateTo);   d.setHours(23,59,59,999); query = query.where('timestamp', '<=', d); }
+        const snap = await query.limit(2000).get();
+        allResults = snap.docs.map(d => {
+            const data = d.data();
+            const st = allStudents.find(s => s.code === data.studentCode);
+            const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+            return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+        });
+        // Populate set filter
+        const setFilter = document.getElementById('resultFilterSet');
+        if (setFilter) {
+            const setNames = [...new Set(allResults.map(r => r.setName || r.setCode).filter(Boolean))];
+            setFilter.innerHTML = '<option value="">-- Tất cả đề thi --</option>';
+            setNames.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; setFilter.appendChild(o); });
+        }
+        applyResultFilters();
+        showToast(`Đã tải ${allResults.length} kết quả thi!`, 'success', 2000);
+    } catch (e) { showToast('Lỗi tải kết quả: ' + e.message, 'error'); }
+    finally { hideLoading(); }
+}
+
+// Export exam results to Excel
+function exportResults() {
+    if (!allResults.length) return showToast('Không có dữ liệu để xuất!', 'warning');
+    const data = [['STT','Thời gian','Mã HV','Họ tên','Đề thi','Số đúng','Tổng câu','Điểm','Liệt','Kết quả','Lần thứ']];
+    const toExport = filteredResults.length ? filteredResults : allResults;
+    toExport.forEach((r, i) => {
+        data.push([
+            i+1,
+            formatDateTime(r.timestamp),
+            r.studentCode || '',
+            r.studentName || '',
+            r.setName || r.setCode || '',
+            r.correctCount ?? r.score ?? 0,
+            r.totalQuestions || 0,
+            r.score || 0,
+            r.lietFailed ? 'Sai liệt' : (r.lietQuestion ? 'OK' : '-'),
+            r.passed ? 'ĐẠT' : 'KHÔNG ĐẠT',
+            r.attemptNumber || '?'
+        ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{wch:5},{wch:18},{wch:10},{wch:24},{wch:28},{wch:8},{wch:8},{wch:7},{wch:8},{wch:12},{wch:7}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'KetQua');
+    XLSX.writeFile(wb, `KetQuaThi_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
+    showToast('Đã xuất Excel kết quả thi!', 'success');
+}
+
+// Import system backup JSON
+function importSystemBackup() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ok = await showConfirm('Nhập Backup', 'Dữ liệu hiện tại sẽ bị ghi đè bởi backup. Tiếp tục?', '📥');
+        if (!ok) return;
+        showLoading('Đang nhập dữ liệu từ backup...');
+        try {
+            const text = await file.text();
+            const backup = JSON.parse(text);
+            // Import students
+            if (backup.students?.length) {
+                for (let i = 0; i < backup.students.length; i += 500) {
+                    const batch = db.batch();
+                    backup.students.slice(i, i+500).forEach(s => {
+                        const { id, ...data } = s;
+                        batch.set(db.collection('students').doc(id || data.code), data);
+                    });
+                    await batch.commit();
+                }
+            }
+            // Import questionSets
+            if (backup.questionSets?.length) {
+                for (let i = 0; i < backup.questionSets.length; i += 500) {
+                    const batch = db.batch();
+                    backup.questionSets.slice(i, i+500).forEach(s => {
+                        const { id, ...data } = s;
+                        batch.set(db.collection('questionSets').doc(id || data.code), data);
+                    });
+                    await batch.commit();
+                }
+            }
+            showToast(`Nhập backup thành công! ${backup.students?.length||0} HV, ${backup.questionSets?.length||0} đề thi.`, 'success', 5000);
+            await loadStudentsFromDB(); await loadQuestionSetsFromDB(); loadStudents(); loadDashboard();
+        } catch (e2) { showToast('Lỗi nhập backup: ' + e2.message, 'error'); }
+        finally { hideLoading(); }
+    };
+    input.click();
+}
+
+// Confirm reset system
+async function confirmResetSystem() {
+    const ok1 = await showConfirm('⚠ CẢNH BÁO', 'Thao tác này sẽ XÓA TOÀN BỘ dữ liệu và RESET hệ thống!', '⚠');
+    if (!ok1) return;
+    const ok2 = await showConfirm('XÁC NHẬN LẦN CUỐI', 'Không thể hoàn tác! Bạn chắc chắn?', '🗑');
+    if (!ok2) return;
+    await confirmDeleteAllData();
+}
+
+// Refresh online detail page
+function refreshOnlineDetail() {
+    renderOnlineDetailPage();
+    showToast('Đã làm mới danh sách online!', 'success', 1500);
+}
+
 function bindGlobalEvents() {
     window.addEventListener('click', function (e) {
         if (e.target.classList?.contains('modal')) e.target.classList.remove('show');
@@ -4820,6 +5383,7 @@ async function initializeSystem() {
         await loadNotificationsFromDB();
         
         startPresenceListener();
+        startRealtimeDashboard();   // 🔴 Real-time listeners for all dashboard stats
         loadDashboard();
         loadStudents();
         loadCourseFilter();
@@ -4831,17 +5395,17 @@ async function initializeSystem() {
         await loadMaintenanceState();
         checkScheduledNotifications();
         
-        showToast('Kết nối thành công!', 'success', 2000);
+        showToast('Kết nối thành công! Tất cả số liệu cập nhật theo thời gian thực.', 'success', 3000);
         
-        // Background sync
-        setInterval(async () => {
-            await loadAllResultsFromDB();
-            await loadActivitiesFromDB();
-            await loadTodayExamsFromDB();
-            loadDashboard();
-            renderDashboardCharts();
+        // Light background sync for charts every 60s (real-time data already handled by onSnapshot)
+        setInterval(() => {
+            buildDashboardSeriesFromResults();
+            if (document.getElementById('dashboard')?.classList.contains('active')) {
+                destroyCharts(); renderDashboardCharts();
+            }
+            safeSet('totalSets', allQuestionSets.filter(s => s.status === 'active').length);
             checkScheduledNotifications();
-        }, 30000);
+        }, 60000);
     } catch (e) {
         console.error(e);
         showToast('Lỗi kết nối Firebase: ' + e.message, 'error', 8000);
@@ -4879,13 +5443,31 @@ window.onload = async function () {
     
     const adminName = localStorage.getItem('adminName') || 'Admin';
     document.getElementById('headerAdminName').textContent = adminName;
-    document.getElementById('adminAvatar').textContent = adminName.charAt(0).toUpperCase();
-    
+
+    // Set avatar letter
+    const avatarEl = document.getElementById('adminAvatar');
+    if (avatarEl) avatarEl.textContent = adminName.charAt(0).toUpperCase();
+
+    // Start clock
     updateClock();
     setInterval(updateClock, 1000);
-    
+
+    // Initialize system (Firebase + data loading)
     await initializeSystem();
 };
-</script> 
+
+// ==========================================
+// MISSING FUNCTIONS – ADDITIONS
+// ==========================================
+
+// Lấy vị trí các câu liệt từ inputs
+function getLietPositions() {
+    return [...document.querySelectorAll('.liet-position-input')]
+        .map(i => parseInt(i.value, 10) || 0)
+        .filter(v => v > 0);
+}
+
+</script>
+
 </body>
 </html>
