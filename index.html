@@ -331,6 +331,9 @@ async function processStudentLogin(raw, pass) {
     localStorage.setItem('userType','student');
     localStorage.setItem('studentCode', st.code||sid);
     localStorage.setItem('studentName', st.name||'');
+    localStorage.setItem('studentUnit', st.unit||'');
+    localStorage.setItem('studentObject', st.object||'');
+    localStorage.setItem('studentCourse', st.course||'');
 
     showSuccess('✅ Xin chào, ' + st.name + '!');
     if (!st.passwordChanged && pass === _DP) {
