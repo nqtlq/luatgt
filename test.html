@@ -278,7 +278,37 @@ header {
 .sidebar-submit { background: linear-gradient(135deg, var(--green), #1a7a6e); color: white; border: none; border-radius: 10px; padding: 12px; width: 100%; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; }
 .sidebar-submit:hover { opacity: .9; transform: translateY(-1px); }
 
-/* ===== RESULT PAGE ===== */
+/* ===== CONFIRM LOGOUT MODAL ===== */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
+.confirm-overlay.show { display: flex; }
+.confirm-box { background: white; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.25); animation: cIn 0.25s; }
+@keyframes cIn { from { opacity:0; transform: scale(.94); } to { opacity:1; transform: scale(1); } }
+.confirm-box .c-icon { font-size: 48px; margin-bottom: 12px; }
+.confirm-box h3 { font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+.confirm-box p  { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; }
+.c-btn-cancel  { background: #f1f4f8; color: var(--blue); }
+.c-btn-cancel:hover { background: #e0e7ff; }
+.c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
+.c-btn-confirm:hover { opacity: 0.9; }
+/* ===== RESULT Q ACCORDION ===== */
+.result-q-item { cursor: default; }
+.result-q-item.q-wrong { cursor: pointer; }
+.result-q-item.q-wrong:hover { box-shadow: 0 2px 10px rgba(230,57,70,0.15); }
+.rq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.rq-expand-hint { font-size: 11px; color: var(--red); font-weight: 600; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 3px; }
+.rq-dropdown { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #fca5a5; animation: dropIn 0.25s ease; }
+.rq-dropdown.open { display: block; }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.rq-full-content { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px; font-weight: 600; }
+.rq-answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.rqa-item { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); font-size: 12px; display: flex; gap: 6px; background: white; }
+.rqa-item.rqa-correct { background: rgba(42,157,143,0.12); border-color: var(--green); color: #065f46; font-weight: 700; }
+.rqa-item.rqa-chosen  { background: rgba(230,57,70,0.10); border-color: var(--red); color: #9b1c1c; font-weight: 600; }
+.rqa-label { font-weight: 800; flex-shrink: 0; }
+.rqa-badge { margin-left: auto; font-size: 11px; flex-shrink: 0; }
+@media (max-width: 480px) { .rq-answers-grid { grid-template-columns: 1fr; } }
 .result-container { max-width: 700px; margin: 0 auto; }
 .result-hero {
   background: linear-gradient(135deg, var(--blue), var(--accent));
@@ -394,7 +424,7 @@ header {
   </div>
   <div class="header-btns" id="headerBtns">
     <button class="btn-header btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
-    <button class="btn-header btn-logout" onclick="doLogout()">🚪 Đăng xuất</button>
+    <button class="btn-header btn-logout" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
   </div>
 </header>
 
@@ -540,6 +570,19 @@ header {
     <div class="modal-btns">
       <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
       <button class="mbtn-start" id="mStartBtn" onclick="beginExam()">▶ Bắt đầu làm bài</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM LOGOUT -->
+<div class="confirm-overlay" id="confirmLogoutModal">
+  <div class="confirm-box">
+    <div class="c-icon">🚪</div>
+    <h3>Xác nhận đăng xuất</h3>
+    <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</p>
+    <div class="confirm-btns">
+      <button class="c-btn-cancel" onclick="closeConfirmLogout()">← Hủy bỏ</button>
+      <button class="c-btn-confirm" onclick="doLogout()">🚪 Đăng xuất</button>
     </div>
   </div>
 </div>
@@ -798,6 +841,12 @@ setupUI();
 // ================================================================
 // LOGOUT
 // ================================================================
+function showConfirmLogout() {
+  document.getElementById("confirmLogoutModal").classList.add("show");
+}
+function closeConfirmLogout() {
+  document.getElementById("confirmLogoutModal").classList.remove("show");
+}
 function doLogout() {
   if (db && studentCode) {
     db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(() => {});
@@ -1299,19 +1348,48 @@ function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, r
 
   const labels = ["A","B","C","D","E"];
   document.getElementById("resBreakdown").innerHTML = details.map((d, i) => {
-    const cls = d.isCorrect ? "q-correct" : (d.userAnswer === null ? "q-skip" : "q-wrong");
+    const isWrong  = !d.isCorrect && d.userAnswer !== null;
+    const isSkip   = d.userAnswer === null || d.userAnswer === undefined;
+    const cls  = d.isCorrect ? "q-correct" : (isSkip ? "q-skip" : "q-wrong");
     const liet = d.isLiet ? " q-liet" : "";
-    const icon = d.isCorrect ? "✅" : (d.userAnswer === null ? "⬜" : "❌");
-    const lietTag = d.isLiet ? '<span style="color:#c05621;font-weight:700;font-size:11px;margin-left:6px;">⚡ LIỆT</span>' : "";
-    const uaText = d.userAnswer ? `Bạn chọn: ${labels[(d.userAnswer || 1) - 1]}` : "Chưa trả lời";
-    const caText = `Đáp án đúng: ${labels[(d.correctAnswer || 1) - 1]}`;
-    return `<div class="result-q-item ${cls}${liet}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-        <span><b>Câu ${i+1}</b>${lietTag}</span>
-        <span>${icon}</span>
+    const icon = d.isCorrect ? "✅" : (isSkip ? "⬜" : "❌");
+    const lietTag = d.isLiet ? `<span style="color:#c05621;font-weight:700;font-size:11px;margin-left:6px;">⚡ LIỆT</span>` : "";
+    const uaText = d.userAnswer ? `Bạn chọn: <b>${labels[(d.userAnswer||1)-1]}</b>` : "<i>Chưa trả lời</i>";
+    const caText = `Đáp án đúng: <b>${labels[(d.correctAnswer||1)-1]}</b>`;
+    const preview = esc((d.content||"").substring(0, 90)) + ((d.content||"").length > 90 ? "…" : "");
+
+    // Dropdown answers HTML (only for wrong/skipped)
+    let dropdownHtml = "";
+    if (!d.isCorrect && (d.answers || []).length > 0) {
+      const answersHtml = (d.answers||[]).map((a, j) => {
+        const num = j+1;
+        const isRight  = num === d.correctAnswer;
+        const isChosen = num === d.userAnswer;
+        let cls2 = "rqa-item";
+        if (isRight) cls2 += " rqa-correct";
+        else if (isChosen) cls2 += " rqa-chosen";
+        const badge = isRight ? `<span class="rqa-badge">✓ Đúng</span>` : (isChosen ? `<span class="rqa-badge" style="color:var(--red);">← Bạn chọn</span>` : "");
+        return `<div class="${cls2}"><span class="rqa-label">${labels[j]}.</span><span>${esc(a)}</span>${badge}</div>`;
+      }).join("");
+      dropdownHtml = `
+        <div class="rq-dropdown" id="rqd-${i}">
+          <div class="rq-full-content">${esc(d.content||"")}</div>
+          ${d.imageUrl ? `<img src="${esc(d.imageUrl)}" style="max-width:100%;max-height:160px;border-radius:6px;margin-bottom:8px;display:block;" onerror="this.style.display='none'">` : ""}
+          <div class="rq-answers-grid">${answersHtml}</div>
+        </div>`;
+    }
+
+    const clickAttr = !d.isCorrect ? `onclick="toggleRqDropdown(${i})"` : "";
+    const expandHint = !d.isCorrect && !isSkip ? `<span class="rq-expand-hint" id="rqhint-${i}">▼ Xem đáp án</span>` : "";
+
+    return `<div class="result-q-item ${cls}${liet}" ${clickAttr}>
+      <div class="rq-header">
+        <div><b>Câu ${i+1}</b>${lietTag} <span style="font-size:11px;color:var(--muted);margin-left:6px;">${icon}</span></div>
+        ${expandHint}
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${esc(d.content.substring(0, 80))}${d.content.length > 80 ? "…" : ""}</div>
+      <div style="font-size:12px;color:var(--muted);margin:3px 0 2px;">${preview}</div>
       <div style="font-size:11px;color:var(--muted);">${uaText} | ${caText}</div>
+      ${dropdownHtml}
     </div>`;
   }).join("");
 
@@ -1323,6 +1401,14 @@ function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, r
       lastActive: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).catch(() => {});
   }
+}
+
+function toggleRqDropdown(i) {
+  const dd   = document.getElementById(`rqd-${i}`);
+  const hint = document.getElementById(`rqhint-${i}`);
+  if (!dd) return;
+  const isOpen = dd.classList.toggle("open");
+  if (hint) hint.textContent = isOpen ? "▲ Ẩn đáp án" : "▼ Xem đáp án";
 }
 
 function retryExam() {
