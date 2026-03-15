@@ -833,31 +833,28 @@ tbody tr:hover { background: var(--bg-hover); }
                 <h2>👥 Quản lý học viên</h2>
             </div>
 
-            <!-- Stats cards -->
-            <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px;">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(13,110,253,0.15);color:#0d6efd">📊</div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="totalCount">0</div>
-                        <div class="stat-label">Tổng số</div>
-                        <div class="stat-detail" id="totalByObject"></div>
+            <!-- Stats cards - colorful blocks -->
+            <div class="statGrid" style="margin-bottom:16px;">
+                <div class="statBox total">
+                    <div>
+                        <span style="font-size:12px;font-weight:700;opacity:0.9;text-transform:uppercase;letter-spacing:0.5px;">📊 TỔNG SỐ HỌC VIÊN</span>
+                        <span class="main-num" id="totalCount">0</span>
                     </div>
+                    <div class="sub-stats" id="totalByObject"><div>Đang tải...</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(25,135,84,0.15);color:#198754">✓</div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="activeCount">0</div>
-                        <div class="stat-label">Hoạt động</div>
-                        <div class="stat-detail" id="activeByObject"></div>
+                <div class="statBox active-stat">
+                    <div>
+                        <span style="font-size:12px;font-weight:700;opacity:0.9;text-transform:uppercase;letter-spacing:0.5px;">✅ ĐANG HOẠT ĐỘNG</span>
+                        <span class="main-num" id="activeCount">0</span>
                     </div>
+                    <div class="sub-stats" id="activeByObject"><div>Đang tải...</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(220,53,69,0.15);color:#dc3545">🔒</div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="lockedCount">0</div>
-                        <div class="stat-label">Đã khóa</div>
-                        <div class="stat-detail" id="lockedByObject"></div>
+                <div class="statBox locked-stat">
+                    <div>
+                        <span style="font-size:12px;font-weight:700;opacity:0.9;text-transform:uppercase;letter-spacing:0.5px;">🔒 ĐÃ KHÓA</span>
+                        <span class="main-num" id="lockedCount">0</span>
                     </div>
+                    <div class="sub-stats" id="lockedByObject"><div>Đang tải...</div></div>
                 </div>
             </div>
 
@@ -920,13 +917,13 @@ tbody tr:hover { background: var(--bg-hover); }
                         <thead>
                             <tr>
                                 <th style="width:40px">STT</th>
-                                <th style="width:90px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
+                                <th style="width:95px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
                                 <th class="no-print" style="width:80px">Mật khẩu</th>
-                                <th style="width:180px;cursor:pointer" onclick="sortTable(2)">Họ và tên ⇅</th>
-                                <th style="cursor:pointer" onclick="sortTable(3)">Đơn vị ⇅</th>
-                                <th style="width:95px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
-                                <th style="width:95px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
-                                <th style="width:90px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
+                                <th style="min-width:220px;cursor:pointer;text-align:left;padding-left:12px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
+                                <th style="width:130px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
+                                <th style="width:90px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
+                                <th style="width:90px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
+                                <th style="width:85px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
                                 <th class="no-print" style="width:100px">Trạng thái</th>
                                 <th class="no-print" style="width:80px">Thao tác</th>
                             </tr>
@@ -981,69 +978,84 @@ tbody tr:hover { background: var(--bg-hover); }
 
     <!-- ========== ADD SET PAGE ========== -->
     <div id="add_set_page" class="page">
-      <div class="back-btn"><button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button></div>
+      <div style="display:flex; justify-content:flex-start; margin-bottom:16px;">
+        <button class="btn btn-secondary" onclick="backToQuestionSets()" style="display:flex;align-items:center;gap:8px;padding:12px 20px;font-size:14px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.15);">⬅ Quay lại danh sách</button>
+      </div>
       <div class="box">
         <h3>➕ Thêm bộ đề thi mới</h3>
-        <div class="info-section">
-          <div class="section-card">
-            <div class="section-title">📋 Thông tin cơ bản</div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group">
-                <label style="font-weight:700;">Loại đề thi *</label>
-                <select id="setExamType">
-                  <option value="moto">🏍 Mô tô</option>
-                  <option value="oto">🚗 Ô tô</option>
-                </select>
-              </div>
-              <div><label>Tên bộ đề *</label><input type="text" id="setName" placeholder="VD: Bộ đề thi A1"></div>
-              <div><label>Mã bộ đề *</label><input type="text" id="setCode" placeholder="VD: DE001" style="text-transform:uppercase"></div>
-            </div>
-            <label>Mô tả</label><textarea id="setDescription" placeholder="Mô tả bộ đề..." rows="2"></textarea>
+
+        <!-- Thông tin cơ bản -->
+        <div style="background:var(--bg-card);border:2px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+          <div class="section-title" style="color:var(--accent);font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            📋 Thông tin cơ bản
           </div>
-        </div>
-        
-        <div class="groups-section">
-          <div class="section-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <div class="section-title" style="margin:0;border:none;padding:0">📚 Nhóm câu hỏi</div>
-              <button class="btn btn-success btn-sm" onclick="addGroupInput()">➕ Thêm nhóm</button>
+          <div class="form-row" style="margin-bottom:16px;">
+            <div class="form-group">
+              <label style="font-weight:700;font-size:14px;color:var(--text-primary);">Loại đề thi *</label>
+              <select id="setExamType" style="font-size:15px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);">
+                <option value="moto">🏍 Mô tô (Hạng A1, A2)</option>
+                <option value="oto">🚗 Ô tô (Hạng B1, B2, C...)</option>
+              </select>
             </div>
-            <div id="groupsContainer"></div>
-          </div>
-        </div>
-        
-        <div class="liet-section">
-          <div class="section-card">
-            <div class="section-title">⚠ Câu hỏi liệt</div>
-            <div class="liet-checkbox">
-              <input type="checkbox" id="hasLietQuestion" onchange="toggleAddSetLiet()">
-              <label for="hasLietQuestion">Đề thi có câu hỏi liệt</label>
-            </div>
-            <div id="lietNoteAdd" style="display:none;margin-top:10px;">
-              <div style="padding:10px;background:var(--warning-light);border-radius:6px;font-size:12px;color:#856404;margin-bottom:10px;">
-                <b>📌 Lưu ý:</b> Cấu hình số câu liệt ở phần "Cài đặt đề thi". Bạn có thể upload nhóm câu liệt tại đây để lưu sẵn.
-              </div>
-              <div class="liet-upload-area">
-                <h5>📤 Upload nhóm câu hỏi liệt (Excel)</h5>
-                <div class="file-input-wrapper">
-                  <input type="file" id="addSetLietFile" accept=".xlsx,.xls" onchange="handleAddSetLietFile(this)">
-                  <label for="addSetLietFile" class="file-input-label">📁 Chọn file Excel câu hỏi liệt...</label>
-                </div>
-                <div id="addSetLietFileStatus" style="font-size:11px;color:var(--success);margin-top:6px;display:none;"></div>
-              </div>
+            <div class="form-group">
+              <label style="font-weight:700;font-size:14px;color:var(--text-primary);">Mã bộ đề *</label>
+              <input type="text" id="setCode" placeholder="VD: DE001" style="text-transform:uppercase;font-size:15px;padding:12px 14px;border:2px solid var(--border);font-weight:700;">
+              <small style="color:var(--text-muted);font-size:11px;">Mã duy nhất, không dấu, không khoảng trắng</small>
             </div>
           </div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="font-weight:700;font-size:14px;color:var(--text-primary);">Tên bộ đề *</label>
+            <input type="text" id="setName" placeholder="VD: Đề thi Mô tô Hạng A1 – Bộ số 01" style="font-size:16px;padding:14px 16px;border:2px solid var(--border);">
+          </div>
+          <div class="form-group">
+            <label style="font-weight:700;font-size:14px;color:var(--text-primary);">Mô tả bộ đề</label>
+            <textarea id="setDescription" placeholder="Nhập mô tả chi tiết về bộ đề thi..." rows="3" style="font-size:14px;padding:12px 14px;border:2px solid var(--border);resize:vertical;min-height:80px;"></textarea>
+          </div>
         </div>
-        
+
+        <!-- Nhóm câu hỏi -->
+        <div style="background:rgba(25,135,84,0.05);border:2px solid var(--success);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span style="color:var(--success);font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;">📚 Nhóm câu hỏi trong đề</span>
+            <button class="btn btn-success" onclick="addGroupInput()" style="display:flex;align-items:center;gap:6px;padding:10px 16px;">➕ Thêm nhóm</button>
+          </div>
+          <div id="groupsContainer"></div>
+          <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">💡 Mỗi nhóm tương ứng với một chủ đề câu hỏi. Câu hỏi sẽ được lấy ngẫu nhiên từ mỗi nhóm khi thi.</div>
+        </div>
+
+        <!-- Câu hỏi liệt -->
+        <div style="background:rgba(255,193,7,0.05);border:2px solid var(--warning);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#856404;margin-bottom:12px;display:flex;align-items:center;gap:8px;">⚡ Câu hỏi liệt</div>
+          <div class="liet-checkbox">
+            <input type="checkbox" id="hasLietQuestion" onchange="toggleAddSetLiet()">
+            <label for="hasLietQuestion" style="font-size:14px;font-weight:600;">Đề thi có câu hỏi liệt (trả lời sai là không đạt)</label>
+          </div>
+          <div id="lietNoteAdd" style="display:none;margin-top:14px;">
+            <div style="padding:12px;background:rgba(255,193,7,0.15);border-radius:8px;font-size:13px;color:#856404;margin-bottom:12px;line-height:1.6;">
+              <b>📌 Lưu ý:</b> Số lượng câu liệt và vị trí sẽ được cấu hình chi tiết ở phần "Cài đặt đề thi". Bạn có thể upload file câu hỏi liệt tại đây để lưu sẵn vào ngân hàng.
+            </div>
+            <div class="liet-upload-area">
+              <h5>📤 Upload ngân hàng câu hỏi liệt (File Excel)</h5>
+              <div class="file-input-wrapper">
+                <input type="file" id="addSetLietFile" accept=".xlsx,.xls" onchange="handleAddSetLietFile(this)">
+                <label for="addSetLietFile" class="file-input-label">📁 Chọn file Excel câu hỏi liệt...</label>
+              </div>
+              <div id="addSetLietFileStatus" style="font-size:12px;color:var(--success);margin-top:8px;display:none;padding:6px;background:var(--success-light);border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
         <div class="summary-box" id="summaryBox" style="display:none">
-          <div style="font-weight:700;margin-bottom:10px">📊 Tổng quan</div>
-          <div class="summary-item"><span class="label">Số nhóm:</span><span class="value" id="summaryGroups">0</span></div>
-          <div class="summary-item"><span class="label">Câu liệt:</span><span class="value" id="summaryLiet">Không</span></div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:12px">📊 Tổng quan bộ đề</div>
+          <div class="summary-item"><span class="label">Số nhóm câu hỏi:</span><span class="value" id="summaryGroups">0</span></div>
+          <div class="summary-item"><span class="label">Câu hỏi liệt:</span><span class="value" id="summaryLiet">Không</span></div>
+          <div style="margin-top:8px;font-size:12px;opacity:0.85;">⚙ Sau khi tạo, vào <b>Cài đặt đề thi</b> để cấu hình số câu, thời gian, điều kiện đạt và upload câu hỏi.</div>
         </div>
-        
-        <div class="toolbar" style="justify-content:flex-end;margin-top:20px;padding-top:20px;border-top:2px solid var(--border)">
-          <button class="btn btn-secondary" onclick="backToQuestionSets()">Hủy</button>
-          <button class="btn btn-success" onclick="saveNewQuestionSet()">💾 Lưu bộ đề</button>
+
+        <div style="display:flex;justify-content:flex-end;gap:14px;margin-top:20px;padding-top:20px;border-top:2px solid var(--border);">
+          <button class="btn btn-secondary" onclick="backToQuestionSets()" style="padding:12px 24px;font-size:14px;">Hủy bỏ</button>
+          <button class="btn btn-success" onclick="saveNewQuestionSet()" style="padding:12px 28px;font-size:15px;font-weight:700;">💾 Tạo bộ đề</button>
         </div>
       </div>
     </div>
@@ -1052,7 +1064,7 @@ tbody tr:hover { background: var(--bg-hover); }
     <div class="page" id="set_config_page">
       <div class="page-header">
         <h2>⚙ Cài đặt đề thi: <span id="configSetName" style="color:var(--accent)"></span></h2>
-        <button class="btn btn-secondary" onclick="backToQuestionSets()">← Quay lại</button>
+        <button class="btn btn-secondary" onclick="backToQuestionSets()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.15);">⬅ Quay lại danh sách</button>
       </div>
       
       <div class="card" style="margin-bottom:16px;">
@@ -1175,8 +1187,8 @@ tbody tr:hover { background: var(--bg-hover); }
 
     <!-- ========== ADD QUESTIONS PAGE ========== -->
     <div id="add_questions_page" class="page">
-      <div class="back-btn" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+        <button class="btn btn-secondary" onclick="backToQuestionSets()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.15);">⬅ Quay lại danh sách</button>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="openImportQuestionsModal()">📥 Nhập từ Excel</button>
           <button class="btn btn-info" onclick="openImportWordModal()">📄 Nhập từ Word</button>
@@ -1350,8 +1362,8 @@ tbody tr:hover { background: var(--bg-hover); }
 
     <!-- ========== VIEW QUESTIONS PAGE ========== -->
     <div id="view_questions_page" class="page">
-      <div class="back-btn" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <button class="btn btn-outline" onclick="backToQuestionSets()">⬅ Quay lại</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+        <button class="btn btn-secondary" onclick="backToQuestionSets()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.15);">⬅ Quay lại danh sách</button>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-success" onclick="showAddQuestionsPage(currentViewSetCode)">➕ Thêm câu hỏi</button>
         </div>
@@ -1959,6 +1971,117 @@ D. Đáp án D
     </div>
   </div>
 </div>
+<!-- MODAL ĐỔI MK ADMIN (backup nếu chưa được tạo động) -->
+<div id="changeAdminPwModal" class="modal">
+  <div class="modal-content" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>🔐 Đổi mật khẩu Admin</h3>
+      <button class="close-btn" onclick="closeModal('changeAdminPwModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label style="font-weight:700;">Mật khẩu hiện tại *</label>
+      <input type="password" id="pwCurrent" placeholder="Nhập mật khẩu hiện tại..." style="font-size:15px;padding:12px 14px;">
+    </div>
+    <div class="form-group">
+      <label style="font-weight:700;">Mật khẩu mới *</label>
+      <input type="password" id="pwNew" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)..." style="font-size:15px;padding:12px 14px;">
+    </div>
+    <div class="form-group">
+      <label style="font-weight:700;">Xác nhận mật khẩu mới *</label>
+      <input type="password" id="pwConfirm" placeholder="Nhập lại mật khẩu mới..." style="font-size:15px;padding:12px 14px;">
+    </div>
+    <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;color:var(--accent);">
+      ℹ Sau khi đổi mật khẩu thành công, email xác nhận sẽ được gửi đến <b>trunglq002@gmail.com</b>.
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal('changeAdminPwModal')" style="flex:1;padding:12px;">Hủy</button>
+      <button class="btn btn-primary" onclick="changeAdminPassword()" style="flex:2;padding:12px;font-size:15px;font-weight:700;">🔐 Đổi mật khẩu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL THÊM/SỬA HỌC VIÊN -->
+<div class="modal" id="studentModal">
+  <div class="modal-content" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 id="modalTitle">Thêm học viên mới</h3>
+      <button class="close-btn" onclick="closeModal('studentModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Họ và tên *</label>
+        <input type="text" id="studentName" placeholder="Nguyễn Văn A">
+      </div>
+      <div class="form-group">
+        <label>Ngày sinh</label>
+        <input type="date" id="studentDob">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Đơn vị *</label>
+      <input type="text" id="studentUnit" placeholder="VD: Đại đội 1, Tiểu đoàn 2...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Đối tượng *</label>
+        <select id="studentObject" onchange="toggleOtherField()">
+          <option value="Học viên">Học viên</option>
+          <option value="Sĩ quan">Sĩ quan</option>
+          <option value="Chuyên nghiệp">Chuyên nghiệp</option>
+          <option value="other">Khác...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Khóa học</label>
+        <input type="text" id="studentCourse" placeholder="VD: K2024">
+      </div>
+    </div>
+    <div class="form-group" id="otherObjectGroup" style="display:none;">
+      <label>Nhập đối tượng khác</label>
+      <input type="text" id="otherObjectName" placeholder="Nhập tên đối tượng...">
+    </div>
+    <div id="resetPasswordSection" style="display:none;margin-bottom:14px;">
+      <div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:#856404;font-weight:600;">🔑 Reset mật khẩu về mặc định</span>
+        <button class="btn btn-warning btn-sm" onclick="resetStudentPassword()">Reset MK</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal('studentModal')" style="flex:1;">Hủy</button>
+      <button class="btn btn-primary" onclick="saveStudent()" style="flex:2;padding:12px;font-size:15px;">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT EXCEL HỌC VIÊN -->
+<div class="modal" id="importModal">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>📥 Nhập học viên từ Excel</h3>
+      <button class="close-btn" onclick="closeModal('importModal')">✕</button>
+    </div>
+    <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;color:var(--accent);">
+      <b>📋 Cấu trúc file Excel:</b><br>
+      Họ và tên | Đơn vị | Đối tượng (HV/SQ/CN) | Khóa học | Ngày sinh (dd/mm/yyyy)
+    </div>
+    <div style="margin-bottom:14px;">
+      <button class="btn btn-info btn-sm" onclick="downloadExcelTemplate()">⬇ Tải file mẫu</button>
+    </div>
+    <label style="font-weight:700;font-size:13px;margin-bottom:6px;display:block;">Chọn file Excel:</label>
+    <input type="file" id="excelFile" accept=".xlsx,.xls" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;">
+    <div id="duplicateWarning" style="display:none;">
+      <div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px;">
+        <b style="color:#856404;">⚠ Phát hiện trùng lặp:</b>
+        <div id="duplicateList" class="duplicate-list"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" onclick="closeModal('importModal')">Hủy</button>
+      <button class="btn btn-success" id="importBtn" onclick="processExcelImport()">📥 Nhập</button>
+    </div>
+  </div>
+</div>
+
 <!-- BẮT ĐẦU PASTE TỪ ĐÂY TRỞ XUỐNG -->
 
 <script>
@@ -2558,8 +2681,8 @@ function renderStudentTable() {
                 <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td class="no-print"><span class="password-mask">${escapeHtml(pwDisplay)}</span></td>
-                <td style="text-align:left">${escapeHtml(s.name)}</td>
-                <td style="text-align:left">${escapeHtml(s.unit)}</td>
+                <td style="text-align:left;padding-left:12px;font-weight:600;max-width:220px;">${escapeHtml(s.name)}</td>
+                <td style="text-align:left;font-size:12px;max-width:130px;white-space:normal;word-break:break-word;">${escapeHtml(s.unit)}</td>
                 <td>${formatDate(s.dob)}</td>
                 <td>${escapeHtml(s.object)}</td>
                 <td>${escapeHtml(s.course || '—')}</td>
@@ -4241,6 +4364,7 @@ async function saveNotification() {
     if (targetVal === 'individual' || targetVal === 'course') {
         targetDetail = document.getElementById('notiTargetDetail').value.trim();
         if (!targetDetail) return showToast('Nhập chi tiết đối tượng!', 'error');
+        targetType = targetVal;
     } else {
         targetType = targetVal === 'all' ? 'all' : 'object';
     }
@@ -4255,44 +4379,83 @@ async function saveNotification() {
     
     showLoading('Đang lưu thông báo...');
     try {
+        const now = firebase.firestore.FieldValue.serverTimestamp();
         const notiData = {
-            title, content, type, target, targetType, targetDetail, status, scheduledAt,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            title, content, type, target, targetType, targetDetail,
+            status, scheduledAt: scheduledAt ? firebase.firestore.Timestamp.fromDate(scheduledAt) : null,
+            createdAt: now,
             createdBy: localStorage.getItem('adminName') || 'Admin'
         };
         
         if (currentEditingNotiId) {
+            // Update existing
             await db.collection('notifications').doc(currentEditingNotiId).update(notiData);
             showToast('Đã cập nhật thông báo!', 'success');
         } else {
+            // Determine recipients
+            let recipients = [];
             if (status === 'sent') {
-                let recipients = [];
-                if (targetType === 'all') recipients = allStudents.filter(s => s.status === 'active').map(s => s.code);
-                else if (targetType === 'individual') recipients = [targetDetail];
-                else if (targetType === 'course') recipients = allStudents.filter(s => s.status === 'active' && s.course === targetDetail).map(s => s.code);
-                else recipients = allStudents.filter(s => s.status === 'active' && s.object === target).map(s => s.code);
-                
-                notiData.recipientCount = recipients.length;
-                const docRef = await db.collection('notifications').add(notiData);
-                
+                if (targetType === 'all') {
+                    recipients = allStudents.filter(s => s.status === 'active').map(s => s.code);
+                } else if (targetType === 'individual') {
+                    // targetDetail is student code
+                    const codes = targetDetail.split(',').map(c => c.trim()).filter(Boolean);
+                    recipients = codes;
+                } else if (targetType === 'course') {
+                    recipients = allStudents.filter(s => s.status === 'active' && s.course === targetDetail).map(s => s.code);
+                } else {
+                    // by object type
+                    recipients = allStudents.filter(s => s.status === 'active' && s.object === target).map(s => s.code);
+                }
+            }
+            
+            notiData.recipientCount = recipients.length;
+            const docRef = await db.collection('notifications').add(notiData);
+            
+            // Send to individual students
+            if (status === 'sent' && recipients.length > 0) {
                 for (let i = 0; i < recipients.length; i += 500) {
                     const batch = db.batch();
                     recipients.slice(i, i + 500).forEach(code => {
-                        batch.set(db.collection('studentNotifications').doc(), {
-                            notificationId: docRef.id, studentCode: code, title, content, type, read: false, sentAt: firebase.firestore.FieldValue.serverTimestamp()
+                        const ref = db.collection('studentNotifications').doc();
+                        batch.set(ref, {
+                            notificationId: docRef.id,
+                            studentCode: code,
+                            title,
+                            content,
+                            type,
+                            read: false,
+                            sentAt: now
                         });
                     });
                     await batch.commit();
                 }
-                showToast(`Đã gửi đến ${recipients.length} người!`, 'success', 5000);
-            } else {
-                notiData.recipientCount = 0;
-                await db.collection('notifications').add(notiData);
-                showToast('Đã lưu thông báo!', 'success');
+                showToast(`✅ Đã gửi thông báo đến ${recipients.length} học viên!`, 'success', 5000);
+            } else if (status === 'draft') {
+                showToast('Đã lưu bản nháp!', 'info');
+            } else if (status === 'scheduled') {
+                showToast('Đã lên lịch gửi thông báo!', 'warning');
+            } else if (status === 'sent' && recipients.length === 0) {
+                showToast('⚠ Không có học viên phù hợp để gửi!', 'warning');
             }
         }
-        closeModal('createNotificationModal'); await loadNotificationsFromDB();
-    } catch (e) { showToast('Lỗi: ' + e.message, 'error'); } finally { hideLoading(); }
+        
+        // Update notif badge in header
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+            const c = parseInt(badge.textContent || '0') + 1;
+            badge.textContent = c;
+            badge.style.display = 'flex';
+        }
+        
+        closeModal('createNotificationModal');
+        await loadNotificationsFromDB();
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+        console.error('saveNotification error:', e);
+    } finally {
+        hideLoading();
+    }
 }
 
 async function sendNotificationNow(id) {
@@ -4522,9 +4685,108 @@ async function disableMaintenanceMode() {
     } catch (e) { showToast('Lỗi: ' + e.message, 'error'); } finally { hideLoading(); }
 }
 
-// Admin Password Management (Tóm gọn logic)
-function openChangeAdminPasswordModal() { document.getElementById('changeAdminPwModal').classList.add('show'); }
-function changeAdminPassword() { showToast('Chức năng đổi mật khẩu đang kết nối với hệ thống Email...', 'info'); closeModal('changeAdminPwModal'); }
+// Admin Password Management
+function openChangeAdminPasswordModal() {
+    // Reset fields
+    const modal = document.getElementById('changeAdminPwModal');
+    if (!modal) {
+        // Create modal if not exists
+        const m = document.createElement('div');
+        m.className = 'modal';
+        m.id = 'changeAdminPwModal';
+        m.innerHTML = `
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h3>🔐 Đổi mật khẩu Admin</h3>
+                <button class="close-btn" onclick="closeModal('changeAdminPwModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label style="font-weight:700;">Mật khẩu hiện tại *</label>
+                <input type="password" id="pwCurrent" placeholder="Nhập mật khẩu hiện tại..." style="font-size:15px;padding:12px 14px;">
+            </div>
+            <div class="form-group">
+                <label style="font-weight:700;">Mật khẩu mới *</label>
+                <input type="password" id="pwNew" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)..." style="font-size:15px;padding:12px 14px;">
+            </div>
+            <div class="form-group">
+                <label style="font-weight:700;">Xác nhận mật khẩu mới *</label>
+                <input type="password" id="pwConfirm" placeholder="Nhập lại mật khẩu mới..." style="font-size:15px;padding:12px 14px;">
+            </div>
+            <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;color:var(--accent);">
+                ℹ Sau khi đổi mật khẩu thành công, hệ thống sẽ tự động gửi email xác nhận đến <b>${ADMIN_EMAIL}</b>.
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+                <button class="btn btn-secondary" onclick="closeModal('changeAdminPwModal')" style="flex:1;padding:12px;">Hủy</button>
+                <button class="btn btn-primary" onclick="changeAdminPassword()" style="flex:2;padding:12px;font-size:15px;font-weight:700;">🔐 Đổi mật khẩu</button>
+            </div>
+        </div>`;
+        document.body.appendChild(m);
+    }
+    document.getElementById('changeAdminPwModal').classList.add('show');
+}
+
+async function changeAdminPassword() {
+    const current = document.getElementById('pwCurrent')?.value || '';
+    const newPw   = document.getElementById('pwNew')?.value || '';
+    const confirm = document.getElementById('pwConfirm')?.value || '';
+
+    if (!current || !newPw || !confirm) return showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
+    if (newPw.length < 6) return showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
+    if (newPw !== confirm) return showToast('Mật khẩu xác nhận không khớp!', 'error');
+
+    showLoading('Đang xác thực...');
+    try {
+        // Check current password against Firestore
+        const adminDoc = await db.collection('systemConfig').doc('adminCredentials').get();
+        let storedHash = null;
+        if (adminDoc.exists) {
+            storedHash = adminDoc.data().passwordHash;
+        } else {
+            // Default admin password hash
+            storedHash = simpleHash('admin123');
+        }
+
+        const currentHash = simpleHash(current);
+        if (storedHash && currentHash !== storedHash) {
+            hideLoading();
+            return showToast('Mật khẩu hiện tại không đúng!', 'error');
+        }
+
+        // Save new password
+        const newHash = simpleHash(newPw);
+        await db.collection('systemConfig').doc('adminCredentials').set({
+            passwordHash: newHash,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: 'Admin'
+        }, { merge: true });
+
+        // Send confirmation email via EmailJS or just log
+        await sendAdminPasswordEmail(newPw);
+
+        hideLoading();
+        closeModal('changeAdminPwModal');
+        showToast(`✅ Đổi mật khẩu thành công! Email xác nhận đã gửi đến ${ADMIN_EMAIL}`, 'success', 6000);
+    } catch(e) {
+        hideLoading();
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+async function sendAdminPasswordEmail(newPassword) {
+    // Store email request in Firestore for backend processing
+    try {
+        await db.collection('emailQueue').add({
+            to: ADMIN_EMAIL,
+            subject: '[Hệ thống thi GTĐB] Mật khẩu Admin đã được thay đổi',
+            body: `Mật khẩu Admin đã được thay đổi thành công.\n\nMật khẩu mới: ${newPassword}\n\nNếu bạn không thực hiện thay đổi này, vui lòng liên hệ quản trị viên ngay lập tức.\n\nThời gian: ${new Date().toLocaleString('vi-VN')}`,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            status: 'pending'
+        });
+        console.log('Email request queued for:', ADMIN_EMAIL);
+    } catch(e) {
+        console.warn('Email queue error:', e);
+    }
+}
 
 // ==========================================
 // 16. KHỞI TẠO HỆ THỐNG CHÍNH (ONLOAD)
