@@ -3,361 +3,840 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
+<title>Trang Học Viên | HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-/* GENERAL */
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
-header{background:linear-gradient(90deg,#1d3557,#264a8a);color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.25);}
-header b{font-size:18px}
-#logoutBtn{background:#e63946;color:white;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
-#container{max-width:1200px;margin:30px auto;padding:0 20px;}
-#welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
-.grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
-@media(max-width:768px){.grid{grid-template-columns:1fr;}}
-.box{background:white;padding:20px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,.12);}
-.box h3{margin-top:0;color:#1d3557;}
-.info p{margin:8px 0}
-.statRow{display:flex;gap:15px;margin-bottom:15px;}
-.statBox{flex:1;text-align:center;padding:16px;border-radius:12px;color:white;}
-.statBox b{font-size:26px;display:block;margin-top:4px;}
-.bg1{background:#457b9d}.bg2{background:#2a9d8f}.bg3{background:#e63946}
-.chartBox{height:240px;margin-top:10px;}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px;}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-th{background:#f1f4fb;color:#1d3557;}
-.pass{color:#2a9d8f;font-weight:bold}
-.fail{color:#e63946;font-weight:bold}
-.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;flex-wrap:wrap;}
-.actionBtn{border:none;border-radius:10px;padding:14px 20px;font-size:15px;cursor:pointer;min-width:200px;color:white;}
-#detailBtn{background:#457b9d}
-#startBtn{background:#2a9d8f}
-#empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #eef2f6;
+  --card: #ffffff;
+  --blue: #1d3557;
+  --accent: #264a8a;
+  --green: #2a9d8f;
+  --red: #e63946;
+  --yellow: #f4a261;
+  --text: #2d3436;
+  --muted: #636e72;
+  --border: #dfe6e9;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --radius: 16px;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* MODAL KICKOUT (BẢO TRÌ/BỊ KHÓA) */
-.kickout-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
-    align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
+/* ===== HEADER ===== */
+header {
+  background: linear-gradient(135deg, #1d3557 0%, #264a8a 60%, #2a9d8f 100%);
+  color: white;
+  padding: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
+.header-top {
+  padding: 12px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.header-title .vi { font-size: 15px; font-weight: 800; letter-spacing: 0.3px; }
+.header-title .en { font-size: 11px; opacity: 0.75; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+.header-clock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 8px 16px;
+}
+.clock-time { font-size: 18px; font-weight: 800; font-family: 'Courier New', monospace; letter-spacing: 2px; }
+.clock-date { font-size: 11px; opacity: 0.8; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+#logoutBtn {
+  background: linear-gradient(135deg, #e63946, #c0392b);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(230,57,70,0.4);
+}
+#logoutBtn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(230,57,70,0.5); }
+.welcome-bar {
+  padding: 10px 28px;
+  background: rgba(0,0,0,0.15);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.welcome-bar b { font-size: 15px; }
+
+/* ===== NOTIFICATION BANNER ===== */
+.notif-banner {
+  display: none;
+  background: linear-gradient(135deg, #f4a261, #e76f51);
+  color: white;
+  padding: 0;
+  animation: slideDown 0.4s;
+}
+.notif-banner.show { display: block; }
+@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.notif-item {
+  padding: 10px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.notif-item:hover { background: rgba(0,0,0,0.1); }
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.notif-body { flex: 1; }
+.notif-title { font-weight: 700; font-size: 13px; }
+.notif-text { font-size: 12px; opacity: 0.9; margin-top: 2px; line-height: 1.4; }
+.notif-time { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+/* ===== CONTAINER ===== */
+#container { max-width: 1100px; margin: 28px auto; padding: 0 20px 40px; }
+
+/* ===== GRID LAYOUT ===== */
+.main-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
+@media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-header h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin: 0; }
+.card-body { padding: 20px; }
+
+/* ===== STUDENT INFO ===== */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.info-item { display: flex; flex-direction: column; gap: 3px; }
+.info-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.info-value { font-size: 14px; font-weight: 600; color: var(--text); }
+.info-item.full { grid-column: 1 / -1; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.badge-active { background: #d1fae5; color: #065f46; }
+.badge-locked { background: #fee2e2; color: #991b1b; }
+
+/* ===== STAT BLOCKS ===== */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-box {
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.stat-box::before {
+  content: '';
+  position: absolute;
+  right: -10px; bottom: -10px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.stat-box .s-num { font-size: 28px; font-weight: 800; display: block; line-height: 1; margin-bottom: 4px; }
+.stat-box .s-lbl { font-size: 11px; opacity: 0.9; font-weight: 600; }
+.sb-blue { background: linear-gradient(135deg, #457b9d, #1d3557); }
+.sb-green { background: linear-gradient(135deg, #2a9d8f, #1a7a6e); }
+.sb-red { background: linear-gradient(135deg, #e63946, #b02a37); }
+
+/* ===== CHART ===== */
+.chart-wrap { height: 200px; margin: 16px 0; }
+
+/* ===== RESULT TABLE ===== */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.result-table th, .result-table td {
+  padding: 9px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.result-table th { background: #f8fafc; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.result-table tbody tr:hover { background: #f8fafc; }
+.pass { color: var(--green); font-weight: 700; }
+.fail { color: var(--red); font-weight: 700; }
+.no-data { text-align: center; color: var(--muted); font-style: italic; padding: 30px; }
+
+/* ===== ACTION BUTTONS ===== */
+.action-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.action-btn {
+  flex: 1;
+  min-width: 160px;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+  color: white;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+.btn-start { background: linear-gradient(135deg, #2a9d8f, #1a7a6e); }
+.btn-detail { background: linear-gradient(135deg, #457b9d, #1d3557); }
+
+/* ===== NOTIFICATIONS PANEL ===== */
+.notif-panel .card-header { background: linear-gradient(135deg, #f4a261, #e76f51); }
+.notif-panel .card-header h3 { color: white; }
+.notif-panel .card-header span { color: white; }
+.notif-empty { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 13px; }
+.notif-list-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.notif-list-item:hover { background: #fff8f2; }
+.notif-list-item.unread { border-left: 3px solid var(--yellow); background: #fff9f4; }
+.notif-list-item.unread .notif-dot { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
+.notif-list-item .n-title { font-weight: 700; font-size: 13px; color: var(--blue); margin-bottom: 3px; }
+.notif-list-item .n-text { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.notif-list-item .n-time { font-size: 11px; color: #b2bec3; }
+.type-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.type-info { background: #0d6efd; }
+.type-exam { background: #ffc107; }
+.type-result { background: #198754; }
+.type-urgent { background: #dc3545; }
+.type-reminder { background: #7c3aed; }
+
+/* ===== KICKOUT MODAL ===== */
+.kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
 .kickout-modal.show { display: flex; }
-.kickout-box {
-    background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px;
-    text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kickoutFadeIn .4s;
-    border-top: 6px solid #dc3545;
-}
-@keyframes kickoutFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
-.kickout-box .icon { font-size: 56px; margin-bottom: 15px; color: #dc3545; }
+.kickout-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kFadeIn .4s; border-top: 6px solid #dc3545; }
+@keyframes kFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.kickout-box .icon { font-size: 56px; margin-bottom: 15px; display: block; }
 .kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
 .kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+
+/* ===== NOTIF DETAIL MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: white; border-radius: 16px; width: 100%; max-width: 520px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: mIn 0.3s; }
+@keyframes mIn { from { opacity: 0; transform: scale(.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-box-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-box-header h3 { font-size: 16px; font-weight: 700; color: var(--blue); margin: 0; flex: 1; margin-right: 12px; line-height: 1.4; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 2px; line-height: 1; }
+.modal-close:hover { color: var(--red); }
+.modal-box-body { padding: 20px 24px 24px; font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+.modal-box-footer { padding: 0 24px 20px; font-size: 12px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .action-row { flex-direction: column; }
+}
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-    <b>HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</b>
-    <button id="logoutBtn">Đăng xuất</button>
+  <div class="header-top">
+    <div class="header-title">
+      <div class="vi">🚦 HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+      <div class="en">Road Traffic Law Examination System</div>
+    </div>
+    <div class="header-clock">
+      <span>🕐</span>
+      <div>
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-date" id="clockDate"></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="logoutBtn">🚪 Đăng xuất</button>
+    </div>
+  </div>
+  <div class="welcome-bar">
+    👋 Xin chào, <b id="studentName">...</b> &nbsp;|&nbsp; <span id="studentCode2">...</span>
+  </div>
 </header>
 
-<div id="container">
-    <div id="welcome">Xin chào, <b id="studentName">...</b> 👋</div>
-    
-    <div class="grid">
-        <div class="box info">
-            <h3>📌 Thông tin học viên</h3>
-            <p><b>Mã học viên:</b> <span id="infoCode">...</span></p>
-            <p><b>Họ và tên:</b> <span id="infoName">...</span></p>
-            <p><b>Đơn vị:</b> <span id="infoUnit">...</span></p>
-            <p><b>Trạng thái:</b> <span id="infoStatus">...</span></p>
-        </div>
-        
-        <div class="box">
-            <h3>📊 Thống kê kết quả</h3>
-            <div class="statRow">
-                <div class="statBox bg1">Tổng lượt thi<b id="totalExam">0</b></div>
-                <div class="statBox bg2">Đạt<b id="passExam">0</b></div>
-                <div class="statBox bg3">Không đạt<b id="failExam">0</b></div>
-            </div>
-            <div class="chartBox">
-                <canvas id="chart"></canvas>
-            </div>
-            <div id="empty"></div>
-            
-            <table id="resultTable" style="display:none;">
-                <thead>
-                    <tr><th>#</th><th>Thời gian</th><th>Đề thi</th><th>Điểm</th><th>Kết quả</th></tr>
-                </thead>
-                <tbody id="logTable"></tbody>
-            </table>
-            
-            <div class="actions">
-                <button id="detailBtn" class="actionBtn">📜 Thống kê chi tiết</button>
-                <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
-            </div>
-        </div>
-    </div>
+<!-- NOTIFICATION BANNER (real-time) -->
+<div class="notif-banner" id="notifBanner"></div>
+
+<!-- KICKOUT MODAL -->
+<div class="kickout-modal" id="kickoutModal">
+  <div class="kickout-box">
+    <span class="icon" id="kickoutIcon"></span>
+    <h3 id="kickoutTitle"></h3>
+    <p id="kickoutMessage"></p>
+    <div class="countdown">Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...</div>
+  </div>
 </div>
 
-<!-- MODAL BỊ KHÓA / BẢO TRÌ (Đá văng) -->
-<div class="kickout-modal" id="kickoutModal">
-    <div class="kickout-box">
-        <div class="icon" id="kickoutIcon"></div>
-        <h3 id="kickoutTitle"></h3>
-        <p id="kickoutMessage"></p>
-        <div class="countdown">
-            Sẽ tự động quay lại trang đăng nhập sau <b id="kickoutCountdown">5</b> giây...
-        </div>
+<!-- NOTIFICATION DETAIL MODAL -->
+<div class="modal-overlay" id="notifModal">
+  <div class="modal-box">
+    <div class="modal-box-header">
+      <h3 id="notifModalTitle"></h3>
+      <button class="modal-close" onclick="closeNotifModal()">✕</button>
     </div>
+    <div class="modal-box-body" id="notifModalBody"></div>
+    <div class="modal-box-footer" id="notifModalFooter"></div>
+  </div>
+</div>
+
+<div id="container">
+  <div class="main-grid">
+
+    <!-- LEFT: Student Info + Notifications -->
+    <div>
+      <!-- Student Info Card -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <span>👤</span>
+          <h3>Thông tin học viên</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Mã học viên</span>
+              <span class="info-value" id="infoCode" style="color:var(--accent);font-size:15px;">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Trạng thái</span>
+              <span class="info-value" id="infoStatus">—</span>
+            </div>
+            <div class="info-item full">
+              <span class="info-label">Họ và tên</span>
+              <span class="info-value" id="infoName" style="font-size:15px;">—</span>
+            </div>
+            <div class="info-item full">
+              <span class="info-label">Đơn vị</span>
+              <span class="info-value" id="infoUnit">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ngày sinh</span>
+              <span class="info-value" id="infoDob">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Đối tượng</span>
+              <span class="info-value" id="infoObject">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Khóa học</span>
+              <span class="info-value" id="infoCourse">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications Card -->
+      <div class="card notif-panel">
+        <div class="card-header" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span>🔔</span>
+            <h3>Thông báo từ hệ thống</h3>
+          </div>
+          <span id="unreadCount" style="background:rgba(255,255,255,0.3);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;display:none;">0</span>
+        </div>
+        <div id="notifList">
+          <div class="notif-empty">📭 Chưa có thông báo nào</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Stats + Results + Actions -->
+    <div>
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-box sb-blue">
+          <span class="s-num" id="totalExam">0</span>
+          <span class="s-lbl">Tổng lượt thi</span>
+        </div>
+        <div class="stat-box sb-green">
+          <span class="s-num" id="passExam">0</span>
+          <span class="s-lbl">Đạt</span>
+        </div>
+        <div class="stat-box sb-red">
+          <span class="s-num" id="failExam">0</span>
+          <span class="s-lbl">Không đạt</span>
+        </div>
+      </div>
+
+      <!-- Chart + Table Card -->
+      <div class="card">
+        <div class="card-header">
+          <span>📊</span>
+          <h3>Thống kê kết quả thi</h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" id="chartWrap">
+            <canvas id="resultChart"></canvas>
+          </div>
+
+          <div id="resultTableWrap" style="display:none; margin-top:10px;">
+            <h4 style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">5 kết quả gần nhất</h4>
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Thời gian</th>
+                  <th>Đề thi</th>
+                  <th>Điểm</th>
+                  <th>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody id="resultTableBody"></tbody>
+            </table>
+          </div>
+          <div id="noDataMsg" class="no-data">📂 Chưa có dữ liệu kiểm tra</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-row">
+        <button class="action-btn btn-detail" onclick="location.href='exam_detail.html'">
+          📜 Thống kê chi tiết
+        </button>
+        <button class="action-btn btn-start" onclick="location.href='test.html'">
+          ▶ Làm bài kiểm tra
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
 // =====================================================================
-// FIREBASE CONFIG
+// FIREBASE
 // =====================================================================
 try {
-    if (firebase.apps.length === 0) {
-        firebase.initializeApp({
-            apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-            authDomain: "thi-luat-giao-thong.firebaseapp.com",
-            projectId: "thi-luat-giao-thong"
-        });
-    }
+  if (firebase.apps.length === 0) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+      authDomain: "thi-luat-giao-thong.firebaseapp.com",
+      projectId: "thi-luat-giao-thong"
+    });
+  }
 } catch(e) { console.error('Firebase init:', e); }
 const db = firebase.firestore();
 
 // =====================================================================
-// AUTH CHECK & DATA
+// AUTH CHECK
 // =====================================================================
 const userType = localStorage.getItem("userType");
 const studentCode = localStorage.getItem("studentCode");
+if (userType !== "student" || !studentCode) location.href = "index.html";
 
-if (userType !== "student" || !studentCode) {
-    location.href = "index.html";
+// =====================================================================
+// CLOCK
+// =====================================================================
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const d = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  document.getElementById('clockTime').textContent = t;
+  document.getElementById('clockDate').textContent = d;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// =====================================================================
+// FORMAT HELPERS
+// =====================================================================
+function fmtDate(val) {
+  if (!val) return '—';
+  if (val.includes('-')) {
+    const [y, m, d] = val.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return val;
+}
+function fmtDateTime(val) {
+  if (!val) return '';
+  const d = val?.toDate ? val.toDate() : new Date(val);
+  if (isNaN(d)) return '';
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function timeAgo(val) {
+  if (!val) return '';
+  const d = val?.toDate ? val.toDate() : new Date(val);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'Vừa xong';
+  if (diff < 3600) return Math.floor(diff / 60) + ' phút trước';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' giờ trước';
+  return fmtDateTime(d);
 }
 
 // =====================================================================
-// MAIN LOGIC
-// =====================================================================
-async function initPage() {
-    try {
-        // Kiểm tra bảo trì ngay khi vào trang
-        const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
-        if (maintDoc.exists && maintDoc.data().enabled) {
-            kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
-            return;
-        }
-
-        // Lấy thông tin học viên
-        let studentData = null;
-        const docSnap = await db.collection("students").doc(studentCode).get();
-        
-        if (docSnap.exists) {
-            studentData = docSnap.data();
-        } else {
-            // Fallback nếu không tìm thấy theo ID
-            const querySnap = await db.collection("students").where("code","==",studentCode).limit(1).get();
-            if (!querySnap.empty) studentData = querySnap.docs[0].data();
-        }
-
-        if (!studentData) {
-            alert("Không tìm thấy dữ liệu học viên!");
-            localStorage.clear();
-            location.href = "index.html";
-            return;
-        }
-
-        // Kiểm tra trạng thái khóa
-        if (studentData.status === 'locked') {
-            kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
-            return;
-        }
-
-        // Hiển thị thông tin
-        document.getElementById('studentName').textContent = studentData.name || '';
-        document.getElementById('infoCode').textContent = studentData.code || studentCode;
-        document.getElementById('infoName').textContent = studentData.name || '';
-        document.getElementById('infoUnit').textContent = studentData.unit || '';
-        document.getElementById('infoStatus').textContent = studentData.status === 'active' ? '✅ Hoạt động' : '🔒 Đã khóa';
-
-        // Load dữ liệu thi
-        loadExamLogs();
-
-    } catch(e) {
-        console.error("Init Error:", e);
-    }
-}
-
-// =====================================================================
-// LOAD EXAM LOGS & CHART
+// MAIN INIT
 // =====================================================================
 let chart = null;
-function loadExamLogs() {
-    db.collection("examResults")
-        .where("studentCode", "==", studentCode)
-        .orderBy("timestamp", "desc")
-        .limit(50)
-        .get()
-        .then(snap => {
-            if (snap.empty) {
-                document.getElementById('empty').textContent = "📂 Chưa có dữ liệu kiểm tra";
-                return;
-            }
-
-            let pass = 0, fail = 0;
-            const logs = [];
-            snap.forEach(d => {
-                const data = d.data();
-                logs.push(data);
-                const score = data.score || 0;
-                const totalQ = data.totalQuestions || 30;
-                // Logic đậu/trượt: >= 26/30 (ví dụ cho oto), hoặc tùy config của bạn. 
-                // Ở đây lấy tạm >= 80% hoặc theo trường passed có sẵn
-                if (data.passed) pass++; else fail++;
-            });
-
-            // Render Table
-            const tb = document.getElementById('logTable');
-            tb.innerHTML = "";
-            logs.slice(0, 5).forEach((d, i) => { // Chỉ hiện 5 kết quả mới nhất
-                const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
-                const timeStr = ts.toLocaleString("vi-VN");
-                const isPass = d.passed;
-                tb.innerHTML += `
-                    <tr>
-                        <td>${i+1}</td>
-                        <td>${timeStr}</td>
-                        <td>${d.setName || d.setCode || '-'}</td>
-                        <td>${d.score}/${d.totalQuestions}</td>
-                        <td class="${isPass ? 'pass' : 'fail'}">${isPass ? 'ĐẠT' : 'KHÔNG ĐẠT'}</td>
-                    </tr>`;
-            });
-            document.getElementById('resultTable').style.display = "table";
-            document.getElementById('empty').textContent = "";
-
-            // Animate Numbers
-            animate(document.getElementById('totalExam'), logs.length);
-            animate(document.getElementById('passExam'), pass);
-            animate(document.getElementById('failExam'), fail);
-
-            // Chart
-            const total = pass + fail;
-            const passPct = total ? Math.round(pass * 100 / total) : 0;
-            const failPct = 100 - passPct;
-            
-            if (chart) chart.destroy();
-            chart = new Chart(document.getElementById("chart"), {
-                type: "pie",
-                data: {
-                    labels: [`Đạt (${passPct}%)`, `Không đạt (${failPct}%)`],
-                    datasets: [{
-                        data: [pass, fail],
-                        backgroundColor: ["#2a9d8f", "#e63946"]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        })
-        .catch(e => console.warn('Lỗi tải lịch sử:', e));
-}
-
-function animate(el, val) {
-    let n = 0, step = Math.max(1, Math.ceil(val / 40));
-    const t = setInterval(() => {
-        n += step;
-        if (n >= val) { el.textContent = val; clearInterval(t); }
-        else el.textContent = n;
-    }, 20);
-}
-
-// =====================================================================
-// BUTTONS
-// =====================================================================
-document.getElementById('logoutBtn').onclick = () => {
-    // Set offline
-    db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-    localStorage.clear();
-    location.href = "index.html";
-};
-document.getElementById('startBtn').onclick = () => location.href = "test.html"; // Hoặc trang chọn đề
-document.getElementById('detailBtn').onclick = () => location.href = "exam_detail.html";
-
-// =====================================================================
-// SECURITY & REAL-TIME (QUAN TRỌNG)
-// =====================================================================
 let isKicked = false;
 let studentUnsub = null, maintUnsub = null;
 
-function kickOut(title, message, icon) {
-    if (isKicked) return;
-    isKicked = true;
+async function initPage() {
+  try {
+    // Check maintenance
+    const maint = await db.collection('systemConfig').doc('maintenance').get();
+    if (maint.exists && maint.data().enabled) {
+      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+      return;
+    }
 
-    if (studentUnsub) studentUnsub();
-    if (maintUnsub) maintUnsub();
+    // Load student
+    let studentData = null;
+    const docSnap = await db.collection("students").doc(studentCode).get();
+    if (docSnap.exists) {
+      studentData = docSnap.data();
+    } else {
+      const q = await db.collection("students").where("code","==",studentCode).limit(1).get();
+      if (!q.empty) studentData = q.docs[0].data();
+    }
 
-    // Set Offline
-    db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-    
-    // Show Modal
-    const modal = document.getElementById('kickoutModal');
-    document.getElementById('kickoutIcon').textContent = icon;
-    document.getElementById('kickoutTitle').textContent = title;
-    document.getElementById('kickoutMessage').textContent = message;
-    modal.classList.add('show');
+    if (!studentData) {
+      alert("Không tìm thấy dữ liệu học viên!");
+      localStorage.clear();
+      location.href = "index.html";
+      return;
+    }
 
-    // Countdown
-    let seconds = 5;
-    const countdownEl = document.getElementById('kickoutCountdown');
-    setInterval(() => {
-        seconds--;
-        if (countdownEl) countdownEl.textContent = seconds;
-        if (seconds <= 0) {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-    }, 1000);
+    if (studentData.status === 'locked') {
+      kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+      return;
+    }
+
+    // Update header
+    document.getElementById('studentName').textContent = studentData.name || '';
+    document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
+
+    // Update info card
+    document.getElementById('infoCode').textContent = studentData.code || studentCode;
+    document.getElementById('infoName').textContent = studentData.name || '—';
+    document.getElementById('infoUnit').textContent = studentData.unit || '—';
+    document.getElementById('infoDob').textContent = fmtDate(studentData.dob);
+    document.getElementById('infoObject').textContent = studentData.object || '—';
+    document.getElementById('infoCourse').textContent = studentData.course || '—';
+    const isActive = studentData.status === 'active';
+    document.getElementById('infoStatus').innerHTML = `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}</span>`;
+
+    // Load exam results
+    loadExamResults();
+
+    // Load notifications
+    loadNotifications();
+
+  } catch(e) {
+    console.error('Init error:', e);
+  }
 }
 
-// 1. Init
+// =====================================================================
+// EXAM RESULTS + CHART
+// =====================================================================
+function loadExamResults() {
+  db.collection("examResults")
+    .where("studentCode", "==", studentCode)
+    .orderBy("timestamp", "desc")
+    .limit(50)
+    .get()
+    .then(snap => {
+      if (snap.empty) {
+        document.getElementById('noDataMsg').style.display = 'block';
+        return;
+      }
+
+      let pass = 0, fail = 0;
+      const logs = [];
+      snap.forEach(d => {
+        const data = d.data();
+        logs.push(data);
+        if (data.passed) pass++; else fail++;
+      });
+
+      // Update stat boxes
+      animNum(document.getElementById('totalExam'), logs.length);
+      animNum(document.getElementById('passExam'), pass);
+      animNum(document.getElementById('failExam'), fail);
+
+      // Table
+      const tb = document.getElementById('resultTableBody');
+      tb.innerHTML = logs.slice(0, 5).map((d, i) => {
+        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+        return `<tr>
+          <td>${i+1}</td>
+          <td>${fmtDateTime(ts)}</td>
+          <td>${d.setName || d.setCode || '—'}</td>
+          <td>${d.score || 0}/${d.totalQuestions || 0}</td>
+          <td class="${d.passed ? 'pass' : 'fail'}">${d.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</td>
+        </tr>`;
+      }).join('');
+      document.getElementById('resultTableWrap').style.display = 'block';
+      document.getElementById('noDataMsg').style.display = 'none';
+
+      // Chart
+      const total = pass + fail;
+      const pPct = total ? Math.round(pass * 100 / total) : 0;
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('resultChart'), {
+        type: 'doughnut',
+        data: {
+          labels: [`Đạt (${pPct}%)`, `Không đạt (${100-pPct}%)`],
+          datasets: [{
+            data: pass + fail > 0 ? [pass, fail] : [1, 0],
+            backgroundColor: ['#2a9d8f', '#e63946'],
+            borderWidth: 3,
+            borderColor: '#fff',
+            cutout: '60%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }
+        }
+      });
+
+      // Hide chart if no data
+      if (pass + fail === 0) document.getElementById('chartWrap').style.display = 'none';
+    })
+    .catch(e => console.warn('Lỗi tải kết quả:', e));
+}
+
+function animNum(el, val) {
+  let n = 0, step = Math.max(1, Math.ceil(val / 40));
+  const t = setInterval(() => {
+    n += step;
+    if (n >= val) { el.textContent = val; clearInterval(t); }
+    else el.textContent = n;
+  }, 20);
+}
+
+// =====================================================================
+// NOTIFICATIONS
+// =====================================================================
+function loadNotifications() {
+  // Listen for new notifications in real-time
+  db.collection('studentNotifications')
+    .where('studentCode', '==', studentCode)
+    .orderBy('sentAt', 'desc')
+    .limit(20)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        document.getElementById('notifList').innerHTML = '<div class="notif-empty">📭 Chưa có thông báo nào</div>';
+        return;
+      }
+
+      const notifs = [];
+      snap.forEach(d => notifs.push({ id: d.id, ...d.data() }));
+
+      const unread = notifs.filter(n => !n.read).length;
+      const unreadEl = document.getElementById('unreadCount');
+      if (unread > 0) {
+        unreadEl.textContent = unread;
+        unreadEl.style.display = 'inline-block';
+      } else {
+        unreadEl.style.display = 'none';
+      }
+
+      const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
+
+      document.getElementById('notifList').innerHTML = notifs.map(n => {
+        const icon = typeIcons[n.type] || '🔔';
+        return `
+          <div class="notif-list-item ${!n.read ? 'unread' : ''}" onclick="openNotif('${n.id}')">
+            ${!n.read ? '<div class="notif-dot"></div>' : ''}
+            <div class="n-title"><span class="type-dot type-${n.type || 'info'}"></span>${icon} ${n.title || 'Thông báo'}</div>
+            <div class="n-text">${n.content || ''}</div>
+            <div class="n-time">${timeAgo(n.sentAt)}</div>
+          </div>
+        `;
+      }).join('');
+
+      // Show banner for unread notifications (newest unread)
+      const newest = notifs.find(n => !n.read);
+      if (newest) showNotifBanner(newest);
+
+    }, e => console.warn('Notif listener error:', e));
+}
+
+function showNotifBanner(notif) {
+  const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
+  const icon = typeIcons[notif.type] || '🔔';
+  const banner = document.getElementById('notifBanner');
+  banner.innerHTML = `
+    <div class="notif-item" onclick="openNotif('${notif.id}')">
+      <span class="notif-icon">${icon}</span>
+      <div class="notif-body">
+        <div class="notif-title">📢 Thông báo mới: ${notif.title}</div>
+        <div class="notif-text">${(notif.content || '').substring(0, 100)}${notif.content?.length > 100 ? '...' : ''}</div>
+        <div class="notif-time">${timeAgo(notif.sentAt)} – Nhấn để xem chi tiết</div>
+      </div>
+      <span onclick="event.stopPropagation(); closeBanner()" style="cursor:pointer;font-size:16px;opacity:0.7;padding:4px;">✕</span>
+    </div>
+  `;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), 8000);
+}
+
+function closeBanner() {
+  document.getElementById('notifBanner').classList.remove('show');
+}
+
+async function openNotif(id) {
+  // Find notification
+  const el = document.querySelector(`[onclick="openNotif('${id}')"]`);
+  // Mark as read
+  try {
+    await db.collection('studentNotifications').doc(id).update({ read: true });
+  } catch(e) {}
+
+  // Show modal
+  const snap = await db.collection('studentNotifications').doc(id).get();
+  if (!snap.exists) return;
+  const n = snap.data();
+  const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
+  const icon = typeIcons[n.type] || '🔔';
+  document.getElementById('notifModalTitle').textContent = `${icon} ${n.title || 'Thông báo'}`;
+  document.getElementById('notifModalBody').textContent = n.content || '';
+  document.getElementById('notifModalFooter').textContent = `Gửi lúc: ${fmtDateTime(n.sentAt)}`;
+  document.getElementById('notifModal').classList.add('show');
+
+  // Close banner if visible
+  closeBanner();
+}
+
+function closeNotifModal() {
+  document.getElementById('notifModal').classList.remove('show');
+}
+document.getElementById('notifModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeNotifModal();
+});
+
+// =====================================================================
+// SECURITY & REAL-TIME
+// =====================================================================
+function kickOut(title, message, icon) {
+  if (isKicked) return;
+  isKicked = true;
+  if (studentUnsub) studentUnsub();
+  if (maintUnsub) maintUnsub();
+  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
+  document.getElementById('kickoutIcon').textContent = icon;
+  document.getElementById('kickoutTitle').textContent = title;
+  document.getElementById('kickoutMessage').textContent = message;
+  document.getElementById('kickoutModal').classList.add('show');
+  let s = 5;
+  const cdEl = document.getElementById('kickoutCountdown');
+  setInterval(() => {
+    s--;
+    if (cdEl) cdEl.textContent = s;
+    if (s <= 0) { localStorage.clear(); location.href = 'index.html'; }
+  }, 1000);
+}
+
+// Logout
+document.getElementById('logoutBtn').onclick = () => {
+  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
+  localStorage.clear();
+  location.href = 'index.html';
+};
+
+// Init
 initPage();
 
-// 2. Lắng nghe khóa tài khoản
-studentUnsub = db.collection('students').doc(studentCode).onSnapshot((doc) => {
-    if (doc.exists && doc.data().status === 'locked') {
-        kickOut('🔒 Tài khoản đã bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
-    }
+// Watch account lock
+studentUnsub = db.collection('students').doc(studentCode).onSnapshot(doc => {
+  if (doc.exists && doc.data().status === 'locked')
+    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
 });
 
-// 3. Lắng nghe bảo trì
-maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot((doc) => {
-    if (doc.exists && doc.data().enabled === true) {
-        kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
-    }
+// Watch maintenance
+maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot(doc => {
+  if (doc.exists && doc.data().enabled === true)
+    kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
 });
 
-// 4. Heartbeat Online (20s/lần)
+// Heartbeat
 const presenceRef = db.collection('presence').doc(studentCode);
-const sendHeartbeat = () => {
-    if (!isKicked) {
-        presenceRef.set({
-            isOnline: true,
-            currentSection: 'Trang chủ cá nhân',
-            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(()=>{});
-    }
+const heartbeat = () => {
+  if (!isKicked) presenceRef.set({
+    isOnline: true,
+    currentSection: 'Trang chủ cá nhân',
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).catch(() => {});
 };
-sendHeartbeat();
-setInterval(sendHeartbeat, 20000);
+heartbeat();
+setInterval(heartbeat, 20000);
 
-// 5. Báo Offline khi đóng tab
 window.addEventListener('beforeunload', () => {
-    if(!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+  if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
 });
 </script>
 </body>
