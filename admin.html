@@ -3537,6 +3537,7 @@ function renumberConfigGroups() {
     const countEl = document.getElementById('configGroupCount');
     if (countEl) countEl.textContent = ct.querySelectorAll('.group-card').length;
 }
+function getLietPositions() {
     return [...document.querySelectorAll('.liet-position-input')].map(inp => parseInt(inp.value, 10) || 0).filter(v => v > 0);
 }
 
@@ -5444,29 +5445,17 @@ window.onload = async function () {
     const adminName = localStorage.getItem('adminName') || 'Admin';
     document.getElementById('headerAdminName').textContent = adminName;
 
-    // Set avatar letter
+    // Gán chữ cái đầu vào avatar
     const avatarEl = document.getElementById('adminAvatar');
     if (avatarEl) avatarEl.textContent = adminName.charAt(0).toUpperCase();
 
-    // Start clock
+    // Khởi động đồng hồ
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Initialize system (Firebase + data loading)
+    // Khởi tạo hệ thống (Firebase + load dữ liệu)
     await initializeSystem();
 };
-
-// ==========================================
-// MISSING FUNCTIONS – ADDITIONS
-// ==========================================
-
-// Lấy vị trí các câu liệt từ inputs
-function getLietPositions() {
-    return [...document.querySelectorAll('.liet-position-input')]
-        .map(i => parseInt(i.value, 10) || 0)
-        .filter(v => v > 0);
-}
-
 </script>
 
 </body>
