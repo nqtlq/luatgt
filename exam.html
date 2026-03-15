@@ -613,6 +613,11 @@ async function initPage() {
       return;
     }
 
+    // Lưu thêm thông tin vào localStorage để notification filter dùng
+    localStorage.setItem("studentObject", studentData.object || "");
+    localStorage.setItem("studentCourse", studentData.course || "");
+    localStorage.setItem("studentName",   studentData.name   || "");
+
     // Update header
     document.getElementById('studentName').textContent = studentData.name || '';
     document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
@@ -703,65 +708,109 @@ function animNum(el, val) {
 // =====================================================================
 // NOTIFICATIONS – Đọc từ `notifications` collection (tránh lỗi permissions)
 // =====================================================================
-let notifCache = [];
+let notifCache = []; // array of { id, ...notifData, read:bool }
 
-function loadNotifications() {
+// ----- Helpers dùng lại -----
+const TYPE_ICONS = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+
+function _renderNotifList() {
+  const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
+  const notifs  = notifCache.map(n => ({ ...n, read: readIds.has(n.id) }));
+  notifCache    = notifs;
+
+  const unread  = notifs.filter(n => !n.read).length;
+  const unreadEl = document.getElementById("unreadCount");
+  if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = "inline-block"; }
+  else unreadEl.style.display = "none";
+
+  document.getElementById("notifList").innerHTML = notifs.length === 0
+    ? "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>"
+    : notifs.map(n => {
+        const icon = TYPE_ICONS[n.type] || "🔔";
+        const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+        return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
+          ${!n.read?"<div class=\"notif-dot\"></div>":""}
+          <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
+          <div class="n-text">${(n.content||"").substring(0,120)}</div>
+          <div class="n-time">${timeAgo(ts)}</div>
+        </div>`;
+      }).join("");
+
+  const newest = notifs.find(n => !n.read);
+  if (newest) showNotifBanner(newest);
+}
+
+function _filterNotifs(all) {
+  // Lấy thông tin học viên hiện tại
   const studentObj2 = localStorage.getItem("studentObject") || "";
   const studentCrs2 = localStorage.getItem("studentCourse") || "";
 
-  db.collection("notifications")
+  return all.filter(n => {
+    // Gửi cho tất cả
+    if (n.target === "all" || n.targetType === "all") return true;
+    // Gửi cho cá nhân cụ thể
+    if (n.targetType === "individual") {
+      const codes = (n.targetDetail || "").split(",").map(c => c.trim().toUpperCase());
+      return codes.includes((studentCode || "").toUpperCase());
+    }
+    // Gửi theo khóa học
+    if (n.targetType === "course") return (n.targetDetail || "") === studentCrs2;
+    // Gửi theo đối tượng (Học viên / Sĩ quan / Chuyên nghiệp...)
+    if (n.targetType === "object" || n.target === studentObj2) return (n.target || "") === studentObj2;
+    return false;
+  });
+}
+
+let notifUnsub = null;
+
+function loadNotifications() {
+  if (notifUnsub) notifUnsub();
+
+  // Dùng query đơn giản (KHÔNG orderBy) để tránh lỗi thiếu Composite Index.
+  // Firestore chỉ cần index đơn trường "status" – vốn có sẵn.
+  // Sắp xếp theo createdAt thực hiện phía client.
+  notifUnsub = db.collection("notifications")
     .where("status", "==", "sent")
-    .orderBy("createdAt", "desc")
-    .limit(30)
+    .limit(50)
     .onSnapshot(snap => {
       const all = [];
       snap.forEach(d => all.push({ id: d.id, ...d.data() }));
 
-      const myNotifs = all.filter(n => {
-        if (n.target === "all" || n.targetType === "all") return true;
-        if (n.targetType === "individual") {
-          const codes = (n.targetDetail || "").split(",").map(c => c.trim());
-          return codes.includes(studentCode);
-        }
-        if (n.targetType === "course") return n.targetDetail === studentCrs2;
-        if (n.target === studentObj2 || n.targetType === "object") return n.target === studentObj2;
-        return false;
-      }).slice(0, 20);
+      // Sắp xếp mới nhất trước (client-side)
+      all.sort((a, b) => {
+        const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+        const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+        return tb - ta;
+      });
 
-      const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
-      const notifs  = myNotifs.map(n => ({ ...n, read: readIds.has(n.id) }));
-      notifCache    = notifs;
-
-      const unread  = notifs.filter(n => !n.read).length;
-      const unreadEl = document.getElementById("unreadCount");
-      if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = "inline-block"; }
-      else unreadEl.style.display = "none";
-
-      const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
-      document.getElementById("notifList").innerHTML = notifs.length === 0
-        ? "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>"
-        : notifs.map(n => {
-            const icon = typeIcons[n.type] || "🔔";
-            const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-            return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
-              ${!n.read?"<div class=\"notif-dot\"></div>":""}
-              <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
-              <div class="n-text">${n.content||""}</div>
-              <div class="n-time">${timeAgo(ts)}</div>
-            </div>`;
-          }).join("");
-
-      const newest = notifs.find(n => !n.read);
-      if (newest) showNotifBanner(newest);
+      notifCache = _filterNotifs(all).slice(0, 20);
+      _renderNotifList();
     }, e => {
-      console.warn("Notif error:", e);
-      document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+      console.warn("Notif snapshot error:", e.message);
+      // Fallback: thử lấy toàn bộ không filter
+      db.collection("notifications")
+        .limit(30)
+        .get()
+        .then(snap2 => {
+          const all2 = [];
+          snap2.forEach(d => all2.push({ id: d.id, ...d.data() }));
+          const sent = all2.filter(n => n.status === "sent");
+          sent.sort((a, b) => {
+            const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return tb - ta;
+          });
+          notifCache = _filterNotifs(sent).slice(0, 20);
+          _renderNotifList();
+        })
+        .catch(() => {
+          document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+        });
     });
 }
 
 function showNotifBanner(notif) {
-  const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
-  const icon = typeIcons[notif.type] || "🔔";
+  const icon = TYPE_ICONS[notif.type] || "🔔";
   const ts   = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
   const banner = document.getElementById("notifBanner");
   banner.innerHTML = `<div class="notif-item" onclick="openNotifById('${notif.id}')">
@@ -782,33 +831,23 @@ function closeBanner() { document.getElementById("notifBanner").classList.remove
 function openNotifById(id) {
   const n = notifCache.find(x => x.id === id);
   if (!n) return;
+
+  // Đánh dấu đã đọc
   const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
   readIds.add(id);
   localStorage.setItem("readNotifIds", JSON.stringify([...readIds]));
 
-  const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
-  const icon = typeIcons[n.type] || "🔔";
+  const icon = TYPE_ICONS[n.type] || "🔔";
   const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-  document.getElementById("notifModalTitle").textContent = `${icon} ${n.title||"Thông báo"}`;
-  document.getElementById("notifModalBody").textContent  = n.content || "";
+  document.getElementById("notifModalTitle").textContent  = `${icon} ${n.title||"Thông báo"}`;
+  document.getElementById("notifModalBody").textContent   = n.content || "";
   document.getElementById("notifModalFooter").textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
   document.getElementById("notifModal").classList.add("show");
   closeBanner();
-  notifCache = notifCache.map(x => x.id===id ? {...x, read:true} : x);
-  const unread = notifCache.filter(x=>!x.read).length;
-  const el2 = document.getElementById("unreadCount");
-  if (unread > 0) { el2.textContent = unread; el2.style.display = "inline-block"; } else el2.style.display = "none";
-  const typeIconsRe = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
-  document.getElementById("notifList").innerHTML = notifCache.map(nx => {
-    const ic = typeIconsRe[nx.type] || "🔔";
-    const tx = nx.createdAt?.toDate ? nx.createdAt.toDate() : new Date();
-    return `<div class="notif-list-item ${!nx.read?"unread":""}" onclick="openNotifById('${nx.id}')">
-      ${!nx.read?"<div class=\"notif-dot\"></div>":""}
-      <div class="n-title"><span class="type-dot type-${nx.type||"info"}"></span>${ic} ${nx.title||"Thông báo"}</div>
-      <div class="n-text">${nx.content||""}</div>
-      <div class="n-time">${timeAgo(tx)}</div>
-    </div>`;
-  }).join("");
+
+  // Cập nhật trạng thái đọc trong cache rồi re-render
+  notifCache = notifCache.map(x => x.id === id ? { ...x, read: true } : x);
+  _renderNotifList();
 }
 
 function closeNotifModal() { document.getElementById("notifModal").classList.remove("show"); }
@@ -855,14 +894,24 @@ maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot(doc => 
     kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
 });
 
-// Heartbeat
+// Heartbeat – cập nhật presence để Admin thấy online real-time
 const presenceRef = db.collection('presence').doc(studentCode);
+let _heartbeatStartAt = null;
+
 const heartbeat = () => {
-  if (!isKicked) presenceRef.set({
-    isOnline: true,
+  if (isKicked) return;
+  const payload = {
+    isOnline:       true,
+    studentCode:    studentCode,
     currentSection: 'Trang chủ cá nhân',
-    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(() => {});
+    lastActive:     firebase.firestore.FieldValue.serverTimestamp()
+  };
+  // Lưu thời điểm vào trang lần đầu
+  if (!_heartbeatStartAt) {
+    _heartbeatStartAt = true;
+    payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+  presenceRef.set(payload, { merge: true }).catch(() => {});
 };
 heartbeat();
 setInterval(heartbeat, 20000);
