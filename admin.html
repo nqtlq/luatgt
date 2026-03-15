@@ -2592,27 +2592,18 @@ function renderActivityTable(snap) {
 function startPresenceListener() {
     if (presenceUnsub) presenceUnsub();
 
-    // Use docChanges for efficient real-time updates
+    // Xây lại presenceMap hoàn toàn mỗi lần Firestore cập nhật — đơn giản, đáng tin cậy.
+    // Tránh race condition của docChanges + forEach kết hợp.
     presenceUnsub = db.collection('presence').onSnapshot((snap) => {
-        // Process all changes: added/modified/removed
-        snap.docChanges().forEach(change => {
-            if (change.type === 'removed') {
-                presenceMap.delete(change.doc.id);
-            } else {
-                presenceMap.set(change.doc.id, change.doc.data());
-            }
-        });
-        // Also handle initial load (all docs)
-        if (snap.docChanges().length === 0 || snap.metadata.hasPendingWrites === false) {
-            snap.forEach(doc => presenceMap.set(doc.id, doc.data()));
-        }
+        presenceMap.clear();
+        snap.forEach(doc => presenceMap.set(doc.id, doc.data()));
         updateOnlineUI();
     }, (err) => {
         console.warn('Lỗi listener online:', err);
     });
 
-    // Periodic refresh every 30s to catch stale connections
-    setInterval(updateOnlineUI, 30000);
+    // Định kỳ làm mới mỗi 60s để loại bỏ session 'zombie'
+    setInterval(updateOnlineUI, 60000);
 }
 
 function updateOnlineUI() {
@@ -4945,8 +4936,18 @@ function renderOnlineDetailPage() {
 
 function filterOnlineDetail() {
     const search = (document.getElementById('onlineSearchInput')?.value || '').toLowerCase().trim();
+    const sectionFilter = (document.getElementById('onlineFilterSection')?.value || '').toLowerCase();
     let list = allStudents.filter(s => s.isOnline);
-    if (search) list = list.filter(s => safeText(s.name).toLowerCase().includes(search) || safeText(s.code).toLowerCase().includes(search));
+    if (search) list = list.filter(s =>
+        safeText(s.name).toLowerCase().includes(search) ||
+        safeText(s.code).toLowerCase().includes(search) ||
+        safeText(s.unit).toLowerCase().includes(search)
+    );
+    if (sectionFilter === 'examing') {
+        list = list.filter(s => (s.currentSection || '').toLowerCase().includes('thi'));
+    } else if (sectionFilter === 'browsing') {
+        list = list.filter(s => !(s.currentSection || '').toLowerCase().includes('thi'));
+    }
     filteredOnlineList = list;
     renderOnlineDetailTable();
 }
@@ -4954,23 +4955,28 @@ function filterOnlineDetail() {
 function renderOnlineDetailTable() {
     const tb = document.getElementById('onlineDetailTableBody');
     if (!filteredOnlineList.length) {
-        tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Không có ai online</td></tr>';
+        tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">📭 Không có ai đang online</td></tr>';
         return;
     }
-    tb.innerHTML = filteredOnlineList.slice(0, 20).map((s, i) => {
+    // Hiển thị tất cả (không giới hạn 20)
+    tb.innerHTML = filteredOnlineList.map((s, i) => {
         const sec = s.currentSection || 'Đang chờ';
-        return `
-            <tr>
-                <td>${i + 1}</td>
-                <td><b>${escapeHtml(s.code)}</b></td>
-                <td>${escapeHtml(s.name)}</td>
-                <td>${escapeHtml(s.unit)}</td>
-                <td>${escapeHtml(s.object)}</td>
-                <td><span class="status-badge status-active">${escapeHtml(sec)}</span></td>
-                <td>${s.startAt ? formatDateTime(s.startAt) : '-'}</td>
-                <td>${s.lastActive ? formatDateTime(s.lastActive) : '-'}</td>
-            </tr>
-        `;
+        const isExaming = sec.toLowerCase().includes('thi');
+        const secColor = isExaming ? 'color:#065f46;background:#d1fae5;' : 'color:#1e40af;background:#dbeafe;';
+        const lastDiff = s.lastActive ? Math.round((Date.now() - s.lastActive) / 1000) : null;
+        const lastStr = lastDiff !== null
+            ? (lastDiff < 60 ? 'Vừa xong' : Math.floor(lastDiff/60) + ' phút trước')
+            : '—';
+        return `<tr>
+            <td style="color:var(--text-muted);text-align:center;">${i + 1}</td>
+            <td><b>${escapeHtml(s.code)}</b></td>
+            <td>${escapeHtml(s.name)}</td>
+            <td style="font-size:12px;color:var(--text-muted);">${escapeHtml(s.unit || '—')}</td>
+            <td style="font-size:12px;">${escapeHtml(s.object || '—')}</td>
+            <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;${secColor}">${escapeHtml(sec)}</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">${s.startAt ? formatDateTime(s.startAt) : '—'}</td>
+            <td style="font-size:12px;color:var(--text-muted);">${lastStr}</td>
+        </tr>`;
     }).join('');
 }
 
