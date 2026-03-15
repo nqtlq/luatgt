@@ -5003,6 +5003,7 @@ function renderStatsCharts() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#9ea4ad' : '#6c757d';
     
+    // Biểu đồ phân bố điểm
     const ctx3 = document.getElementById('chartScoreDist');
     if (ctx3) {
         const counts = [0, 0, 0, 0, 0];
@@ -5015,6 +5016,22 @@ function renderStatsCharts() {
             type: 'bar',
             data: { labels: ['0-20', '21-40', '41-60', '61-80', '81-100'], datasets: [{ label: 'Số HV', data: counts, backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#198754'], borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: textColor } }, x: { ticks: { color: textColor } } } }
+        });
+    }
+
+    // Biểu đồ phân bố đối tượng
+    const ctx4 = document.getElementById('chartByObject');
+    if (ctx4) {
+        const objMap = {};
+        allStudents.forEach(s => { const k = s.object || 'Khác'; objMap[k] = (objMap[k] || 0) + 1; });
+        const labels4 = Object.keys(objMap);
+        const data4   = Object.values(objMap);
+        const colors4 = ['#0d6efd','#198754','#ffc107','#dc3545','#7c3aed','#0dcaf0','#fd7e14'];
+        if (chartInstances.byObject) chartInstances.byObject.destroy();
+        chartInstances.byObject = new Chart(ctx4, {
+            type: 'doughnut',
+            data: { labels: labels4, datasets: [{ data: data4, backgroundColor: colors4.slice(0, labels4.length), borderWidth: 3, borderColor: isDark ? '#1a1d24' : '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 14 } } } }
         });
     }
 }
@@ -5246,17 +5263,34 @@ async function loadAllExamResults() {
     try {
         const dateFrom = document.getElementById('resultDateFrom')?.value;
         const dateTo   = document.getElementById('resultDateTo')?.value;
-        let query = db.collection('examResults').orderBy('timestamp', 'desc');
-        if (dateFrom) { const d = new Date(dateFrom); d.setHours(0,0,0,0); query = query.where('timestamp', '>=', d); }
-        if (dateTo)   { const d = new Date(dateTo);   d.setHours(23,59,59,999); query = query.where('timestamp', '<=', d); }
-        const snap = await query.limit(2000).get();
-        allResults = snap.docs.map(d => {
+
+        // Dùng orderBy timestamp đơn giản (single-field index, tự động tạo bởi Firestore).
+        // KHÔNG kết hợp where+orderBy trên 2 field khác nhau → tránh lỗi thiếu composite index.
+        const snap = await db.collection('examResults')
+            .orderBy('timestamp', 'desc')
+            .limit(3000)
+            .get();
+
+        let results = snap.docs.map(d => {
             const data = d.data();
             const st = allStudents.find(s => s.code === data.studentCode);
-            const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+            const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now());
             return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
         });
-        // Populate set filter
+
+        // Lọc theo ngày ở phía client
+        if (dateFrom) {
+            const from = new Date(dateFrom); from.setHours(0,0,0,0);
+            results = results.filter(r => r.timestamp >= from);
+        }
+        if (dateTo) {
+            const to = new Date(dateTo); to.setHours(23,59,59,999);
+            results = results.filter(r => r.timestamp <= to);
+        }
+
+        allResults = results;
+
+        // Điền bộ lọc đề thi
         const setFilter = document.getElementById('resultFilterSet');
         if (setFilter) {
             const setNames = [...new Set(allResults.map(r => r.setName || r.setCode).filter(Boolean))];
@@ -5265,8 +5299,10 @@ async function loadAllExamResults() {
         }
         applyResultFilters();
         showToast(`Đã tải ${allResults.length} kết quả thi!`, 'success', 2000);
-    } catch (e) { showToast('Lỗi tải kết quả: ' + e.message, 'error'); }
-    finally { hideLoading(); }
+    } catch (e) {
+        showToast('Lỗi tải kết quả: ' + e.message, 'error');
+        console.error('loadAllExamResults error:', e);
+    } finally { hideLoading(); }
 }
 
 // Export exam results to Excel
