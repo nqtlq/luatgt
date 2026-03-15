@@ -335,11 +335,49 @@ header {
 .start-box .spinner { width: 44px; height: 44px; border-width: 5px; border-top-color: var(--green); margin-bottom: 16px; }
 .start-box p { font-size: 15px; color: var(--blue); font-weight: 600; }
 
+/* ===== GUEST BANNER ===== */
+.guest-banner { background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 1px solid #ffc107; border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
+.gb-left { flex: 1; min-width: 260px; }
+.gb-title { color: #856404; font-size: 17px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gb-seq { display: inline-flex; align-items: center; gap: 5px; background: #856404; color: white; font-size: 12.5px; font-weight: 700; padding: 3px 11px; border-radius: 20px; letter-spacing: .3px; }
+.seq-loading { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
+.perm-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); font-size: 12.5px; }
+.perm-table th { padding: 9px 12px; font-size: 12px; font-weight: 700; text-align: center; }
+.perm-table th:first-child { text-align: left; background: #f8f9fa; color: #555; width: 55%; }
+.perm-table th:nth-child(2) { background: #fff3cd; color: #856404; width: 22%; }
+.perm-table th:nth-child(3) { background: #d1f0e4; color: #0f5132; width: 23%; }
+.perm-table td { padding: 7px 12px; border-top: 1px solid #f0f0f0; color: #444; }
+.perm-table td:first-child { font-weight: 500; }
+.perm-table td:nth-child(2), .perm-table td:nth-child(3) { text-align: center; }
+.p-yes { color: #198754; font-size: 15px; font-weight: 700; }
+.p-no  { color: #dc3545; font-size: 15px; font-weight: 700; }
+.p-limit { color: #856404; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.contact-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px dashed #ffc107; }
+.contact-item { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #664d03; font-weight: 600; }
+.contact-note { margin-top: 10px; font-size: 12.5px; color: #856404; line-height: 1.5; }
+.gb-right { display: flex; gap: 10px; flex-wrap: wrap; align-self: flex-start; }
+.lcard { background: white; border-radius: 12px; padding: 13px 16px; text-align: center; min-width: 86px; box-shadow: 0 2px 8px rgba(0,0,0,.1); transition: all .2s; }
+.lcard .ll { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+.lcard .lv { font-size: 28px; font-weight: 800; color: var(--blue); line-height: 1; }
+.lcard .ls { font-size: 11px; color: #666; margin-top: 4px; }
+.lcard.ok .lv    { color: #198754; }
+.lcard.danger .lv { color: #dc3545; }
+/* ===== STUDENT BANNER ===== */
+.student-banner { background: linear-gradient(135deg, #d1e7dd, #c3e6cb); border: 1px solid #a3cfbb; border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
+.sb-left { flex: 1; min-width: 240px; }
+.sb-left h2 { color: #0f5132; font-size: 17px; margin-bottom: 6px; }
+.sb-left p  { color: #155724; font-size: 13.5px; line-height: 1.5; margin: 3px 0; }
+.sv-info { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.sv-item { background: rgba(255,255,255,.6); padding: 7px 13px; border-radius: 8px; font-size: 13px; color: #155724; }
+.sv-item b { color: #0f5132; }
+.sv-perm-list { background: rgba(255,255,255,.55); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #155724; min-width: 200px; align-self: flex-start; }
+.sv-perm-title { font-weight: 700; font-size: 12px; color: #0f5132; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.sv-perm-list ul { padding-left: 16px; }
+.sv-perm-list li { margin-bottom: 5px; line-height: 1.45; }
+
 @media (max-width: 768px) {
-  .exam-layout { grid-template-columns: 1fr; }
-  .exam-sidebar { border-left: none; border-top: 1px solid var(--border); }
-  .answers-list { grid-template-columns: 1fr; }
-  .modal-info-grid { grid-template-columns: 1fr 1fr; }
+  .guest-banner, .student-banner { flex-direction: column; }
+  .gb-right { justify-content: center; width: 100%; }
 }
 </style>
 </head>
@@ -362,16 +400,89 @@ header {
 
 <!-- PAGE: SELECTION -->
 <div class="pg active" id="pgSelect">
-  <!-- Student Info Bar -->
-  <div class="student-info-bar">
-    <div class="si-greet">
-      <h2>👋 Xin chào, <span id="svName">...</span>!</h2>
-      <div class="si-chips">
-        <span class="si-chip">🎫 Mã HV: <b id="svCode">...</b></span>
-        <span class="si-chip">🏢 Đơn vị: <b id="svUnit">...</b></span>
-        <span class="si-chip">🎯 Đối tượng: <b id="svObject">...</b></span>
-        <span class="si-chip" id="svCourseChip" style="display:none">📚 Khóa: <b id="svCourse"></b></span>
+
+  <!-- BANNER KHÁCH -->
+  <div class="guest-banner" id="guestBanner" style="display:none;">
+    <div class="gb-left">
+      <div class="gb-title">
+        👋 Xin chào, Khách viếng thăm
+        <span class="gb-seq">🔢 Khách số&nbsp;<span id="guestSeqDisplay"><span class="seq-loading"></span></span></span>
       </div>
+      <table class="perm-table">
+        <thead>
+          <tr>
+            <th>Tính năng</th>
+            <th>👤 Khách</th>
+            <th>🎓 Học viên</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Xem danh sách đề thi</td>
+            <td><span class="p-yes">✔</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+          <tr>
+            <td>Làm bài thi thử</td>
+            <td><span class="p-limit">1 lần / ngày<br>3 lần / tuần</span></td>
+            <td><span class="p-yes">✔ Không giới hạn</span></td>
+          </tr>
+          <tr>
+            <td>Kết quả ghi nhận chính thức</td>
+            <td><span class="p-no">✘</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+          <tr>
+            <td>Xem lịch sử thi &amp; điểm số</td>
+            <td><span class="p-no">✘</span></td>
+            <td><span class="p-yes">✔</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="contact-row">
+        <span class="contact-item">📞 <b>0973.306.802</b></span>
+      </div>
+      <p class="contact-note">👉 Liên hệ Admin để <b>đăng ký tài khoản Học viên</b> và sử dụng đầy đủ tính năng!</p>
+    </div>
+    <div class="gb-right">
+      <div class="lcard" id="lcToday">
+        <div class="ll">Hôm nay</div>
+        <div class="lv" id="todayUsed">0</div>
+        <div class="ls">/ 1 lượt</div>
+      </div>
+      <div class="lcard" id="lcWeek">
+        <div class="ll">Tuần này</div>
+        <div class="lv" id="weekUsed">0</div>
+        <div class="ls">/ 3 lượt</div>
+      </div>
+      <div class="lcard ok" id="lcRemain">
+        <div class="ll">Còn lại</div>
+        <div class="lv" id="remainCount">–</div>
+        <div class="ls">lượt hôm nay</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER HỌC VIÊN -->
+  <div class="student-banner" id="studentBanner" style="display:none;">
+    <div class="sb-left">
+      <h2>👋 Xin chào, <span id="svName">...</span>!</h2>
+      <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
+      <div class="sv-info">
+        <div class="sv-item">🎫 Mã HV: <b id="svCode">...</b></div>
+        <div class="sv-item">🏢 Đơn vị: <b id="svUnit">...</b></div>
+        <div class="sv-item" id="svObjectChip">🎯 <b id="svObject">...</b></div>
+        <div class="sv-item" id="svCourseChip" style="display:none">📚 Khóa: <b id="svCourse">...</b></div>
+      </div>
+    </div>
+    <div class="sv-perm-list">
+      <div class="sv-perm-title">✅ Quyền của Học viên</div>
+      <ul>
+        <li>🔓 Thi không giới hạn số lần</li>
+        <li>💾 Kết quả ghi nhận chính thức</li>
+        <li>📊 Xem toàn bộ lịch sử thi</li>
+        <li>🎯 Hỗ trợ ưu tiên từ Admin</li>
+      </ul>
     </div>
   </div>
 
@@ -533,7 +644,11 @@ const studentUnit = localStorage.getItem("studentUnit") || "";
 const studentObj  = localStorage.getItem("studentObject") || "";
 const studentCrs  = localStorage.getItem("studentCourse") || "";
 
-if (userType !== "student") location.href = "index.html";
+// Chưa đăng nhập → về trang chủ
+if (userType !== "guest" && userType !== "student") location.href = "index.html";
+
+const IS_GUEST   = userType === "guest";
+const IS_STUDENT = userType === "student";
 
 // ================================================================
 // CLOCK
@@ -551,18 +666,134 @@ if (userType !== "student") location.href = "index.html";
 })();
 
 // ================================================================
-// STUDENT INFO
+// GUEST LIMIT CONSTANTS & HELPERS
 // ================================================================
-document.getElementById("svName").textContent = studentName || studentCode;
-document.getElementById("svCode").textContent = studentCode;
-document.getElementById("svUnit").textContent = studentUnit || "—";
-document.getElementById("svObject").textContent = studentObj || "—";
-if (studentCrs) {
-  document.getElementById("svCourseChip").style.display = "inline-flex";
-  document.getElementById("svCourse").textContent = studentCrs;
+const DAILY_LIMIT  = 1;
+const WEEKLY_LIMIT = 3;
+
+function getTodayVN() {
+  return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
 }
-document.getElementById("examStudentInfo").textContent =
-  `${studentName} (${studentCode})${studentUnit ? ' – ' + studentUnit : ''}`;
+function getWeekKeyVN() {
+  const d = new Date(Date.now() + 7 * 3600000);
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() - day + 1);
+  return "W" + d.toISOString().slice(0, 10);
+}
+function getGuestId() {
+  let gid = localStorage.getItem("guestId");
+  if (!gid) {
+    gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase();
+    localStorage.setItem("guestId", gid);
+  }
+  return gid;
+}
+function getLogsLocal() {
+  try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); } catch (e) { return []; }
+}
+function saveLogsLocal(logs) {
+  try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); } catch (e) {}
+}
+async function getLogsRemote() {
+  if (!db) return [];
+  try {
+    const doc = await db.collection("guestUsage").doc(getGuestId()).get();
+    if (doc.exists && Array.isArray(doc.data().logs)) return doc.data().logs;
+  } catch (e) {}
+  return [];
+}
+async function pushLogsRemote(logs) {
+  if (!db) return;
+  try {
+    await db.collection("guestUsage").doc(getGuestId()).set(
+      { logs, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+  } catch (e) {}
+}
+async function restoreLogsFromFirestore() {
+  const remote = await getLogsRemote();
+  if (!remote.length) return;
+  const local  = getLogsLocal();
+  const merged = [...local];
+  remote.forEach(r => { if (!merged.find(l => l.time === r.time)) merged.push(r); });
+  merged.sort((a, b) => a.time - b.time);
+  saveLogsLocal(merged);
+}
+async function saveGuestLog() {
+  const logs  = getLogsLocal();
+  const entry = { date: getTodayVN(), week: getWeekKeyVN(), time: Date.now() };
+  logs.push(entry);
+  saveLogsLocal(logs);
+  await pushLogsRemote(logs);
+}
+function getTodayCount() { return getLogsLocal().filter(l => l.date === getTodayVN()).length; }
+function getWeekCount()  { return getLogsLocal().filter(l => l.week === getWeekKeyVN()).length; }
+function canTakeExam()   { return IS_STUDENT || (getTodayCount() < DAILY_LIMIT && getWeekCount() < WEEKLY_LIMIT); }
+
+function updateLimitDisplay() {
+  if (!IS_GUEST) return;
+  const td = getTodayCount(), wk = getWeekCount(), rm = Math.max(0, DAILY_LIMIT - td);
+  document.getElementById("todayUsed").textContent   = td;
+  document.getElementById("weekUsed").textContent    = wk;
+  document.getElementById("remainCount").textContent = rm;
+  document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT  ? "danger" : "ok");
+  document.getElementById("lcWeek").className   = "lcard " + (wk >= WEEKLY_LIMIT ? "danger" : "ok");
+  document.getElementById("lcRemain").className = "lcard " + (rm <= 0            ? "danger" : "ok");
+}
+
+async function assignGuestSequentialNumber() {
+  const el    = document.getElementById("guestSeqDisplay");
+  const saved = localStorage.getItem("guestSeqNumber");
+  if (saved) { el.textContent = saved; return saved; }
+  if (db) {
+    try {
+      const counterRef = db.collection("systemConfig").doc("guestCounter");
+      const num = await db.runTransaction(async tx => {
+        const snap = await tx.get(counterRef);
+        const next = ((snap.exists && snap.data().total) ? snap.data().total : 0) + 1;
+        tx.set(counterRef, { total: next }, { merge: true });
+        return next;
+      });
+      const fmt = String(num).padStart(4, "0");
+      localStorage.setItem("guestSeqNumber", fmt);
+      el.textContent = fmt;
+      return fmt;
+    } catch (e) {}
+  }
+  const fb = "L" + String(Date.now()).slice(-4);
+  localStorage.setItem("guestSeqNumber", fb);
+  el.textContent = fb;
+  return fb;
+}
+
+// ================================================================
+// SETUP UI - GUEST vs STUDENT
+// ================================================================
+async function setupUI() {
+  if (IS_GUEST) {
+    document.getElementById("guestBanner").style.display   = "flex";
+    document.getElementById("studentBanner").style.display = "none";
+    await restoreLogsFromFirestore();
+    updateLimitDisplay();
+    await assignGuestSequentialNumber();
+  } else {
+    document.getElementById("guestBanner").style.display   = "none";
+    document.getElementById("studentBanner").style.display = "flex";
+    document.getElementById("svName").textContent   = studentName || studentCode;
+    document.getElementById("svCode").textContent   = studentCode;
+    document.getElementById("svUnit").textContent   = studentUnit || "—";
+    document.getElementById("svObject").textContent = studentObj  || "—";
+    if (studentCrs) {
+      document.getElementById("svCourseChip").style.display = "inline-flex";
+      document.getElementById("svCourse").textContent = studentCrs;
+    }
+  }
+  document.getElementById("examStudentInfo").textContent =
+    IS_GUEST ? "Khách thi thử" : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
+}
+
+setupUI();
 
 // ================================================================
 // LOGOUT
@@ -675,14 +906,43 @@ function openModal(setId) {
     mGroups.appendChild(chip);
   }
 
-  const ruleEl = document.getElementById("mRuleLiet");
-  if (liet > 0) {
-    ruleEl.style.display = "list-item";
-    ruleEl.textContent = `⚡ Đề có ${liet} câu liệt – trả lời sai sẽ bị KHÔNG ĐẠT dù đủ điểm!`;
-  } else ruleEl.style.display = "none";
+  const ruleEl  = document.getElementById("mRuleLiet");
+  const startBtn = document.getElementById("mStartBtn");
 
-  document.getElementById("mStartBtn").disabled = false;
-  document.getElementById("mStartBtn").textContent = "▶ Bắt đầu làm bài";
+  if (IS_GUEST) {
+    ruleEl.style.display = "list-item";
+    ruleEl.textContent   = "🏍️🚗 Khách: tối đa 1 lần/ngày và 3 lần/tuần";
+    if (!canTakeExam()) {
+      startBtn.disabled    = true;
+      startBtn.textContent = "🚫 Đã hết lượt thi thử";
+      // Show warning note
+      const existingWarn = document.getElementById("mGuestWarn");
+      if (!existingWarn) {
+        const warn = document.createElement("div");
+        warn.id = "mGuestWarn";
+        warn.style.cssText = "background:#fee2e2;border:1px solid #fca5a5;color:#9b1c1c;padding:12px;border-radius:10px;margin-bottom:12px;font-size:13px;text-align:center;font-weight:600;white-space:pre-line;";
+        warn.textContent = "⚠ Bạn đã hết lượt thi thử hôm nay.\n\n👉 Liên hệ Admin để đăng ký tài khoản Học viên và thi không giới hạn!";
+        document.querySelector(".modal-rules").before(warn);
+      }
+    } else {
+      startBtn.disabled    = false;
+      startBtn.textContent = "▶ Bắt đầu thi thử";
+      const warn = document.getElementById("mGuestWarn");
+      if (warn) warn.remove();
+    }
+  } else {
+    if (liet > 0) {
+      ruleEl.style.display = "list-item";
+      ruleEl.textContent   = `⚡ Đề có ${liet} câu liệt – trả lời sai sẽ bị KHÔNG ĐẠT dù đủ điểm!`;
+    } else {
+      ruleEl.style.display = "none";
+    }
+    startBtn.disabled    = false;
+    startBtn.textContent = "▶ Bắt đầu làm bài";
+    const warn = document.getElementById("mGuestWarn");
+    if (warn) warn.remove();
+  }
+
   document.getElementById("examModal").classList.add("show");
 }
 
@@ -704,10 +964,35 @@ let autoSubmitted   = false;
 async function beginExam() {
   if (!selectedSet) return;
   const s = selectedSet;
+
+  // Guest: check limit first
+  if (IS_GUEST && !canTakeExam()) {
+    alert("Bạn đã hết lượt thi thử!\n\nVui lòng liên hệ Admin để đăng ký tài khoản Học viên.");
+    return;
+  }
+
   closeModal();
+  document.getElementById("startMsg").textContent = IS_GUEST ? "⏳ Đang ghi nhận lượt thi thử…" : "⏳ Đang tải ngân hàng câu hỏi…";
+  document.getElementById("startOverlay").classList.add("show");
+
+  // Guest: save exam log to localStorage + Firestore
+  if (IS_GUEST) {
+    await saveGuestLog();
+    updateLimitDisplay();
+  }
+
+  // Student: update presence
+  if (IS_STUDENT && db && studentCode) {
+    try {
+      await db.collection("presence").doc(studentCode).set({
+        isOnline: true,
+        currentSection: "Đang thi: " + s.name,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (e) {}
+  }
 
   document.getElementById("startMsg").textContent = "⏳ Đang tải ngân hàng câu hỏi…";
-  document.getElementById("startOverlay").classList.add("show");
 
   try {
     // Load all questions for this set
@@ -954,8 +1239,8 @@ async function submitExam(autoSub) {
   // Show result page
   showResultPage({ totalQ, correctCount, score, passed, passScore, lietFailed, requireLiet, details, timeTaken, s });
 
-  // Save to Firestore
-  if (db && studentCode) {
+  // Save to Firestore (students only, not guests)
+  if (IS_STUDENT && db && studentCode) {
     try {
       const snap = await db.collection("examResults")
         .where("studentCode", "==", studentCode)
