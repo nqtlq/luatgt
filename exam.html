@@ -246,29 +246,70 @@ header {
 .btn-detail { background: linear-gradient(135deg, #457b9d, #1d3557); }
 
 /* ===== NOTIFICATIONS PANEL ===== */
-.notif-panel .card-header { background: linear-gradient(135deg, #f4a261, #e76f51); }
+.notif-panel .card-header {
+  background: linear-gradient(135deg, #f4a261, #e76f51);
+  cursor: pointer;
+  user-select: none;
+}
 .notif-panel .card-header h3 { color: white; }
 .notif-panel .card-header span { color: white; }
-.notif-empty { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 13px; }
+.notif-panel-toggle { font-size: 13px; color: rgba(255,255,255,0.85); transition: transform 0.3s; }
+.notif-panel-toggle.collapsed { transform: rotate(-90deg); }
+#notifListWrap { transition: max-height 0.35s ease, opacity 0.25s; overflow: hidden; max-height: 1200px; opacity: 1; }
+#notifListWrap.hidden { max-height: 0; opacity: 0; pointer-events: none; }
+.notif-empty { text-align: center; padding: 24px 16px; color: var(--muted); font-size: 13px; }
 .notif-list-item {
-  padding: 14px 20px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
   position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
 }
 .notif-list-item:hover { background: #fff8f2; }
 .notif-list-item.unread { border-left: 3px solid var(--yellow); background: #fff9f4; }
-.notif-list-item.unread .notif-dot { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
-.notif-list-item .n-title { font-weight: 700; font-size: 13px; color: var(--blue); margin-bottom: 3px; }
-.notif-list-item .n-text { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.notif-list-item .n-time { font-size: 11px; color: #b2bec3; }
-.type-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.notif-list-item .n-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.notif-list-item .n-body { flex: 1; min-width: 0; }
+.notif-list-item .n-title { font-weight: 700; font-size: 12.5px; color: var(--blue); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif-list-item .n-text { font-size: 11.5px; color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.notif-list-item .n-time { font-size: 10.5px; color: #b2bec3; margin-top: 2px; }
+.notif-del-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #b2bec3;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.notif-del-btn:hover { color: var(--red); background: #fee2e2; }
+.type-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; flex-shrink: 0; }
 .type-info { background: #0d6efd; }
 .type-exam { background: #ffc107; }
 .type-result { background: #198754; }
 .type-urgent { background: #dc3545; }
 .type-reminder { background: #7c3aed; }
+.notif-actions-bar {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.notif-action-link {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.notif-action-link:hover { color: var(--red); }
 
 /* ===== CONFIRM MODAL ===== */
 .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
@@ -423,15 +464,25 @@ header {
 
       <!-- Notifications Card -->
       <div class="card notif-panel">
-        <div class="card-header" style="justify-content:space-between;">
+        <div class="card-header" style="justify-content:space-between;" onclick="toggleNotifPanel()">
           <div style="display:flex;align-items:center;gap:8px;">
             <span>🔔</span>
             <h3>Thông báo từ hệ thống</h3>
           </div>
-          <span id="unreadCount" style="background:rgba(255,255,255,0.3);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;display:none;">0</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="unreadCount" style="background:rgba(255,255,255,0.35);color:white;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;display:none;">0</span>
+            <span class="notif-panel-toggle" id="notifToggleIcon">▾</span>
+          </div>
         </div>
-        <div id="notifList">
-          <div class="notif-empty">📭 Chưa có thông báo nào</div>
+        <div id="notifListWrap">
+          <div class="notif-actions-bar" id="notifActionsBar" style="display:none;">
+            <span class="notif-action-link" onclick="markAllRead(event)">Đánh dấu tất cả đã đọc</span>
+            <span style="color:var(--border)">|</span>
+            <span class="notif-action-link" onclick="deleteAllNotifs(event)">Xóa tất cả</span>
+          </div>
+          <div id="notifList">
+            <div class="notif-empty">📭 Chưa có thông báo nào</div>
+          </div>
         </div>
       </div>
     </div>
@@ -651,14 +702,21 @@ let examResultsUnsub = null;
 function loadExamResults() {
   if (examResultsUnsub) examResultsUnsub();
 
+  // KHÔNG dùng .orderBy() kèm .where() — cần Composite Index chưa tạo → query thất bại.
+  // Sắp xếp theo timestamp phía client sau khi nhận data.
   examResultsUnsub = db.collection("examResults")
     .where("studentCode", "==", studentCode)
-    .orderBy("timestamp", "desc")
-    .limit(50)
+    .limit(100)
     .onSnapshot(snap => {
       let pass = 0, fail = 0;
       const logs = [];
       snap.forEach(d => { const data = d.data(); logs.push(data); if (data.passed) pass++; else fail++; });
+      // Sắp xếp mới nhất trước (client-side)
+      logs.sort((a, b) => {
+        const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+        const tb2 = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+        return tb2 - ta;
+      });
 
       animNum(document.getElementById("totalExam"), logs.length);
       animNum(document.getElementById("passExam"), pass);
@@ -710,52 +768,124 @@ function animNum(el, val) {
 // =====================================================================
 let notifCache = []; // array of { id, ...notifData, read:bool }
 
-// ----- Helpers dùng lại -----
+// =====================================================================
+// NOTIFICATIONS – Compact panel với nút xóa, collapsible
+// =====================================================================
 const TYPE_ICONS = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+let notifPanelOpen = true;  // trạng thái mở/đóng panel
+
+function toggleNotifPanel() {
+  notifPanelOpen = !notifPanelOpen;
+  const wrap = document.getElementById("notifListWrap");
+  const icon = document.getElementById("notifToggleIcon");
+  if (notifPanelOpen) {
+    wrap.classList.remove("hidden");
+    icon.classList.remove("collapsed");
+    icon.textContent = "▾";
+  } else {
+    wrap.classList.add("hidden");
+    icon.classList.add("collapsed");
+    icon.textContent = "▸";
+  }
+}
+
+function _getDeletedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem("deletedNotifIds") || "[]")); }
+  catch(_) { return new Set(); }
+}
+function _saveDeletedIds(set) {
+  localStorage.setItem("deletedNotifIds", JSON.stringify([...set]));
+}
+function _getReadIds() {
+  try { return new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]")); }
+  catch(_) { return new Set(); }
+}
+function _saveReadIds(set) {
+  localStorage.setItem("readNotifIds", JSON.stringify([...set]));
+}
 
 function _renderNotifList() {
-  const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
-  const notifs  = notifCache.map(n => ({ ...n, read: readIds.has(n.id) }));
-  notifCache    = notifs;
+  const deletedIds = _getDeletedIds();
+  const readIds    = _getReadIds();
+  const visible    = notifCache.filter(n => !deletedIds.has(n.id));
+  const notifs     = visible.map(n => ({ ...n, read: readIds.has(n.id) }));
 
   const unread  = notifs.filter(n => !n.read).length;
   const unreadEl = document.getElementById("unreadCount");
   if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = "inline-block"; }
   else unreadEl.style.display = "none";
 
-  document.getElementById("notifList").innerHTML = notifs.length === 0
-    ? "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>"
-    : notifs.map(n => {
-        const icon = TYPE_ICONS[n.type] || "🔔";
-        const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-        return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
-          ${!n.read?"<div class=\"notif-dot\"></div>":""}
-          <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
-          <div class="n-text">${(n.content||"").substring(0,120)}</div>
-          <div class="n-time">${timeAgo(ts)}</div>
-        </div>`;
-      }).join("");
+  // Hiện/ẩn thanh actions
+  const actBar = document.getElementById("notifActionsBar");
+  if (actBar) actBar.style.display = notifs.length > 0 ? "flex" : "none";
 
+  if (notifs.length === 0) {
+    document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>";
+    return;
+  }
+
+  document.getElementById("notifList").innerHTML = notifs.map(n => {
+    const icon = TYPE_ICONS[n.type] || "🔔";
+    const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+    return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
+      ${!n.read ? '<span class="n-dot"></span>' : '<span style="width:8px;flex-shrink:0;"></span>'}
+      <div class="n-body">
+        <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
+        <div class="n-text">${(n.content||"").substring(0,80)}</div>
+        <div class="n-time">${timeAgo(ts)}</div>
+      </div>
+      <button class="notif-del-btn" onclick="deleteNotif(event,'${n.id}')" title="Xóa thông báo này">✕</button>
+    </div>`;
+  }).join("");
+
+  // Mở panel nếu có thông báo chưa đọc mới
   const newest = notifs.find(n => !n.read);
-  if (newest) showNotifBanner(newest);
+  if (newest) {
+    if (!notifPanelOpen) toggleNotifPanel();
+    showNotifBanner(newest);
+  }
+}
+
+function deleteNotif(e, id) {
+  e.stopPropagation();
+  const del = _getDeletedIds();
+  del.add(id);
+  _saveDeletedIds(del);
+  // Cũng đánh dấu đã đọc
+  const read = _getReadIds();
+  read.add(id);
+  _saveReadIds(read);
+  _renderNotifList();
+}
+
+function markAllRead(e) {
+  if (e) e.stopPropagation();
+  const del  = _getDeletedIds();
+  const read = _getReadIds();
+  notifCache.filter(n => !del.has(n.id)).forEach(n => read.add(n.id));
+  _saveReadIds(read);
+  _renderNotifList();
+}
+
+function deleteAllNotifs(e) {
+  if (e) e.stopPropagation();
+  const del = _getDeletedIds();
+  notifCache.forEach(n => del.add(n.id));
+  _saveDeletedIds(del);
+  _renderNotifList();
 }
 
 function _filterNotifs(all) {
-  // Lấy thông tin học viên hiện tại
   const studentObj2 = localStorage.getItem("studentObject") || "";
   const studentCrs2 = localStorage.getItem("studentCourse") || "";
 
   return all.filter(n => {
-    // Gửi cho tất cả
     if (n.target === "all" || n.targetType === "all") return true;
-    // Gửi cho cá nhân cụ thể
     if (n.targetType === "individual") {
       const codes = (n.targetDetail || "").split(",").map(c => c.trim().toUpperCase());
       return codes.includes((studentCode || "").toUpperCase());
     }
-    // Gửi theo khóa học
     if (n.targetType === "course") return (n.targetDetail || "") === studentCrs2;
-    // Gửi theo đối tượng (Học viên / Sĩ quan / Chuyên nghiệp...)
     if (n.targetType === "object" || n.target === studentObj2) return (n.target || "") === studentObj2;
     return false;
   });
@@ -766,46 +896,35 @@ let notifUnsub = null;
 function loadNotifications() {
   if (notifUnsub) notifUnsub();
 
-  // Dùng query đơn giản (KHÔNG orderBy) để tránh lỗi thiếu Composite Index.
-  // Firestore chỉ cần index đơn trường "status" – vốn có sẵn.
-  // Sắp xếp theo createdAt thực hiện phía client.
   notifUnsub = db.collection("notifications")
     .where("status", "==", "sent")
     .limit(50)
     .onSnapshot(snap => {
       const all = [];
       snap.forEach(d => all.push({ id: d.id, ...d.data() }));
-
-      // Sắp xếp mới nhất trước (client-side)
       all.sort((a, b) => {
         const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
         const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
         return tb - ta;
       });
-
-      notifCache = _filterNotifs(all).slice(0, 20);
+      notifCache = _filterNotifs(all).slice(0, 30);
       _renderNotifList();
     }, e => {
       console.warn("Notif snapshot error:", e.message);
-      // Fallback: thử lấy toàn bộ không filter
-      db.collection("notifications")
-        .limit(30)
-        .get()
-        .then(snap2 => {
-          const all2 = [];
-          snap2.forEach(d => all2.push({ id: d.id, ...d.data() }));
-          const sent = all2.filter(n => n.status === "sent");
-          sent.sort((a, b) => {
-            const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
-            const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
-            return tb - ta;
-          });
-          notifCache = _filterNotifs(sent).slice(0, 20);
-          _renderNotifList();
-        })
-        .catch(() => {
-          document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+      db.collection("notifications").limit(30).get().then(snap2 => {
+        const all2 = [];
+        snap2.forEach(d => all2.push({ id: d.id, ...d.data() }));
+        const sent = all2.filter(n => n.status === "sent");
+        sent.sort((a, b) => {
+          const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+          const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+          return tb - ta;
         });
+        notifCache = _filterNotifs(sent).slice(0, 30);
+        _renderNotifList();
+      }).catch(() => {
+        document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+      });
     });
 }
 
@@ -833,9 +952,9 @@ function openNotifById(id) {
   if (!n) return;
 
   // Đánh dấu đã đọc
-  const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
+  const readIds = _getReadIds();
   readIds.add(id);
-  localStorage.setItem("readNotifIds", JSON.stringify([...readIds]));
+  _saveReadIds(readIds);
 
   const icon = TYPE_ICONS[n.type] || "🔔";
   const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
@@ -844,9 +963,6 @@ function openNotifById(id) {
   document.getElementById("notifModalFooter").textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
   document.getElementById("notifModal").classList.add("show");
   closeBanner();
-
-  // Cập nhật trạng thái đọc trong cache rồi re-render
-  notifCache = notifCache.map(x => x.id === id ? { ...x, read: true } : x);
   _renderNotifList();
 }
 
