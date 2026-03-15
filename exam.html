@@ -270,7 +270,20 @@ header {
 .type-urgent { background: #dc3545; }
 .type-reminder { background: #7c3aed; }
 
-/* ===== KICKOUT MODAL ===== */
+/* ===== CONFIRM MODAL ===== */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
+.confirm-overlay.show { display: flex; }
+.confirm-box { background: white; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.25); animation: cIn 0.25s; }
+@keyframes cIn { from { opacity:0; transform: scale(.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
+.confirm-box .c-icon { font-size: 48px; margin-bottom: 12px; }
+.confirm-box h3 { font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+.confirm-box p { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; }
+.c-btn-cancel { background: #f1f4f8; color: var(--blue); }
+.c-btn-cancel:hover { background: #e0e7ff; }
+.c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
+.c-btn-confirm:hover { opacity: 0.9; }
 .kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
 .kickout-modal.show { display: flex; }
 .kickout-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kFadeIn .4s; border-top: 6px solid #dc3545; }
@@ -317,7 +330,7 @@ header {
       </div>
     </div>
     <div class="header-actions">
-      <button id="logoutBtn">🚪 Đăng xuất</button>
+      <button id="logoutBtn" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
     </div>
   </div>
   <div class="welcome-bar">
@@ -327,6 +340,19 @@ header {
 
 <!-- NOTIFICATION BANNER (real-time) -->
 <div class="notif-banner" id="notifBanner"></div>
+
+<!-- CONFIRM LOGOUT MODAL -->
+<div class="confirm-overlay" id="confirmLogoutModal">
+  <div class="confirm-box">
+    <div class="c-icon">🚪</div>
+    <h3>Xác nhận đăng xuất</h3>
+    <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</p>
+    <div class="confirm-btns">
+      <button class="c-btn-cancel" onclick="closeConfirmLogout()">← Hủy bỏ</button>
+      <button class="c-btn-confirm" onclick="doLogout()">🚪 Đăng xuất</button>
+    </div>
+  </div>
+</div>
 
 <!-- KICKOUT MODAL -->
 <div class="kickout-modal" id="kickoutModal">
@@ -495,6 +521,21 @@ const studentCode = localStorage.getItem("studentCode");
 if (userType !== "student" || !studentCode) location.href = "index.html";
 
 // =====================================================================
+// LOGOUT CONFIRM
+// =====================================================================
+function showConfirmLogout() {
+  document.getElementById('confirmLogoutModal').classList.add('show');
+}
+function closeConfirmLogout() {
+  document.getElementById('confirmLogoutModal').classList.remove('show');
+}
+function doLogout() {
+  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
+  localStorage.clear();
+  location.href = 'index.html';
+}
+
+// =====================================================================
 // CLOCK
 // =====================================================================
 function updateClock() {
@@ -598,187 +639,185 @@ async function initPage() {
 }
 
 // =====================================================================
-// EXAM RESULTS + CHART
+// EXAM RESULTS + CHART – REAL-TIME
 // =====================================================================
+let examResultsUnsub = null;
+
 function loadExamResults() {
-  db.collection("examResults")
+  if (examResultsUnsub) examResultsUnsub();
+
+  examResultsUnsub = db.collection("examResults")
     .where("studentCode", "==", studentCode)
     .orderBy("timestamp", "desc")
     .limit(50)
-    .get()
-    .then(snap => {
-      if (snap.empty) {
-        document.getElementById('noDataMsg').style.display = 'block';
+    .onSnapshot(snap => {
+      let pass = 0, fail = 0;
+      const logs = [];
+      snap.forEach(d => { const data = d.data(); logs.push(data); if (data.passed) pass++; else fail++; });
+
+      animNum(document.getElementById("totalExam"), logs.length);
+      animNum(document.getElementById("passExam"), pass);
+      animNum(document.getElementById("failExam"), fail);
+
+      if (!logs.length) {
+        document.getElementById("noDataMsg").style.display = "block";
+        document.getElementById("resultTableWrap").style.display = "none";
+        document.getElementById("chartWrap").style.display = "none";
         return;
       }
 
-      let pass = 0, fail = 0;
-      const logs = [];
-      snap.forEach(d => {
-        const data = d.data();
-        logs.push(data);
-        if (data.passed) pass++; else fail++;
-      });
-
-      // Update stat boxes
-      animNum(document.getElementById('totalExam'), logs.length);
-      animNum(document.getElementById('passExam'), pass);
-      animNum(document.getElementById('failExam'), fail);
-
-      // Table
-      const tb = document.getElementById('resultTableBody');
-      tb.innerHTML = logs.slice(0, 5).map((d, i) => {
+      const tb = document.getElementById("resultTableBody");
+      tb.innerHTML = logs.slice(0,5).map((d,i) => {
         const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+        const correct = d.correctCount ?? d.score ?? 0;
+        const total = d.totalQuestions || 0;
         return `<tr>
           <td>${i+1}</td>
           <td>${fmtDateTime(ts)}</td>
-          <td>${d.setName || d.setCode || '—'}</td>
-          <td>${d.score || 0}/${d.totalQuestions || 0}</td>
-          <td class="${d.passed ? 'pass' : 'fail'}">${d.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</td>
+          <td>${d.setName||d.setCode||"—"}</td>
+          <td><b style="color:${d.passed?"var(--green)":"var(--red)"}">${correct}/${total}</b></td>
+          <td class="${d.passed?"pass":"fail"}">${d.passed?"✓ ĐẠT":"✗ KHÔNG ĐẠT"}</td>
         </tr>`;
-      }).join('');
-      document.getElementById('resultTableWrap').style.display = 'block';
-      document.getElementById('noDataMsg').style.display = 'none';
+      }).join("");
+      document.getElementById("resultTableWrap").style.display = "block";
+      document.getElementById("noDataMsg").style.display = "none";
+      document.getElementById("chartWrap").style.display = "block";
 
-      // Chart
-      const total = pass + fail;
-      const pPct = total ? Math.round(pass * 100 / total) : 0;
+      const total2 = pass+fail;
+      const pPct = total2 ? Math.round(pass*100/total2) : 0;
       if (chart) chart.destroy();
-      chart = new Chart(document.getElementById('resultChart'), {
-        type: 'doughnut',
-        data: {
-          labels: [`Đạt (${pPct}%)`, `Không đạt (${100-pPct}%)`],
-          datasets: [{
-            data: pass + fail > 0 ? [pass, fail] : [1, 0],
-            backgroundColor: ['#2a9d8f', '#e63946'],
-            borderWidth: 3,
-            borderColor: '#fff',
-            cutout: '60%'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }
-        }
+      chart = new Chart(document.getElementById("resultChart"), {
+        type: "doughnut",
+        data: { labels: [`Đạt (${pPct}%)`,`Không đạt (${100-pPct}%)`], datasets: [{ data: [pass||0,fail||0], backgroundColor: ["#2a9d8f","#e63946"], borderWidth: 3, borderColor: "#fff", cutout: "60%" }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
       });
-
-      // Hide chart if no data
-      if (pass + fail === 0) document.getElementById('chartWrap').style.display = 'none';
-    })
-    .catch(e => console.warn('Lỗi tải kết quả:', e));
+    }, err => console.warn("Lỗi tải kết quả:", err));
 }
 
 function animNum(el, val) {
-  let n = 0, step = Math.max(1, Math.ceil(val / 40));
-  const t = setInterval(() => {
-    n += step;
-    if (n >= val) { el.textContent = val; clearInterval(t); }
-    else el.textContent = n;
-  }, 20);
+  if (!el) return;
+  let n = 0, step = Math.max(1, Math.ceil(val/40));
+  const t = setInterval(() => { n += step; if (n >= val) { el.textContent = val; clearInterval(t); } else el.textContent = n; }, 20);
 }
 
 // =====================================================================
-// NOTIFICATIONS
+// NOTIFICATIONS – Đọc từ `notifications` collection (tránh lỗi permissions)
 // =====================================================================
+let notifCache = [];
+
 function loadNotifications() {
-  // Listen for new notifications in real-time
-  db.collection('studentNotifications')
-    .where('studentCode', '==', studentCode)
-    .orderBy('sentAt', 'desc')
-    .limit(20)
+  const studentObj2 = localStorage.getItem("studentObject") || "";
+  const studentCrs2 = localStorage.getItem("studentCourse") || "";
+
+  db.collection("notifications")
+    .where("status", "==", "sent")
+    .orderBy("createdAt", "desc")
+    .limit(30)
     .onSnapshot(snap => {
-      if (snap.empty) {
-        document.getElementById('notifList').innerHTML = '<div class="notif-empty">📭 Chưa có thông báo nào</div>';
-        return;
-      }
+      const all = [];
+      snap.forEach(d => all.push({ id: d.id, ...d.data() }));
 
-      const notifs = [];
-      snap.forEach(d => notifs.push({ id: d.id, ...d.data() }));
+      const myNotifs = all.filter(n => {
+        if (n.target === "all" || n.targetType === "all") return true;
+        if (n.targetType === "individual") {
+          const codes = (n.targetDetail || "").split(",").map(c => c.trim());
+          return codes.includes(studentCode);
+        }
+        if (n.targetType === "course") return n.targetDetail === studentCrs2;
+        if (n.target === studentObj2 || n.targetType === "object") return n.target === studentObj2;
+        return false;
+      }).slice(0, 20);
 
-      const unread = notifs.filter(n => !n.read).length;
-      const unreadEl = document.getElementById('unreadCount');
-      if (unread > 0) {
-        unreadEl.textContent = unread;
-        unreadEl.style.display = 'inline-block';
-      } else {
-        unreadEl.style.display = 'none';
-      }
+      const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
+      const notifs  = myNotifs.map(n => ({ ...n, read: readIds.has(n.id) }));
+      notifCache    = notifs;
 
-      const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
+      const unread  = notifs.filter(n => !n.read).length;
+      const unreadEl = document.getElementById("unreadCount");
+      if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = "inline-block"; }
+      else unreadEl.style.display = "none";
 
-      document.getElementById('notifList').innerHTML = notifs.map(n => {
-        const icon = typeIcons[n.type] || '🔔';
-        return `
-          <div class="notif-list-item ${!n.read ? 'unread' : ''}" onclick="openNotif('${n.id}')">
-            ${!n.read ? '<div class="notif-dot"></div>' : ''}
-            <div class="n-title"><span class="type-dot type-${n.type || 'info'}"></span>${icon} ${n.title || 'Thông báo'}</div>
-            <div class="n-text">${n.content || ''}</div>
-            <div class="n-time">${timeAgo(n.sentAt)}</div>
-          </div>
-        `;
-      }).join('');
+      const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+      document.getElementById("notifList").innerHTML = notifs.length === 0
+        ? "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>"
+        : notifs.map(n => {
+            const icon = typeIcons[n.type] || "🔔";
+            const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+            return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
+              ${!n.read?"<div class=\"notif-dot\"></div>":""}
+              <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
+              <div class="n-text">${n.content||""}</div>
+              <div class="n-time">${timeAgo(ts)}</div>
+            </div>`;
+          }).join("");
 
-      // Show banner for unread notifications (newest unread)
       const newest = notifs.find(n => !n.read);
       if (newest) showNotifBanner(newest);
-
-    }, e => console.warn('Notif listener error:', e));
+    }, e => {
+      console.warn("Notif error:", e);
+      document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+    });
 }
 
 function showNotifBanner(notif) {
-  const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
-  const icon = typeIcons[notif.type] || '🔔';
-  const banner = document.getElementById('notifBanner');
-  banner.innerHTML = `
-    <div class="notif-item" onclick="openNotif('${notif.id}')">
-      <span class="notif-icon">${icon}</span>
-      <div class="notif-body">
-        <div class="notif-title">📢 Thông báo mới: ${notif.title}</div>
-        <div class="notif-text">${(notif.content || '').substring(0, 100)}${notif.content?.length > 100 ? '...' : ''}</div>
-        <div class="notif-time">${timeAgo(notif.sentAt)} – Nhấn để xem chi tiết</div>
-      </div>
-      <span onclick="event.stopPropagation(); closeBanner()" style="cursor:pointer;font-size:16px;opacity:0.7;padding:4px;">✕</span>
+  const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+  const icon = typeIcons[notif.type] || "🔔";
+  const ts   = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
+  const banner = document.getElementById("notifBanner");
+  banner.innerHTML = `<div class="notif-item" onclick="openNotifById('${notif.id}')">
+    <span class="notif-icon">${icon}</span>
+    <div class="notif-body">
+      <div class="notif-title">📢 ${notif.title||""}</div>
+      <div class="notif-text">${(notif.content||"").substring(0,100)}${(notif.content||"").length>100?"...":""}</div>
+      <div class="notif-time">${timeAgo(ts)}</div>
     </div>
-  `;
-  banner.classList.add('show');
-  setTimeout(() => banner.classList.remove('show'), 8000);
+    <span onclick="event.stopPropagation();closeBanner()" style="cursor:pointer;font-size:16px;opacity:0.7;padding:4px;">✕</span>
+  </div>`;
+  banner.classList.add("show");
+  setTimeout(() => banner.classList.remove("show"), 8000);
 }
 
-function closeBanner() {
-  document.getElementById('notifBanner').classList.remove('show');
-}
+function closeBanner() { document.getElementById("notifBanner").classList.remove("show"); }
 
-async function openNotif(id) {
-  // Find notification
-  const el = document.querySelector(`[onclick="openNotif('${id}')"]`);
-  // Mark as read
-  try {
-    await db.collection('studentNotifications').doc(id).update({ read: true });
-  } catch(e) {}
+function openNotifById(id) {
+  const n = notifCache.find(x => x.id === id);
+  if (!n) return;
+  const readIds = new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]"));
+  readIds.add(id);
+  localStorage.setItem("readNotifIds", JSON.stringify([...readIds]));
 
-  // Show modal
-  const snap = await db.collection('studentNotifications').doc(id).get();
-  if (!snap.exists) return;
-  const n = snap.data();
-  const typeIcons = { info: 'ℹ️', exam: '📅', result: '📊', urgent: '🚨', reminder: '🔔' };
-  const icon = typeIcons[n.type] || '🔔';
-  document.getElementById('notifModalTitle').textContent = `${icon} ${n.title || 'Thông báo'}`;
-  document.getElementById('notifModalBody').textContent = n.content || '';
-  document.getElementById('notifModalFooter').textContent = `Gửi lúc: ${fmtDateTime(n.sentAt)}`;
-  document.getElementById('notifModal').classList.add('show');
-
-  // Close banner if visible
+  const typeIcons = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+  const icon = typeIcons[n.type] || "🔔";
+  const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+  document.getElementById("notifModalTitle").textContent = `${icon} ${n.title||"Thông báo"}`;
+  document.getElementById("notifModalBody").textContent  = n.content || "";
+  document.getElementById("notifModalFooter").textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
+  document.getElementById("notifModal").classList.add("show");
   closeBanner();
+  notifCache = notifCache.map(x => x.id===id ? {...x, read:true} : x);
+  const unread = notifCache.filter(x=>!x.read).length;
+  const el2 = document.getElementById("unreadCount");
+  if (unread > 0) { el2.textContent = unread; el2.style.display = "inline-block"; } else el2.style.display = "none";
+  const typeIconsRe = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+  document.getElementById("notifList").innerHTML = notifCache.map(nx => {
+    const ic = typeIconsRe[nx.type] || "🔔";
+    const tx = nx.createdAt?.toDate ? nx.createdAt.toDate() : new Date();
+    return `<div class="notif-list-item ${!nx.read?"unread":""}" onclick="openNotifById('${nx.id}')">
+      ${!nx.read?"<div class=\"notif-dot\"></div>":""}
+      <div class="n-title"><span class="type-dot type-${nx.type||"info"}"></span>${ic} ${nx.title||"Thông báo"}</div>
+      <div class="n-text">${nx.content||""}</div>
+      <div class="n-time">${timeAgo(tx)}</div>
+    </div>`;
+  }).join("");
 }
 
-function closeNotifModal() {
-  document.getElementById('notifModal').classList.remove('show');
-}
-document.getElementById('notifModal').addEventListener('click', e => {
+function closeNotifModal() { document.getElementById("notifModal").classList.remove("show"); }
+document.getElementById("notifModal").addEventListener("click", e => {
   if (e.target === e.currentTarget) closeNotifModal();
 });
 
+// =====================================================================
+// SECURITY & REAL-TIME
 // =====================================================================
 // SECURITY & REAL-TIME
 // =====================================================================
@@ -800,13 +839,6 @@ function kickOut(title, message, icon) {
     if (s <= 0) { localStorage.clear(); location.href = 'index.html'; }
   }, 1000);
 }
-
-// Logout
-document.getElementById('logoutBtn').onclick = () => {
-  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
-  localStorage.clear();
-  location.href = 'index.html';
-};
 
 // Init
 initPage();
