@@ -297,9 +297,36 @@ async function login() {
 async function processAdminLogin(pass) {
     let matched = false;
     if (pass === _AF) matched = true;
-    if (!matched && firebaseReady && db) { try { const d = await db.collection('systemConfig').doc('admin').get(); if (d.exists) { const data = d.data(); if (data.passwordHash && simpleHash(pass) === data.passwordHash) matched = true; if (!matched && data.password && pass === data.password) matched = true; } } catch(e) {} }
-    if (matched) { localStorage.setItem('userType', 'admin'); localStorage.setItem('adminName', 'Admin'); showSuccess('✅ Đăng nhập Admin thành công!'); setTimeout(() => { location.href = 'admin.html'; }, 800); } 
-    else { showError('❌ Bạn đã nhập sai mật khẩu Admin.'); document.getElementById('password').value = ''; document.getElementById('password').focus(); }
+    if (!matched && firebaseReady && db) {
+        try {
+            // Kiểm tra cả 2 vị trí lưu mật khẩu admin
+            // 1) systemConfig/admin  (cũ)
+            const d1 = await db.collection('systemConfig').doc('admin').get();
+            if (d1.exists) {
+                const data = d1.data();
+                if (data.passwordHash && simpleHash(pass) === data.passwordHash) matched = true;
+                if (!matched && data.password && pass === data.password) matched = true;
+            }
+            // 2) systemConfig/adminCredentials  (admin.html changeAdminPassword lưu tại đây)
+            if (!matched) {
+                const d2 = await db.collection('systemConfig').doc('adminCredentials').get();
+                if (d2.exists) {
+                    const data2 = d2.data();
+                    if (data2.passwordHash && simpleHash(pass) === data2.passwordHash) matched = true;
+                }
+            }
+        } catch(e) {}
+    }
+    if (matched) {
+        localStorage.setItem('userType', 'admin');
+        localStorage.setItem('adminName', 'Admin');
+        showSuccess('✅ Đăng nhập Admin thành công!');
+        setTimeout(() => { location.href = 'admin.html'; }, 800);
+    } else {
+        showError('❌ Bạn đã nhập sai mật khẩu Admin.');
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+    }
 }
 
 async function processStudentLogin(raw, pass) {
