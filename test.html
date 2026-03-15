@@ -1030,13 +1030,15 @@ async function beginExam() {
     updateLimitDisplay();
   }
 
-  // Student: update presence
+  // Student: update presence khi bắt đầu thi
   if (IS_STUDENT && db && studentCode) {
     try {
       await db.collection("presence").doc(studentCode).set({
-        isOnline: true,
+        isOnline:       true,
+        studentCode:    studentCode,
         currentSection: "Đang thi: " + s.name,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+        startAt:        firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     } catch (e) {}
   }
@@ -1135,12 +1137,13 @@ async function beginExam() {
     renderQuestion(0);
     startTimer();
 
-    // Presence update
+    // Presence update khi vào trang thi
     if (db && studentCode) {
       db.collection("presence").doc(studentCode).set({
-        isOnline: true,
+        isOnline:       true,
+        studentCode:    studentCode,
         currentSection: "Đang thi: " + s.name,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        lastActive:     firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true }).catch(() => {});
     }
 
@@ -1290,34 +1293,76 @@ async function submitExam(autoSub) {
 
   // Save to Firestore (students only, not guests)
   if (IS_STUDENT && db && studentCode) {
+    // ── BƯỚC 1: Lấy số lần thi trước (TÁCH RIÊNG try-catch để không block save) ──
+    let prevAttempt = 0;
     try {
+      // Thử query có orderBy (cần composite index nếu filter + orderBy cùng field khác)
       const snap = await db.collection("examResults")
         .where("studentCode", "==", studentCode)
-        .orderBy("timestamp", "desc").limit(1).get();
-      const prevAttempt = snap.empty ? 0 : (snap.docs[0].data().attemptNumber || 0);
+        .orderBy("timestamp", "desc")
+        .limit(1).get();
+      prevAttempt = snap.empty ? 0 : (snap.docs[0].data().attemptNumber || snap.size);
+    } catch (_orderErr) {
+      // Fallback: đếm tất cả kết quả của học viên này (không cần index)
+      try {
+        const snap2 = await db.collection("examResults")
+          .where("studentCode", "==", studentCode).get();
+        prevAttempt = snap2.size;
+      } catch (_countErr) {
+        prevAttempt = 0;
+      }
+    }
+
+    // ── BƯỚC 2: Lưu kết quả (trong try-catch riêng) ──
+    try {
       await db.collection("examResults").add({
         studentCode,
         studentName: studentName || studentCode,
-        setCode: s.code || s.id,
-        setName: s.name,
+        setCode:       s.code || s.id,
+        setName:       s.name,
         totalQuestions: totalQ,
         correctCount,
-        score: correctCount,
+        score:         correctCount,
         passed,
         lietFailed,
         autoSubmitted: autoSub,
         timeTaken,
         attemptNumber: prevAttempt + 1,
-        questions: details,
-        answers: examQuestions.map((_, i) => userAnswers[i] ?? null),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        questions:     details,
+        answers:       examQuestions.map((_, i) => userAnswers[i] ?? null),
+        timestamp:     firebase.firestore.FieldValue.serverTimestamp()
       });
-      // Update student stats
-      db.collection("students").doc(studentCode).update({
-        exams: firebase.firestore.FieldValue.increment(1),
-        lastExamAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(() => {});
-    } catch(e) { console.warn("Save result error:", e); }
+      console.log("[examResults] Đã lưu kết quả lần", prevAttempt + 1);
+    } catch (saveErr) {
+      console.error("[examResults] LỖI lưu kết quả:", saveErr);
+    }
+
+    // ── BƯỚC 3: Cập nhật thống kê học viên (bestScore, avgScore, exams) ──
+    try {
+      const studentRef = db.collection("students").doc(studentCode);
+      const studentDoc = await studentRef.get();
+      if (studentDoc.exists) {
+        const sd       = studentDoc.data();
+        const oldExams = (sd.exams || 0) + 1;           // số lần thi mới (sau khi thi này)
+        const newBest  = Math.max(sd.bestScore || 0, correctCount);
+        // Tính điểm trung bình theo rolling average
+        const newAvg   = Math.round(((sd.avgScore || 0) * (oldExams - 1) + correctCount) / oldExams);
+        await studentRef.update({
+          exams:      firebase.firestore.FieldValue.increment(1),
+          bestScore:  newBest,
+          avgScore:   newAvg,
+          lastExamAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        // Không tìm thấy doc → chỉ tăng counter
+        await db.collection("students").doc(studentCode).update({
+          exams:      firebase.firestore.FieldValue.increment(1),
+          lastExamAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+      }
+    } catch (statsErr) {
+      console.warn("[students] Lỗi cập nhật thống kê:", statsErr);
+    }
   }
 }
 
@@ -1472,8 +1517,20 @@ if (db) {
 // Heartbeat
 if (db && studentCode) {
   const pRef = db.collection("presence").doc(studentCode);
-  const hb   = () => {
-    if (!isKicked) pRef.set({ isOnline: true, currentSection: "Đang chọn đề", lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  let _hbInited = false;
+  const hb = () => {
+    if (isKicked) return;
+    const payload = {
+      isOnline:       true,
+      studentCode:    studentCode,
+      currentSection: "Đang chọn đề",
+      lastActive:     firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!_hbInited) {
+      payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
+      _hbInited = true;
+    }
+    pRef.set(payload, { merge: true }).catch(() => {});
   };
   hb();
   setInterval(hb, 20000);
