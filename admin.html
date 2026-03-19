@@ -491,172 +491,66 @@ tbody tr:hover { background: var(--bg-hover); }
 #studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
-/* ===== PRINT STYLES ===== */
+/* ===== PRINT STYLES - IMPROVED ===== */
 #printHeader { display: none; }
 .print-letterhead, .print-date, .print-title { display: none; }
- 
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
- 
-  @page {
-    size: A4 portrait;
-    margin: 2.5cm 1.5cm 2.0cm 2.5cm;
-  }
- 
   header, aside, .toolbar, .btn, .statGrid, .pagination,
   .no-print, .toast-container, .loading-overlay, .dash-grid,
   .chart-grid, .miniStats, .sidebar-overlay,
   .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
- 
-  body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
+  /* Ẩn từng ô có class .no-print: cột Mật khẩu, Trạng thái, Thao tác */
+  th.no-print, td.no-print { display: none !important; }
+  body { background: white !important; color: black !important; margin: 0; padding: 0; }
   #layout { display: block; }
   main { padding: 0 !important; margin: 0; }
- 
   .page { display: none !important; }
   #students.page { display: block !important; }
- 
-  .box {
-    background: #fff !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
+  .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
   .box > h3 { display: none !important; }
-  .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
- 
-  /* Ẩn pagination và toolbar khi in */
-  #studentPagination { display: none !important; }
-  .student-toolbar { display: none !important; }
- 
-  /* Print header */
-  #printHeader { display: block !important; margin-bottom: 10px; }
- 
-  .print-letterhead {
-    display: table !important;
-    width: 100%;
-    border-collapse: collapse;
-    border: none !important;
-    margin-bottom: 4px;
-  }
-  .print-letterhead,
-  .print-letterhead tr,
-  .print-letterhead td { border: none !important; }
+  #printHeader { display: block !important; margin-bottom: 8px; }
+  .print-letterhead { width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 2px; display: table !important; }
+  .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
   .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
- 
-  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.6; }
+  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
   .letterhead-left div:first-child { font-size: 10pt; }
   .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
- 
-  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.6; }
+  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
   .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
   .letterhead-motto { font-size: 11pt; font-weight: bold; }
-  .letterhead-underline {
-    width: 60%; height: 1px;
-    margin: 4px auto 0;
-    background: #000;
-    border-bottom: 1px solid #000;
-  }
- 
-  .print-date {
-    display: block !important;
-    text-align: right;
-    font-size: 10pt;
-    font-style: italic;
-    margin: 6px 0 8px;
-  }
-  .print-title {
-    display: block !important;
-    text-align: center;
-    font-size: 14pt;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 8px 0 4px;
-  }
-  #printInfo {
-    text-align: center;
-    font-size: 10pt;
-    color: #555;
-    margin: 0 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1.5px solid #000;
-  }
- 
-  /* Bảng in */
-  .tableWrap, .table-wrapper {
-    border: none !important;
-    max-height: none !important;
-    overflow: visible !important;
-    border-radius: 0 !important;
-  }
-  table {
-    width: 100% !important;
-    min-width: unset !important;
-    border: 1px solid #000 !important;
-    font-size: 10pt !important;
-    border-collapse: collapse;
-  }
-  th, td {
-    border: 1px solid #bbb !important;
-    padding: 5px 7px !important;
-    color: #000 !important;
-    font-size: 9pt !important;
-  }
-  th {
-    background: #e6e6e6 !important;
-    font-weight: bold !important;
-  }
-  tbody tr:nth-child(even) { background: #f7f7f7 !important; }
- 
-  .status-badge {
-    background: none !important;
-    color: #000 !important;
-    padding: 0;
-    font-size: 9pt !important;
-  }
+  .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
+  .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
+  .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
+  #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
+  .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+  #studentTable { width: 100% !important; border-collapse: collapse; }
+  table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
+  th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
+  th { background: #e8e8e8 !important; font-weight: bold !important; }
+  tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+  .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
+  @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
 }
- 
-/* ===== RESPONSIVE ===== */
-@media (min-width: 769px) {
-  .header-clock { display: block; }
-}
- 
+@media (min-width: 768px) { .header-clock { display: block; } }
 @media (max-width: 768px) {
-  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
-  .header-user .user-info,
-  .header-clock { display: none; }
- 
-  aside {
-    position: fixed;
-    left: -280px;
-    top: var(--header-height);
-    z-index: 200;
-    width: 260px;
-    height: calc(100vh - var(--header-height));
-    box-shadow: var(--shadow-lg);
-    transition: left 0.25s ease;
-  }
-  aside.mobile-open { left: 0; }
- 
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    top: var(--header-height);
-    z-index: 199;
-    background: rgba(0,0,0,0.4);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  aside.mobile-open ~ .sidebar-overlay { display: block; opacity: 1; }
- 
-  main { padding: 16px; }
-  .statGrid, .miniStats, .dash-grid, .chart-grid, .form-row {
-    grid-template-columns: 1fr;
-  }
+    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+    .header-user .user-info { display: none; }
+    .header-clock { display: none; }
+    aside { position: fixed; left: -280px; top: var(--header-height); z-index: 200; width: 260px; box-shadow: var(--shadow-lg); height: calc(100vh - var(--header-height)); }
+    aside.mobile-open { left: 0; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; top: var(--header-height); }
+    aside.mobile-open ~ .sidebar-overlay { display: block; }
+    main { padding: 16px; }
+    .statGrid, .miniStats { grid-template-columns: 1fr; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .toolbar-row { flex-direction: column; align-items: stretch; }
+    .toolbar-actions { justify-content: center; margin-bottom: 8px; }
+    .toolbar-filters { flex-direction: column; }
+    .toolbar-filters input, .toolbar-filters select { width: 100%; }
 }
-
     /* MODAL BỊ KHÓA */
 .kickout-modal {
     position: fixed;
@@ -686,6 +580,35 @@ tbody tr:hover { background: var(--bg-hover); }
 .kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+
+/* ─── Custom date / datetime inputs ─── */
+.date-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.date-input-wrap input[type="text"].custom-date,
+.date-input-wrap input[type="text"].custom-time {
+  padding-right: 28px;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+.date-input-wrap .date-icon {
+  position: absolute;
+  right: 7px;
+  pointer-events: none;
+  font-size: 14px;
+  opacity: 0.55;
+}
+.datetime-pair {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.datetime-pair input.custom-date { width: 110px; }
+.datetime-pair input.custom-time { width: 68px; }
 </style>
 </head>
     
@@ -1731,8 +1654,21 @@ D. Đáp án D
                 <option value="pass">Đạt</option>
                 <option value="fail">Trượt</option>
               </select>
-              <input type="date" id="resultDateFrom" onchange="applyResultFilters()">
-              <input type="date" id="resultDateTo" onchange="applyResultFilters()">
+              <div class="date-input-wrap">
+                <input type="text" id="resultDateFrom" class="custom-date"
+                       placeholder="DD/MM/YYYY" maxlength="10"
+                       oninput="autoSlashDate(this);applyResultFilters()"
+                       style="width:110px;">
+                <span class="date-icon">📅</span>
+              </div>
+              <span style="font-size:12px;color:var(--text-muted);">–</span>
+              <div class="date-input-wrap">
+                <input type="text" id="resultDateTo" class="custom-date"
+                       placeholder="DD/MM/YYYY" maxlength="10"
+                       oninput="autoSlashDate(this);applyResultFilters()"
+                       style="width:110px;">
+                <span class="date-icon">📅</span>
+              </div>
               <button class="btn btn-primary btn-sm" onclick="loadAllExamResults()">🔄 Tải dữ liệu</button>
             </div>
           </div>
@@ -1957,9 +1893,24 @@ D. Đáp án D
           </div>
         </div>
         <div class="form-group" id="scheduleTimeGroup" style="display:none;">
-          <label style="font-weight:700;">📅 Ngày giờ gửi</label>
-          <input type="datetime-local" id="notiScheduleTime" oninput="previewScheduleTime()">
-          <div id="scheduleTimePreview" style="margin-top:6px;font-size:12px;color:var(--text-secondary);font-style:italic;"></div>
+          <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
+          <div class="datetime-pair">
+            <div class="date-input-wrap">
+              <input type="text" id="notiScheduleDate" class="custom-date"
+                     placeholder="DD/MM/YYYY" maxlength="10"
+                     oninput="autoSlashDate(this);previewScheduleTime()"
+                     style="width:120px;">
+              <span class="date-icon">📅</span>
+            </div>
+            <div class="date-input-wrap">
+              <input type="text" id="notiScheduleHour" class="custom-time"
+                     placeholder="HH:MM" maxlength="5"
+                     oninput="autoColonTime(this);previewScheduleTime()"
+                     style="width:72px;">
+              <span class="date-icon">🕐</span>
+            </div>
+          </div>
+          <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:16px;">
           <button class="btn btn-primary" onclick="saveNotification()" style="flex:1;padding:12px;">💾 Lưu & Gửi</button>
@@ -2237,11 +2188,6 @@ let confirmResolve = null;
 let chartInstances = {};
 let presenceUnsub = null;
 let presenceMap = new Map();
-    let _onlineUITimer = null;
-function updateOnlineUIDebounced() {
-    clearTimeout(_onlineUITimer);
-    _onlineUITimer = setTimeout(updateOnlineUI, 120);
-}
 let currentImageData = null;
 let selectedGroupIndex = 0;
 let pendingLietQuestions = [];
@@ -2422,13 +2368,15 @@ function showPage(id, btn) {
         case 'results':
             // Tự động tải kết quả thi khi vào tab — không cần bấm nút thủ công
             (async () => {
-                if (!allExamResults.length) {
-                    const today   = new Date().toISOString().split('T')[0];
-                    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-                    const df = document.getElementById('resultDateFrom');
-                    const dt = document.getElementById('resultDateTo');
-                    if (df && !df.value) df.value = weekAgo;
-                    if (dt && !dt.value) dt.value = today;
+                const df = document.getElementById('resultDateFrom');
+                const dt = document.getElementById('resultDateTo');
+                if (df && !df.value) {
+                    // Mặc định: 7 ngày trước → hôm nay, định dạng DD/MM/YYYY
+                    const toDate   = new Date();
+                    const fromDate = new Date(Date.now() - 7 * 86400000);
+                    const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                    df.value = fmt(fromDate);
+                    if (dt) dt.value = fmt(toDate);
                 }
                 await loadAllExamResults();
             })();
@@ -2631,26 +2579,23 @@ function startRealtimeAllExams() {
 function startRealtimeStudents() {
     if (rtStudentUnsub) rtStudentUnsub();
     rtStudentUnsub = db.collection('students').onSnapshot(snap => {
-        allStudents = snap.docs.map(d => ({
-            id: d.id, ...d.data(),
-            code: d.data().code || d.id,
-            status: d.data().status || 'active'
-        }));
+        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' }));
         const active = allStudents.filter(s => s.status === 'active').length;
         const locked = allStudents.filter(s => s.status === 'locked').length;
         safeSet('totalStudents', allStudents.length);
         safeSet('activeStudents', active);
         safeSet('lockedStudentsD', locked);
+        safeSet('warningCount', locked);
         safeSet('totalCount', allStudents.length);
         safeSet('activeCount', active);
         safeSet('lockedCount', locked);
- 
+        // Update student-related UI
         if (document.getElementById('students')?.classList.contains('active')) {
             updateStudentStats();
             filteredStudents = [...allStudents];
             renderStudentTable();
         }
-        updateOnlineUIDebounced();
+        updateOnlineUI();
         loadCourseFilter();
         updateLastUpdateTime();
     }, err => console.warn('RT Students error:', err));
@@ -2721,7 +2666,9 @@ function renderActivityTable(snap) {
 // Lắng nghe người dùng Online
 function startPresenceListener() {
     if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
- 
+
+    // Lắng nghe collection 'presence' — chỉ nhận update đã xác nhận từ server
+    // (includeMetadataChanges: false — mặc định, tránh double-fire khi write offline)
     presenceUnsub = db.collection('presence')
         .onSnapshot({ includeMetadataChanges: false }, (snap) => {
             presenceMap.clear();
@@ -2729,12 +2676,15 @@ function startPresenceListener() {
                 const d = doc.data();
                 if (d) presenceMap.set(doc.id, d);
             });
-            updateOnlineUIDebounced();
+            updateOnlineUI();
         }, (err) => {
             console.warn('[Presence] Lỗi listener:', err.message);
+            // Thử kết nối lại sau 5s
             setTimeout(startPresenceListener, 5000);
         });
- 
+
+    // Fallback poll 30s để loại bỏ session "zombie"
+    // (tab đóng đột ngột không kịp set isOnline:false)
     if (window._presencePollTimer) clearInterval(window._presencePollTimer);
     window._presencePollTimer = setInterval(updateOnlineUI, 30000);
 }
@@ -2742,72 +2692,84 @@ function startPresenceListener() {
 function updateOnlineUI() {
     let onlineCount = 0;
     const now = new Date();
- 
+
+    // Build online set from presenceMap (independent of allStudents)
     const onlineByCode = new Map();
     presenceMap.forEach((data, code) => {
         if (!data.isOnline) return;
- 
+
+        // Resolve lastActive — serverTimestamp() returns null on client before round-trip.
+        // Treat null as "just now" (0s ago) so newly-logged-in users are NOT skipped.
         let lastActive = null;
-        if (data.lastActive?.toDate)              lastActive = data.lastActive.toDate();
+        if (data.lastActive?.toDate)       lastActive = data.lastActive.toDate();
         else if (data.lastActive instanceof Date) lastActive = data.lastActive;
-        else if (data.lastActive)                 lastActive = new Date(data.lastActive);
- 
+        else if (data.lastActive)          lastActive = new Date(data.lastActive);
+        // else lastActive stays null → treat as 0s ago (just logged in)
+
         const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
-        if (diffSeconds < 90) {
+        if (diffSeconds < 90) { // 90s threshold (heartbeat 20s)
             onlineByCode.set(code, { ...data, lastActiveDate: lastActive });
         }
     });
- 
+
+    // ── Cập nhật trạng thái online cho allStudents (học viên) ──
     const studentCodes = new Set((allStudents || []).map(s => s.code));
     let guestOnlineCount = 0;
- 
+
     if (allStudents && allStudents.length > 0) {
         allStudents.forEach(s => {
-            const od = onlineByCode.get(s.code);
-            if (od) {
-                s.isOnline        = true;
-                s.currentSection  = od.currentSection || 'Đang hoạt động';
-                s.startAt         = od.startAt?.toDate ? od.startAt.toDate() : null;
-                s.lastActive      = od.lastActiveDate;
+            const onlineData = onlineByCode.get(s.code);
+            if (onlineData) {
+                s.isOnline = true;
+                s.currentSection = onlineData.currentSection || 'Đang hoạt động';
+                s.startAt = onlineData.startAt?.toDate ? onlineData.startAt.toDate() : null;
+                s.lastActive = onlineData.lastActiveDate;
                 onlineCount++;
             } else {
-                s.isOnline       = false;
+                s.isOnline = false;
                 s.currentSection = null;
-                s.lastActive     = null;
+                s.lastActive = null;
             }
         });
     }
- 
+
+    // ── Đếm thêm khách (presence doc không có trong allStudents) ──
     onlineByCode.forEach((data, code) => {
         if (!studentCodes.has(code)) {
-            guestOnlineCount++;
+            guestOnlineCount++; // đây là khách hoặc tài khoản ngoài danh sách HV
             onlineCount++;
         }
     });
- 
+
     const el = document.getElementById('onlineCount');
     if (el) {
         el.textContent = onlineCount;
         el.style.color = onlineCount > 0 ? 'var(--success)' : '';
     }
- 
-    let examingCnt = 0;
+
+    // ── Phân loại: đang thi / xem đề / khách ──
+    let examingCnt = 0, browsingCnt = 0;
     onlineByCode.forEach(data => {
         const sec = (data.currentSection || '').toLowerCase();
         if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
+        else browsingCnt++;
     });
     safeSet('examingCount', examingCnt);
-    /* safeSet('browsingCount', ...) đã xoá — element không tồn tại trong HTML */
- 
+    safeSet('browsingCount', browsingCnt);
+
+    // Hiển thị số khách online nếu có element
     const guestEl = document.getElementById('guestOnlineCount');
     if (guestEl) guestEl.textContent = guestOnlineCount;
- 
+
+    // Show LIVE badge
     const liveBadge = document.getElementById('onlineLiveBadge');
     if (liveBadge) liveBadge.style.display = onlineCount > 0 ? 'inline-block' : 'none';
- 
+
+    // Cập nhật số học viên active
     const dashActive = document.getElementById('activeStudents');
     if (dashActive) dashActive.textContent = (allStudents || []).filter(s => s.status === 'active').length;
- 
+
+    // Làm mới trang chi tiết online nếu đang hiển thị
     const detailPage = document.getElementById('online_detail');
     if (detailPage && detailPage.classList.contains('active')) {
         renderOnlineDetailPage();
@@ -3378,42 +3340,8 @@ function exportToExcel() {
 }
 
 function printTable() {
-    updatePrintInfo();
- 
-    const tb  = document.getElementById('studentTableBody');
-    const pag = document.getElementById('studentPagination');
-    if (!tb) { setTimeout(() => window.print(), 80); return; }
- 
-    const savedPage = currentPage;
- 
-    /* Render TẤT CẢ danh sách lọc — không giới hạn phân trang */
-    const allRows = filteredStudents.length ? filteredStudents : allStudents;
-    tb.innerHTML = allRows.map((s, i) => {
-        const statusText = s.status === 'active' ? '● Hoạt động' : '● Đã khóa';
-        return `<tr>
-            <td>${i + 1}</td>
-            <td><b>${escapeHtml(s.code)}</b></td>
-            <td class="no-print"></td>
-            <td style="text-align:left;padding-left:12px;font-weight:600;">${escapeHtml(s.name)}</td>
-            <td style="text-align:left;font-size:12px;">${escapeHtml(s.unit || '')}</td>
-            <td>${formatDate(s.dob)}</td>
-            <td>${escapeHtml(s.object || '')}</td>
-            <td>${escapeHtml(s.course || '—')}</td>
-            <td class="no-print"><span class="status-badge">${statusText}</span></td>
-            <td class="no-print"></td>
-        </tr>`;
-    }).join('');
- 
-    if (pag) pag.style.display = 'none';
- 
-    setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-            if (pag) pag.style.display = '';
-            currentPage = savedPage;
-            renderStudentTable();
-        }, 1000);
-    }, 80);
+    updatePrintInfo();   // populate printDate / printTitle / printInfo
+    setTimeout(() => window.print(), 80);  // brief delay for DOM update
 }
 
 // ==========================================
@@ -4953,6 +4881,13 @@ function openCreateNotificationModal() {
     document.getElementById('notiSendTime').value = 'now';
     document.getElementById('notiTargetDetailGroup').style.display = 'none';
     document.getElementById('scheduleTimeGroup').style.display = 'none';
+    // Reset custom date/time inputs
+    const sdEl = document.getElementById('notiScheduleDate');
+    const stEl = document.getElementById('notiScheduleHour');
+    const spEl = document.getElementById('scheduleTimePreview');
+    if (sdEl) sdEl.value = '';
+    if (stEl) stEl.value = '';
+    if (spEl) spEl.textContent = '';
     document.getElementById('createNotificationModal').classList.add('show');
 }
 
@@ -4990,10 +4925,11 @@ async function saveNotification() {
     let status = 'sent', scheduledAt = null;
     if (sendTime === 'draft') status = 'draft';
     else if (sendTime === 'schedule') {
-        const scheduleVal = document.getElementById('notiScheduleTime').value;
-        if (!scheduleVal) return showToast('Chọn thời gian gửi!', 'error');
+        // Đọc từ 2 input mới: notiScheduleDate (DD/MM/YYYY) + notiScheduleHour (HH:MM)
+        const scheduleDate = parseDateTimeVN();
+        if (!scheduleDate) return showToast('Nhập đầy đủ ngày giờ gửi (DD/MM/YYYY HH:MM)!', 'error');
         status = 'scheduled';
-        scheduledAt = firebase.firestore.Timestamp.fromDate(new Date(scheduleVal));
+        scheduledAt = firebase.firestore.Timestamp.fromDate(scheduleDate);
     }
 
     // Count estimated recipients for display
@@ -5074,20 +5010,58 @@ async function deleteNotification(id) {
 }
 
 // Hàm kiểm tra các thông báo hẹn giờ (Chạy ngầm)
+// ── Auto-format helpers ──────────────────────────────────
+function autoSlashDate(el) {
+    // Tự chèn dấu / khi gõ: DD/MM/YYYY
+    let v = el.value.replace(/[^0-9]/g, '');
+    if (v.length > 2)  v = v.slice(0,2) + '/' + v.slice(2);
+    if (v.length > 5)  v = v.slice(0,5) + '/' + v.slice(5);
+    if (v.length > 10) v = v.slice(0,10);
+    el.value = v;
+}
+function autoColonTime(el) {
+    // Tự chèn dấu : khi gõ: HH:MM
+    let v = el.value.replace(/[^0-9]/g, '');
+    if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2);
+    if (v.length > 5) v = v.slice(0,5);
+    el.value = v;
+}
+function parseDateVN(str) {
+    // Parse "DD/MM/YYYY" → Date (midnight local)
+    if (!str || str.length < 10) return null;
+    const parts = str.split('/');
+    if (parts.length !== 3) return null;
+    const [dd, mo, yy] = parts.map(Number);
+    if (!dd || !mo || !yy) return null;
+    const d = new Date(yy, mo - 1, dd);
+    return isNaN(d) ? null : d;
+}
+function parseDateTimeVN() {
+    // Đọc notiScheduleDate + notiScheduleHour → Date
+    const dateStr = (document.getElementById('notiScheduleDate')?.value || '').trim();
+    const timeStr = (document.getElementById('notiScheduleHour')?.value || '00:00').trim();
+    const d = parseDateVN(dateStr);
+    if (!d) return null;
+    const [hh, mm] = timeStr.split(':').map(Number);
+    d.setHours(hh || 0, mm || 0, 0, 0);
+    return isNaN(d) ? null : d;
+}
+
+// ── Preview lịch gửi thông báo ──────────────────────────
 function previewScheduleTime() {
-    const val = document.getElementById('notiScheduleTime')?.value;
-    const el  = document.getElementById('scheduleTimePreview');
+    const el = document.getElementById('scheduleTimePreview');
     if (!el) return;
-    if (!val) { el.textContent = ''; return; }
-    const d = new Date(val);
-    if (isNaN(d)) { el.textContent = ''; return; }
+    const d = parseDateTimeVN();
+    if (!d) { el.textContent = ''; return; }
     const hh  = String(d.getHours()).padStart(2,'0');
     const mm  = String(d.getMinutes()).padStart(2,'0');
     const dd  = String(d.getDate()).padStart(2,'0');
     const mo  = String(d.getMonth()+1).padStart(2,'0');
     const yy  = d.getFullYear();
     const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][d.getDay()];
-    el.textContent = `📅 Gửi lúc: ${hh}:${mm}:00  ${thu}, ${dd}/${mo}/${yy}`;
+    const isPast = d < new Date();
+    el.innerHTML = `📅 Gửi lúc: <b>${hh}:${mm}:00  ${thu}, ${dd}/${mo}/${yy}</b>`
+        + (isPast ? ' &nbsp;<span style="color:var(--danger);font-size:11px;">⚠ Thời gian đã qua</span>' : '');
 }
 
 async function checkScheduledNotifications() {
@@ -5607,7 +5581,21 @@ async function editNotification(id) {
     toggleNotiTargetDetail();
     toggleScheduleTime();
     if (n.targetDetail) document.getElementById('notiTargetDetail').value = n.targetDetail;
-    if (n.scheduledAt) document.getElementById('notiScheduleTime').value = new Date(n.scheduledAt).toISOString().slice(0,16);
+    if (n.scheduledAt) {
+        const sd = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
+        if (!isNaN(sd)) {
+            const dd = String(sd.getDate()).padStart(2,'0');
+            const mo = String(sd.getMonth()+1).padStart(2,'0');
+            const yy = sd.getFullYear();
+            const hh = String(sd.getHours()).padStart(2,'0');
+            const mm = String(sd.getMinutes()).padStart(2,'0');
+            const dateEl = document.getElementById('notiScheduleDate');
+            const timeEl = document.getElementById('notiScheduleHour');
+            if (dateEl) dateEl.value = `${dd}/${mo}/${yy}`;
+            if (timeEl) timeEl.value = `${hh}:${mm}`;
+            previewScheduleTime();
+        }
+    }
     document.getElementById('createNotificationModal').classList.add('show');
 }
 
@@ -5615,11 +5603,10 @@ async function editNotification(id) {
 async function loadAllExamResults() {
     showLoading('Đang tải kết quả thi...');
     try {
-        const dateFrom = document.getElementById('resultDateFrom')?.value;
-        const dateTo   = document.getElementById('resultDateTo')?.value;
+        // Đọc ngày theo định dạng DD/MM/YYYY — dùng parseDateVN()
+        const dateFromStr = (document.getElementById('resultDateFrom')?.value || '').trim();
+        const dateToStr   = (document.getElementById('resultDateTo')?.value || '').trim();
 
-        // Dùng orderBy timestamp đơn giản (single-field index, tự động tạo bởi Firestore).
-        // KHÔNG kết hợp where+orderBy trên 2 field khác nhau → tránh lỗi thiếu composite index.
         const snap = await db.collection('examResults')
             .orderBy('timestamp', 'desc')
             .limit(3000)
@@ -5632,14 +5619,14 @@ async function loadAllExamResults() {
             return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
         });
 
-        // Lọc theo ngày ở phía client
-        if (dateFrom) {
-            const from = new Date(dateFrom); from.setHours(0,0,0,0);
-            results = results.filter(r => r.timestamp >= from);
+        // Lọc theo ngày phía client (DD/MM/YYYY → Date)
+        if (dateFromStr.length === 10) {
+            const from = parseDateVN(dateFromStr);
+            if (from) { from.setHours(0,0,0,0); results = results.filter(r => r.timestamp >= from); }
         }
-        if (dateTo) {
-            const to = new Date(dateTo); to.setHours(23,59,59,999);
-            results = results.filter(r => r.timestamp <= to);
+        if (dateToStr.length === 10) {
+            const to = parseDateVN(dateToStr);
+            if (to) { to.setHours(23,59,59,999); results = results.filter(r => r.timestamp <= to); }
         }
 
         allResults = results;
