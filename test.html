@@ -753,12 +753,19 @@ const IS_STUDENT = userType === "student";
 // CLOCK
 // ================================================================
 (function startClock() {
-  const c = document.getElementById("liveClock");
-  const d = document.getElementById("liveDate");
   function tick() {
-    const n = new Date();
-    c.textContent = n.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    d.textContent = n.toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
+    const n   = new Date();
+    const hh  = String(n.getHours()).padStart(2,'0');
+    const mm  = String(n.getMinutes()).padStart(2,'0');
+    const ss  = String(n.getSeconds()).padStart(2,'0');
+    const dd  = String(n.getDate()).padStart(2,'0');
+    const mo  = String(n.getMonth()+1).padStart(2,'0');
+    const yy  = n.getFullYear();
+    const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+    const cEl = document.getElementById('liveClock');
+    const dEl = document.getElementById('liveDate');
+    if (cEl) cEl.textContent = `${hh}:${mm}:${ss}`;
+    if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
   }
   tick();
   setInterval(tick, 1000);
@@ -773,8 +780,9 @@ const IS_STUDENT = userType === "student";
 // - Số lần trong ngày lưu cả localStorage lẫn Firestore (sync khi load)
 // - Không dùng MAC address (browser không cho phép)
 // ─────────────────────────────────────────────────────────────
-const DAILY_LIMIT  = 3;   // 3 lần / ngày
-const WEEKLY_LIMIT = 9;   // ~3 lần/ngày × 3 ngày (soft cap tuần)
+const DAILY_LIMIT  = 3;   // Tối đa 3 lần / ngày / thiết bị
+// Session flag: chỉ 1 lần thi / lần đăng nhập khách
+let _guestExamedThisSession = false;
 
 function getTodayVN() {
   // Ngày theo giờ Việt Nam (UTC+7)
@@ -837,9 +845,10 @@ async function restoreLogsFromFirestore() {
 // ── Ghi log sau mỗi lần bắt đầu thi ──
 async function saveGuestLog() {
   const logs  = getLogsLocal();
-  const entry = { date: getTodayVN(), week: getWeekKeyVN(), time: Date.now() };
+  const entry = { date: getTodayVN(), time: Date.now() };
   logs.push(entry);
   saveLogsLocal(logs);
+  _guestExamedThisSession = true; // chặn thi thêm trong session này
   await pushLogsRemote(logs);  // đồng bộ Firestore (async, không block)
 }
 
@@ -849,18 +858,22 @@ function getWeekCount()  { return getLogsLocal().filter(l => l.week === getWeekK
 // Khách có thể thi nếu chưa đạt giới hạn ngày
 function canTakeExam() {
   if (IS_STUDENT) return true;
-  return getTodayCount() < DAILY_LIMIT;
+  if (_guestExamedThisSession) return false; // đã thi trong session này
+  return getTodayCount() < DAILY_LIMIT;      // kiểm tra giới hạn ngày
 }
 
 function updateLimitDisplay() {
   if (!IS_GUEST) return;
-  const td = getTodayCount(), rm = Math.max(0, DAILY_LIMIT - td);
+  const td = getTodayCount();
+  const rm = _guestExamedThisSession ? 0 : Math.max(0, DAILY_LIMIT - td);
   document.getElementById("todayUsed").textContent   = td;
-  document.getElementById("weekUsed").textContent    = getWeekCount();
   document.getElementById("remainCount").textContent = rm;
   document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
-  document.getElementById("lcWeek").className   = "lcard ok";   // hiển thị thông tin, không giới hạn tuần riêng
   document.getElementById("lcRemain").className = "lcard " + (rm <= 0 ? "danger" : "ok");
+  const wkEl = document.getElementById("weekUsed");
+  if (wkEl) { wkEl.textContent = td; }
+  const lcWeek = document.getElementById("lcWeek");
+  if (lcWeek) lcWeek.className = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
 }
 
 async function assignGuestSequentialNumber() {
@@ -1592,18 +1605,26 @@ if (db) {
   });
 }
 
-// Heartbeat
-if (db && studentCode) {
-  const pRef = db.collection("presence").doc(studentCode);
+// ── Heartbeat ── cả khách lẫn học viên đều ghi presence ──────
+const _presenceId = IS_GUEST ? getGuestId() : studentCode;
+if (db && _presenceId) {
+  const pRef = db.collection("presence").doc(_presenceId);
   let _hbInited = false;
   const hb = () => {
     if (isKicked) return;
     const payload = {
       isOnline:       true,
-      studentCode:    studentCode,
       currentSection: "Đang chọn đề",
-      lastActive:     firebase.firestore.FieldValue.serverTimestamp()
+      lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+      userType:       IS_GUEST ? "guest" : "student"
     };
+    if (IS_GUEST) {
+      payload.guestId    = getGuestId();
+      payload.guestLabel = localStorage.getItem("guestSeqNumber") || "Khách";
+    } else {
+      payload.studentCode = studentCode;
+      payload.studentName = studentName;
+    }
     if (!_hbInited) {
       payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
       _hbInited = true;
