@@ -170,11 +170,49 @@ header {
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: var(--blue); font-size: 15px; }
 
-@media (max-width: 640px) {
-  .sc-stats { display: none; }
-  .q-answers { grid-template-columns: 1fr; }
-  .filter-bar { flex-direction: column; align-items: stretch; }
+/* ═══ MOBILE RESPONSIVE ══════════════════════════════════════ */
+@media (max-width: 768px) {
+  header { padding: 10px 14px; gap: 8px; flex-wrap: nowrap; }
+  .header-title .vi { font-size: 12px; }
+  .header-title .en { display: none; }
+  .clock-box { display: none; }
+  .container { padding: 14px 12px 32px; }
+
+  .student-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 12px;
+  }
+  .sc-info .sc-name { font-size: 16px; }
+  .sc-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+  .sc-stat { padding: 8px 6px; min-width: unset; }
+  .sc-stat .n { font-size: 18px; }
+  .sc-stat .l { font-size: 10px; }
+
+  .filter-bar { flex-direction: column; align-items: stretch; padding: 10px 12px; }
   .filter-bar select, .filter-bar input { width: 100%; }
+
+  /* History table — scroll horizontal */
+  .history-card { overflow-x: auto; }
+  .history-table { min-width: 560px; font-size: 12px; }
+  .history-table th, .history-table td { padding: 8px 8px; }
+
+  /* Detail panel */
+  .detail-header { flex-direction: column; gap: 8px; }
+  .detail-header .detail-score { font-size: 15px; }
+  .q-answers { grid-template-columns: 1fr; }
+  .q-card { padding: 10px; }
+}
+
+@media (max-width: 480px) {
+  .sc-stats { grid-template-columns: 1fr 1fr; }
+  .history-table { font-size: 11px; }
 }
 </style>
 </head>
