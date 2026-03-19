@@ -135,7 +135,7 @@ header { background: var(--bg-header); color: white; padding: 0 24px; height: va
 .header-left .logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255,255,255,0.25); }
 .mobile-menu-btn { display: none; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 10px; font-size: 20px; cursor: pointer; }
 .header-right { display: flex; align-items: center; gap: 10px; }
-.header-clock { font-size: 14px; opacity: 0.95; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; display: none; font-weight: 600; letter-spacing: 0.3px; border: 1px solid rgba(255,255,255,0.2); }
+.header-clock { font-size: 14px; opacity: 0.95; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: 0.3px; border: 1px solid rgba(255,255,255,0.2); }
 
 /* ===== THEME TOGGLE ===== */
 .theme-toggle { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.25); color: white; border-radius: 12px; font-size: 20px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; }
@@ -546,10 +546,7 @@ tbody tr:hover { background: var(--bg-hover); }
 
   .print-page-title-header { display: none !important; }
 }
-    @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
-}
 
-@media (min-width: 768px) { .header-clock { display: block; } }
 @media (max-width: 768px) {
     .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
     .header-user .user-info { display: none; }
@@ -4956,15 +4953,29 @@ async function checkScheduledNotifications() {
 // 14. ONLINE CHI TIẾT & THỐNG KÊ (STATS)
 // ==========================================
 function renderOnlineDetailPage() {
-    const onlineList = allStudents.filter(s => s.isOnline);
-    document.getElementById('onlineTotal').textContent = onlineList.length;
-    document.getElementById('onlineStudying').textContent = onlineList.filter(s => safeText(s.currentSection).toLowerCase().includes('học')).length;
-    document.getElementById('onlineExaming').textContent = onlineList.filter(s => safeText(s.currentSection).toLowerCase().includes('thi')).length;
-    document.getElementById('onlineIdle').textContent = onlineList.filter(s => !s.currentSection || s.currentSection === 'Đang chờ').length;
-    
+    const studentOnline = allStudents.filter(s => s.isOnline);
+
+    // Gom khách từ presenceMap (những ID không có trong allStudents)
+    const studentCodes  = new Set(allStudents.map(s => s.code));
+    const guestOnline   = [];
+    presenceMap.forEach((data, code) => {
+        if (studentCodes.has(code)) return;
+        if (!data.isOnline) return;
+        const la = data.lastActive?.toDate ? data.lastActive.toDate() : (data.lastActive ? new Date(data.lastActive) : null);
+        if (!la || (Date.now() - la) / 1000 > 90) return;
+        guestOnline.push({ code, ...data, isGuest: true, lastActiveDate: la });
+    });
+
+    const allOnline = [...studentOnline, ...guestOnline];
+    document.getElementById('onlineTotal').textContent    = allOnline.length;
+    document.getElementById('onlineStudying').textContent = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('học')).length;
+    document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('thi')).length;
+    document.getElementById('onlineIdle').textContent     = allOnline.filter(s => !s.currentSection || s.currentSection === 'Đang chờ').length;
+
     const objCounts = {};
-    onlineList.forEach(s => { const key = s.object || 'Khác'; objCounts[key] = (objCounts[key] || 0) + 1; });
-    
+    studentOnline.forEach(s => { const key = s.object || 'Khác'; objCounts[key] = (objCounts[key] || 0) + 1; });
+    if (guestOnline.length > 0) objCounts['Khách'] = (objCounts['Khách'] || 0) + guestOnline.length;
+
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const ctx = document.getElementById('chartOnlineByObject');
     if (ctx && Object.keys(objCounts).length > 0) {
@@ -4973,20 +4984,24 @@ function renderOnlineDetailPage() {
             type: 'pie',
             data: {
                 labels: Object.keys(objCounts),
-                datasets: [{ data: Object.values(objCounts), backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'], borderWidth: 2, borderColor: isDark ? '#1a1d24' : '#fff' }]
+                datasets: [{ data: Object.values(objCounts), backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#6366f1'], borderWidth: 2, borderColor: isDark ? '#1a1d24' : '#fff' }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#9ea4ad' : '#6c757d'} } } }
         });
     }
+
+    // Lưu tạm để filterOnlineDetail dùng
+    window._allOnlineForDetail = allOnline;
     filterOnlineDetail();
 }
 
 function filterOnlineDetail() {
     const search = (document.getElementById('onlineSearchInput')?.value || '').toLowerCase().trim();
     const sectionFilter = (document.getElementById('onlineFilterSection')?.value || '').toLowerCase();
-    let list = allStudents.filter(s => s.isOnline);
+    // Dùng danh sách tổng hợp (học viên + khách)
+    let list = window._allOnlineForDetail || allStudents.filter(s => s.isOnline);
     if (search) list = list.filter(s =>
-        safeText(s.name).toLowerCase().includes(search) ||
+        safeText(s.name || s.guestLabel || s.code).toLowerCase().includes(search) ||
         safeText(s.code).toLowerCase().includes(search) ||
         safeText(s.unit).toLowerCase().includes(search)
     );
@@ -5005,21 +5020,28 @@ function renderOnlineDetailTable() {
         tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">📭 Không có ai đang online</td></tr>';
         return;
     }
-    // Hiển thị tất cả (không giới hạn 20)
     tb.innerHTML = filteredOnlineList.map((s, i) => {
-        const sec = s.currentSection || 'Đang chờ';
+        const sec       = s.currentSection || 'Đang chờ';
         const isExaming = sec.toLowerCase().includes('thi');
-        const secColor = isExaming ? 'color:#065f46;background:#d1fae5;' : 'color:#1e40af;background:#dbeafe;';
-        const lastDiff = s.lastActive ? Math.round((Date.now() - s.lastActive) / 1000) : null;
-        const lastStr = lastDiff !== null
-            ? (lastDiff < 60 ? 'Vừa xong' : Math.floor(lastDiff/60) + ' phút trước')
-            : '—';
+        const isGuest   = !!s.isGuest;
+        const secColor  = isExaming ? 'color:#065f46;background:#d1fae5;' : 'color:#1e40af;background:#dbeafe;';
+        const typeLabel = isGuest
+            ? '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:#fff3cd;color:#856404;">👤 Khách</span>'
+            : '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:#d1fae5;color:#065f46;">🎓 HV</span>';
+        const displayCode = isGuest ? (s.guestLabel || s.code || 'Khách') : s.code;
+        const displayName = isGuest ? (s.guestLabel || 'Khách') : s.name;
+        const displayUnit = isGuest ? '—' : (s.unit || '—');
+        const displayObj  = isGuest ? 'Khách viếng thăm' : (s.object || '—');
+        const lastDiff    = s.lastActiveDate || s.lastActive
+            ? Math.round((Date.now() - (s.lastActiveDate || s.lastActive)) / 1000) : null;
+        const lastStr     = lastDiff !== null
+            ? (lastDiff < 60 ? 'Vừa xong' : Math.floor(lastDiff / 60) + ' phút trước') : '—';
         return `<tr>
-            <td style="color:var(--text-muted);text-align:center;">${i + 1}</td>
-            <td><b>${escapeHtml(s.code)}</b></td>
-            <td>${escapeHtml(s.name)}</td>
-            <td style="font-size:12px;color:var(--text-muted);">${escapeHtml(s.unit || '—')}</td>
-            <td style="font-size:12px;">${escapeHtml(s.object || '—')}</td>
+            <td style="text-align:center;color:var(--text-muted);">${i + 1}</td>
+            <td>${typeLabel}</td>
+            <td><b>${escapeHtml(displayCode)}</b></td>
+            <td>${escapeHtml(displayName)}</td>
+            <td style="font-size:12px;color:var(--text-muted);">${escapeHtml(displayUnit)}</td>
             <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;${secColor}">${escapeHtml(sec)}</span></td>
             <td style="font-size:12px;color:var(--text-muted);">${s.startAt ? formatDateTime(s.startAt) : '—'}</td>
             <td style="font-size:12px;color:var(--text-muted);">${lastStr}</td>
