@@ -492,49 +492,60 @@ tbody tr:hover { background: var(--bg-hover); }
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
 /* ===== PRINT STYLES ===== */
-#printHeader { display: none; }
-.print-letterhead, .print-date, .print-title { display: none; }
+#printHeader,
+.print-letterhead,
+.print-date,
+.print-title { display: none; }
+
 @media print {
-    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    header, aside, .toolbar, .btn, .statGrid, .pagination, .no-print, .toast-container, .loading-overlay, .dash-grid, .chart-grid, .miniStats, .sidebar-overlay, .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
-    body { background: white !important; color: black !important; margin: 0; padding: 0; }
-    #layout { display: block; }
-    main { padding: 0 !important; margin: 0; }
-    .page { display: none !important; }
-    #students.page { display: block !important; }
-    .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
-    .box > h3 { display: none !important; }
-    #printHeader { display: block !important; margin-bottom: 8px; }
-    .print-letterhead { width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 2px; display: table !important; }
-    .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
-    .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
-    .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
-    .letterhead-left div:first-child { font-size: 10pt; }
-    .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-    .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
-    .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-    .letterhead-motto { font-size: 11pt; font-weight: bold; }
-    .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
-    .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
-    .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
-    #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-    .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
-    .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
-    #studentTable { width: 100% !important; }
-    #studentTable th:nth-child(1) { width: 4% !important; }
-    #studentTable th:nth-child(2) { width: 9% !important; }
-    #studentTable th:nth-child(3) { width: 18% !important; }
-    #studentTable th:nth-child(4) { width: 12% !important; }
-    #studentTable th:nth-child(5) { width: 9% !important; }
-    #studentTable th:nth-child(6) { width: 9% !important; }
-    #studentTable th:nth-child(7) { width: 9% !important; }
-    table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; border-collapse: collapse !important; }
-    th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
-    th { background: #e8e8e8 !important; font-weight: bold !important; }
-    tbody tr:nth-child(even) { background: #f9f9f9 !important; }
-    .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
-    .maintenance-banner { display: none !important; }
-    .print-page-title-header { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  @page { size: A4 portrait; margin: 2.5cm 1.5cm 2.0cm 2.5cm; }
+
+  header, aside, .toolbar, .btn, .statGrid, .miniStats, .pagination,
+  .no-print, .toast-container, .loading-overlay, .dash-grid, .chart-grid,
+  .sidebar-overlay, .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
+
+  body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
+  #layout { display: block; }
+  main { padding: 0 !important; margin: 0; }
+
+  .page { display: none !important; }
+  #students.page { display: block !important; }
+
+  .box { background: #fff !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+  .box > h3 { display: none !important; }
+
+  #printHeader { display: block !important; margin-bottom: 10px; }
+
+  .print-letterhead { display: table !important; width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 4px; }
+  .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
+  .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
+
+  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.6; }
+  .letterhead-left div:first-child { font-size: 10pt; }
+  .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+
+  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.6; }
+  .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .letterhead-motto { font-size: 11pt; font-weight: bold; }
+  .letterhead-underline { width: 60%; height: 1px; margin: 4px auto 0; background: #000; border-bottom: 1px solid #000; }
+
+  .print-date { display: block !important; text-align: right; font-size: 10pt; font-style: italic; margin: 6px 0 8px; }
+  .print-title { display: block !important; text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; }
+
+  #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid #000; }
+
+  .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+  table { width: 100% !important; min-width: unset !important; border: 1px solid #000 !important; font-size: 10pt !important; border-collapse: collapse; }
+  th, td { border: 1px solid #bbb !important; padding: 5px 7px !important; color: #000 !important; font-size: 9pt !important; }
+  th { background: #e6e6e6 !important; font-weight: bold !important; }
+  tbody tr:nth-child(even) { background: #f7f7f7 !important; }
+
+  .status-badge { background: none !important; color: #000 !important; padding: 0; font-size: 9pt !important; }
+
+  .print-page-title-header { display: none !important; }
+}
     @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
 }
 
@@ -624,10 +635,7 @@ tbody tr:hover { background: var(--bg-hover); }
     <div class="header-right">
         <div class="header-clock" id="currentTime"></div>
         <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()" title="Đổi giao diện">🌙</button>
-        <button class="header-notif" title="Thông báo">
-            🔔
-            <span class="notif-badge" id="notifBadge">0</span>
-        </button>
+
         <div class="header-user">
             <div class="avatar" id="adminAvatar">A</div>
             <div class="user-info">
@@ -717,7 +725,7 @@ tbody tr:hover { background: var(--bg-hover); }
                     </div>
                     <div class="card-label">Đang Online</div>
                     <div class="card-value" id="onlineCount" style="color:var(--success);">0</div>
-                    <div class="card-subtitle">Đang thi: <strong id="examingCount" style="color:var(--warning);">0</strong> · Xem đề: <strong id="browsingCount">0</strong></div>
+                    <div class="card-subtitle">HV: <strong id="examingCount" style="color:var(--warning);">0</strong> thi · Khách: <strong id="guestOnlineCount" style="color:var(--info,#0dcaf0);">0</strong></div>
                 </div>
 
                 <div class="dash-card">
@@ -1886,7 +1894,16 @@ D. Đáp án D
         <h3>🏆 Bảng xếp hạng</h3>
         <div class="tableWrap">
           <table>
-            <thead><tr><th>Hạng</th><th>Mã HV</th><th>Họ tên</th><th>Đơn vị</th><th>Số lần</th><th>Điểm max</th><th>Điểm TB</th><th>Đánh giá</th></tr></thead>
+            <thead><tr>
+              <th style="width:60px">Hạng</th>
+              <th>Mã HV</th>
+              <th style="text-align:left">Họ tên</th>
+              <th style="text-align:left">Đơn vị</th>
+              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
+              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
+              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
+              <th>Đánh giá</th>
+            </tr></thead>
             <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
           </table>
         </div>
@@ -2298,13 +2315,19 @@ function showPage(id, btn) {
         case 'dashboard': loadDashboard(); destroyCharts(); renderDashboardCharts(); break;
         case 'students': loadStudents(); break;
         case 'question_sets': loadQuestionSets(); break;
-        case 'results': 
-            if (!allExamResults.length) {
-                const today = new Date().toISOString().split('T')[0];
-                const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-                document.getElementById('resultDateFrom').value = weekAgo;
-                document.getElementById('resultDateTo').value = today;
-            }
+        case 'results':
+            // Tự động tải kết quả thi khi vào tab — không cần bấm nút thủ công
+            (async () => {
+                if (!allExamResults.length) {
+                    const today   = new Date().toISOString().split('T')[0];
+                    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+                    const df = document.getElementById('resultDateFrom');
+                    const dt = document.getElementById('resultDateTo');
+                    if (df && !df.value) df.value = weekAgo;
+                    if (dt && !dt.value) dt.value = today;
+                }
+                await loadAllExamResults();
+            })();
             break;
         case 'notifications': loadNotificationsFromDB(); break;
         case 'stats': loadStats(); destroyCharts(); renderStatsCharts(); break;
@@ -2622,7 +2645,10 @@ function updateOnlineUI() {
         }
     });
 
-    // Update allStudents with online status
+    // ── Cập nhật trạng thái online cho allStudents (học viên) ──
+    const studentCodes = new Set((allStudents || []).map(s => s.code));
+    let guestOnlineCount = 0;
+
     if (allStudents && allStudents.length > 0) {
         allStudents.forEach(s => {
             const onlineData = onlineByCode.get(s.code);
@@ -2638,9 +2664,15 @@ function updateOnlineUI() {
                 s.lastActive = null;
             }
         });
-    } else {
-        onlineCount = onlineByCode.size;
     }
+
+    // ── Đếm thêm khách (presence doc không có trong allStudents) ──
+    onlineByCode.forEach((data, code) => {
+        if (!studentCodes.has(code)) {
+            guestOnlineCount++; // đây là khách hoặc tài khoản ngoài danh sách HV
+            onlineCount++;
+        }
+    });
 
     const el = document.getElementById('onlineCount');
     if (el) {
@@ -2648,7 +2680,7 @@ function updateOnlineUI() {
         el.style.color = onlineCount > 0 ? 'var(--success)' : '';
     }
 
-    // Update sub-stats: examing vs browsing
+    // ── Phân loại: đang thi / xem đề / khách ──
     let examingCnt = 0, browsingCnt = 0;
     onlineByCode.forEach(data => {
         const sec = (data.currentSection || '').toLowerCase();
@@ -2658,15 +2690,19 @@ function updateOnlineUI() {
     safeSet('examingCount', examingCnt);
     safeSet('browsingCount', browsingCnt);
 
-    // Show LIVE badge when anyone online
+    // Hiển thị số khách online nếu có element
+    const guestEl = document.getElementById('guestOnlineCount');
+    if (guestEl) guestEl.textContent = guestOnlineCount;
+
+    // Show LIVE badge
     const liveBadge = document.getElementById('onlineLiveBadge');
     if (liveBadge) liveBadge.style.display = onlineCount > 0 ? 'inline-block' : 'none';
 
-    // Update dashboard active students count
+    // Cập nhật số học viên active
     const dashActive = document.getElementById('activeStudents');
     if (dashActive) dashActive.textContent = (allStudents || []).filter(s => s.status === 'active').length;
 
-    // Refresh online detail page if visible
+    // Làm mới trang chi tiết online nếu đang hiển thị
     const detailPage = document.getElementById('online_detail');
     if (detailPage && detailPage.classList.contains('active')) {
         renderOnlineDetailPage();
@@ -2979,10 +3015,11 @@ async function toggleStatus(code) {
             status: nextStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         s.status = nextStatus;
-        renderStudentTable();
+        // Re-apply toàn bộ bộ lọc: HV vừa đổi trạng thái sẽ biến mất/xuất hiện đúng danh sách
+        applyFilters();
         updateStudentStats();
         loadDashboard();
-        showToast(`${s.name}: ${nextStatus === 'active' ? 'Mở khóa' : 'Khóa'}`, nextStatus === 'active' ? 'success' : 'warning');
+        showToast(`${s.name}: ${nextStatus === 'active' ? '✅ Mở khóa thành công' : '🔒 Đã khóa'}`, nextStatus === 'active' ? 'success' : 'warning');
     } catch (e) {
         showToast('Lỗi: ' + e.message, 'error');
     }
@@ -4897,11 +4934,21 @@ async function deleteNotification(id) {
 // Hàm kiểm tra các thông báo hẹn giờ (Chạy ngầm)
 async function checkScheduledNotifications() {
     const now = new Date();
-    const scheduled = allNotifications.filter(n => n.status === 'scheduled' && n.scheduledAt && n.scheduledAt <= now);
+    // Tự động gửi thông báo đã lên lịch khi đến giờ — không cần xác nhận thêm
+    const scheduled = allNotifications.filter(n => {
+        if (n.status !== 'scheduled') return false;
+        if (!n.scheduledAt) return false;
+        const sa = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
+        return sa <= now;
+    });
     for (const n of scheduled) {
         try {
+            console.log('[Scheduler] Tự động gửi thông báo:', n.id, n.title);
             await sendNotificationNow(n.id);
-        } catch (e) { console.warn('Lỗi Auto send notification:', n.id, e.message); }
+            showToast(`📤 Đã tự động gửi: "${n.title}"`, 'success', 4000);
+        } catch (e) {
+            console.warn('[Scheduler] Lỗi gửi tự động:', n.id, e.message);
+        }
     }
 }
 
@@ -4992,36 +5039,96 @@ function loadStats() {
     document.getElementById('statAvgScore').textContent = avg;
     document.getElementById('statActiveStudents').textContent = studentsWithExams.length;
     
-    const top = [...studentsWithExams].sort((a, b) => (b.bestScore || 0) - (a.bestScore || 0)).slice(0, 20);
-    const tb = document.getElementById('topStudentsBody');
-    if (!top.length) tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr>';
-    else {
-        tb.innerHTML = top.map((s, i) => {
-            const rateClass = (s.avgScore || 0) >= 90 ? 'good' : (s.avgScore || 0) >= 70 ? 'mid' : 'bad';
-            const rateText = (s.avgScore || 0) >= 90 ? 'Xuất sắc' : (s.avgScore || 0) >= 70 ? 'Khá' : 'TB';
-            return `<tr><td>${i + 1}</td><td><b>${escapeHtml(s.code)}</b></td><td style="text-align:left">${escapeHtml(s.name)}</td><td>${escapeHtml(s.unit)}</td><td>${s.exams || 0}</td><td><b style="color:var(--success)">${s.bestScore || 0}</b></td><td>${s.avgScore || 0}</td><td><span class="rate ${rateClass}">${rateText}</span></td></tr>`;
-        }).join('');
-    }
+    // Lưu lại studentsWithExams để sort function dùng
+    window._leaderboardData = studentsWithExams;
+    window._leaderboardSort = { col: 'bestScore', dir: -1 }; // mặc định: điểm max giảm dần
+    renderLeaderboard();
     renderStatsCharts();
+}
+
+// ─── Leaderboard sort helpers ───
+function sortLeaderboard(col) {
+    if (!window._leaderboardSort) window._leaderboardSort = { col: 'bestScore', dir: -1 };
+    if (window._leaderboardSort.col === col) {
+        window._leaderboardSort.dir *= -1; // toggle
+    } else {
+        window._leaderboardSort.col = col;
+        window._leaderboardSort.dir = -1; // mặc định giảm dần khi chọn cột mới
+    }
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    const data = window._leaderboardData || [];
+    const { col, dir } = window._leaderboardSort || { col: 'bestScore', dir: -1 };
+    const sorted = [...data].sort((a, b) => dir * ((Number(b[col]) || 0) - (Number(a[col]) || 0)));
+    const medals = ['🥇', '🥈', '🥉'];
+
+    // Cập nhật icon sort trên header
+    ['exams','bestScore','avgScore'].forEach(k => {
+        const el = document.getElementById('sortIcon_' + k);
+        if (!el) return;
+        if (k === col) el.textContent = dir === -1 ? '↓' : '↑';
+        else el.textContent = '↕';
+    });
+
+    const tb = document.getElementById('topStudentsBody');
+    if (!tb) return;
+    if (!sorted.length) {
+        tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr>';
+        return;
+    }
+    tb.innerHTML = sorted.slice(0, 30).map((s, i) => {
+        const rank   = i < 3 ? medals[i] : (i + 1);
+        const rateClass = (s.avgScore || 0) >= 25 ? 'good' : (s.avgScore || 0) >= 18 ? 'mid' : 'bad';
+        const rateText  = (s.avgScore || 0) >= 25 ? 'Xuất sắc' : (s.avgScore || 0) >= 18 ? 'Khá' : 'TB';
+        const rowStyle  = i < 3 ? 'background:rgba(255,215,0,0.08);font-weight:600;' : '';
+        return `<tr style="${rowStyle}">
+            <td style="text-align:center;font-size:${i<3?'18px':'13px'}">${rank}</td>
+            <td><b>${escapeHtml(s.code)}</b></td>
+            <td style="text-align:left">${escapeHtml(s.name)}</td>
+            <td style="text-align:left;font-size:12px;color:var(--text-muted)">${escapeHtml(s.unit||'—')}</td>
+            <td style="text-align:center">${s.exams || 0}</td>
+            <td style="text-align:center"><b style="color:var(--success)">${s.bestScore || 0}</b></td>
+            <td style="text-align:center">${s.avgScore || 0}</td>
+            <td><span class="rate ${rateClass}">${rateText}</span></td>
+        </tr>`;
+    }).join('');
 }
 
 function renderStatsCharts() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#9ea4ad' : '#6c757d';
     
-    // Biểu đồ phân bố điểm
+    // Biểu đồ phân bố điểm — thang đo theo MAX 30 câu thực tế
     const ctx3 = document.getElementById('chartScoreDist');
     if (ctx3) {
-        const counts = [0, 0, 0, 0, 0];
+        // Phân nhóm theo số câu đúng: 0-5, 6-11, 12-17, 18-22, 23-27, 28-30
+        const bands  = [[0,5],[6,11],[12,17],[18,22],[23,27],[28,30]];
+        const labels = bands.map(([lo,hi]) => lo === hi ? `${lo}` : `${lo}–${hi}`);
+        const colors = ['#dc3545','#fd7e14','#ffc107','#0dcaf0','#20c997','#198754'];
+        const counts = bands.map(() => 0);
         allStudents.forEach(s => {
-            const sc = Number(s.bestScore) || 0;
-            if (sc <= 20) counts[0]++; else if (sc <= 40) counts[1]++; else if (sc <= 60) counts[2]++; else if (sc <= 80) counts[3]++; else counts[4]++;
+            const sc = Math.min(30, Math.max(0, Number(s.bestScore) || 0));
+            for (let i = 0; i < bands.length; i++) {
+                if (sc >= bands[i][0] && sc <= bands[i][1]) { counts[i]++; break; }
+            }
         });
         if (chartInstances.scoreDist) chartInstances.scoreDist.destroy();
         chartInstances.scoreDist = new Chart(ctx3, {
             type: 'bar',
-            data: { labels: ['0-20', '21-40', '41-60', '61-80', '81-100'], datasets: [{ label: 'Số HV', data: counts, backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#198754'], borderRadius: 6 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: textColor } }, x: { ticks: { color: textColor } } } }
+            data: { labels, datasets: [{ label: 'Số HV', data: counts, backgroundColor: colors, borderRadius: 6 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { title: (items) => `Điểm ${items[0].label} / 30` } }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, title: { display: true, text: 'Số học viên', color: textColor } },
+                    x: { ticks: { color: textColor }, title: { display: true, text: 'Điểm (số câu đúng / 30)', color: textColor } }
+                }
+            }
         });
     }
 
@@ -5183,39 +5290,59 @@ async function changeAdminPassword() {
     if (!current || !newPw || !confirm) return showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
     if (newPw.length < 6) return showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
     if (newPw !== confirm) return showToast('Mật khẩu xác nhận không khớp!', 'error');
+    if (newPw === current) return showToast('Mật khẩu mới phải khác mật khẩu hiện tại!', 'error');
 
     showLoading('Đang xác thực...');
     try {
-        // Check current password against Firestore
-        const adminDoc = await db.collection('systemConfig').doc('adminCredentials').get();
-        let storedHash = null;
-        if (adminDoc.exists) {
-            storedHash = adminDoc.data().passwordHash;
-        } else {
-            // Default admin password hash
-            storedHash = simpleHash('admin123');
-        }
-
+        // Kiểm tra MK hiện tại — đọc từ CẢ 2 vị trí (adminCredentials + admin)
         const currentHash = simpleHash(current);
-        if (storedHash && currentHash !== storedHash) {
+        let storedHash = null;
+
+        const d1 = await db.collection('systemConfig').doc('adminCredentials').get();
+        if (d1.exists && d1.data().passwordHash) {
+            storedHash = d1.data().passwordHash;
+        } else {
+            const d2 = await db.collection('systemConfig').doc('admin').get();
+            if (d2.exists) {
+                storedHash = d2.data().passwordHash || (d2.data().password ? simpleHash(d2.data().password) : null);
+            }
+        }
+        // Fallback: mặc định admin123
+        if (!storedHash) storedHash = simpleHash('admin123');
+
+        if (currentHash !== storedHash) {
             hideLoading();
-            return showToast('Mật khẩu hiện tại không đúng!', 'error');
+            return showToast('❌ Mật khẩu hiện tại không đúng!', 'error');
         }
 
-        // Save new password
+        // Lưu MK mới vào ĐỒNG THỜI CẢ 2 doc để không bị lệch
         const newHash = simpleHash(newPw);
-        await db.collection('systemConfig').doc('adminCredentials').set({
+        const batch = db.batch();
+        batch.set(db.collection('systemConfig').doc('adminCredentials'), {
             passwordHash: newHash,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedBy: 'Admin'
         }, { merge: true });
+        batch.set(db.collection('systemConfig').doc('admin'), {
+            passwordHash: newHash,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        await batch.commit();
 
-        // Send confirmation email via EmailJS or just log
+        // Ghi queue email
         await sendAdminPasswordEmail(newPw);
 
         hideLoading();
         closeModal('changeAdminPwModal');
-        showToast(`✅ Đổi mật khẩu thành công! Email xác nhận đã gửi đến ${ADMIN_EMAIL}`, 'success', 6000);
+        showToast(`✅ Đổi mật khẩu thành công! Hệ thống sẽ đăng xuất sau 3 giây...`, 'success', 3500);
+
+        // Tự động đăng xuất sau 3s
+        setTimeout(() => {
+            localStorage.removeItem('userType');
+            localStorage.removeItem('adminUser');
+            location.href = 'index.html';
+        }, 3000);
+
     } catch(e) {
         hideLoading();
         showToast('Lỗi: ' + e.message, 'error');
@@ -5223,7 +5350,7 @@ async function changeAdminPassword() {
 }
 
 async function sendAdminPasswordEmail(newPassword) {
-    // Store email request in Firestore for backend processing
+    // Ghi vào emailQueue — có thể dùng Firebase Cloud Functions hoặc EmailJS để xử lý
     try {
         await db.collection('emailQueue').add({
             to: ADMIN_EMAIL,
@@ -5232,9 +5359,9 @@ async function sendAdminPasswordEmail(newPassword) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             status: 'pending'
         });
-        console.log('Email request queued for:', ADMIN_EMAIL);
+        console.log('[Email] Đã ghi queue gửi đến:', ADMIN_EMAIL);
     } catch(e) {
-        console.warn('Email queue error:', e);
+        console.warn('[Email] Lỗi ghi queue:', e.message);
     }
 }
 
