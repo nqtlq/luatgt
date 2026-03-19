@@ -405,9 +405,65 @@ header {
 .sv-perm-list ul { padding-left: 16px; }
 .sv-perm-list li { margin-bottom: 5px; line-height: 1.45; }
 
+/* ═══ MOBILE RESPONSIVE ══════════════════════════════════════ */
 @media (max-width: 768px) {
   .guest-banner, .student-banner { flex-direction: column; }
   .gb-right { justify-content: center; width: 100%; }
+
+  header { padding: 10px 14px; gap: 8px; }
+  .header-title .vi { font-size: 13px; }
+  .header-title .en { display: none; }
+  .clock-box { padding: 6px 10px; }
+  .clock-box .time { font-size: 13px; }
+  .clock-box .date-str { display: none; }
+  .btn-header { padding: 7px 11px; font-size: 12px; }
+
+  .pg { padding: 14px 12px 32px; }
+
+  /* Exam page mobile */
+  .exam-layout { grid-template-columns: 1fr; }
+  .exam-sidebar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    flex-direction: row; padding: 10px 14px; gap: 10px;
+    border-left: none; border-top: 2px solid var(--border);
+    background: white; box-shadow: 0 -4px 16px rgba(0,0,0,.12);
+    overflow-x: auto;
+  }
+  .exam-sidebar > div:first-child { display: none; } /* hide qmap on mobile */
+  .exam-legend { display: none; }
+  .sidebar-submit { white-space: nowrap; min-width: 120px; }
+  .exam-question-area { padding: 14px; min-height: calc(100vh - 280px); padding-bottom: 80px; }
+
+  .answers-list { grid-template-columns: 1fr; gap: 8px; }
+  .answer-btn { padding: 10px 12px; font-size: 13px; }
+  .q-text { font-size: 14px; padding: 12px; }
+
+  /* Result page mobile */
+  .result-container { max-width: 100%; }
+  .result-hero { padding: 24px 16px; }
+  .result-verdict { font-size: 38px; }
+  .result-verdict-text { font-size: 22px; }
+  .result-score { font-size: 34px; }
+  .result-detail-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rd-card { padding: 10px 6px; }
+  .rd-card .rd-num { font-size: 18px; }
+  .result-breakdown { padding: 14px; }
+  .rq-answers-grid { grid-template-columns: 1fr; }
+  .result-actions { flex-direction: column; gap: 10px; }
+
+  /* Modal */
+  .modal-content { padding: 18px; }
+  .modal-info-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .mig-item span { font-size: 18px; }
+  .modal-btns { flex-direction: column; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .result-detail-grid { grid-template-columns: 1fr 1fr; }
+  .modal-info-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .cat-tab { padding: 12px 8px; font-size: 13px; }
+  .cat-tab .cat-icon { font-size: 22px; }
+  .set-card h3 { font-size: 13px; }
 }
 </style>
 </head>
@@ -454,7 +510,7 @@ header {
           </tr>
           <tr>
             <td>Làm bài thi thử</td>
-            <td><span class="p-limit">1 lần / ngày<br>3 lần / tuần</span></td>
+            <td><span class="p-limit">3 lần / ngày</span></td>
             <td><span class="p-yes">✔ Không giới hạn</span></td>
           </tr>
           <tr>
@@ -478,7 +534,7 @@ header {
       <div class="lcard" id="lcToday">
         <div class="ll">Hôm nay</div>
         <div class="lv" id="todayUsed">0</div>
-        <div class="ls">/ 1 lượt</div>
+        <div class="ls">/ 3 lượt/ngày</div>
       </div>
       <div class="lcard" id="lcWeek">
         <div class="ll">Tuần này</div>
@@ -711,10 +767,17 @@ const IS_STUDENT = userType === "student";
 // ================================================================
 // GUEST LIMIT CONSTANTS & HELPERS
 // ================================================================
-const DAILY_LIMIT  = 1;
-const WEEKLY_LIMIT = 3;
+// ── Giới hạn khách ──────────────────────────────────────────
+// Chiến lược: 3 lần thi/ngày/thiết bị.
+// - guestId lưu localStorage (persist khi thoát + vào lại trình duyệt)
+// - Số lần trong ngày lưu cả localStorage lẫn Firestore (sync khi load)
+// - Không dùng MAC address (browser không cho phép)
+// ─────────────────────────────────────────────────────────────
+const DAILY_LIMIT  = 3;   // 3 lần / ngày
+const WEEKLY_LIMIT = 9;   // ~3 lần/ngày × 3 ngày (soft cap tuần)
 
 function getTodayVN() {
+  // Ngày theo giờ Việt Nam (UTC+7)
   return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
 }
 function getWeekKeyVN() {
@@ -724,36 +787,43 @@ function getWeekKeyVN() {
   return "W" + d.toISOString().slice(0, 10);
 }
 function getGuestId() {
+  // guestId tồn tại xuyên suốt session và các lần vào lại trong ngày
   let gid = localStorage.getItem("guestId");
   if (!gid) {
-    gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase();
+    gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 5).toUpperCase();
     localStorage.setItem("guestId", gid);
   }
   return gid;
 }
+
+// ── Local storage logs ──
 function getLogsLocal() {
-  try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); } catch (e) { return []; }
+  try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); } catch (_) { return []; }
 }
 function saveLogsLocal(logs) {
-  try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); } catch (e) {}
+  try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); } catch (_) {}
 }
+
+// ── Firestore sync (best-effort, cross-device) ──
 async function getLogsRemote() {
   if (!db) return [];
   try {
     const doc = await db.collection("guestUsage").doc(getGuestId()).get();
     if (doc.exists && Array.isArray(doc.data().logs)) return doc.data().logs;
-  } catch (e) {}
+  } catch (_) {}
   return [];
 }
 async function pushLogsRemote(logs) {
   if (!db) return;
   try {
     await db.collection("guestUsage").doc(getGuestId()).set(
-      { logs, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { guestId: getGuestId(), logs, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
       { merge: true }
     );
-  } catch (e) {}
+  } catch (_) {}
 }
+
+// ── Restore + merge khi trang load ──
 async function restoreLogsFromFirestore() {
   const remote = await getLogsRemote();
   if (!remote.length) return;
@@ -763,26 +833,34 @@ async function restoreLogsFromFirestore() {
   merged.sort((a, b) => a.time - b.time);
   saveLogsLocal(merged);
 }
+
+// ── Ghi log sau mỗi lần bắt đầu thi ──
 async function saveGuestLog() {
   const logs  = getLogsLocal();
   const entry = { date: getTodayVN(), week: getWeekKeyVN(), time: Date.now() };
   logs.push(entry);
   saveLogsLocal(logs);
-  await pushLogsRemote(logs);
+  await pushLogsRemote(logs);  // đồng bộ Firestore (async, không block)
 }
+
 function getTodayCount() { return getLogsLocal().filter(l => l.date === getTodayVN()).length; }
 function getWeekCount()  { return getLogsLocal().filter(l => l.week === getWeekKeyVN()).length; }
-function canTakeExam()   { return IS_STUDENT || (getTodayCount() < DAILY_LIMIT && getWeekCount() < WEEKLY_LIMIT); }
+
+// Khách có thể thi nếu chưa đạt giới hạn ngày
+function canTakeExam() {
+  if (IS_STUDENT) return true;
+  return getTodayCount() < DAILY_LIMIT;
+}
 
 function updateLimitDisplay() {
   if (!IS_GUEST) return;
-  const td = getTodayCount(), wk = getWeekCount(), rm = Math.max(0, DAILY_LIMIT - td);
+  const td = getTodayCount(), rm = Math.max(0, DAILY_LIMIT - td);
   document.getElementById("todayUsed").textContent   = td;
-  document.getElementById("weekUsed").textContent    = wk;
+  document.getElementById("weekUsed").textContent    = getWeekCount();
   document.getElementById("remainCount").textContent = rm;
-  document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT  ? "danger" : "ok");
-  document.getElementById("lcWeek").className   = "lcard " + (wk >= WEEKLY_LIMIT ? "danger" : "ok");
-  document.getElementById("lcRemain").className = "lcard " + (rm <= 0            ? "danger" : "ok");
+  document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
+  document.getElementById("lcWeek").className   = "lcard ok";   // hiển thị thông tin, không giới hạn tuần riêng
+  document.getElementById("lcRemain").className = "lcard " + (rm <= 0 ? "danger" : "ok");
 }
 
 async function assignGuestSequentialNumber() {
