@@ -365,13 +365,22 @@ header {
   .stat-row { grid-template-columns: 1fr 1fr; }
   .info-grid { grid-template-columns: 1fr; }
   .action-row { flex-direction: column; }
+  .stat-box { padding: 12px; }
   .stat-box .s-num { font-size: 22px; }
   .result-table { font-size: 12px; }
-  .result-table th, .result-table td { padding: 7px 6px; }
-  /* Notification panel compact on mobile */
+  .result-table th, .result-table td { padding: 7px 5px; }
   .notif-list-item { padding: 8px 10px; }
-  /* Modal full-width */
+  .notif-list-item .n-title { font-size: 12px; }
+  .notif-list-item .n-text { display: none; } /* chỉ hiển thị tiêu đề trên mobile nhỏ */
   .modal-box { max-height: 90vh; border-radius: 12px; }
+  .action-btn { padding: 13px 16px; font-size: 14px; }
+  .result-table td:nth-child(2) { display: none; } /* ẩn cột Thời gian trên mobile nhỏ */
+}
+@media (max-width: 400px) {
+  .stat-row { grid-template-columns: repeat(3, 1fr); }
+  .stat-box .s-num { font-size: 18px; }
+  .stat-box .s-lbl { font-size: 10px; }
+  #container { padding: 10px 8px 24px; }
 }
 </style>
 </head>
@@ -611,11 +620,18 @@ function doLogout() {
 // CLOCK
 // =====================================================================
 function updateClock() {
-  const now = new Date();
-  const t = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const d = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-  document.getElementById('clockTime').textContent = t;
-  document.getElementById('clockDate').textContent = d;
+  const n   = new Date();
+  const hh  = String(n.getHours()).padStart(2,'0');
+  const mm  = String(n.getMinutes()).padStart(2,'0');
+  const ss  = String(n.getSeconds()).padStart(2,'0');
+  const dd  = String(n.getDate()).padStart(2,'0');
+  const mo  = String(n.getMonth()+1).padStart(2,'0');
+  const yy  = n.getFullYear();
+  const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+  const tEl = document.getElementById('clockTime');
+  const dEl = document.getElementById('clockDate');
+  if (tEl) tEl.textContent = `${hh}:${mm}:${ss}`;
+  if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
 }
 updateClock();
 setInterval(updateClock, 1000);
