@@ -212,7 +212,12 @@ header {
 
 @media (max-width: 480px) {
   .sc-stats { grid-template-columns: 1fr 1fr; }
-  .history-table { font-size: 11px; }
+  .sc-stat .n { font-size: 16px; }
+  .history-table { font-size: 11px; min-width: 480px; }
+  .history-table td:nth-child(6) { display: none; } /* ẩn cột Thời gian làm bài */
+  .student-card { padding: 12px; }
+  .container { padding: 12px 10px 36px; }
+  .btn-detail { font-size: 11px; padding: 4px 8px; }
 }
 </style>
 </head>
@@ -328,11 +333,19 @@ if (userType !== 'student' || !studentCode) location.href = 'index.html';
 // CLOCK
 // ================================================================
 (function() {
-  const c = document.getElementById('clockTime'), d = document.getElementById('clockDate');
   function tick() {
-    const n = new Date();
-    c.textContent = n.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    d.textContent = n.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+    const n   = new Date();
+    const hh  = String(n.getHours()).padStart(2,'0');
+    const mm  = String(n.getMinutes()).padStart(2,'0');
+    const ss  = String(n.getSeconds()).padStart(2,'0');
+    const dd  = String(n.getDate()).padStart(2,'0');
+    const mo  = String(n.getMonth()+1).padStart(2,'0');
+    const yy  = n.getFullYear();
+    const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+    const cEl = document.getElementById('clockTime');
+    const dEl = document.getElementById('clockDate');
+    if (cEl) cEl.textContent = `${hh}:${mm}:${ss}`;
+    if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
   }
   tick(); setInterval(tick, 1000);
 })();
