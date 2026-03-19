@@ -491,60 +491,171 @@ tbody tr:hover { background: var(--bg-hover); }
 #studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
- /* ===== PRINT STYLES - IMPROVED ===== */
- #printHeader { display: none; }
- .print-letterhead, .print-date, .print-title { display: none; }
- @media print {
+/* ===== PRINT STYLES ===== */
+#printHeader { display: none; }
+.print-letterhead, .print-date, .print-title { display: none; }
+ 
+@media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+ 
+  @page {
+    size: A4 portrait;
+    margin: 2.5cm 1.5cm 2.0cm 2.5cm;
+  }
+ 
   header, aside, .toolbar, .btn, .statGrid, .pagination,
   .no-print, .toast-container, .loading-overlay, .dash-grid,
   .chart-grid, .miniStats, .sidebar-overlay,
   .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
-  body { background: white !important; color: black !important; margin: 0; padding: 0; }
+ 
+  body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
   #layout { display: block; }
   main { padding: 0 !important; margin: 0; }
+ 
   .page { display: none !important; }
   #students.page { display: block !important; }
-  .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
+ 
+  .box {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
   .box > h3 { display: none !important; }
-  #printHeader { display: block !important; margin-bottom: 8px; }
-  .print-letterhead { width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 2px; display: table !important; }
-  .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
+  .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+ 
+  /* Ẩn pagination và toolbar khi in */
+  #studentPagination { display: none !important; }
+  .student-toolbar { display: none !important; }
+ 
+  /* Print header */
+  #printHeader { display: block !important; margin-bottom: 10px; }
+ 
+  .print-letterhead {
+    display: table !important;
+    width: 100%;
+    border-collapse: collapse;
+    border: none !important;
+    margin-bottom: 4px;
+  }
+  .print-letterhead,
+  .print-letterhead tr,
+  .print-letterhead td { border: none !important; }
   .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
-  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
+ 
+  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.6; }
   .letterhead-left div:first-child { font-size: 10pt; }
   .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
+ 
+  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.6; }
   .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
   .letterhead-motto { font-size: 11pt; font-weight: bold; }
-  .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
-  .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
-  .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
-  #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-  .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
-  table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
-  th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
-  th { background: #e8e8e8 !important; font-weight: bold !important; }
-  tbody tr:nth-child(even) { background: #f9f9f9 !important; }
-  .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
-  @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
+  .letterhead-underline {
+    width: 60%; height: 1px;
+    margin: 4px auto 0;
+    background: #000;
+    border-bottom: 1px solid #000;
+  }
+ 
+  .print-date {
+    display: block !important;
+    text-align: right;
+    font-size: 10pt;
+    font-style: italic;
+    margin: 6px 0 8px;
+  }
+  .print-title {
+    display: block !important;
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 8px 0 4px;
+  }
+  #printInfo {
+    text-align: center;
+    font-size: 10pt;
+    color: #555;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid #000;
+  }
+ 
+  /* Bảng in */
+  .tableWrap, .table-wrapper {
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+  table {
+    width: 100% !important;
+    min-width: unset !important;
+    border: 1px solid #000 !important;
+    font-size: 10pt !important;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #bbb !important;
+    padding: 5px 7px !important;
+    color: #000 !important;
+    font-size: 9pt !important;
+  }
+  th {
+    background: #e6e6e6 !important;
+    font-weight: bold !important;
+  }
+  tbody tr:nth-child(even) { background: #f7f7f7 !important; }
+ 
+  .status-badge {
+    background: none !important;
+    color: #000 !important;
+    padding: 0;
+    font-size: 9pt !important;
+  }
 }
-
- @media (min-width: 768px) { .header-clock { display: block; } }
- @media (max-width: 768px) {
-   .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
-   .header-user .user-info { display: none; }
-   .header-clock { display: none; }
-   aside { position: fixed; left: -280px; top: var(--header-height); z-index: 200; width: 260px; box-shadow: var(--shadow-lg); height: calc(100vh - var(--header-height)); }
-   aside.mobile-open { left: 0; }
-   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; top: var(--header-height); }
-   aside.mobile-open ~ .sidebar-overlay { display: block; }
-   main { padding: 16px; }
-   .statGrid, .miniStats { grid-template-columns: 1fr; }
-   .dash-grid { grid-template-columns: 1fr; }
-   .chart-grid { grid-template-columns: 1fr; }
-   .form-row { grid-template-columns: 1fr; }
- }
+ 
+/* ===== RESPONSIVE ===== */
+@media (min-width: 769px) {
+  .header-clock { display: block; }
+}
+ 
+@media (max-width: 768px) {
+  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+  .header-user .user-info,
+  .header-clock { display: none; }
+ 
+  aside {
+    position: fixed;
+    left: -280px;
+    top: var(--header-height);
+    z-index: 200;
+    width: 260px;
+    height: calc(100vh - var(--header-height));
+    box-shadow: var(--shadow-lg);
+    transition: left 0.25s ease;
+  }
+  aside.mobile-open { left: 0; }
+ 
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: var(--header-height);
+    z-index: 199;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  aside.mobile-open ~ .sidebar-overlay { display: block; opacity: 1; }
+ 
+  main { padding: 16px; }
+  .statGrid, .miniStats, .dash-grid, .chart-grid, .form-row {
+    grid-template-columns: 1fr;
+  }
+}
 
     /* MODAL BỊ KHÓA */
 .kickout-modal {
@@ -2126,6 +2237,11 @@ let confirmResolve = null;
 let chartInstances = {};
 let presenceUnsub = null;
 let presenceMap = new Map();
+    let _onlineUITimer = null;
+function updateOnlineUIDebounced() {
+    clearTimeout(_onlineUITimer);
+    _onlineUITimer = setTimeout(updateOnlineUI, 120);
+}
 let currentImageData = null;
 let selectedGroupIndex = 0;
 let pendingLietQuestions = [];
@@ -2515,23 +2631,26 @@ function startRealtimeAllExams() {
 function startRealtimeStudents() {
     if (rtStudentUnsub) rtStudentUnsub();
     rtStudentUnsub = db.collection('students').onSnapshot(snap => {
-        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' }));
+        allStudents = snap.docs.map(d => ({
+            id: d.id, ...d.data(),
+            code: d.data().code || d.id,
+            status: d.data().status || 'active'
+        }));
         const active = allStudents.filter(s => s.status === 'active').length;
         const locked = allStudents.filter(s => s.status === 'locked').length;
         safeSet('totalStudents', allStudents.length);
         safeSet('activeStudents', active);
         safeSet('lockedStudentsD', locked);
-        safeSet('warningCount', locked);
         safeSet('totalCount', allStudents.length);
         safeSet('activeCount', active);
         safeSet('lockedCount', locked);
-        // Update student-related UI
+ 
         if (document.getElementById('students')?.classList.contains('active')) {
             updateStudentStats();
             filteredStudents = [...allStudents];
             renderStudentTable();
         }
-        updateOnlineUI();
+        updateOnlineUIDebounced();
         loadCourseFilter();
         updateLastUpdateTime();
     }, err => console.warn('RT Students error:', err));
@@ -2602,9 +2721,7 @@ function renderActivityTable(snap) {
 // Lắng nghe người dùng Online
 function startPresenceListener() {
     if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-
-    // Lắng nghe collection 'presence' — chỉ nhận update đã xác nhận từ server
-    // (includeMetadataChanges: false — mặc định, tránh double-fire khi write offline)
+ 
     presenceUnsub = db.collection('presence')
         .onSnapshot({ includeMetadataChanges: false }, (snap) => {
             presenceMap.clear();
@@ -2612,15 +2729,12 @@ function startPresenceListener() {
                 const d = doc.data();
                 if (d) presenceMap.set(doc.id, d);
             });
-            updateOnlineUI();
+            updateOnlineUIDebounced();
         }, (err) => {
             console.warn('[Presence] Lỗi listener:', err.message);
-            // Thử kết nối lại sau 5s
             setTimeout(startPresenceListener, 5000);
         });
-
-    // Fallback poll 30s để loại bỏ session "zombie"
-    // (tab đóng đột ngột không kịp set isOnline:false)
+ 
     if (window._presencePollTimer) clearInterval(window._presencePollTimer);
     window._presencePollTimer = setInterval(updateOnlineUI, 30000);
 }
@@ -2628,84 +2742,72 @@ function startPresenceListener() {
 function updateOnlineUI() {
     let onlineCount = 0;
     const now = new Date();
-
-    // Build online set from presenceMap (independent of allStudents)
+ 
     const onlineByCode = new Map();
     presenceMap.forEach((data, code) => {
         if (!data.isOnline) return;
-
-        // Resolve lastActive — serverTimestamp() returns null on client before round-trip.
-        // Treat null as "just now" (0s ago) so newly-logged-in users are NOT skipped.
+ 
         let lastActive = null;
-        if (data.lastActive?.toDate)       lastActive = data.lastActive.toDate();
+        if (data.lastActive?.toDate)              lastActive = data.lastActive.toDate();
         else if (data.lastActive instanceof Date) lastActive = data.lastActive;
-        else if (data.lastActive)          lastActive = new Date(data.lastActive);
-        // else lastActive stays null → treat as 0s ago (just logged in)
-
+        else if (data.lastActive)                 lastActive = new Date(data.lastActive);
+ 
         const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
-        if (diffSeconds < 90) { // 90s threshold (heartbeat 20s)
+        if (diffSeconds < 90) {
             onlineByCode.set(code, { ...data, lastActiveDate: lastActive });
         }
     });
-
-    // ── Cập nhật trạng thái online cho allStudents (học viên) ──
+ 
     const studentCodes = new Set((allStudents || []).map(s => s.code));
     let guestOnlineCount = 0;
-
+ 
     if (allStudents && allStudents.length > 0) {
         allStudents.forEach(s => {
-            const onlineData = onlineByCode.get(s.code);
-            if (onlineData) {
-                s.isOnline = true;
-                s.currentSection = onlineData.currentSection || 'Đang hoạt động';
-                s.startAt = onlineData.startAt?.toDate ? onlineData.startAt.toDate() : null;
-                s.lastActive = onlineData.lastActiveDate;
+            const od = onlineByCode.get(s.code);
+            if (od) {
+                s.isOnline        = true;
+                s.currentSection  = od.currentSection || 'Đang hoạt động';
+                s.startAt         = od.startAt?.toDate ? od.startAt.toDate() : null;
+                s.lastActive      = od.lastActiveDate;
                 onlineCount++;
             } else {
-                s.isOnline = false;
+                s.isOnline       = false;
                 s.currentSection = null;
-                s.lastActive = null;
+                s.lastActive     = null;
             }
         });
     }
-
-    // ── Đếm thêm khách (presence doc không có trong allStudents) ──
+ 
     onlineByCode.forEach((data, code) => {
         if (!studentCodes.has(code)) {
-            guestOnlineCount++; // đây là khách hoặc tài khoản ngoài danh sách HV
+            guestOnlineCount++;
             onlineCount++;
         }
     });
-
+ 
     const el = document.getElementById('onlineCount');
     if (el) {
         el.textContent = onlineCount;
         el.style.color = onlineCount > 0 ? 'var(--success)' : '';
     }
-
-    // ── Phân loại: đang thi / xem đề / khách ──
-    let examingCnt = 0, browsingCnt = 0;
+ 
+    let examingCnt = 0;
     onlineByCode.forEach(data => {
         const sec = (data.currentSection || '').toLowerCase();
         if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
-        else browsingCnt++;
     });
     safeSet('examingCount', examingCnt);
-    safeSet('browsingCount', browsingCnt);
-
-    // Hiển thị số khách online nếu có element
+    /* safeSet('browsingCount', ...) đã xoá — element không tồn tại trong HTML */
+ 
     const guestEl = document.getElementById('guestOnlineCount');
     if (guestEl) guestEl.textContent = guestOnlineCount;
-
-    // Show LIVE badge
+ 
     const liveBadge = document.getElementById('onlineLiveBadge');
     if (liveBadge) liveBadge.style.display = onlineCount > 0 ? 'inline-block' : 'none';
-
-    // Cập nhật số học viên active
+ 
     const dashActive = document.getElementById('activeStudents');
     if (dashActive) dashActive.textContent = (allStudents || []).filter(s => s.status === 'active').length;
-
-    // Làm mới trang chi tiết online nếu đang hiển thị
+ 
     const detailPage = document.getElementById('online_detail');
     if (detailPage && detailPage.classList.contains('active')) {
         renderOnlineDetailPage();
@@ -3276,8 +3378,42 @@ function exportToExcel() {
 }
 
 function printTable() {
-    updatePrintInfo();   // populate printDate / printTitle / printInfo
-    setTimeout(() => window.print(), 80);  // brief delay for DOM update
+    updatePrintInfo();
+ 
+    const tb  = document.getElementById('studentTableBody');
+    const pag = document.getElementById('studentPagination');
+    if (!tb) { setTimeout(() => window.print(), 80); return; }
+ 
+    const savedPage = currentPage;
+ 
+    /* Render TẤT CẢ danh sách lọc — không giới hạn phân trang */
+    const allRows = filteredStudents.length ? filteredStudents : allStudents;
+    tb.innerHTML = allRows.map((s, i) => {
+        const statusText = s.status === 'active' ? '● Hoạt động' : '● Đã khóa';
+        return `<tr>
+            <td>${i + 1}</td>
+            <td><b>${escapeHtml(s.code)}</b></td>
+            <td class="no-print"></td>
+            <td style="text-align:left;padding-left:12px;font-weight:600;">${escapeHtml(s.name)}</td>
+            <td style="text-align:left;font-size:12px;">${escapeHtml(s.unit || '')}</td>
+            <td>${formatDate(s.dob)}</td>
+            <td>${escapeHtml(s.object || '')}</td>
+            <td>${escapeHtml(s.course || '—')}</td>
+            <td class="no-print"><span class="status-badge">${statusText}</span></td>
+            <td class="no-print"></td>
+        </tr>`;
+    }).join('');
+ 
+    if (pag) pag.style.display = 'none';
+ 
+    setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+            if (pag) pag.style.display = '';
+            currentPage = savedPage;
+            renderStudentTable();
+        }, 1000);
+    }, 80);
 }
 
 // ==========================================
