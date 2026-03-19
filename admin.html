@@ -500,6 +500,8 @@ tbody tr:hover { background: var(--bg-hover); }
   .no-print, .toast-container, .loading-overlay, .dash-grid,
   .chart-grid, .miniStats, .sidebar-overlay,
   .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
+  /* Ẩn từng ô có class .no-print: cột Mật khẩu, Trạng thái, Thao tác */
+  th.no-print, td.no-print { display: none !important; }
   body { background: white !important; color: black !important; margin: 0; padding: 0; }
   #layout { display: block; }
   main { padding: 0 !important; margin: 0; }
@@ -521,7 +523,8 @@ tbody tr:hover { background: var(--bg-hover); }
   .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
   .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
   #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-  .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+  .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+  #studentTable { width: 100% !important; border-collapse: collapse; }
   table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
   th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
   th { background: #e8e8e8 !important; font-weight: bold !important; }
@@ -2635,10 +2638,17 @@ function updateOnlineUI() {
     const onlineByCode = new Map();
     presenceMap.forEach((data, code) => {
         if (!data.isOnline) return;
-        const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : (data.lastActive ? new Date(data.lastActive) : null);
-        if (!lastActive) return;
-        const diffSeconds = (now - lastActive) / 1000;
-        if (diffSeconds < 90) { // 90s threshold (heartbeat is 20s)
+
+        // Resolve lastActive — serverTimestamp() returns null on client before round-trip.
+        // Treat null as "just now" (0s ago) so newly-logged-in users are NOT skipped.
+        let lastActive = null;
+        if (data.lastActive?.toDate)       lastActive = data.lastActive.toDate();
+        else if (data.lastActive instanceof Date) lastActive = data.lastActive;
+        else if (data.lastActive)          lastActive = new Date(data.lastActive);
+        // else lastActive stays null → treat as 0s ago (just logged in)
+
+        const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
+        if (diffSeconds < 90) { // 90s threshold (heartbeat 20s)
             onlineByCode.set(code, { ...data, lastActiveDate: lastActive });
         }
     });
@@ -3270,7 +3280,10 @@ function exportToExcel() {
     XLSX.writeFile(wb, `HocVien_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`);
 }
 
-function printTable() { window.print(); }
+function printTable() {
+    updatePrintInfo();   // populate printDate / printTitle / printInfo
+    setTimeout(() => window.print(), 80);  // brief delay for DOM update
+}
 
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
@@ -4970,41 +4983,79 @@ async function checkScheduledNotifications() {
 // 14. ONLINE CHI TIẾT & THỐNG KÊ (STATS)
 // ==========================================
 function renderOnlineDetailPage() {
-    const studentOnline = allStudents.filter(s => s.isOnline);
+    // ── Đọc THẲNG từ presenceMap — không phụ thuộc vào allStudents[i].isOnline ──
+    // Tránh hoàn toàn race condition giữa presence listener và students listener.
+    const now          = Date.now();
+    const studentIndex = new Map(allStudents.map(s => [s.code, s]));
+    const STALE_MS     = 90_000; // 90s — heartbeat 20s
 
-    // Gom khách từ presenceMap (những ID không có trong allStudents)
-    const studentCodes  = new Set(allStudents.map(s => s.code));
+    const studentOnline = [];
     const guestOnline   = [];
+
     presenceMap.forEach((data, code) => {
-        if (studentCodes.has(code)) return;
         if (!data.isOnline) return;
-        const la = data.lastActive?.toDate ? data.lastActive.toDate() : (data.lastActive ? new Date(data.lastActive) : null);
-        if (!la || (Date.now() - la) / 1000 > 90) return;
-        guestOnline.push({ code, ...data, isGuest: true, lastActiveDate: la });
+
+        // Xác định lastActive
+        let lastActive = null;
+        if (data.lastActive?.toDate) lastActive = data.lastActive.toDate();
+        else if (data.lastActive)    lastActive = new Date(data.lastActive);
+
+        // serverTimestamp() trả null trên client trước khi round-trip hoàn thành.
+        // Treat null → 0ms ago (vừa đăng nhập). Chỉ bỏ qua nếu lastActive đã quá 90s.
+        if (lastActive && (now - lastActive.getTime()) > STALE_MS) return;
+        // Khi lastActive null nhưng isOnline:true → vẫn hiển thị (không return)
+
+        const student = studentIndex.get(code);
+        if (student) {
+            // Học viên đã đăng ký
+            studentOnline.push({
+                ...student,
+                currentSection: data.currentSection || 'Đang hoạt động',
+                lastActiveDate: lastActive,
+                startAt: data.startAt?.toDate ? data.startAt.toDate() : null,
+                isGuest: false
+            });
+        } else {
+            // Khách / ID không có trong danh sách HV
+            guestOnline.push({
+                code,
+                name:           data.studentName || '',
+                guestLabel:     'Khách - ' + (code || '').slice(-6),
+                currentSection: data.currentSection || 'Đang xem đề',
+                lastActiveDate: lastActive,
+                startAt:        data.startAt?.toDate ? data.startAt.toDate() : null,
+                isGuest: true
+            });
+        }
     });
 
     const allOnline = [...studentOnline, ...guestOnline];
+
+    // ── Cập nhật số liệu summary ──
     document.getElementById('onlineTotal').textContent    = allOnline.length;
     document.getElementById('onlineStudying').textContent = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('học')).length;
     document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('thi')).length;
-    document.getElementById('onlineIdle').textContent     = allOnline.filter(s => !s.currentSection || s.currentSection === 'Đang chờ').length;
+    document.getElementById('onlineIdle').textContent     = allOnline.filter(s => !safeText(s.currentSection) || s.currentSection === 'Đang chờ').length;
 
+    // ── Biểu đồ phân bố đối tượng ──
     const objCounts = {};
-    studentOnline.forEach(s => { const key = s.object || 'Khác'; objCounts[key] = (objCounts[key] || 0) + 1; });
-    if (guestOnline.length > 0) objCounts['Khách'] = (objCounts['Khách'] || 0) + guestOnline.length;
+    studentOnline.forEach(s => { const k = s.object || 'Khác'; objCounts[k] = (objCounts[k] || 0) + 1; });
+    if (guestOnline.length) objCounts['Khách'] = (objCounts['Khách'] || 0) + guestOnline.length;
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const ctx = document.getElementById('chartOnlineByObject');
-    if (ctx && Object.keys(objCounts).length > 0) {
+    const ctx    = document.getElementById('chartOnlineByObject');
+    if (ctx) {
         if (chartInstances.onlineByObj) chartInstances.onlineByObj.destroy();
-        chartInstances.onlineByObj = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(objCounts),
-                datasets: [{ data: Object.values(objCounts), backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#6366f1'], borderWidth: 2, borderColor: isDark ? '#1a1d24' : '#fff' }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#9ea4ad' : '#6c757d'} } } }
-        });
+        if (Object.keys(objCounts).length > 0) {
+            chartInstances.onlineByObj = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(objCounts),
+                    datasets: [{ data: Object.values(objCounts), backgroundColor: ['#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#6366f1'], borderWidth: 2, borderColor: isDark ? '#1a1d24' : '#fff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#9ea4ad' : '#6c757d' } } } }
+            });
+        }
     }
 
     // Lưu tạm để filterOnlineDetail dùng
