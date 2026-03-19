@@ -491,17 +491,15 @@ tbody tr:hover { background: var(--bg-hover); }
 #studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
-/* ===== PRINT STYLES - IMPROVED ===== */
-#printHeader { display: none; }
-.print-letterhead, .print-date, .print-title { display: none; }
-@media print {
+ /* ===== PRINT STYLES - IMPROVED ===== */
+ #printHeader { display: none; }
+ .print-letterhead, .print-date, .print-title { display: none; }
+ @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   header, aside, .toolbar, .btn, .statGrid, .pagination,
   .no-print, .toast-container, .loading-overlay, .dash-grid,
   .chart-grid, .miniStats, .sidebar-overlay,
   .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
-  /* Ẩn từng ô có class .no-print: cột Mật khẩu, Trạng thái, Thao tác */
-  th.no-print, td.no-print { display: none !important; }
   body { background: white !important; color: black !important; margin: 0; padding: 0; }
   #layout { display: block; }
   main { padding: 0 !important; margin: 0; }
@@ -523,8 +521,7 @@ tbody tr:hover { background: var(--bg-hover); }
   .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
   .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
   #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
-  .tableWrap, .table-wrapper { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
-  #studentTable { width: 100% !important; border-collapse: collapse; }
+  .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
   table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
   th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
   th { background: #e8e8e8 !important; font-weight: bold !important; }
@@ -532,25 +529,23 @@ tbody tr:hover { background: var(--bg-hover); }
   .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
   @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
 }
-@media (min-width: 768px) { .header-clock { display: block; } }
-@media (max-width: 768px) {
-    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
-    .header-user .user-info { display: none; }
-    .header-clock { display: none; }
-    aside { position: fixed; left: -280px; top: var(--header-height); z-index: 200; width: 260px; box-shadow: var(--shadow-lg); height: calc(100vh - var(--header-height)); }
-    aside.mobile-open { left: 0; }
-    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; top: var(--header-height); }
-    aside.mobile-open ~ .sidebar-overlay { display: block; }
-    main { padding: 16px; }
-    .statGrid, .miniStats { grid-template-columns: 1fr; }
-    .dash-grid { grid-template-columns: 1fr; }
-    .chart-grid { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
-    .toolbar-row { flex-direction: column; align-items: stretch; }
-    .toolbar-actions { justify-content: center; margin-bottom: 8px; }
-    .toolbar-filters { flex-direction: column; }
-    .toolbar-filters input, .toolbar-filters select { width: 100%; }
-}
+
+ @media (min-width: 768px) { .header-clock { display: block; } }
+ @media (max-width: 768px) {
+   .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+   .header-user .user-info { display: none; }
+   .header-clock { display: none; }
+   aside { position: fixed; left: -280px; top: var(--header-height); z-index: 200; width: 260px; box-shadow: var(--shadow-lg); height: calc(100vh - var(--header-height)); }
+   aside.mobile-open { left: 0; }
+   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; top: var(--header-height); }
+   aside.mobile-open ~ .sidebar-overlay { display: block; }
+   main { padding: 16px; }
+   .statGrid, .miniStats { grid-template-columns: 1fr; }
+   .dash-grid { grid-template-columns: 1fr; }
+   .chart-grid { grid-template-columns: 1fr; }
+   .form-row { grid-template-columns: 1fr; }
+ }
+
     /* MODAL BỊ KHÓA */
 .kickout-modal {
     position: fixed;
