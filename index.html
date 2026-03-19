@@ -241,10 +241,18 @@ function normalize(s){
 // BẢO TRÌ & ĐỒNG HỒ
 let isSystemMaintenance=false, maintClockInterval=null;
 function updateMaintenanceClock() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0'), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
-    if(document.getElementById('maintTime')) document.getElementById('maintTime').textContent = `${h}:${m}:${s}`;
-    if(document.getElementById('maintDate')) document.getElementById('maintDate').textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+    const n   = new Date();
+    const hh  = String(n.getHours()).padStart(2,'0');
+    const mm  = String(n.getMinutes()).padStart(2,'0');
+    const ss  = String(n.getSeconds()).padStart(2,'0');
+    const dd  = String(n.getDate()).padStart(2,'0');
+    const mo  = String(n.getMonth()+1).padStart(2,'0');
+    const yy  = n.getFullYear();
+    const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+    const tEl = document.getElementById('maintTime');
+    const dEl = document.getElementById('maintDate');
+    if (tEl) tEl.textContent = `${hh}:${mm}:${ss}`;
+    if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
 }
 async function checkMaintenanceMode() {
     if (!firebaseReady || !db) return false;
