@@ -581,97 +581,8 @@ tbody tr:hover { background: var(--bg-hover); }
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
 
-/* ─── Custom date / datetime inputs ─── */
-.date-input-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-.date-input-wrap input[type="text"].custom-date,
-.date-input-wrap input[type="text"].custom-time {
-  padding-right: 28px;
-  letter-spacing: 0.5px;
-  font-variant-numeric: tabular-nums;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-}
-.date-input-wrap .date-icon {
-  position: absolute;
-  right: 7px;
-  pointer-events: none;
-  font-size: 14px;
-  opacity: 0.55;
-}
-.datetime-pair {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-.datetime-pair input.custom-date { width: 110px; }
-.datetime-pair input.custom-time { width: 68px; }
 
-/* ─── 3-part date input (DD / MM / YYYY) ─── */
-.date3-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--input-bg, #fff);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm, 8px);
-  padding: 0 8px 0 6px;
-  height: 34px;
-  font-size: 13px;
-  font-family: 'Courier New', monospace;
-  font-variant-numeric: tabular-nums;
-  transition: border-color .15s;
-}
-.date3-wrap:focus-within { border-color: var(--primary, #0d6efd); box-shadow: 0 0 0 2px rgba(13,110,253,.15); }
-.date3-wrap input[type=number].d3 {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  font-family: inherit;
-  font-variant-numeric: tabular-nums;
-  color: inherit;
-  -moz-appearance: textfield;
-  text-align: center;
-  padding: 0;
-}
-.date3-wrap input[type=number].d3::-webkit-outer-spin-button,
-.date3-wrap input[type=number].d3::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.date3-wrap .d3-dd  { width: 22px; }
-.date3-wrap .d3-mm  { width: 22px; }
-.date3-wrap .d3-yy  { width: 38px; }
-.date3-wrap .d3-sep { color: var(--text-muted, #aaa); font-weight: 700; padding: 0 1px; user-select: none; }
-.date3-wrap .d3-icon { font-size: 14px; margin-left: 4px; opacity: .5; cursor: default; }
 
-/* time-2-part (HH : MM) */
-.time2-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--input-bg, #fff);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm, 8px);
-  padding: 0 8px 0 6px;
-  height: 34px;
-  font-size: 13px;
-  font-family: 'Courier New', monospace;
-  font-variant-numeric: tabular-nums;
-  transition: border-color .15s;
-}
-.time2-wrap:focus-within { border-color: var(--primary, #0d6efd); box-shadow: 0 0 0 2px rgba(13,110,253,.15); }
-.time2-wrap input[type=number].t2 {
-  border: none; outline: none; background: transparent;
-  font-size: 13px; font-family: inherit; font-variant-numeric: tabular-nums;
-  color: inherit; -moz-appearance: textfield; text-align: center; padding: 0;
-  width: 22px;
-}
-.time2-wrap input[type=number].t2::-webkit-outer-spin-button,
-.time2-wrap input[type=number].t2::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.time2-wrap .t2-sep { color: var(--text-muted, #aaa); font-weight: 700; padding: 0 1px; }
-.time2-wrap .t2-icon { font-size: 14px; margin-left: 4px; opacity: .5; }
 </style>
 </head>
     
@@ -1716,43 +1627,11 @@ D. Đáp án D
                 <option value="pass">Đạt</option>
                 <option value="fail">Trượt</option>
               </select>
-<div class="date3-wrap" id="resultFrom_wrap">
-                <input type="number" class="d3 d3-dd" id="resultFrom_d"
-                       min="1" max="31" placeholder="DD" onchange="applyResultFilters()"
-                       oninput="d3AutoAdvance(this,'resultFrom_m',2)"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-mm" id="resultFrom_m"
-                       min="1" max="12" placeholder="MM" onchange="applyResultFilters()"
-                       oninput="d3AutoAdvance(this,'resultFrom_y',2)"
-                       onkeydown="d3BackJump(event,'resultFrom_d')"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-yy" id="resultFrom_y"
-                       min="1900" max="2100" placeholder="YYYY" onchange="applyResultFilters()"
-                       onkeydown="d3BackJump(event,'resultFrom_m')"
-                       onblur="d3Pad(this)">
-                <span class="d3-icon">📅</span>
-              </div>
-              <span style="font-size:12px;color:var(--text-muted);margin:0 4px;">–</span>
-<div class="date3-wrap" id="resultTo_wrap">
-                <input type="number" class="d3 d3-dd" id="resultTo_d"
-                       min="1" max="31" placeholder="DD" onchange="applyResultFilters()"
-                       oninput="d3AutoAdvance(this,'resultTo_m',2)"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-mm" id="resultTo_m"
-                       min="1" max="12" placeholder="MM" onchange="applyResultFilters()"
-                       oninput="d3AutoAdvance(this,'resultTo_y',2)"
-                       onkeydown="d3BackJump(event,'resultTo_d')"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-yy" id="resultTo_y"
-                       min="1900" max="2100" placeholder="YYYY" onchange="applyResultFilters()"
-                       onkeydown="d3BackJump(event,'resultTo_m')"
-                       onblur="d3Pad(this)">
-                <span class="d3-icon">📅</span>
-              </div>
+<input type="date" id="resultDateFrom" onchange="applyResultFilters()"
+                     style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">
+              <span style="font-size:12px;color:var(--text-muted);margin:0 2px;">–</span>
+              <input type="date" id="resultDateTo" onchange="applyResultFilters()"
+                     style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">
               <button class="btn btn-primary btn-sm" onclick="loadAllExamResults()">🔄 Tải dữ liệu</button>
             </div>
           </div>
@@ -1979,36 +1858,12 @@ D. Đáp án D
         <div class="form-group" id="scheduleTimeGroup" style="display:none;">
           <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-<div class="date3-wrap" id="sched_wrap">
-                <input type="number" class="d3 d3-dd" id="sched_d"
-                       min="1" max="31" placeholder="DD" onchange="previewScheduleTime()"
-                       oninput="d3AutoAdvance(this,'sched_m',2)"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-mm" id="sched_m"
-                       min="1" max="12" placeholder="MM" onchange="previewScheduleTime()"
-                       oninput="d3AutoAdvance(this,'sched_y',2)"
-                       onkeydown="d3BackJump(event,'sched_d')"
-                       onblur="d3Pad(this)">
-                <span class="d3-sep">/</span>
-                <input type="number" class="d3 d3-yy" id="sched_y"
-                       min="1900" max="2100" placeholder="YYYY" onchange="previewScheduleTime()"
-                       onkeydown="d3BackJump(event,'sched_m')"
-                       onblur="d3Pad(this)">
-                <span class="d3-icon">📅</span>
-              </div>
-<div class="time2-wrap" id="schedT_wrap">
-                <input type="number" class="t2" id="schedT_h"
-                       min="0" max="23" placeholder="HH" onchange="previewScheduleTime()"
-                       oninput="d3AutoAdvance(this,'schedT_m',2)"
-                       onblur="d3Pad(this)">
-                <span class="t2-sep">:</span>
-                <input type="number" class="t2" id="schedT_m"
-                       min="0" max="59" placeholder="MM" onchange="previewScheduleTime()"
-                       onkeydown="d3BackJump(event,'schedT_h')"
-                       onblur="d3Pad(this)">
-                <span class="t2-icon">🕐</span>
-              </div>
+            <input type="date" id="schedDate"
+                   style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;"
+                   onchange="previewScheduleTime()">
+            <input type="time" id="schedTime" value="08:00"
+                   style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;"
+                   onchange="previewScheduleTime()">
           </div>
           <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
         </div>
@@ -2470,12 +2325,12 @@ function showPage(id, btn) {
             (async () => {
                 const df = document.getElementById('resultDateFrom');
                 const dt = document.getElementById('resultDateTo');
-                // Mặc định: 7 ngày trước → hôm nay, điền vào 3-ô date inputs
-                const nowDef  = new Date();
-                const fromDef = new Date(Date.now() - 7 * 86400000);
-                if (!document.getElementById('resultFrom_y')?.value) {
-                    setDate3('resultFrom', fromDef);
-                    setDate3('resultTo',   nowDef);
+                // Mặc định: 7 ngày trước → hôm nay (YYYY-MM-DD cho native date input)
+                const df2 = document.getElementById('resultDateFrom');
+                const dt2 = document.getElementById('resultDateTo');
+                if (df2 && !df2.value) {
+                    df2.value = new Date(Date.now() - 7*86400000).toISOString().split('T')[0];
+                    if (dt2) dt2.value = new Date().toISOString().split('T')[0];
                 }
                 await loadAllExamResults();
             })();
@@ -3442,9 +3297,137 @@ function exportToExcel() {
 }
 
 function printTable() {
-    updatePrintInfo();   // populate printDate / printTitle / printInfo
-    setTimeout(() => window.print(), 80);  // brief delay for DOM update
+    // Lấy tiêu đề và thông tin từ bộ lọc hiện tại
+    const now    = new Date();
+    const ngay   = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}`;
+    const fc     = document.getElementById('filterCourse')?.value || '';
+    const title  = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
+    const q      = document.getElementById('searchAll')?.value || '';
+    const fs     = document.getElementById('filterStatus')?.value || '';
+    const fo     = document.getElementById('filterObject')?.value || '';
+    let info = '';
+    if (!q && !fs && !fo && !fc) {
+        info = `Tổng số: ${filteredStudents.length} học viên`;
+    } else {
+        const parts = [];
+        if (fc) parts.push('Khóa: ' + fc);
+        if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
+        if (fo) parts.push('Đối tượng: ' + fo);
+        if (q)  parts.push('Tìm kiếm: "' + q + '"');
+        info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
+    }
+
+    // Tạo bảng với TẤT CẢ học viên (không phân trang)
+    const rows = filteredStudents.map((s, i) => `
+        <tr>
+            <td class="num">${i + 1}</td>
+            <td class="code"><b>${esc(s.code)}</b></td>
+            <td class="name">${esc(s.name)}</td>
+            <td class="unit">${esc(s.unit || '—')}</td>
+            <td class="dob">${formatDate(s.dob)}</td>
+            <td class="course">${esc(s.course || '—')}</td>
+        </tr>`).join('');
+
+    // Mở cửa sổ in sạch — chỉ có nội dung cần thiết
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) { showToast('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép!', 'warning'); return; }
+    win.document.write(`<!DOCTYPE html>
+<html lang="vi"><head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @page { size: A4 portrait; margin: 2.5cm 1.5cm 2cm 2.5cm; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; background: #fff; }
+
+  /* Quốc hiệu / Tiêu ngữ */
+  .letterhead { display: table; width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .letterhead td { width: 50%; vertical-align: top; text-align: center; padding: 0; font-size: 10pt; line-height: 1.6; }
+  .lh-unit  { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .lh-rep   { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .lh-motto { font-size: 10.5pt; font-weight: bold; }
+  .lh-line  { width: 65%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
+
+  /* Ngày tháng */
+  .print-date  { text-align: right; font-size: 10pt; font-style: italic; margin: 6px 0 8px; }
+  /* Tiêu đề */
+  .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase;
+                 letter-spacing: 1px; margin: 8px 0 4px; }
+  /* Thông tin bộ lọc */
+  .print-info  { text-align: center; font-size: 10pt; color: #555; margin: 0 0 12px;
+                 padding-bottom: 8px; border-bottom: 1.5px solid #000; }
+
+  /* Bảng */
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th, td { border: 1px solid #999; padding: 5px 7px; }
+  th   { background: #e8e8e8; font-weight: bold; text-align: center; font-size: 9.5pt; }
+  td.num    { text-align: center; width: 5%; }
+  td.code   { text-align: center; width: 10%; }
+  td.name   { text-align: left;   width: 28%; }
+  td.unit   { text-align: left;   width: 22%; font-size: 8.5pt; }
+  td.dob    { text-align: center; width: 12%; }
+  td.course { text-align: center; width: 13%; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  tr:hover { background: #f0f0f0; }
+
+  /* Ký tên */
+  .signature { display: table; width: 100%; margin-top: 20px; }
+  .sig-cell  { display: table-cell; width: 50%; text-align: center; font-size: 10pt; vertical-align: top; }
+  .sig-title { font-weight: bold; margin-bottom: 50px; }
+  .sig-name  { font-weight: bold; }
+</style>
+</head><body>
+  <!-- Quốc hiệu / Tiêu ngữ -->
+  <table class="letterhead">
+    <tr>
+      <td>
+        <div>TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+        <div class="lh-unit">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+        <div class="lh-line"></div>
+      </td>
+      <td>
+        <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+        <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
+        <div class="lh-line"></div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="print-date">${ngay}</div>
+  <div class="print-title">${title}</div>
+  <div class="print-info">${info}</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:5%">STT</th>
+        <th style="width:10%">Mã HV</th>
+        <th style="width:28%;text-align:left">Họ và tên</th>
+        <th style="width:22%;text-align:left">Đơn vị</th>
+        <th style="width:12%">Ngày sinh</th>
+        <th style="width:13%">Khóa học</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="signature">
+    <div class="sig-cell"></div>
+    <div class="sig-cell">
+      <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+      <div class="sig-name">(Ký tên, đóng dấu)</div>
+    </div>
+  </div>
+
+  <script>
+    function esc(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+    window.onload = function(){ window.print(); };
+  </script>
+</body></html>`);
+    win.document.close();
 }
+
+function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
 
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
@@ -4983,11 +4966,12 @@ function openCreateNotificationModal() {
     document.getElementById('notiSendTime').value = 'now';
     document.getElementById('notiTargetDetailGroup').style.display = 'none';
     document.getElementById('scheduleTimeGroup').style.display = 'none';
-    // Reset 3-ô date + 2-ô time inputs
-    ['sched_d','sched_m','sched_y','schedT_h','schedT_m'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.value = '';
-    });
+    // Reset native date/time inputs
+    const dEl2 = document.getElementById('schedDate');
+    const tEl2 = document.getElementById('schedTime');
     const spEl = document.getElementById('scheduleTimePreview');
+    if (dEl2) dEl2.value = '';
+    if (tEl2) tEl2.value = '08:00';
     if (spEl) spEl.innerHTML = '';
     document.getElementById('createNotificationModal').classList.add('show');
 }
@@ -5111,84 +5095,26 @@ async function deleteNotification(id) {
 }
 
 // Hàm kiểm tra các thông báo hẹn giờ (Chạy ngầm)
-// ── 3-part date helpers (DD | MM | YYYY) ────────────────────────
-// Không còn text-replace-on-input → không bao giờ nhảy con trỏ
-
-function d3AutoAdvance(el, nextId, maxLen) {
-    // Khi đủ ký tự, tự nhảy sang ô kế
-    if (String(el.value).replace('-','').length >= maxLen) {
-        const nxt = document.getElementById(nextId);
-        if (nxt) { nxt.focus(); nxt.select(); }
-    }
-}
-function d3BackJump(e, prevId) {
-    // Backspace khi ô rỗng → nhảy về ô trước
-    if (e.key === 'Backspace' && !e.target.value) {
-        const prev = document.getElementById(prevId);
-        if (prev) { prev.focus(); prev.select(); }
-    }
-}
-function d3Pad(el) {
-    // Khi rời ô: pad 2 chữ số (bỏ qua YYYY)
-    const v = parseInt(el.value, 10);
-    if (!isNaN(v) && el.className.includes('d3-dd') || el.className.includes('d3-mm')
-        || el.className.includes('t2')) {
-        el.value = String(v).padStart(2, '0');
-    }
-}
-
-function getDate3(prefix) {
-    // Đọc 3 ô DD|MM|YYYY → Date | null
-    const d  = parseInt(document.getElementById(prefix+'_d')?.value, 10);
-    const mo = parseInt(document.getElementById(prefix+'_m')?.value, 10);
-    const y  = parseInt(document.getElementById(prefix+'_y')?.value, 10);
-    if (!d || !mo || !y || y < 1900 || y > 2100) return null;
-    const dt = new Date(y, mo - 1, d);
-    return isNaN(dt) ? null : dt;
-}
-
-function getTime2(prefix) {
-    // Đọc 2 ô HH|MM → { h, m } | null
-    const h = parseInt(document.getElementById(prefix+'_h')?.value, 10);
-    const m = parseInt(document.getElementById(prefix+'_m')?.value, 10);
-    return { h: isNaN(h) ? 0 : h, m: isNaN(m) ? 0 : m };
-}
-
-function setDate3(prefix, date) {
-    // Điền ngược vào 3 ô từ Date object
-    if (!date) return;
-    const dEl = document.getElementById(prefix+'_d');
-    const mEl = document.getElementById(prefix+'_m');
-    const yEl = document.getElementById(prefix+'_y');
-    if (dEl) dEl.value = String(date.getDate()).padStart(2,'0');
-    if (mEl) mEl.value = String(date.getMonth()+1).padStart(2,'0');
-    if (yEl) yEl.value = date.getFullYear();
-}
-
-function setTime2(prefix, h, m) {
-    // Điền ngược vào 2 ô từ giờ/phút
-    const hEl = document.getElementById(prefix+'_h');
-    const mEl = document.getElementById(prefix+'_m');
-    if (hEl) hEl.value = String(h).padStart(2,'0');
-    if (mEl) mEl.value = String(m).padStart(2,'0');
-}
-
+// parseDateVN kept for backward compatibility
 function parseDateVN(str) {
-    // Backward-compat: vẫn dùng cho string "DD/MM/YYYY"
     if (!str || str.length < 10) return null;
     const [dd, mo, yy] = str.split('/').map(Number);
     if (!dd || !mo || !yy) return null;
     const d = new Date(yy, mo-1, dd);
     return isNaN(d) ? null : d;
 }
+function getResultDateFrom() { return null; } // legacy stub
+function getResultDateTo()   { return null; } // legacy stub
 
 function parseDateTimeVN() {
-    // Đọc từ 3+2 ô mới: sched_d/m/y + schedT_h/m
-    const d = getDate3('sched');
-    if (!d) return null;
-    const t = getTime2('schedT');
-    d.setHours(t.h, t.m, 0, 0);
-    return isNaN(d) ? null : d;
+    // Đọc từ native input[type=date] + input[type=time]
+    const dateVal = document.getElementById('schedDate')?.value; // "YYYY-MM-DD"
+    const timeVal = document.getElementById('schedTime')?.value || '00:00'; // "HH:MM"
+    if (!dateVal) return null;
+    const [y, mo, d] = dateVal.split('-').map(Number);
+    const [h, m]     = timeVal.split(':').map(Number);
+    const dt = new Date(y, mo - 1, d, h || 0, m || 0, 0, 0);
+    return isNaN(dt) ? null : dt;
 }
 
 function getResultDateFrom() { return getDate3('resultFrom'); }
@@ -5199,7 +5125,7 @@ function previewScheduleTime() {
     const el = document.getElementById('scheduleTimePreview');
     if (!el) return;
     const d = parseDateTimeVN();
-    if (!d) { el.textContent = ''; return; }
+    if (!d) { el.innerHTML = ''; return; }
     const hh  = String(d.getHours()).padStart(2,'0');
     const mm  = String(d.getMinutes()).padStart(2,'0');
     const dd  = String(d.getDate()).padStart(2,'0');
@@ -5207,8 +5133,8 @@ function previewScheduleTime() {
     const yy  = d.getFullYear();
     const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][d.getDay()];
     const isPast = d < new Date();
-    el.innerHTML = `📅 Gửi lúc: <b>${hh}:${mm}:00  ${thu}, ${dd}/${mo}/${yy}</b>`
-        + (isPast ? ' &nbsp;<span style="color:var(--danger);font-size:11px;">⚠ Thời gian đã qua</span>' : '');
+    el.innerHTML = `📅 <b>${hh}:${mm} – ${thu}, ${dd}/${mo}/${yy}</b>`
+        + (isPast ? '&nbsp;<span style="color:var(--danger);font-size:11px;">⚠ Đã qua</span>' : '');
 }
 
 async function checkScheduledNotifications() {
@@ -5731,8 +5657,12 @@ async function editNotification(id) {
     if (n.scheduledAt) {
         const sd = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
         if (!isNaN(sd)) {
-            setDate3('sched',  sd);
-            setTime2('schedT', sd.getHours(), sd.getMinutes());
+            const yy = sd.getFullYear(), mo = String(sd.getMonth()+1).padStart(2,'0'), dd = String(sd.getDate()).padStart(2,'0');
+            const hh = String(sd.getHours()).padStart(2,'0'), mm = String(sd.getMinutes()).padStart(2,'0');
+            const dEl = document.getElementById('schedDate');
+            const tEl = document.getElementById('schedTime');
+            if (dEl) dEl.value = `${yy}-${mo}-${dd}`;
+            if (tEl) tEl.value = `${hh}:${mm}`;
             previewScheduleTime();
         }
     }
@@ -5755,11 +5685,11 @@ async function loadAllExamResults() {
             return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
         });
 
-        // Lọc theo ngày phía client — đọc từ 3-ô date inputs
-        const fromDate = getResultDateFrom();
-        const toDate   = getResultDateTo();
-        if (fromDate) { fromDate.setHours(0,0,0,0); results = results.filter(r => r.timestamp >= fromDate); }
-        if (toDate)   { toDate.setHours(23,59,59,999); results = results.filter(r => r.timestamp <= toDate); }
+        // Lọc theo ngày phía client — input[type=date] trả về "YYYY-MM-DD"
+        const fromVal = document.getElementById('resultDateFrom')?.value;
+        const toVal   = document.getElementById('resultDateTo')?.value;
+        if (fromVal) { const from = new Date(fromVal); from.setHours(0,0,0,0); results = results.filter(r => r.timestamp >= from); }
+        if (toVal)   { const to   = new Date(toVal);   to.setHours(23,59,59,999); results = results.filter(r => r.timestamp <= to); }
 
         allResults = results;
 
