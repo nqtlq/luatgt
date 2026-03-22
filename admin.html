@@ -614,7 +614,7 @@ tbody tr:hover { background: var(--bg-hover); }
 </style>
 </head>
     
- <body onload="document.body.style.visibility='visible'">
+<body onload="document.body.style.visibility='visible'">
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
@@ -5838,6 +5838,7 @@ async function initializeSystem() {
 }
 
 window.onload = async function () {
+    document.body.style.visibility = 'visible';
     let isMaintenanceOn = false;
     try {
         const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
