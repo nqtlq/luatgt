@@ -1568,11 +1568,13 @@ D. Đáp án D
                 <option value="pass">Đạt</option>
                 <option value="fail">Trượt</option>
               </select>
-<input type="date" id="resultDateFrom" onchange="applyResultFilters()"
-                     style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">
-              <span style="font-size:12px;color:var(--text-muted);margin:0 2px;">–</span>
-              <input type="date" id="resultDateTo" onchange="applyResultFilters()"
-                     style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;">
+<input type="text" id="resultDateFrom" placeholder="dd/mm/yyyy" maxlength="10"
+ oninput="formatDateInput(this); applyResultFilters()"
+ style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;width:100px;text-align:center;">
+<span style="font-size:12px;color:var(--text-muted);margin:0 2px;">–</span>
+<input type="text" id="resultDateTo" placeholder="dd/mm/yyyy" maxlength="10"
+ oninput="formatDateInput(this); applyResultFilters()"
+ style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;width:100px;text-align:center;">
               <button class="btn btn-primary btn-sm" onclick="loadAllExamResults()">🔄 Tải dữ liệu</button>
             </div>
           </div>
@@ -1799,13 +1801,13 @@ D. Đáp án D
         <div class="form-group" id="scheduleTimeGroup" style="display:none;">
           <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input type="date" id="schedDate"
-                   style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;"
-                   onchange="previewScheduleTime()">
-            <input type="time" id="schedTime" value="08:00"
-                   style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;"
-                   onchange="previewScheduleTime()">
-          </div>
+              <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10"
+               oninput="formatDateInput(this); previewScheduleTime()"
+               style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;">
+              <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5"
+               oninput="formatTimeInput(this); previewScheduleTime()"
+               style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:75px;text-align:center;">
+            </div>
           <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:16px;">
@@ -2096,6 +2098,11 @@ let dashboardPassFail = { pass: 0, fail: 0 };
 // ==========================================
 // 3. CÁC HÀM TIỆN ÍCH (UTILITIES)
 // ==========================================
+function formatTimeInput(el) {
+  let v = el.value.replace(/[^\d]/g, '');
+  if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2);
+  el.value = v.slice(0, 5);
+}
 function safeText(v, fallback = '') {
     return v === undefined || v === null ? fallback : String(v);
 }
@@ -2181,7 +2188,13 @@ function formatDateTime(value) {
     const thu = ['CN','T2','T3','T4','T5','T6','T7'][d.getDay()];
     return `${hh}:${mm}:${ss}  ${thu}, ${dd}/${mo}/${yy}`;
 }
-
+// Auto-format date input khi gõ (thêm / tự động)
+function formatDateInput(el) {
+  let v = el.value.replace(/[^\d]/g, '');
+  if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5);
+  el.value = v.slice(0, 10);
+}
 function simpleHash(str) {
     let hash = 0;
     const input = safeText(str);
@@ -2270,8 +2283,12 @@ function showPage(id, btn) {
                 const df2 = document.getElementById('resultDateFrom');
                 const dt2 = document.getElementById('resultDateTo');
                 if (df2 && !df2.value) {
-                    df2.value = new Date(Date.now() - 7*86400000).toISOString().split('T')[0];
-                    if (dt2) dt2.value = new Date().toISOString().split('T')[0];
+                  const d7 = new Date(Date.now() - 7*86400000);
+                  df2.value = `${String(d7.getDate()).padStart(2,'0')}/${String(d7.getMonth()+1).padStart(2,'0')}/${d7.getFullYear()}`;
+                  if (dt2) {
+                   const dn = new Date();
+                    dt2.value = `${String(dn.getDate()).padStart(2,'0')}/${String(dn.getMonth()+1).padStart(2,'0')}/${dn.getFullYear()}`;
+                  }
                 }
                 await loadAllExamResults();
             })();
@@ -4961,24 +4978,25 @@ async function saveNotification() {
     }
 }
 
-async function sendNotificationNow(notiId) {
-    const ok = await showConfirm('Gửi thông báo', 'Gửi ngay thông báo này đến học viên?', '🚀');
+async function sendNotificationNow(notiId, silent = false) {
+  if (!silent) {
+    const ok = await showConfirm('Gửi thông báo', 'Gửi ngay thông báo này đến học viên?', '📤');
     if (!ok) return;
-    showLoading('Đang gửi...');
-    try {
-        await db.collection('notifications').doc(notiId).update({
-            status: 'sent',
-            sentAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        showToast('✅ Đã gửi thông báo!', 'success');
-        await loadNotificationsFromDB();
-    } catch(e) {
-        showToast('Lỗi: ' + e.message, 'error');
-    } finally {
-        hideLoading();
-    }
+  }
+  showLoading('Đang gửi...');
+  try {
+    await db.collection('notifications').doc(notiId).update({
+      status: 'sent',
+      sentAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if (!silent) showToast('📨 Đã gửi thông báo!', 'success');
+    await loadNotificationsFromDB();
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
 }
-
 async function deleteNotification(id) {
     const ok = await showConfirm('Xóa thông báo', 'Bạn có chắc muốn xóa?', '🗑');
     if (!ok) return;
@@ -5003,14 +5021,16 @@ function getResultDateFrom() { return null; } // legacy stub
 function getResultDateTo()   { return null; } // legacy stub
 
 function parseDateTimeVN() {
-    // Đọc từ native input[type=date] + input[type=time]
-    const dateVal = document.getElementById('schedDate')?.value; // "YYYY-MM-DD"
-    const timeVal = document.getElementById('schedTime')?.value || '00:00'; // "HH:MM"
-    if (!dateVal) return null;
-    const [y, mo, d] = dateVal.split('-').map(Number);
-    const [h, m]     = timeVal.split(':').map(Number);
-    const dt = new Date(y, mo - 1, d, h || 0, m || 0, 0, 0);
-    return isNaN(dt) ? null : dt;
+  const dateStr = document.getElementById('schedDate')?.value || '';
+  const timeStr = document.getElementById('schedTime')?.value || '08:00';
+  const dp = dateStr.split('/');
+  if (dp.length !== 3 || dp[2].length !== 4) return null;
+  const [dd, mm, yyyy] = dp.map(Number);
+  const tp = timeStr.split(':');
+  const hh = parseInt(tp[0]) || 0;
+  const min = parseInt(tp[1]) || 0;
+  const dt = new Date(yyyy, mm-1, dd, hh, min, 0, 0);
+  return isNaN(dt.getTime()) ? null : dt;
 }
 
 function getResultDateFrom() { return getDate3('resultFrom'); }
@@ -5034,24 +5054,24 @@ function previewScheduleTime() {
 }
 
 async function checkScheduledNotifications() {
-    const now = new Date();
-    // Tự động gửi thông báo đã lên lịch khi đến giờ — không cần xác nhận thêm
-    const scheduled = allNotifications.filter(n => {
-        if (n.status !== 'scheduled') return false;
-        if (!n.scheduledAt) return false;
-        const sa = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
-        return sa <= now;
-    });
-    for (const n of scheduled) {
-        try {
-            console.log('[Scheduler] Tự động gửi thông báo:', n.id, n.title);
-            await sendNotificationNow(n.id);
-            showToast(`📤 Đã tự động gửi: "${n.title}"`, 'success', 4000);
-        } catch (e) {
-            console.warn('[Scheduler] Lỗi gửi tự động:', n.id, e.message);
-        }
+  const now = new Date();
+  const scheduled = allNotifications.filter(n => {
+    if (n.status !== 'scheduled') return false;
+    if (!n.scheduledAt) return false;
+    const sa = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
+    return sa <= now;
+  });
+  for (const n of scheduled) {
+    try {
+      console.log('[Scheduler] Tự động gửi:', n.id, n.title);
+      await sendNotificationNow(n.id, true); // silent = true, không hỏi confirm
+      showToast(`📨 Đã tự động gửi: "${n.title}"`, 'success', 4000);
+    } catch (e) {
+      console.warn('[Scheduler] Lỗi:', n.id, e.message);
     }
+  }
 }
+
 
 // ==========================================
 // 14. ONLINE CHI TIẾT & THỐNG KÊ (STATS)
@@ -5553,12 +5573,15 @@ async function editNotification(id) {
     if (n.scheduledAt) {
         const sd = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
         if (!isNaN(sd)) {
-            const yy = sd.getFullYear(), mo = String(sd.getMonth()+1).padStart(2,'0'), dd = String(sd.getDate()).padStart(2,'0');
-            const hh = String(sd.getHours()).padStart(2,'0'), mm = String(sd.getMinutes()).padStart(2,'0');
+            const dd2 = String(sd.getDate()).padStart(2,'0');
+            const mo2 = String(sd.getMonth()+1).padStart(2,'0');
+            const yyyy2 = sd.getFullYear();
+            const hh2 = String(sd.getHours()).padStart(2,'0');
+            const mm2 = String(sd.getMinutes()).padStart(2,'0');
             const dEl = document.getElementById('schedDate');
             const tEl = document.getElementById('schedTime');
-            if (dEl) dEl.value = `${yy}-${mo}-${dd}`;
-            if (tEl) tEl.value = `${hh}:${mm}`;
+            if (dEl) dEl.value = `${dd2}/${mo2}/${yyyy2}`;
+            if (tEl) tEl.value = `${hh2}:${mm2}`;
             previewScheduleTime();
         }
     }
@@ -5583,9 +5606,16 @@ async function loadAllExamResults() {
 
         // Lọc theo ngày phía client — input[type=date] trả về "YYYY-MM-DD"
         const fromVal = document.getElementById('resultDateFrom')?.value;
-        const toVal   = document.getElementById('resultDateTo')?.value;
-        if (fromVal) { const from = new Date(fromVal); from.setHours(0,0,0,0); results = results.filter(r => r.timestamp >= from); }
-        if (toVal)   { const to   = new Date(toVal);   to.setHours(23,59,59,999); results = results.filter(r => r.timestamp <= to); }
+const toVal = document.getElementById('resultDateTo')?.value;
+function parseDDMMYYYY(str) {
+  if (!str || str.length < 10) return null;
+  const p = str.split('/');
+  if (p.length !== 3) return null;
+  const d = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+  return isNaN(d) ? null : d;
+}
+if (fromVal) { const from = parseDDMMYYYY(fromVal); if (from) { from.setHours(0,0,0,0); results = results.filter(r => r.timestamp >= from); } }
+if (toVal) { const to = parseDDMMYYYY(toVal); if (to) { to.setHours(23,59,59,999); results = results.filter(r => r.timestamp <= to); } }
 
         allResults = results;
 
