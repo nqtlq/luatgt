@@ -34,9 +34,7 @@ header {
 }
 .header-title .vi { font-size: 16px; font-weight: 800; }
 .header-title .en { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-.clock-box { background: rgba(255,255,255,.12); padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.clock-box .time { font-weight: 700; font-size: 15px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
-.clock-box .date-str { font-size: 11px; opacity: .8; }
+.clock-box { background: rgba(255,255,255,.12); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,.2); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
 .header-btns { display: flex; gap: 8px; }
 .btn-back { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
 .btn-back:hover { background: rgba(255,255,255,.28); }
@@ -228,9 +226,7 @@ header {
     <div class="vi">📊 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
     <div class="en">Exam History – Road Traffic Law System</div>
   </div>
-  <div class="clock-box">
-    🕐 <div><span class="time" id="clockTime">--:--:--</span><br><span class="date-str" id="clockDate"></span></div>
-  </div>
+  <div class="clock-box" id="clockBox">🕐 --:--:--</div>
   <div class="header-btns">
     <button class="btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
   </div>
@@ -334,18 +330,19 @@ if (userType !== 'student' || !studentCode) location.href = 'index.html';
 // ================================================================
 (function() {
   function tick() {
-    const n   = new Date();
-    const hh  = String(n.getHours()).padStart(2,'0');
-    const mm  = String(n.getMinutes()).padStart(2,'0');
-    const ss  = String(n.getSeconds()).padStart(2,'0');
-    const dd  = String(n.getDate()).padStart(2,'0');
-    const mo  = String(n.getMonth()+1).padStart(2,'0');
-    const yy  = n.getFullYear();
-    const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
-    const cEl = document.getElementById('clockTime');
-    const dEl = document.getElementById('clockDate');
-    if (cEl) cEl.textContent = `${hh}:${mm}:${ss}`;
-    if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
+    const n = new Date();
+    const hh = String(n.getHours()).padStart(2,'0');
+    const mm = String(n.getMinutes()).padStart(2,'0');
+    const ss = String(n.getSeconds()).padStart(2,'0');
+    const dd = String(n.getDate()).padStart(2,'0');
+    const mo = String(n.getMonth()+1).padStart(2,'0');
+    const yy = n.getFullYear();
+    const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
+    const el = document.getElementById('clockBox');
+    if (el) el.innerHTML =
+      `🕐 <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${hh}:${mm}:${ss}</b>`+
+      `<span style="opacity:0.4;margin:0 6px;">|</span>`+
+      `<span style="font-size:11px;">${thu}, ${dd}/${mo}/${yy}</span>`;
   }
   tick(); setInterval(tick, 1000);
 })();
