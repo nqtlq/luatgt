@@ -2,6 +2,17 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+  <script>
+(function() {
+  var ut = localStorage.getItem('userType');
+  var sc = localStorage.getItem('studentCode');
+  if (ut !== 'student' || !sc) {
+    document.write('');
+    location.replace('index.html');
+  }
+})();
+</script>
+<style>body { visibility: hidden; }</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lịch sử thi | Hệ thống thi Luật Giao thông</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -220,7 +231,7 @@ header {
 </style>
 </head>
 <body>
-
+<body onload="document.body.style.visibility='visible'">
 <header>
   <div class="header-title">
     <div class="vi">📊 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
