@@ -61,9 +61,7 @@ header {
   border-radius: 12px;
   padding: 8px 16px;
 }
-.clock-time { font-size: 18px; font-weight: 800; font-family: 'Courier New', monospace; letter-spacing: 2px; }
-.clock-date { font-size: 11px; opacity: 0.8; }
-.header-actions { display: flex; gap: 8px; align-items: center; }
+/* clock-time và clock-date không còn dùng riêng lẻ */
 #logoutBtn {
   background: linear-gradient(135deg, #e63946, #c0392b);
   color: white;
@@ -393,13 +391,7 @@ header {
       <div class="vi">🚦 HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
       <div class="en">Road Traffic Law Examination System</div>
     </div>
-    <div class="header-clock">
-      <span>🕐</span>
-      <div>
-        <div class="clock-time" id="clockTime">--:--:--</div>
-        <div class="clock-date" id="clockDate"></div>
-      </div>
-    </div>
+    <div class="header-clock" id="headerClock">🕐 --:--:--</div>
     <div class="header-actions">
       <button id="logoutBtn" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
     </div>
@@ -620,18 +612,19 @@ function doLogout() {
 // CLOCK
 // =====================================================================
 function updateClock() {
-  const n   = new Date();
-  const hh  = String(n.getHours()).padStart(2,'0');
-  const mm  = String(n.getMinutes()).padStart(2,'0');
-  const ss  = String(n.getSeconds()).padStart(2,'0');
-  const dd  = String(n.getDate()).padStart(2,'0');
-  const mo  = String(n.getMonth()+1).padStart(2,'0');
-  const yy  = n.getFullYear();
-  const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
-  const tEl = document.getElementById('clockTime');
-  const dEl = document.getElementById('clockDate');
-  if (tEl) tEl.textContent = `${hh}:${mm}:${ss}`;
-  if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
+  const n = new Date();
+  const hh = String(n.getHours()).padStart(2,'0');
+  const mm = String(n.getMinutes()).padStart(2,'0');
+  const ss = String(n.getSeconds()).padStart(2,'0');
+  const dd = String(n.getDate()).padStart(2,'0');
+  const mo = String(n.getMonth()+1).padStart(2,'0');
+  const yy = n.getFullYear();
+  const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
+  const el = document.getElementById('headerClock');
+  if (el) el.innerHTML =
+    `🕐 <b style="font-family:'Courier New',monospace;font-size:16px;letter-spacing:1px;">${hh}:${mm}:${ss}</b>`+
+    `<span style="opacity:0.4;margin:0 6px;">|</span>`+
+    `<span style="font-size:12px;">${thu}, ${dd}/${mo}/${yy}</span>`;
 }
 updateClock();
 setInterval(updateClock, 1000);
