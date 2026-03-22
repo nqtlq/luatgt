@@ -742,8 +742,8 @@ tbody tr:hover { background: var(--bg-hover); }
                     </div>
                     <div class="card-label">Đang Online</div>
                     <div class="card-value" id="onlineCount" style="color:var(--success);">0</div>
-                    <div class="card-subtitle">HV: <strong id="examingCount" style="color:var(--warning);">0</strong> thi · Khách: <strong id="guestOnlineCount" style="color:var(--info,#0dcaf0);">0</strong></div>
-                </div>
+                    <div class="card-subtitle">Thi: <strong id="examingCount" style="color:var(--warning);">0</strong> · Khách: <strong id="guestOnlineCount" style="color:var(--info,#0dcaf0);">0</strong>
+                  </div>
 
                 <div class="dash-card">
                     <div class="card-stripe purple"></div>
@@ -2711,24 +2711,29 @@ function renderActivityTable(snap) {
 // Lắng nghe người dùng Online
 function startPresenceListener() {
     if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-    
+    const STALE_MS = 90000; // nhất quán với updateOnlineUI
+
     presenceUnsub = db.collection('presence')
         .onSnapshot({ includeMetadataChanges: false }, (snap) => {
             presenceMap.clear();
             const now = Date.now();
             snap.forEach(doc => {
                 const d = doc.data();
-                if (!d || !d.isOnline) return; // Bỏ qua doc không hợp lệ hoặc đã offline
-                
-                // Validate lastActive
+                if (!d || !d.isOnline) return;
+
                 let lastActive = null;
                 if (d.lastActive?.toDate) lastActive = d.lastActive.toDate();
-                else if (d.lastActive) lastActive = new Date(d.lastActive);
-                
-                // Bỏ qua session quá cũ (> 5 phút không heartbeat)
-                if (lastActive && (now - lastActive.getTime()) > 300000) return;
-                
-                presenceMap.set(doc.id, d);
+                else if (d.lastActive)    lastActive = new Date(d.lastActive);
+
+                // Nếu lastActive null (serverTimestamp chưa round-trip) → giữ tối đa 60s
+                if (lastActive === null) {
+                    // Dùng thời điểm doc được tạo/sửa nếu có, không thì bỏ qua
+                    if (d._clientTime && (now - d._clientTime) > 60000) return;
+                } else {
+                    if ((now - lastActive.getTime()) > STALE_MS) return;
+                }
+
+                presenceMap.set(doc.id, { ...d, _resolvedLastActive: lastActive });
             });
             updateOnlineUI();
         }, (err) => {
@@ -2736,7 +2741,6 @@ function startPresenceListener() {
             setTimeout(startPresenceListener, 5000);
         });
 
-    // Cleanup poll
     if (window._presencePollTimer) clearInterval(window._presencePollTimer);
     window._presencePollTimer = setInterval(updateOnlineUI, 30000);
 }
@@ -2755,10 +2759,11 @@ function updateOnlineUI() {
         else if (data.lastActive instanceof Date) lastActive = data.lastActive;
         else if (data.lastActive) lastActive = new Date(data.lastActive);
 
-        const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
-        if (diffSeconds < 90) {
-            onlineByCode.set(code, { ...data, lastActiveDate: lastActive });
-        }
+        const resolvedLA = data._resolvedLastActive || lastActive;
+         const diffMs = resolvedLA ? (now - resolvedLA) : 0;
+         if (diffMs < 90000) { // 90 giây nhất quán
+          onlineByCode.set(code, { ...data, lastActiveDate: resolvedLA });
+    }
     });
 
     // Cập nhật trạng thái online cho allStudents
@@ -2796,15 +2801,18 @@ function updateOnlineUI() {
         el.style.color = onlineCount > 0 ? 'var(--success)' : '';
     }
 
-    // Phân loại: đang thi / xem đề / khách
-    let examingCnt = 0, browsingCnt = 0;
-    onlineByCode.forEach(data => {
+   // Phân loại chính xác: chỉ đếm HV đang thi (không kể khách)
+    let studentExamingCnt = 0, guestCnt2 = 0;
+    onlineByCode.forEach((data, code) => {
+        const isGuest = !(allStudents || []).find(s => s.code === code);
         const sec = (data.currentSection || '').toLowerCase();
-        if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
-        else browsingCnt++;
+        if (isGuest) {
+            guestCnt2++;
+        } else if (sec.includes('thi') || sec.includes('exam')) {
+            studentExamingCnt++;
+        }
     });
-    safeSet('examingCount', examingCnt);
-    safeSet('browsingCount', browsingCnt);
+    safeSet('examingCount', studentExamingCnt);
 
     // Hiển thị số khách online
     const guestEl = document.getElementById('guestOnlineCount');
