@@ -6,10 +6,8 @@
 // AUTH GUARD - chạy ngay trước khi render body
 (function() {
   var ut = localStorage.getItem('userType');
-  var sc = localStorage.getItem('studentCode');
-  if (ut !== 'student' || !sc) {
-    // Lưu URL hiện tại để sau khi login có thể quay lại (tuỳ chọn)
-    localStorage.setItem('redirectAfterLogin', 'exam.html');
+  if (ut !== 'admin') {
+    localStorage.setItem('redirectAfterLogin', 'admin.html');
     document.write(''); // dừng render
     location.replace('index.html');
   }
