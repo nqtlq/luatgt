@@ -51,8 +51,7 @@ header {
   gap: 8px;
   font-size: 13px;
 }
-.clock-box .time { font-weight: 700; font-size: 16px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
-.clock-box .date-str { font-size: 11px; opacity: .8; }
+/* unified clock — single row */
 .header-btns { display: flex; gap: 8px; }
 .btn-header { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s; }
 .btn-back { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
@@ -475,9 +474,7 @@ header {
     <div class="vi" id="headerVi">📝 CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
     <div class="en" id="headerEn">Road Traffic Law Theory Examination</div>
   </div>
-  <div class="clock-box">
-    🕐 <div><span class="time" id="liveClock">--:--:--</span><br><span class="date-str" id="liveDate"></span></div>
-  </div>
+ <div class="clock-box" id="liveClock">🕐 --:--:--</div>
   <div class="header-btns" id="headerBtns">
     <button class="btn-header btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
     <button class="btn-header btn-logout" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
@@ -754,18 +751,19 @@ const IS_STUDENT = userType === "student";
 // ================================================================
 (function startClock() {
   function tick() {
-    const n   = new Date();
-    const hh  = String(n.getHours()).padStart(2,'0');
-    const mm  = String(n.getMinutes()).padStart(2,'0');
-    const ss  = String(n.getSeconds()).padStart(2,'0');
-    const dd  = String(n.getDate()).padStart(2,'0');
-    const mo  = String(n.getMonth()+1).padStart(2,'0');
-    const yy  = n.getFullYear();
-    const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
-    const cEl = document.getElementById('liveClock');
-    const dEl = document.getElementById('liveDate');
-    if (cEl) cEl.textContent = `${hh}:${mm}:${ss}`;
-    if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
+    const n = new Date();
+    const hh = String(n.getHours()).padStart(2,'0');
+    const mm = String(n.getMinutes()).padStart(2,'0');
+    const ss = String(n.getSeconds()).padStart(2,'0');
+    const dd = String(n.getDate()).padStart(2,'0');
+    const mo = String(n.getMonth()+1).padStart(2,'0');
+    const yy = n.getFullYear();
+    const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
+    const el = document.getElementById('liveClock');
+    if (el) el.innerHTML =
+      `🕐 <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${hh}:${mm}:${ss}</b>`+
+      `<span style="opacity:0.4;margin:0 6px;">|</span>`+
+      `<span style="font-size:11px;">${thu}, ${dd}/${mo}/${yy}</span>`;
   }
   tick();
   setInterval(tick, 1000);
