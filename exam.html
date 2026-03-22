@@ -1050,7 +1050,7 @@ const heartbeat = () => {
     isOnline:       true,
     studentCode:    studentCode,
     currentSection: 'Trang chủ cá nhân',
-    lastActive:     firebase.firestore.FieldValue.serverTimestamp()
+    lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
     _clientTime:    Date.now(),  // fallback khi serverTimestamp chưa round-trip
   };
   // Lưu thời điểm vào trang lần đầu
