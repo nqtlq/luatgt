@@ -493,6 +493,58 @@ tbody tr:hover { background: var(--bg-hover); }
 
 /* ===== PRINT STYLES - IMPROVED ===== */
 #printHeader { display: none; }
+.print-letterhead, .print-date-block, .print-title-block { display: none; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  header, aside, .toolbar, .btn, .statGrid, .pagination,
+  .no-print, .toast-container, .loading-overlay, .dash-grid,
+  .chart-grid, .miniStats, .sidebar-overlay,
+  .confirm-dialog, .modal, .maintenance-banner,
+  .student-toolbar, .card:has(.student-toolbar) { display: none !important; }
+  body { background: white !important; color: black !important; margin: 0; padding: 0; }
+  #layout { display: block !important; }
+  main { padding: 0 !important; margin: 0 !important; }
+  .page { display: none !important; }
+  #students.page { display: block !important; }
+  .statGrid { display: none !important; }
+  .card { box-shadow: none !important; padding: 0 !important; margin: 0 !important;
+          border: none !important; background: white !important; }
+  .card > h3, .page-header { display: none !important; }
+  #printHeader { display: block !important; margin-bottom: 10px; }
+  .print-letterhead { width: 100%; border-collapse: collapse; border: none !important;
+    margin-bottom: 4px; display: table !important; }
+  .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
+  .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
+  .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
+  .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
+  .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .letterhead-motto { font-size: 11pt; font-weight: bold; }
+  .letterhead-underline { width: 60%; height: 1px; background: #000;
+    margin: 3px auto 0; border-bottom: 1px solid #000; }
+  .print-date-block { text-align: right; font-size: 10pt; font-style: italic;
+    margin: 4px 0 6px; display: block !important; }
+  .print-title-block { text-align: center; font-size: 14pt; font-weight: bold;
+    text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
+  #printInfo { text-align: center; font-size: 10pt; color: #555;
+    margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
+  .table-wrapper { border: none !important; max-height: none !important;
+    overflow: visible !important; border-radius: 0 !important; }
+  #studentTable { border: 1px solid #000 !important; font-size: 10pt !important;
+    min-width: unset !important; width: 100% !important; }
+  #studentTable th, #studentTable td { border: 1px solid #999 !important;
+    padding: 5px 6px !important; color: black !important; font-size: 9pt !important;
+    white-space: normal !important; overflow: visible !important; max-width: none !important; }
+  #studentTable th { background: #e8e8e8 !important; font-weight: bold !important; }
+  #studentTable tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+  .print-signature { display: table !important; width: 100%; margin-top: 22px; }
+  .print-sig-cell { display: table-cell; width: 50%; text-align: center;
+    font-size: 10pt; vertical-align: top; }
+  .print-sig-title { font-weight: bold; margin-bottom: 52px; }
+  .print-sig-name { font-weight: bold; }
+  @page { margin-top: 2.5cm; margin-bottom: 2.0cm;
+          margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
+}
 @media (min-width: 768px) { .header-clock { display: block; } }
 @media (max-width: 768px) {
     .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
@@ -913,9 +965,32 @@ tbody tr:hover { background: var(--bg-hover); }
             </div>
 
             <!-- Bảng danh sách -->
-            <div class="card">
-                <div class="table-wrapper">
-                    <table id="studentTable">
+            <!-- Bảng danh sách -->
+<div class="card">
+
+    <!-- PRINT HEADER (ẩn thường, hiện khi in) -->
+    <div id="printHeader">
+        <table class="print-letterhead">
+            <tr>
+                <td class="letterhead-left">
+                    <div>TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+                    <div class="letterhead-unit">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+                    <div class="letterhead-underline"></div>
+                </td>
+                <td class="letterhead-right">
+                    <div class="letterhead-republic">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                    <div class="letterhead-motto">Độc lập – Tự do – Hạnh phúc</div>
+                    <div class="letterhead-underline"></div>
+                </td>
+            </tr>
+        </table>
+        <div class="print-date-block" id="printDate"></div>
+        <div class="print-title-block" id="printTitle"></div>
+        <p id="printInfo"></p>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="studentTable">
                         <thead>
                             <tr>
                                 <th style="width:40px">STT</th>
@@ -933,6 +1008,15 @@ tbody tr:hover { background: var(--bg-hover); }
                         <tbody id="studentTableBody"></tbody>
                     </table>
                 </div>
+                <!-- CHỮ KÝ (chỉ hiện khi in) -->
+                <div class="print-signature" style="display:none" id="printSignature">
+                    <div class="print-sig-cell"></div>
+                    <div class="print-sig-cell">
+                        <div class="print-sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+                        <div class="print-sig-name">(Ký tên, đóng dấu)</div>
+                    </div>
+                </div>
+
                 <div id="studentPagination" class="pagination" style="margin-top:12px;"></div>
             </div>
         </div>
@@ -2178,7 +2262,37 @@ function formatDate(value) {
     if (isNaN(d.getTime())) return safeText(value, '-');
     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
-
+// Cập nhật thông tin in trực tiếp trên DOM (học theo 20023)
+function updatePrintInfo() {
+    const q   = document.getElementById('searchAll')?.value || '';
+    const fs  = document.getElementById('filterStatus')?.value || '';
+    const fo  = document.getElementById('filterObject')?.value || '';
+    const fc  = document.getElementById('filterCourse')?.value || '';
+    let t = '';
+    if (!q && !fs && !fo && !fc) {
+        t = `Tổng: ${filteredStudents.length} học viên`;
+    } else {
+        const f = [];
+        if (fc) f.push('Khóa: ' + fc);
+        if (fs) f.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
+        if (fo) f.push('Đối tượng: ' + fo);
+        if (q)  f.push('"' + q + '"');
+        t = f.join(' · ') + ` · ${filteredStudents.length} kết quả`;
+    }
+    const infoEl  = document.getElementById('printInfo');
+    const dateEl  = document.getElementById('printDate');
+    const titleEl = document.getElementById('printTitle');
+    if (infoEl)  infoEl.textContent  = t;
+    if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}`;
+    }
+    if (titleEl) {
+        titleEl.textContent = fc
+            ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}`
+            : 'DANH SÁCH HỌC VIÊN';
+    }
+}
 function formatDateTime(value) {
     if (!value) return '';
     const d = value?.toDate ? value.toDate() : new Date(value);
@@ -2910,6 +3024,7 @@ function renderStudentTable() {
         `;
     }).join('');
     renderPagination();
+    updatePrintInfo();
 }
 
 function renderPagination() {
@@ -3231,116 +3346,37 @@ function exportToExcel() {
 }
 
 function printTable() {
-    const now = new Date();
-    const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
-    const fc = document.getElementById('filterCourse')?.value || '';
-    const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
-
-    const q = document.getElementById('searchAll')?.value || '';
-    const fs = document.getElementById('filterStatus')?.value || '';
-    const fo = document.getElementById('filterObject')?.value || '';
-
-    let info = '';
-    if (!q && !fs && !fo && !fc) {
-        info = `Tổng số: ${filteredStudents.length} học viên`;
-    } else {
-        const parts = [];
-        if (fc) parts.push('Khóa: ' + fc);
-        if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
-        if (fo) parts.push('Đối tượng: ' + fo);
-        if (q) parts.push('Tìm kiếm: "' + q + '"');
-        info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
-    }
-
-    const rows = filteredStudents.map((s, i) => `
-        <tr>
-            <td class="num">${i + 1}</td>
-            <td class="code"><b>${esc(s.code)}</b></td>
-            <td class="name">${esc(s.name)}</td>
-            <td class="unit">${esc(s.unit || '—')}</td>
-            <td class="dob">${formatDate(s.dob)}</td>
-            <td class="course">${esc(s.course || '—')}</td>
-        </tr>`).join('');
-
-    const win = window.open('', '_blank', 'width=900,height=700');
-    if (!win) {
-        showToast('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép!', 'warning');
+    if (!filteredStudents.length) {
+        showToast('Không có học viên nào để in!', 'warning');
         return;
     }
-
-    win.document.write(`<!DOCTYPE html>
-<html lang="vi"><head>
-<meta charset="UTF-8">
-<title>${title}</title>
-<style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    @page { size: A4 portrait; margin: 2.5cm 1.5cm 2cm 2.5cm; }
-    body { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; background: #fff; }
-    .letterhead { display: table; width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-    .letterhead td { width: 50%; vertical-align: top; text-align: center; padding: 0; font-size: 10pt; line-height: 1.6; }
-    .lh-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-    .lh-rep { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-    .lh-motto { font-size: 10.5pt; font-weight: bold; }
-    .lh-line { width: 65%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
-    .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 6px 0 8px; }
-    .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; }
-    .print-info { text-align: center; font-size: 10pt; color: #555; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid #000; }
-    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    th, td { border: 1px solid #999; padding: 5px 7px; }
-    th { background: #e8e8e8; font-weight: bold; text-align: center; font-size: 9.5pt; }
-    td.num { text-align: center; width: 5%; }
-    td.code { text-align: center; width: 10%; }
-    td.name { text-align: left; width: 28%; }
-    td.unit { text-align: left; width: 22%; font-size: 8.5pt; }
-    td.dob { text-align: center; width: 12%; }
-    td.course { text-align: center; width: 13%; }
-    tr:nth-child(even) { background: #f9f9f9; }
-    .signature { display: table; width: 100%; margin-top: 20px; }
-    .sig-cell { display: table-cell; width: 50%; text-align: center; font-size: 10pt; vertical-align: top; }
-    .sig-title { font-weight: bold; margin-bottom: 50px; }
-    .sig-name { font-weight: bold; }
-</style>
-</head><body>
-    <table class="letterhead">
+    // 1. Tạm render TẤT CẢ filteredStudents vào bảng (bỏ phân trang)
+    const tb = document.getElementById('studentTableBody');
+    if (!tb) return;
+    const start_backup = (currentPage - 1) * itemsPerPage; // lưu lại để restore
+    tb.innerHTML = filteredStudents.map((s, i) => {
+        const statusClass = s.status === 'active' ? 'status-active' : 'status-locked';
+        const statusText  = s.status === 'active' ? '● Hoạt động' : '● Đã khóa';
+        return `
         <tr>
-            <td>
-                <div>TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
-                <div class="lh-unit">PHÒNG HẬU CẦN – KỸ THUẬT</div>
-                <div class="lh-line"></div>
-            </td>
-            <td>
-                <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
-                <div class="lh-line"></div>
-            </td>
-        </tr>
-    </table>
-    <div class="print-date">${ngay}</div>
-    <div class="print-title">${title}</div>
-    <div class="print-info">${info}</div>
-    <table>
-        <thead>
-            <tr>
-                <th style="width:5%">STT</th>
-                <th style="width:10%">Mã HV</th>
-                <th style="width:28%;text-align:left">Họ và tên</th>
-                <th style="width:22%;text-align:left">Đơn vị</th>
-                <th style="width:12%">Ngày sinh</th>
-                <th style="width:13%">Khóa học</th>
-            </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-    </table>
-    <div class="signature">
-        <div class="sig-cell"></div>
-        <div class="sig-cell">
-            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-            <div class="sig-name">(Ký tên, đóng dấu)</div>
-        </div>
-    </div>
-    <script>window.onload = function(){ window.print(); };<\/script>
-</body></html>`);
-    win.document.close();
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;"><b>${escapeHtml(s.code)}</b></td>
+            <td class="no-print"><span class="password-mask">••••••</span></td>
+            <td style="text-align:left;padding-left:8px;font-weight:600;">${escapeHtml(s.name)}</td>
+            <td style="text-align:left;font-size:12px;">${escapeHtml(s.unit || '—')}</td>
+            <td style="text-align:center;">${formatDate(s.dob)}</td>
+            <td class="no-print">${escapeHtml(s.object || '—')}</td>
+            <td style="text-align:center;">${escapeHtml(s.course || '—')}</td>
+            <td class="no-print"><span class="status-badge ${statusClass}">${statusText}</span></td>
+            <td class="no-print"></td>
+        </tr>`;
+    }).join('');
+    // 2. Cập nhật thông tin header in
+    updatePrintInfo();
+    // 3. In trang
+    window.print();
+    // 4. Khôi phục lại bảng phân trang sau khi in xong
+    setTimeout(() => renderStudentTable(), 500);
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
