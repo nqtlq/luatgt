@@ -1543,6 +1543,7 @@ function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, r
       isOnline: true,
       currentSection: "Xem kết quả thi",
       lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      _clientTime:    Date.now(),  // fallback khi serverTimestamp chưa round-trip
     }, { merge: true }).catch(() => {});
   }
 }
