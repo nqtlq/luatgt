@@ -2,6 +2,18 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+  <script>
+// AUTH GUARD
+(function() {
+  var ut = localStorage.getItem('userType');
+  if (ut !== 'student' && ut !== 'guest') {
+    localStorage.setItem('redirectAfterLogin', 'test.html');
+    document.write('');
+    location.replace('index.html');
+  }
+})();
+</script>
+<style>body { visibility: hidden; }</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -467,7 +479,7 @@ header {
 </style>
 </head>
 <body>
-
+<body onload="document.body.style.visibility='visible'">
 <!-- HEADER -->
 <header>
   <div class="header-title">
@@ -741,8 +753,6 @@ const studentObj  = localStorage.getItem("studentObject") || "";
 const studentCrs  = localStorage.getItem("studentCourse") || "";
 
 // Chưa đăng nhập → về trang chủ
-if (userType !== "guest" && userType !== "student") location.href = "index.html";
-
 const IS_GUEST   = userType === "guest";
 const IS_STUDENT = userType === "student";
 
