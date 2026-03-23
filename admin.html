@@ -12,11 +12,9 @@
     location.replace('index.html');
   }
 })();
-  // AUTH - giá trị đã được guard ở <head> xác thực
-const userType = localStorage.getItem("userType");
-const studentCode = localStorage.getItem("studentCode");
 </script>
 <style>body { visibility: hidden; }</style>
+<script>window.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });</script>
 <title>ADMIN | Hệ thống thi luật giao thông</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
@@ -614,7 +612,7 @@ tbody tr:hover { background: var(--bg-hover); }
 </style>
 </head>
     
-
+<body>
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
@@ -2136,7 +2134,7 @@ const firebaseConfig = {
     authDomain: "thi-luat-giao-thong.firebaseapp.com",
     projectId: "thi-luat-giao-thong"
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
 // ==========================================
