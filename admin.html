@@ -3519,9 +3519,12 @@ function printTable() {
   </div>
 </div>
 
-<script>window.onload = function(){ window.print(); };<\/script>
+<script>window.onload = function(){ win.print(); };<\/script>
 </body></html>`);
     win.document.close();
+    win.focus();          // Tập trung vào cửa sổ pop-up (quan trọng)
+    win.print();          // Ra lệnh cho cửa sổ pop-up in
+    win.close();          // (Tùy chọn) Tự động đóng cửa sổ sau khi in
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
