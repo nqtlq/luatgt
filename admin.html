@@ -1840,19 +1840,102 @@ D. Đáp án D
           </div>
         </div>
         <div class="form-group" id="scheduleTimeGroup" style="display:none;">
-          <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <div class="date-picker-wrap">
-                <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
-                  onclick="openDatePicker('schedDate')"
-                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;cursor:pointer;">
-              </div>
-              <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5"
-               oninput="formatTimeInput(this); previewScheduleTime()"
-               style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:75px;text-align:center;">
+    <label style="font-weight:700;"> Thời gian gửi thông báo</label>
+    
+    <!-- Dòng 1: Chọn ngày (giống hệt trang Kết quả thi) -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        
+        <!-- Từ ngày -->
+        <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:11px;color:var(--text-muted);font-weight:600;">NGÀY GỬI</span>
+            <div class="date-picker-wrap" style="position:relative;">
+                <input type="text" 
+                    id="schedDate" 
+                    placeholder="dd/mm/yyyy" 
+                    maxlength="10" 
+                    readonly
+                    onclick="openDatePicker('schedDate')"
+                    style="padding:6px 10px;
+                           border:1px solid var(--border);
+                           border-radius:var(--radius-sm);
+                           font-size:13px;
+                           width:110px;
+                           text-align:center;
+                           cursor:pointer;
+                           background:var(--bg-card);
+                           color:var(--text-primary);">
             </div>
-          <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
         </div>
+        
+        <!-- Giờ gửi -->
+        <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:11px;color:var(--text-muted);font-weight:600;">GIỜ GỬI</span>
+            <div style="display:flex;align-items:center;gap:4px;">
+                <!-- Chọn giờ bằng select (giống style dropdown của date picker) -->
+                <select id="schedHour"
+                    onchange="previewScheduleTime()"
+                    style="padding:6px 8px;
+                           border:1px solid var(--border);
+                           border-radius:var(--radius-sm);
+                           font-size:14px;
+                           font-weight:700;
+                           width:68px;
+                           text-align:center;
+                           background:var(--bg-card);
+                           color:var(--text-primary);
+                           cursor:pointer;">
+                </select>
+                <span style="font-size:16px;font-weight:700;color:var(--text-muted);">:</span>
+                <!-- Chọn phút bằng select -->
+                <select id="schedMinute"
+                    onchange="previewScheduleTime()"
+                    style="padding:6px 8px;
+                           border:1px solid var(--border);
+                           border-radius:var(--radius-sm);
+                           font-size:14px;
+                           font-weight:700;
+                           width:68px;
+                           text-align:center;
+                           background:var(--bg-card);
+                           color:var(--text-primary);
+                           cursor:pointer;">
+                </select>
+            </div>
+        </div>
+        
+        <!-- Nút Hôm nay (tiện ích nhanh) -->
+        <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:11px;color:transparent;">.</span>
+            <div style="display:flex;gap:4px;">
+                <button type="button" 
+                    onclick="setScheduleQuick(0)" 
+                    class="btn btn-outline btn-sm"
+                    style="font-size:11px;padding:6px 8px;white-space:nowrap;">
+                    Hôm nay
+                </button>
+                <button type="button" 
+                    onclick="setScheduleQuick(1)" 
+                    class="btn btn-outline btn-sm"
+                    style="font-size:11px;padding:6px 8px;white-space:nowrap;">
+                    Ngày mai
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview kết quả -->
+    <div id="scheduleTimePreview" 
+        style="margin-top:4px;
+               font-size:12px;
+               color:var(--text-secondary);
+               font-style:italic;
+               min-height:20px;
+               padding:4px 8px;
+               background:var(--bg-hover);
+               border-radius:4px;
+               display:inline-block;">
+    </div>
+</div>
         <div style="display:flex;gap:10px;margin-top:16px;">
           <button class="btn btn-primary" onclick="saveNotification()" style="flex:1;padding:12px;">💾 Lưu & Gửi</button>
           <button class="btn btn-secondary" onclick="closeModal('createNotificationModal')" style="padding:12px 20px;">Hủy</button>
@@ -3376,12 +3459,11 @@ function printTable() {
     const now = new Date();
     const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
     const fc = document.getElementById('filterCourse')?.value || '';
-    const q  = document.getElementById('searchAll')?.value || '';
+    const q = document.getElementById('searchAll')?.value || '';
     const fs = document.getElementById('filterStatus')?.value || '';
     const fo = document.getElementById('filterObject')?.value || '';
-
     const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
-
+    
     let info = '';
     if (!q && !fs && !fo && !fc) {
         info = `Tổng: ${filteredStudents.length} học viên`;
@@ -3390,12 +3472,16 @@ function printTable() {
         if (fc) parts.push('Khóa: ' + fc);
         if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
         if (fo) parts.push('Đối tượng: ' + fo);
-        if (q)  parts.push('Tìm kiếm: "' + q + '"');
+        if (q) parts.push('Tìm kiếm: "' + q + '"');
         info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
     }
-
-    const e = t => { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
-
+    
+    const e = t => { 
+        const d = document.createElement('div'); 
+        d.textContent = t || ''; 
+        return d.innerHTML; 
+    };
+    
     const rows = filteredStudents.map((s, i) => `
         <tr class="${i % 2 === 1 ? 'alt' : ''}">
             <td class="c">${i + 1}</td>
@@ -3407,126 +3493,331 @@ function printTable() {
             <td class="c">${e(s.course || '—')}</td>
         </tr>`).join('');
 
-    const win = window.open('', '_blank', 'width=960,height=760');
-    if (!win) { showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); return; }
+    // ── Tính toán có cần trang chữ ký riêng không ──
+    // Mỗi trang A4 chứa khoảng 30 dòng dữ liệu
+    // Nếu số dòng > 25 → chữ ký sang trang mới để tránh lồng trang
+    const needNewPageForSig = filteredStudents.length > 25;
 
+    const win = window.open('', '_blank', 'width=960,height=760');
+    if (!win) { 
+        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); 
+        return; 
+    }
+    
     win.document.write(`<!DOCTYPE html>
-<html lang="vi"><head>
+<html lang="vi">
+<head>
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { size: A4 portrait; margin-top: 1.8cm; margin-bottom: 2cm; margin-left: 2.5cm; margin-right: 1.5cm; }
-  body { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; background: #fff; }
-
-  /* ── LETTERHEAD ── */
-  .lh { display: flex; width: 100%; margin-bottom: 2px; }
-  .lh-col { flex: 1; text-align: center; font-size: 10pt; line-height: 1.55; padding: 0; }
-  .lh-school  { font-size: 10pt; }
-  .lh-dept    { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-  .lh-rep     { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
-  .lh-motto   { font-size: 10.5pt; font-weight: bold; }
-  .lh-line    { width: 60%; height: 1px; border-bottom: 1px solid #000; margin: 2px auto 0; }
-
-  /* ── DATE / TITLE ── */
-  .date  { text-align: right; font-size: 10pt; font-style: italic; margin: 8px 0 6px; }
-  .title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; margin: 6px 0 4px; }
-  .info  { text-align: center; font-size: 10pt; color: #444; margin: 0 0 10px; }
-
-  /* ── TABLE ── */
-  table  { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-  th, td { border: 1px solid #aaa; padding: 5px 6px; vertical-align: middle; }
-  th     { background: #dde3ea; font-weight: bold; text-align: center; font-size: 9pt; line-height: 1.4; white-space: pre-line; }
-  td.c   { text-align: center; }
-  td.l   { text-align: left; }
-  td.sm  { font-size: 8.5pt; }
-  tr.alt { background: #f5f7fa; }
-
-  /* ── COL WIDTHS ── */
-  col.w-stt  { width: 5%;  }
-  col.w-code { width: 11%; }
-  col.w-name { width: 25%; }
-  col.w-unit { width: 23%; }
-  col.w-dob  { width: 11%; }
-  col.w-obj  { width: 13%; }
-  col.w-crs  { width: 12%; }
-
-  /* ── SIGNATURE ── */
-  .sig { display: table; width: 100%; margin-top: 24px; }
-  .sig-cell { display: table-cell; width: 50%; text-align: center; font-size: 10pt; vertical-align: top; }
-  .sig-title { font-weight: bold; margin-bottom: 52px; font-size: 10pt; }
-  .sig-name  { font-weight: bold; }
-  .sig-note  { font-style: italic; font-size: 9.5pt; color: #555; }
-  /* ── GHI CHÚ ── */
-  .ghi-chu { margin-top: 18px; border: 1px solid #aaa; border-radius: 4px; padding: 8px 12px; font-size: 9.5pt; }
-  .ghi-chu-title { font-weight: bold; margin-bottom: 4px; }
-  /* ── QR CODE ── */
-  .qr-block { text-align: center; }
-  .qr-block img { width: 90px; height: 90px; display: block; margin: 0 auto 4px; }
-  .qr-label { font-size: 8.5pt; color: #555; font-style: italic; }
+    /* ── RESET ── */
+    *, *::before, *::after { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+    }
+    
+    /* ── PAGE SETUP ── */
+    @page { 
+        size: A4 portrait; 
+        margin-top: 1.5cm; 
+        margin-bottom: 1.8cm; 
+        margin-left: 2.5cm; 
+        margin-right: 1.5cm; 
+    }
+    
+    body { 
+        font-family: "Times New Roman", Times, serif; 
+        font-size: 10pt; 
+        color: #000; 
+        background: #fff;
+        /* Quan trọng: không để body cao hơn trang */
+        width: 100%;
+    }
+    
+    /* ── LETTERHEAD ── */
+    .lh { 
+        display: flex; 
+        width: 100%; 
+        margin-bottom: 4px; 
+    }
+    .lh-col { 
+        flex: 1; 
+        text-align: center; 
+        font-size: 10pt; 
+        line-height: 1.5; 
+    }
+    .lh-school { font-size: 10pt; }
+    .lh-dept { 
+        font-size: 10.5pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+    }
+    .lh-rep { 
+        font-size: 10.5pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+    }
+    .lh-motto { 
+        font-size: 10pt; 
+        font-weight: bold; 
+    }
+    .lh-line { 
+        width: 60%; 
+        height: 1px; 
+        border-bottom: 1px solid #000; 
+        margin: 2px auto 0; 
+    }
+    
+    /* ── DATE / TITLE ── */
+    .date { 
+        text-align: right; 
+        font-size: 10pt; 
+        font-style: italic; 
+        margin: 6px 0 4px; 
+    }
+    .doc-title { 
+        text-align: center; 
+        font-size: 13pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+        margin: 4px 0 2px; 
+    }
+    .doc-info { 
+        text-align: center; 
+        font-size: 9.5pt; 
+        color: #444; 
+        margin: 0 0 6px; 
+    }
+    
+    /* ── TABLE ── */
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 9pt;
+        /* Cho phép bảng ngắt trang tự nhiên */
+        page-break-inside: auto;
+    }
+    thead { 
+        /* Lặp lại header ở mỗi trang */
+        display: table-header-group; 
+    }
+    tfoot {
+        display: table-footer-group;
+    }
+    tbody tr { 
+        /* Không ngắt trang giữa chừng 1 dòng */
+        page-break-inside: avoid; 
+        page-break-after: auto; 
+    }
+    th, td { 
+        border: 1px solid #aaa; 
+        padding: 4px 5px; 
+        vertical-align: middle; 
+    }
+    th { 
+        background: #dde3ea !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-weight: bold; 
+        text-align: center; 
+        font-size: 8.5pt; 
+        line-height: 1.3; 
+        white-space: pre-line; 
+    }
+    td.c { text-align: center; }
+    td.l { text-align: left; }
+    td.sm { font-size: 8pt; }
+    tr.alt { 
+        background: #f5f7fa !important; 
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* ── COL WIDTHS ── */
+    col.w-stt  { width: 5%; }
+    col.w-code { width: 11%; }
+    col.w-name { width: 26%; }
+    col.w-unit { width: 23%; }
+    col.w-dob  { width: 11%; }
+    col.w-obj  { width: 12%; }
+    col.w-crs  { width: 12%; }
+    
+    /* ── GHI CHÚ ── */
+    .ghi-chu { 
+        margin-top: 8px; 
+        border: 1px solid #aaa; 
+        border-radius: 3px; 
+        padding: 6px 10px; 
+        font-size: 9pt;
+        /* Không ngắt trang bên trong ghi chú */
+        page-break-inside: avoid;
+    }
+    .ghi-chu-title { 
+        font-weight: bold; 
+        margin-bottom: 3px; 
+    }
+    
+    /* ── SIGNATURE BLOCK ── */
+    .sig-wrapper {
+        width: 100%;
+        margin-top: 10px;
+        /* Quan trọng: không ngắt trang giữa chừng khối chữ ký */
+        page-break-inside: avoid;
+    }
+    /* Nếu cần trang mới cho chữ ký */
+    .sig-wrapper.new-page {
+        page-break-before: always;
+        margin-top: 0;
+        padding-top: 20px;
+    }
+    .sig { 
+        display: table; 
+        width: 100%; 
+    }
+    .sig-cell { 
+        display: table-cell; 
+        width: 50%; 
+        text-align: center; 
+        font-size: 10pt; 
+        vertical-align: top; 
+    }
+    .sig-title { 
+        font-weight: bold; 
+        /* Khoảng trống để ký tên - giảm xuống để tiết kiệm chỗ */
+        margin-bottom: 45px; 
+        font-size: 10pt; 
+    }
+    .sig-name { font-weight: bold; }
+    
+    /* ── QR CODE ── */
+    .qr-block { text-align: center; }
+    .qr-block img { 
+        /* Giảm kích thước QR từ 90px xuống 75px */
+        width: 75px; 
+        height: 75px; 
+        display: block; 
+        margin: 0 auto 3px; 
+    }
+    .qr-label { 
+        font-size: 8pt; 
+        color: #555; 
+        font-style: italic; 
+    }
+    
+    /* ── PRINT SPECIFIC ── */
+    @media print {
+        body { 
+            /* Đảm bảo không có margin/padding thừa */
+            margin: 0 !important; 
+            padding: 0 !important;
+        }
+        .no-print { display: none !important; }
+        
+        /* Header lặp lại */
+        thead { display: table-header-group; }
+        
+        /* Tránh trang trắng cuối */
+        html, body { height: auto !important; }
+    }
 </style>
-</head><body>
+</head>
+<body>
 
+<!-- LETTERHEAD -->
 <div class="lh">
-  <div class="lh-col">
-    <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
-    <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
-    <div class="lh-line"></div>
-  </div>
-  <div class="lh-col">
-    <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-    <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
-    <div class="lh-line"></div>
-  </div>
+    <div class="lh-col">
+        <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+        <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+        <div class="lh-line"></div>
+    </div>
+    <div class="lh-col">
+        <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+        <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
+        <div class="lh-line"></div>
+    </div>
 </div>
 
 <div class="date">${ngay}</div>
-<div class="title">${title}</div>
-<div class="info">${info}</div>
+<div class="doc-title">${title}</div>
+<div class="doc-info">${info}</div>
 
+<!-- BẢNG DANH SÁCH -->
 <table>
-  <colgroup>
-    <col class="w-stt"><col class="w-code"><col class="w-name">
-    <col class="w-unit"><col class="w-dob"><col class="w-obj"><col class="w-crs">
-  </colgroup>
-  <thead><tr>
-    <th>#</th>
-    <th>MÃ HV/TÀI\nKHOẢN</th>
-    <th style="text-align:left">HỌ VÀ TÊN ↕</th>
-    <th style="text-align:left">ĐƠN VỊ ↕</th>
-    <th>NGÀY SINH\n↕</th>
-    <th>ĐỐI\nTƯỢNG ↕</th>
-    <th>KHÓA\nHỌC ↕</th>
-  </tr></thead>
-  <tbody>${rows}</tbody>
+    <colgroup>
+        <col class="w-stt">
+        <col class="w-code">
+        <col class="w-name">
+        <col class="w-unit">
+        <col class="w-dob">
+        <col class="w-obj">
+        <col class="w-crs">
+    </colgroup>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>MÃ HV/\nTÀI KHOẢN</th>
+            <th style="text-align:left">HỌ VÀ TÊN</th>
+            <th style="text-align:left">ĐƠN VỊ</th>
+            <th>NGÀY\nSINH</th>
+            <th>ĐỐI\nTƯỢNG</th>
+            <th>KHÓA\nHỌC</th>
+        </tr>
+    </thead>
+    <tbody>
+        ${rows}
+    </tbody>
 </table>
 
+<!-- GHI CHÚ -->
 <div class="ghi-chu">
-  <div class="ghi-chu-title">Ghi chú:</div>
-  <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. Để bảo mật tài khoản tốt hơn, khuyến cáo người dùng nên đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
+    <div class="ghi-chu-title">Ghi chú:</div>
+    <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. 
+    Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
 </div>
 
-<div class="sig">
-  <div class="sig-cell">
-    <div class="qr-block">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" alt="QR đăng nhập">
-      <div class="qr-label">Quét để đăng nhập hệ thống</div>
+<!-- CHỮ KÝ + QR 
+     Nếu nhiều dòng (> 25) → sang trang mới tránh lồng trang -->
+<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
+    <div class="sig">
+        <div class="sig-cell">
+            <div class="qr-block">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
+                     alt="QR đăng nhập"
+                     onerror="this.style.display='none'">
+                <div class="qr-label">Quét để đăng nhập hệ thống</div>
+            </div>
+        </div>
+        <div class="sig-cell">
+            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+            <div class="sig-name">(Ký tên, đóng dấu)</div>
+        </div>
     </div>
-  </div>
-  <div class="sig-cell">
-    <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-    <div class="sig-name">(Ký tên, đóng dấu)</div>
-  </div>
 </div>
 
 <script>
-win.focus();      // Quan trọng: Tập trung vào cửa sổ mới
-win.print();      // Ra lệnh cho cửa sổ mới này tự in
-win.close();      // Tự động đóng cửa sổ sau khi hộp thoại in xuất hiện
+    // Đợi QR load xong rồi mới in
+    window.onload = function() {
+        const qrImg = document.querySelector('.qr-block img');
+        if (qrImg && !qrImg.complete) {
+            qrImg.onload = function() { 
+                setTimeout(function(){ window.print(); }, 300); 
+            };
+            qrImg.onerror = function() { 
+                setTimeout(function(){ window.print(); }, 300); 
+            };
+            // Timeout dự phòng nếu QR load quá lâu
+            setTimeout(function(){ window.print(); }, 2000);
+        } else {
+            setTimeout(function(){ window.print(); }, 300);
+        }
+    };
 <\/script>
-</body></html>`);
+</body>
+</html>`);
+    
     win.document.close();
-
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
@@ -5085,19 +5376,33 @@ function renderNotificationsList() {
 function openCreateNotificationModal() {
     currentEditingNotiId = null;
     document.getElementById('notiModalTitle').textContent = 'Tạo thông báo mới';
-    ['notiTitle', 'notiContent', 'notiTargetDetail'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['notiTitle', 'notiContent', 'notiTargetDetail'].forEach(id => { 
+        const el = document.getElementById(id); 
+        if (el) el.value = ''; 
+    });
     document.getElementById('notiTarget').value = 'all';
     document.getElementById('notiType').value = 'info';
     document.getElementById('notiSendTime').value = 'now';
     document.getElementById('notiTargetDetailGroup').style.display = 'none';
     document.getElementById('scheduleTimeGroup').style.display = 'none';
-    // Reset native date/time inputs
-    const dEl2 = document.getElementById('schedDate');
-    const tEl2 = document.getElementById('schedTime');
+    
+    // Reset ngày
+    const dEl = document.getElementById('schedDate');
+    if (dEl) dEl.value = '';
+    
+    // Reset preview
     const spEl = document.getElementById('scheduleTimePreview');
-    if (dEl2) dEl2.value = '';
-    if (tEl2) tEl2.value = '08:00';
-    if (spEl) spEl.innerHTML = '';
+    if (spEl) { spEl.innerHTML = ''; spEl.style.display = 'none'; }
+    
+    // ── THÊM DÒNG NÀY: Khởi tạo dropdown giờ/phút ──
+    initScheduleTimePickers();
+    
+    // Reset giờ về 08:00
+    const hourSel = document.getElementById('schedHour');
+    const minSel = document.getElementById('schedMinute');
+    if (hourSel) hourSel.value = '08';
+    if (minSel) minSel.value = '00';
+    
     document.getElementById('createNotificationModal').classList.add('show');
 }
 
@@ -5249,20 +5554,133 @@ function getResultDateFrom() { return getDate3('resultFrom'); }
 function getResultDateTo()   { return getDate3('resultTo'); }
 
 // ── Preview lịch gửi thông báo ──────────────────────────
+// ── Khởi tạo dropdown giờ và phút ──────────────────────────
+function initScheduleTimePickers() {
+    const hourSel = document.getElementById('schedHour');
+    const minSel = document.getElementById('schedMinute');
+    if (!hourSel || !minSel) return;
+    
+    // Nếu đã có options rồi thì thôi
+    if (hourSel.options.length > 0) return;
+    
+    // Tạo options giờ: 00 → 23
+    for (let h = 0; h <= 23; h++) {
+        const o = document.createElement('option');
+        o.value = String(h).padStart(2, '0');
+        o.textContent = String(h).padStart(2, '0');
+        // Mặc định chọn 08:00
+        if (h === 8) o.selected = true;
+        hourSel.appendChild(o);
+    }
+    
+    // Tạo options phút: 00, 05, 10, ... 55
+    for (let m = 0; m <= 55; m += 5) {
+        const o = document.createElement('option');
+        o.value = String(m).padStart(2, '0');
+        o.textContent = String(m).padStart(2, '0');
+        if (m === 0) o.selected = true;
+        minSel.appendChild(o);
+    }
+}
+
+// ── Nút tiện ích: Hôm nay / Ngày mai ────────────────────────
+function setScheduleQuick(addDays) {
+    const d = new Date();
+    d.setDate(d.getDate() + addDays);
+    
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    
+    const dateEl = document.getElementById('schedDate');
+    if (dateEl) dateEl.value = `${dd}/${mm}/${yyyy}`;
+    
+    // Nếu hôm nay thì set giờ = giờ hiện tại + 30 phút
+    if (addDays === 0) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 30);
+        const h = String(now.getHours()).padStart(2, '0');
+        // Làm tròn phút lên bội số của 5
+        const rawMin = now.getMinutes();
+        const roundedMin = Math.ceil(rawMin / 5) * 5;
+        const mVal = String(Math.min(roundedMin, 55)).padStart(2, '0');
+        
+        const hourSel = document.getElementById('schedHour');
+        const minSel = document.getElementById('schedMinute');
+        if (hourSel) hourSel.value = h;
+        if (minSel) minSel.value = mVal;
+    }
+    
+    previewScheduleTime();
+}
+
+// ── Preview lịch gửi thông báo (CẬP NHẬT) ──────────────────
 function previewScheduleTime() {
     const el = document.getElementById('scheduleTimePreview');
     if (!el) return;
+    
     const d = parseDateTimeVN();
-    if (!d) { el.innerHTML = ''; return; }
-    const hh  = String(d.getHours()).padStart(2,'0');
-    const mm  = String(d.getMinutes()).padStart(2,'0');
-    const dd  = String(d.getDate()).padStart(2,'0');
-    const mo  = String(d.getMonth()+1).padStart(2,'0');
-    const yy  = d.getFullYear();
+    if (!d) { 
+        el.innerHTML = ''; 
+        el.style.display = 'none';
+        return; 
+    }
+    
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = d.getFullYear();
     const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][d.getDay()];
+    
     const isPast = d < new Date();
-    el.innerHTML = `📅 <b>${hh}:${mm} – ${thu}, ${dd}/${mo}/${yy}</b>`
-        + (isPast ? '&nbsp;<span style="color:var(--danger);font-size:11px;">⚠ Đã qua</span>' : '');
+    const diffMs = d - new Date();
+    const diffH = Math.floor(diffMs / 3600000);
+    const diffM = Math.floor((diffMs % 3600000) / 60000);
+    
+    let timeLeft = '';
+    if (!isPast) {
+        if (diffH > 0) timeLeft = ` (còn ${diffH} giờ ${diffM} phút)`;
+        else if (diffM > 0) timeLeft = ` (còn ${diffM} phút)`;
+    }
+    
+    el.style.display = 'inline-block';
+    el.innerHTML = ` <b>${hh}:${mm} – ${thu}, ${dd}/${mo}/${yy}</b>${timeLeft}`
+        + (isPast 
+            ? '&nbsp;<span style="color:var(--danger);font-size:11px;">⚠ Thời điểm đã qua!</span>' 
+            : '');
+}
+
+// ── parseDateTimeVN: đọc từ schedDate + schedHour + schedMinute ──
+// (Cập nhật hàm cũ để dùng select thay vì input text)
+function parseDateTimeVN() {
+    const dateStr = document.getElementById('schedDate')?.value || '';
+    
+    // Đọc giờ/phút từ SELECT (mới) hoặc INPUT TEXT (cũ - fallback)
+    let hh = 8, mm = 0;
+    const hourSel = document.getElementById('schedHour');
+    const minSel = document.getElementById('schedMinute');
+    const schedTime = document.getElementById('schedTime'); // input cũ
+    
+    if (hourSel && minSel) {
+        // Dùng select mới
+        hh = parseInt(hourSel.value) || 8;
+        mm = parseInt(minSel.value) || 0;
+    } else if (schedTime) {
+        // Fallback input text cũ
+        const tp = (schedTime.value || '08:00').split(':');
+        hh = parseInt(tp[0]) || 8;
+        mm = parseInt(tp[1]) || 0;
+    }
+    
+    // Parse ngày
+    const dp = dateStr.split('/');
+    if (dp.length !== 3 || dp[2].length !== 4) return null;
+    const [dd, mo, yyyy] = dp.map(Number);
+    if (!dd || !mo || !yyyy) return null;
+    
+    const dt = new Date(yyyy, mo - 1, dd, hh, mm, 0, 0);
+    return isNaN(dt.getTime()) ? null : dt;
 }
 
 async function checkScheduledNotifications() {
@@ -5783,20 +6201,32 @@ async function editNotification(id) {
     toggleScheduleTime();
     if (n.targetDetail) document.getElementById('notiTargetDetail').value = n.targetDetail;
     if (n.scheduledAt) {
-        const sd = n.scheduledAt?.toDate ? n.scheduledAt.toDate() : new Date(n.scheduledAt);
-        if (!isNaN(sd)) {
-            const dd2 = String(sd.getDate()).padStart(2,'0');
-            const mo2 = String(sd.getMonth()+1).padStart(2,'0');
-            const yyyy2 = sd.getFullYear();
-            const hh2 = String(sd.getHours()).padStart(2,'0');
-            const mm2 = String(sd.getMinutes()).padStart(2,'0');
-            const dEl = document.getElementById('schedDate');
-            const tEl = document.getElementById('schedTime');
-            if (dEl) dEl.value = `${dd2}/${mo2}/${yyyy2}`;
-            if (tEl) tEl.value = `${hh2}:${mm2}`;
-            previewScheduleTime();
-        }
+    const sd = n.scheduledAt?.toDate 
+        ? n.scheduledAt.toDate() 
+        : new Date(n.scheduledAt);
+    if (!isNaN(sd)) {
+        // Set ngày
+        const dd2 = String(sd.getDate()).padStart(2,'0');
+        const mo2 = String(sd.getMonth()+1).padStart(2,'0');
+        const yyyy2 = sd.getFullYear();
+        const dEl = document.getElementById('schedDate');
+        if (dEl) dEl.value = `${dd2}/${mo2}/${yyyy2}`;
+        
+        // Set giờ/phút vào SELECT (mới)
+        initScheduleTimePickers(); // đảm bảo đã có options
+        const h = String(sd.getHours()).padStart(2,'0');
+        const rawMin = sd.getMinutes();
+        // Làm tròn phút về bội số 5 gần nhất
+        const roundedMin = String(Math.round(rawMin / 5) * 5).padStart(2,'0');
+        
+        const hourSel = document.getElementById('schedHour');
+        const minSel = document.getElementById('schedMinute');
+        if (hourSel) hourSel.value = h;
+        if (minSel) minSel.value = roundedMin;
+        
+        previewScheduleTime();
     }
+}
     document.getElementById('createNotificationModal').classList.add('show');
 }
 
