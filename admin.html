@@ -1843,9 +1843,10 @@ D. Đáp án D
           <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
               <div class="date-picker-wrap">
-                <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
+                <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10"
                   onclick="openSchedDatePicker()"
-                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;cursor:pointer;">
+                  oninput="autoFormatDateInput(this); previewScheduleTime()"
+                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;cursor:text;">
               </div>
               <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5"
                oninput="formatTimeInput(this); previewScheduleTime()"
@@ -2156,6 +2157,17 @@ function parseDDMMYYYY(str) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+// Auto-format date input: tự động thêm dấu '/' khi người dùng nhập
+function autoFormatDateInput(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 8) v = v.slice(0, 8);
+    let formatted = '';
+    if (v.length >= 1) formatted = v.slice(0, 2);
+    if (v.length >= 3) formatted += '/' + v.slice(2, 4);
+    if (v.length >= 5) formatted += '/' + v.slice(4, 8);
+    el.value = formatted;
+}
+
 // ── Bộ lọc ngày kết quả thi ──────────────────────────────────────
 function onResultDateRangeChange() {
     const v = document.getElementById('resultDateRange')?.value;
@@ -2204,8 +2216,8 @@ function openDatePicker(inputId) {
     // Position popup near the input
     if (input && popup) {
         const rect = input.getBoundingClientRect();
-        popup.style.top  = (rect.bottom + window.scrollY + 6) + 'px';
-        popup.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 280) + 'px';
+        popup.style.top  = (rect.bottom + 6) + 'px';
+        popup.style.left = Math.min(rect.left, window.innerWidth - 280) + 'px';
         popup.style.display = 'block';
     }
 }
@@ -2280,8 +2292,8 @@ function openSchedDatePicker() {
 
     if (input && popup) {
         const rect = input.getBoundingClientRect();
-        popup.style.top  = (rect.bottom + window.scrollY + 6) + 'px';
-        popup.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 280) + 'px';
+        popup.style.top  = (rect.bottom + 6) + 'px';
+        popup.style.left = Math.min(rect.left, window.innerWidth - 280) + 'px';
         popup.style.display = 'block';
     }
 }
@@ -3467,7 +3479,7 @@ function printTable() {
 
   /* ── LETTERHEAD ── */
   .lh { display: table; width: 100%; border-collapse: collapse; margin-bottom: 2px; }
-  .lh td { display: table-cell; width: 50%; vertical-align: top; padding: 0; }
+  .lh td { display: table-cell; width: 50%; vertical-align: top; padding: 0; border: none !important; background: transparent !important; }
   .lh-left  { text-align: center; font-size: 10pt; line-height: 1.55; }
   .lh-right { text-align: center; font-size: 10pt; line-height: 1.55; }
   .lh-school  { font-size: 10pt; }
@@ -3505,6 +3517,13 @@ function printTable() {
   .sig-title { font-weight: bold; margin-bottom: 52px; font-size: 10pt; }
   .sig-name  { font-weight: bold; }
   .sig-note  { font-style: italic; font-size: 9.5pt; color: #555; }
+  /* ── GHI CHÚ ── */
+  .ghi-chu { margin-top: 18px; border: 1px solid #aaa; border-radius: 4px; padding: 8px 12px; font-size: 9.5pt; }
+  .ghi-chu-title { font-weight: bold; margin-bottom: 4px; }
+  /* ── QR CODE ── */
+  .qr-block { text-align: center; }
+  .qr-block img { width: 90px; height: 90px; display: block; margin: 0 auto 4px; }
+  .qr-label { font-size: 8.5pt; color: #555; font-style: italic; }
 </style>
 </head><body>
 
@@ -3542,11 +3561,21 @@ function printTable() {
   <tbody>${rows}</tbody>
 </table>
 
+<div class="ghi-chu">
+  <div class="ghi-chu-title">Ghi chú:</div>
+  <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. Để bảo mật tài khoản tốt hơn, khuyến cáo người dùng nên đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
+</div>
+
 <div class="sig">
-  <div class="sig-cell"></div>
   <div class="sig-cell">
     <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
     <div class="sig-name">(Ký tên, đóng dấu)</div>
+  </div>
+  <div class="sig-cell">
+    <div class="qr-block">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" alt="QR đăng nhập">
+      <div class="qr-label">Quét để đăng nhập hệ thống</div>
+    </div>
   </div>
 </div>
 
