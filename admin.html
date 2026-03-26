@@ -3519,7 +3519,11 @@ function printTable() {
   </div>
 </div>
 
-<script>window.onload = function(){ window.print(); };<\/script>
+<script>
+win.focus();      // Quan trọng: Tập trung vào cửa sổ mới
+win.print();      // Ra lệnh cho cửa sổ mới này tự in
+win.close();      // Tự động đóng cửa sổ sau khi hộp thoại in xuất hiện
+<\/script>
 </body></html>`);
     win.document.close();
 
