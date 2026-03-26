@@ -1843,10 +1843,9 @@ D. Đáp án D
           <label style="font-weight:700;">📅 Ngày giờ gửi (DD/MM/YYYY HH:MM)</label>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
               <div class="date-picker-wrap">
-                <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10"
-                  onclick="openSchedDatePicker()"
-                  oninput="autoFormatDateInput(this); previewScheduleTime()"
-                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;cursor:text;">
+                <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
+                  onclick="openDatePicker('schedDate')"
+                  style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:110px;text-align:center;cursor:pointer;">
               </div>
               <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5"
                oninput="formatTimeInput(this); previewScheduleTime()"
@@ -2157,16 +2156,6 @@ function parseDDMMYYYY(str) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-// Auto-format date input: tự động thêm dấu '/' khi người dùng nhập
-function autoFormatDateInput(el) {
-    let v = el.value.replace(/\D/g, '');
-    if (v.length > 8) v = v.slice(0, 8);
-    let formatted = '';
-    if (v.length >= 1) formatted = v.slice(0, 2);
-    if (v.length >= 3) formatted += '/' + v.slice(2, 4);
-    if (v.length >= 5) formatted += '/' + v.slice(4, 8);
-    el.value = formatted;
-}
 
 // ── Bộ lọc ngày kết quả thi ──────────────────────────────────────
 function onResultDateRangeChange() {
@@ -2186,7 +2175,12 @@ function openDatePicker(inputId) {
     const popup = document.getElementById('datePickerPopup');
     const input = document.getElementById(inputId);
     const title = document.getElementById('dpTitle');
-    if (title) title.textContent = inputId === 'resultDateFrom' ? '📅 Ngày bắt đầu' : '📅 Ngày kết thúc';
+    if (title) {
+        if (inputId === 'resultDateFrom') title.textContent = '📅 Ngày bắt đầu';
+        else if (inputId === 'resultDateTo') title.textContent = '📅 Ngày kết thúc';
+        else if (inputId === 'schedDate') title.textContent = '📅 Ngày gửi thông báo';
+        else title.textContent = '📅 Chọn ngày';
+    }
 
     // Parse current value
     const cur = input?.value ? parseDDMMYYYY(input.value) : null;
@@ -2242,7 +2236,10 @@ function confirmDatePicker() {
     const val = `${d}/${m}/${y}`;
     if (_dpTargetId) {
         const el = document.getElementById(_dpTargetId);
-        if (el) el.value = val;
+        if (el) {
+            el.value = val;
+            if (_dpTargetId === 'schedDate') previewScheduleTime();
+        }
     }
     closeDatePicker();
 }
@@ -2260,62 +2257,7 @@ document.addEventListener('click', function(e) {
     }
 }, true);
 
-// ── Date picker cho schedDate (thông báo) ────────────────────────
-function openSchedDatePicker() {
-    _dpTargetId = '__schedDate__';
-    const popup = document.getElementById('datePickerPopup');
-    const title = document.getElementById('dpTitle');
-    if (title) title.textContent = '📅 Ngày gửi thông báo';
-
-    const input = document.getElementById('schedDate');
-    const cur = input?.value ? parseDDMMYYYY(input.value) : null;
-    const ref  = cur || new Date();
-
-    const yearSel = document.getElementById('dpYear');
-    const now3 = new Date();
-    yearSel.innerHTML = '';
-    for (let y = now3.getFullYear(); y <= now3.getFullYear() + 2; y++) {
-        const o = document.createElement('option');
-        o.value = y; o.textContent = y;
-        if (y === ref.getFullYear()) o.selected = true;
-        yearSel.appendChild(o);
-    }
-    const monthSel = document.getElementById('dpMonth');
-    monthSel.innerHTML = '';
-    for (let m = 1; m <= 12; m++) {
-        const o = document.createElement('option');
-        o.value = m; o.textContent = String(m).padStart(2,'0');
-        if (m === ref.getMonth()+1) o.selected = true;
-        monthSel.appendChild(o);
-    }
-    dpUpdateDays(ref.getDate());
-
-    if (input && popup) {
-        const rect = input.getBoundingClientRect();
-        popup.style.top  = (rect.bottom + 6) + 'px';
-        popup.style.left = Math.min(rect.left, window.innerWidth - 280) + 'px';
-        popup.style.display = 'block';
-    }
-}
-// Override confirmDatePicker to handle schedDate
-const _origConfirmDP = confirmDatePicker;
-// Patch: confirmDatePicker already handles _dpTargetId === '__schedDate__' by setting schedDate value
-// Just override the target after confirm
-const _dpConfirmOrig = confirmDatePicker;
-function confirmDatePicker() {
-    const d = String(document.getElementById('dpDay')?.value || 1).padStart(2,'0');
-    const m = String(document.getElementById('dpMonth')?.value || 1).padStart(2,'0');
-    const y = document.getElementById('dpYear')?.value || new Date().getFullYear();
-    const val = `${d}/${m}/${y}`;
-    if (_dpTargetId === '__schedDate__') {
-        const el = document.getElementById('schedDate');
-        if (el) { el.value = val; previewScheduleTime(); }
-    } else if (_dpTargetId) {
-        const el = document.getElementById(_dpTargetId);
-        if (el) el.value = val;
-    }
-    closeDatePicker();
-}
+// ── openSchedDatePicker: dùng trực tiếp openDatePicker('schedDate') ──
 function safeText(v, fallback = '') {
     return v === undefined || v === null ? fallback : String(v);
 }
@@ -3478,10 +3420,8 @@ function printTable() {
   body { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; background: #fff; }
 
   /* ── LETTERHEAD ── */
-  .lh { display: table; width: 100%; border-collapse: collapse; margin-bottom: 2px; }
-  .lh td { display: table-cell; width: 50%; vertical-align: top; padding: 0; border: none !important; background: transparent !important; }
-  .lh-left  { text-align: center; font-size: 10pt; line-height: 1.55; }
-  .lh-right { text-align: center; font-size: 10pt; line-height: 1.55; }
+  .lh { display: flex; width: 100%; margin-bottom: 2px; }
+  .lh-col { flex: 1; text-align: center; font-size: 10pt; line-height: 1.55; padding: 0; }
   .lh-school  { font-size: 10pt; }
   .lh-dept    { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
   .lh-rep     { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
@@ -3527,18 +3467,18 @@ function printTable() {
 </style>
 </head><body>
 
-<table class="lh"><tr>
-  <td class="lh-left">
+<div class="lh">
+  <div class="lh-col">
     <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
     <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
     <div class="lh-line"></div>
-  </td>
-  <td class="lh-right">
+  </div>
+  <div class="lh-col">
     <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
     <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
     <div class="lh-line"></div>
-  </td>
-</tr></table>
+  </div>
+</div>
 
 <div class="date">${ngay}</div>
 <div class="title">${title}</div>
@@ -3568,14 +3508,14 @@ function printTable() {
 
 <div class="sig">
   <div class="sig-cell">
-    <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-    <div class="sig-name">(Ký tên, đóng dấu)</div>
-  </div>
-  <div class="sig-cell">
     <div class="qr-block">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" alt="QR đăng nhập">
       <div class="qr-label">Quét để đăng nhập hệ thống</div>
     </div>
+  </div>
+  <div class="sig-cell">
+    <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+    <div class="sig-name">(Ký tên, đóng dấu)</div>
   </div>
 </div>
 
