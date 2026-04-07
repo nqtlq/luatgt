@@ -968,6 +968,7 @@ tbody tr:hover { background: var(--bg-hover); }
                   <th style="min-width:360px;text-align:left;">TÊN ĐỀ THI</th>
                   <th style="width:90px">Số câu</th>
                   <th style="width:90px">Nhóm</th>
+                  <th style="width:90px">Thời gian làm  (phút)</th>
                   <th style="width:110px">Trạng thái</th>
                   <th style="width:220px">Thao tác</th>
             </tr>
@@ -1839,21 +1840,33 @@ D. Đáp án D
             </select>
           </div>
         </div>
-       <div class="form-group" id="scheduleTimeGroup" style="display:none;">
- <label style="font-weight:700;">📅 Ngày giờ gửi</label>
- <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
- <div class="date-picker-wrap">
- <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
- onclick="openDatePicker('schedDate')"
- style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:120px;text-align:center;cursor:pointer;background:var(--bg-input);color:var(--text-primary);">
- </div>
- <span style="font-size:12px;color:var(--text-muted);">lúc</span>
- <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5" value="08:00"
- oninput="formatTimeInput(this); previewScheduleTime()"
- style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:80px;text-align:center;background:var(--bg-input);color:var(--text-primary);">
- </div>
- <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
-</div>
+        <div class="form-group" id="scheduleTimeGroup" style="display:none;">
+    <label style="font-weight:700;"> Thời gian gửi thông báo</label>
+    
+    <!-- Dòng 1: Chọn ngày (giống hệt trang Kết quả thi) -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        
+        <!-- Từ ngày -->
+        <div style="display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:11px;color:var(--text-muted);font-weight:600;">NGÀY GỬI</span>
+            <div class="date-picker-wrap" style="position:relative;">
+                <input type="text" 
+                    id="schedDate" 
+                    placeholder="dd/mm/yyyy" 
+                    maxlength="10" 
+                    readonly
+                    onclick="openDatePicker('schedDate')"
+                    style="padding:6px 10px;
+                           border:1px solid var(--border);
+                           border-radius:var(--radius-sm);
+                           font-size:13px;
+                           width:110px;
+                           text-align:center;
+                           cursor:pointer;
+                           background:var(--bg-card);
+                           color:var(--text-primary);">
+            </div>
+        </div>
         
         <!-- Giờ gửi -->
         <div style="display:flex;flex-direction:column;gap:3px;">
@@ -2336,7 +2349,7 @@ function safeText(v, fallback = '') {
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = safeText(text);
-    return div.innerHTML;
+    return div.innerHTML.replace(/'/g, '&#39;');
 }
 
 function showToast(message, type = 'info', duration = 4000) {
@@ -3444,153 +3457,381 @@ function exportToExcel() {
 }
 
 function printTable() {
- const now = new Date();
- const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
- const fc = document.getElementById('filterCourse')?.value || '';
- const q = document.getElementById('searchAll')?.value || '';
- const fs = document.getElementById('filterStatus')?.value || '';
- const fo = document.getElementById('filterObject')?.value || '';
- const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
- let info = '';
- if (!q && !fs && !fo && !fc) {
- info = `Tổng: ${filteredStudents.length} học viên`;
- } else {
- const parts = [];
- if (fc) parts.push('Khóa: ' + fc);
- if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
- if (fo) parts.push('Đối tượng: ' + fo);
- if (q) parts.push('Tìm kiếm: "' + q + '"');
- info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
- }
- const e = t => { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+    const now = new Date();
+    const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+    const fc = document.getElementById('filterCourse')?.value || '';
+    const q = document.getElementById('searchAll')?.value || '';
+    const fs = document.getElementById('filterStatus')?.value || '';
+    const fo = document.getElementById('filterObject')?.value || '';
+    const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
+    
+    let info = '';
+    if (!q && !fs && !fo && !fc) {
+        info = `Tổng: ${filteredStudents.length} học viên`;
+    } else {
+        const parts = [];
+        if (fc) parts.push('Khóa: ' + fc);
+        if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
+        if (fo) parts.push('Đối tượng: ' + fo);
+        if (q) parts.push('Tìm kiếm: "' + q + '"');
+        info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
+    }
+    
+    const e = t => { 
+        const d = document.createElement('div'); 
+        d.textContent = t || ''; 
+        return d.innerHTML; 
+    };
+    
+    const rows = filteredStudents.map((s, i) => `
+        <tr class="${i % 2 === 1 ? 'alt' : ''}">
+            <td class="c">${i + 1}</td>
+            <td class="c"><b>${e(s.code)}</b></td>
+            <td class="l">${e(s.name)}</td>
+            <td class="l sm">${e(s.unit || '—')}</td>
+            <td class="c">${formatDate(s.dob) || '—'}</td>
+            <td class="c">${e(s.object || '—')}</td>
+            <td class="c">${e(s.course || '—')}</td>
+        </tr>`).join('');
 
- // Tính font-size động dựa trên số lượng học viên
- const totalRows = filteredStudents.length;
- let tableFontSize = '8pt';
- let cellPadding = '3px 4px';
- let sigMarginBottom = '36px';
- if (totalRows > 40) {
-   tableFontSize = '6.5pt';
-   cellPadding = '2px 3px';
-   sigMarginBottom = '20px';
- } else if (totalRows > 30) {
-   tableFontSize = '7pt';
-   cellPadding = '2px 3px';
-   sigMarginBottom = '24px';
- } else if (totalRows > 20) {
-   tableFontSize = '7.5pt';
-   cellPadding = '2.5px 3px';
-   sigMarginBottom = '28px';
- }
+    // ── Tính toán có cần trang chữ ký riêng không ──
+    // Mỗi trang A4 chứa khoảng 30 dòng dữ liệu
+    // Nếu số dòng > 25 → chữ ký sang trang mới để tránh lồng trang
+    const needNewPageForSig = filteredStudents.length > 25;
 
- const rows = filteredStudents.map((s, i) => `
- <tr class="${i % 2 === 1 ? 'alt' : ''}">
- <td class="c">${i + 1}</td>
- <td class="c"><b>${e(s.code)}</b></td>
- <td class="l">${e(s.name)}</td>
- <td class="l sm">${e(s.unit || '—')}</td>
- <td class="c">${formatDate(s.dob) || '—'}</td>
- <td class="c">${e(s.object || '—')}</td>
- <td class="c">${e(s.course || '—')}</td>
- </tr>`).join('');
- const win = window.open('', '_blank', 'width=960,height=760');
- if (!win) { showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); return; }
- win.document.write(`<!DOCTYPE html>
-<html lang="vi"><head>
+    const win = window.open('', '_blank', 'width=960,height=760');
+    if (!win) { 
+        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); 
+        return; 
+    }
+    
+    win.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>
- *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- @page { size: auto; margin: 8mm 10mm; }
- body { font-family: "Times New Roman", Times, serif; font-size: 9pt; color: #000; background: #fff; }
- .lh { display: flex; width: 100%; margin-bottom: 2px; }
- .lh-col { flex: 1; text-align: center; font-size: 9pt; line-height: 1.4; padding: 0; }
- .lh-school { font-size: 9pt; }
- .lh-dept { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
- .lh-rep { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
- .lh-motto { font-size: 9.5pt; font-weight: bold; }
- .lh-line { width: 60%; height: 1px; border-bottom: 1px solid #000; margin: 2px auto 0; }
- .date { text-align: right; font-size: 9pt; font-style: italic; margin: 3px 0 3px; }
- .title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 3px 0 2px; }
- .info { text-align: center; font-size: 9pt; color: #444; margin: 0 0 5px; }
- table { width: 100%; border-collapse: collapse; font-size: ${tableFontSize}; }
- th, td { border: 1px solid #aaa; padding: ${cellPadding}; vertical-align: middle; }
- th { background: #dde3ea; font-weight: bold; text-align: center; font-size: ${tableFontSize}; line-height: 1.3; white-space: pre-line; }
- td.c { text-align: center; }
- td.l { text-align: left; }
- td.sm { font-size: calc(${tableFontSize} - 0.5pt); }
- tr.alt { background: #f5f7fa; }
- col.w-stt { width: 4%; }
- col.w-code { width: 10%; }
- col.w-name { width: 24%; }
- col.w-unit { width: 24%; }
- col.w-dob { width: 10%; }
- col.w-obj { width: 14%; }
- col.w-crs { width: 14%; }
- .sig { display: table; width: 100%; margin-top: 10px; }
- .sig-cell { display: table-cell; width: 50%; text-align: center; font-size: 9pt; vertical-align: top; }
- .sig-title { font-weight: bold; margin-bottom: ${sigMarginBottom}; font-size: 9pt; }
- .sig-name { font-weight: bold; }
- .ghi-chu { margin-top: 8px; border: 1px solid #aaa; border-radius: 3px; padding: 4px 8px; font-size: 8pt; }
- .ghi-chu-title { font-weight: bold; margin-bottom: 2px; }
- .qr-block { text-align: center; }
- .qr-block img { width: 65px; height: 65px; display: block; margin: 0 auto 2px; }
- .qr-label { font-size: 7pt; color: #555; font-style: italic; }
- /* Force everything on one page */
- html, body { height: auto; overflow: visible; }
- * { page-break-inside: avoid; }
+    /* ── RESET ── */
+    *, *::before, *::after { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+    }
+    
+    /* ── PAGE SETUP ── */
+    @page { 
+        size: A4 portrait; 
+        margin-top: 1.5cm; 
+        margin-bottom: 1.8cm; 
+        margin-left: 2.5cm; 
+        margin-right: 1.5cm; 
+    }
+    
+    body { 
+        font-family: "Times New Roman", Times, serif; 
+        font-size: 10pt; 
+        color: #000; 
+        background: #fff;
+        /* Quan trọng: không để body cao hơn trang */
+        width: 100%;
+    }
+    
+    /* ── LETTERHEAD ── */
+    .lh { 
+        display: flex; 
+        width: 100%; 
+        margin-bottom: 4px; 
+    }
+    .lh-col { 
+        flex: 1; 
+        text-align: center; 
+        font-size: 10pt; 
+        line-height: 1.5; 
+    }
+    .lh-school { font-size: 10pt; }
+    .lh-dept { 
+        font-size: 10.5pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+    }
+    .lh-rep { 
+        font-size: 10.5pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+    }
+    .lh-motto { 
+        font-size: 10pt; 
+        font-weight: bold; 
+    }
+    .lh-line { 
+        width: 60%; 
+        height: 1px; 
+        border-bottom: 1px solid #000; 
+        margin: 2px auto 0; 
+    }
+    
+    /* ── DATE / TITLE ── */
+    .date { 
+        text-align: right; 
+        font-size: 10pt; 
+        font-style: italic; 
+        margin: 6px 0 4px; 
+    }
+    .doc-title { 
+        text-align: center; 
+        font-size: 13pt; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+        margin: 4px 0 2px; 
+    }
+    .doc-info { 
+        text-align: center; 
+        font-size: 9.5pt; 
+        color: #444; 
+        margin: 0 0 6px; 
+    }
+    
+    /* ── TABLE ── */
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 9pt;
+        /* Cho phép bảng ngắt trang tự nhiên */
+        page-break-inside: auto;
+    }
+    thead { 
+        /* Lặp lại header ở mỗi trang */
+        display: table-header-group; 
+    }
+    tfoot {
+        display: table-footer-group;
+    }
+    tbody tr { 
+        /* Không ngắt trang giữa chừng 1 dòng */
+        page-break-inside: avoid; 
+        page-break-after: auto; 
+    }
+    th, td { 
+        border: 1px solid #aaa; 
+        padding: 4px 5px; 
+        vertical-align: middle; 
+    }
+    th { 
+        background: #dde3ea !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-weight: bold; 
+        text-align: center; 
+        font-size: 8.5pt; 
+        line-height: 1.3; 
+        white-space: pre-line; 
+    }
+    td.c { text-align: center; }
+    td.l { text-align: left; }
+    td.sm { font-size: 8pt; }
+    tr.alt { 
+        background: #f5f7fa !important; 
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* ── COL WIDTHS ── */
+    col.w-stt  { width: 5%; }
+    col.w-code { width: 11%; }
+    col.w-name { width: 26%; }
+    col.w-unit { width: 23%; }
+    col.w-dob  { width: 11%; }
+    col.w-obj  { width: 12%; }
+    col.w-crs  { width: 12%; }
+    
+    /* ── GHI CHÚ ── */
+    .ghi-chu { 
+        margin-top: 8px; 
+        border: 1px solid #aaa; 
+        border-radius: 3px; 
+        padding: 6px 10px; 
+        font-size: 9pt;
+        /* Không ngắt trang bên trong ghi chú */
+        page-break-inside: avoid;
+    }
+    .ghi-chu-title { 
+        font-weight: bold; 
+        margin-bottom: 3px; 
+    }
+    
+    /* ── SIGNATURE BLOCK ── */
+    .sig-wrapper {
+        width: 100%;
+        margin-top: 10px;
+        /* Quan trọng: không ngắt trang giữa chừng khối chữ ký */
+        page-break-inside: avoid;
+    }
+    /* Nếu cần trang mới cho chữ ký */
+    .sig-wrapper.new-page {
+        page-break-before: always;
+        margin-top: 0;
+        padding-top: 20px;
+    }
+    .sig { 
+        display: table; 
+        width: 100%; 
+    }
+    .sig-cell { 
+        display: table-cell; 
+        width: 50%; 
+        text-align: center; 
+        font-size: 10pt; 
+        vertical-align: top; 
+    }
+    .sig-title { 
+        font-weight: bold; 
+        /* Khoảng trống để ký tên - giảm xuống để tiết kiệm chỗ */
+        margin-bottom: 45px; 
+        font-size: 10pt; 
+    }
+    .sig-name { font-weight: bold; }
+    
+    /* ── QR CODE ── */
+    .qr-block { text-align: center; }
+    .qr-block img { 
+        /* Giảm kích thước QR từ 90px xuống 75px */
+        width: 75px; 
+        height: 75px; 
+        display: block; 
+        margin: 0 auto 3px; 
+    }
+    .qr-label { 
+        font-size: 8pt; 
+        color: #555; 
+        font-style: italic; 
+    }
+    
+    /* ── PRINT SPECIFIC ── */
+    @media print {
+        body { 
+            /* Đảm bảo không có margin/padding thừa */
+            margin: 0 !important; 
+            padding: 0 !important;
+        }
+        .no-print { display: none !important; }
+        
+        /* Header lặp lại */
+        thead { display: table-header-group; }
+        
+        /* Tránh trang trắng cuối */
+        html, body { height: auto !important; }
+    }
 </style>
-</head><body>
+</head>
+<body>
+
+<!-- LETTERHEAD -->
 <div class="lh">
- <div class="lh-col">
- <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
- <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
- <div class="lh-line"></div>
- </div>
- <div class="lh-col">
- <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
- <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
- <div class="lh-line"></div>
- </div>
+    <div class="lh-col">
+        <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+        <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+        <div class="lh-line"></div>
+    </div>
+    <div class="lh-col">
+        <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+        <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
+        <div class="lh-line"></div>
+    </div>
 </div>
+
 <div class="date">${ngay}</div>
-<div class="title">${title}</div>
-<div class="info">${info}</div>
+<div class="doc-title">${title}</div>
+<div class="doc-info">${info}</div>
+
+<!-- BẢNG DANH SÁCH -->
 <table>
- <colgroup>
- <col class="w-stt"><col class="w-code"><col class="w-name">
- <col class="w-unit"><col class="w-dob"><col class="w-obj"><col class="w-crs">
- </colgroup>
- <thead><tr>
- <th>#</th>
- <th>MÃ HV/TÀI\\nKHOẢN</th>
- <th style="text-align:left">HỌ VÀ TÊN</th>
- <th style="text-align:left">ĐƠN VỊ</th>
- <th>NGÀY\\nSINH</th>
- <th>ĐỐI\\nTƯỢNG</th>
- <th>KHÓA\\nHỌC</th>
- </tr></thead>
- <tbody>${rows}</tbody>
+    <colgroup>
+        <col class="w-stt">
+        <col class="w-code">
+        <col class="w-name">
+        <col class="w-unit">
+        <col class="w-dob">
+        <col class="w-obj">
+        <col class="w-crs">
+    </colgroup>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>MÃ HV/\nTÀI KHOẢN</th>
+            <th style="text-align:left">HỌ VÀ TÊN</th>
+            <th style="text-align:left">ĐƠN VỊ</th>
+            <th>NGÀY\nSINH</th>
+            <th>ĐỐI\nTƯỢNG</th>
+            <th>KHÓA\nHỌC</th>
+        </tr>
+    </thead>
+    <tbody>
+        ${rows}
+    </tbody>
 </table>
+
+<!-- GHI CHÚ -->
 <div class="ghi-chu">
- <div class="ghi-chu-title">Ghi chú:</div>
- <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. Khuyến cáo đổi mật khẩu ngay sau khi đăng nhập lần đầu.</div>
+    <div class="ghi-chu-title">Ghi chú:</div>
+    <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. 
+    Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
 </div>
-<div class="sig">
- <div class="sig-cell">
- <div class="qr-block">
- <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" alt="QR">
- <div class="qr-label">Quét để đăng nhập</div>
- </div>
- </div>
- <div class="sig-cell">
- <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
- <div class="sig-name">(Ký tên, đóng dấu)</div>
- </div>
+
+<!-- CHỮ KÝ + QR 
+     Nếu nhiều dòng (> 25) → sang trang mới tránh lồng trang -->
+<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
+    <div class="sig">
+        <div class="sig-cell">
+            <div class="qr-block">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
+                     alt="QR đăng nhập"
+                     onerror="this.style.display='none'">
+                <div class="qr-label">Quét để đăng nhập hệ thống</div>
+            </div>
+        </div>
+        <div class="sig-cell">
+            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+            <div class="sig-name">(Ký tên, đóng dấu)</div>
+        </div>
+    </div>
 </div>
-<script>window.onload = function(){ window.print(); };<\/script>
-</body></html>`);
- win.document.close();
+
+<script>
+    // Đợi QR load xong rồi mới in
+    window.onload = function() {
+        const qrImg = document.querySelector('.qr-block img');
+        if (qrImg && !qrImg.complete) {
+            
+            let _printed = false;
+            function doPrint() {
+                if (_printed) return;
+                _printed = true;
+                setTimeout(function(){ window.print(); }, 300);
+            }
+            qrImg.onload  = doPrint;
+            qrImg.onerror = doPrint;
+            // Timeout dự phòng nếu QR load quá lâu
+            setTimeout(doPrint, 2000);
+        } else {
+            setTimeout(function(){ window.print(); }, 300);
+        }
+    };
+<\/script>
+</body>
+</html>`);
+    
+    win.document.close();
+}
+// ==========================================
+// 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
+// ==========================================
+let currentExamType = 'moto';
+function switchExamType(type, btn) {
+    currentExamType = type;
+    document.querySelectorAll('.exam-type-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadQuestionSets();
 }
 
 function loadQuestionSets() {
