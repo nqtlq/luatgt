@@ -3798,26 +3798,26 @@ function printTable() {
 </div>
 
 <script>
-    // Đợi QR load xong rồi mới in
-    window.onload = function() {
-        const qrImg = document.querySelector('.qr-block img');
-        if (qrImg && !qrImg.complete) {
-            
-            let _printed = false;
-            function doPrint() {
-                if (_printed) return;
-                _printed = true;
-                setTimeout(function(){ window.print(); }, 300);
-            }
-            qrImg.onload  = doPrint;
-            qrImg.onerror = doPrint;
-            // Timeout dự phòng nếu QR load quá lâu
-            setTimeout(doPrint, 2000);
-        } else {
-            setTimeout(function(){ window.print(); }, 300);
-        }
-    };
-<\/script>
+let __printed = false;
+
+function doPrintOnce() {
+  if (__printed) return;
+  __printed = true;
+  setTimeout(() => window.print(), 300);
+}
+
+window.addEventListener('load', function() {
+  const qrImg = document.querySelector('.qr-block img');
+
+  if (qrImg && !qrImg.complete) {
+    qrImg.onload = doPrintOnce;
+    qrImg.onerror = doPrintOnce;
+    setTimeout(doPrintOnce, 2000); // fallback
+  } else {
+    doPrintOnce();
+  }
+});
+</script>
 </body>
 </html>`);
     
