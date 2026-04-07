@@ -888,7 +888,7 @@ tbody tr:hover { background: var(--bg-hover); }
                             <button class="btn btn-primary" onclick="openAddModal()">＋ Thêm</button>
                             <button class="btn btn-success" onclick="openImportModal()">📥 Nhập Excel</button>
                             <button class="btn btn-info" onclick="exportToExcel()">📤 Xuất Excel</button>
-                            <button class="btn btn-secondary" onclick="printTable()">🖨 In</button>
+                            <button type="button" onclick="printTable()">In danh sách HV</button>
                         </div>
                         <div class="toolbar-filters">
                             <input type="text" id="searchAll"  placeholder=" Tìm tên, Mã HV, Đơn vị..."  oninput="debounceFilter()"  style="flex:1; min-width:420px;">
@@ -3769,9 +3769,11 @@ function printTable() {
 
 <script>
 window.onload = function() {
- window.print();
+    setTimeout(function(){
+        window.print();
+    }, 300);
 };
-<\/script>
+</script>
 </body>
 </html>`);
  
