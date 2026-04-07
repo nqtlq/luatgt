@@ -1839,7 +1839,7 @@ D. Đáp án D
             </select>
           </div>
         </div>
-        <div class="form-group" id="scheduleTimeGroup" style="display:none;">
+       <div class="form-group" id="scheduleTimeGroup" style="display:none;">
  <label style="font-weight:700;">📅 Ngày giờ gửi</label>
  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
  <div class="date-picker-wrap">
@@ -3444,84 +3444,82 @@ function exportToExcel() {
 }
 
 function printTable() {
-    const now = new Date();
-    const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
-    const fc = document.getElementById('filterCourse')?.value || '';
-    const q = document.getElementById('searchAll')?.value || '';
-    const fs = document.getElementById('filterStatus')?.value || '';
-    const fo = document.getElementById('filterObject')?.value || '';
-    const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
-    
-    let info = '';
-    if (!q && !fs && !fo && !fc) {
-        info = `Tổng: ${filteredStudents.length} học viên`;
-    } else {
-        const parts = [];
-        if (fc) parts.push('Khóa: ' + fc);
-        if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
-        if (fo) parts.push('Đối tượng: ' + fo);
-        if (q) parts.push('Tìm kiếm: "' + q + '"');
-        info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
-    }
-    
-    const e = t => { 
-        const d = document.createElement('div'); 
-        d.textContent = t || ''; 
-        return d.innerHTML; 
-    };
-    
-    const rows = filteredStudents.map((s, i) => `
-        <tr class="${i % 2 === 1 ? 'alt' : ''}">
-            <td class="c">${i + 1}</td>
-            <td class="c"><b>${e(s.code)}</b></td>
-            <td class="l">${e(s.name)}</td>
-            <td class="l sm">${e(s.unit || '—')}</td>
-            <td class="c">${formatDate(s.dob) || '—'}</td>
-            <td class="c">${e(s.object || '—')}</td>
-            <td class="c">${e(s.course || '—')}</td>
-        </tr>`).join('');
+ const now = new Date();
+ const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+ const fc = document.getElementById('filterCourse')?.value || '';
+ const q = document.getElementById('searchAll')?.value || '';
+ const fs = document.getElementById('filterStatus')?.value || '';
+ const fo = document.getElementById('filterObject')?.value || '';
+ const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
+ let info = '';
+ if (!q && !fs && !fo && !fc) {
+ info = `Tổng: ${filteredStudents.length} học viên`;
+ } else {
+ const parts = [];
+ if (fc) parts.push('Khóa: ' + fc);
+ if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
+ if (fo) parts.push('Đối tượng: ' + fo);
+ if (q) parts.push('Tìm kiếm: "' + q + '"');
+ info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
+ }
+ const e = t => { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
 
-    // ── Tính toán có cần trang chữ ký riêng không ──
-    // Mỗi trang A4 chứa khoảng 30 dòng dữ liệu
-    // Nếu số dòng > 25 → chữ ký sang trang mới để tránh lồng trang
-    const needNewPageForSig = filteredStudents.length > 25;
+ // Tính font-size động dựa trên số lượng học viên
+ const totalRows = filteredStudents.length;
+ let tableFontSize = '8pt';
+ let cellPadding = '3px 4px';
+ let sigMarginBottom = '36px';
+ if (totalRows > 40) {
+   tableFontSize = '6.5pt';
+   cellPadding = '2px 3px';
+   sigMarginBottom = '20px';
+ } else if (totalRows > 30) {
+   tableFontSize = '7pt';
+   cellPadding = '2px 3px';
+   sigMarginBottom = '24px';
+ } else if (totalRows > 20) {
+   tableFontSize = '7.5pt';
+   cellPadding = '2.5px 3px';
+   sigMarginBottom = '28px';
+ }
 
-    const win = window.open('', '_blank', 'width=960,height=760');
-    if (!win) { 
-        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); 
-        return; 
-    }
-    
-    win.document.write(`<!DOCTYPE html>
-<html lang="vi">
-<head>
+ const rows = filteredStudents.map((s, i) => `
+ <tr class="${i % 2 === 1 ? 'alt' : ''}">
+ <td class="c">${i + 1}</td>
+ <td class="c"><b>${e(s.code)}</b></td>
+ <td class="l">${e(s.name)}</td>
+ <td class="l sm">${e(s.unit || '—')}</td>
+ <td class="c">${formatDate(s.dob) || '—'}</td>
+ <td class="c">${e(s.object || '—')}</td>
+ <td class="c">${e(s.course || '—')}</td>
+ </tr>`).join('');
+ const win = window.open('', '_blank', 'width=960,height=760');
+ if (!win) { showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); return; }
+ win.document.write(`<!DOCTYPE html>
+<html lang="vi"><head>
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>
  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- @page { size: auto; margin: 10mm; }
+ @page { size: auto; margin: 8mm 10mm; }
  body { font-family: "Times New Roman", Times, serif; font-size: 9pt; color: #000; background: #fff; }
- /* ── LETTERHEAD ── */
  .lh { display: flex; width: 100%; margin-bottom: 2px; }
- .lh-col { flex: 1; text-align: center; font-size: 9pt; line-height: 1.45; padding: 0; }
+ .lh-col { flex: 1; text-align: center; font-size: 9pt; line-height: 1.4; padding: 0; }
  .lh-school { font-size: 9pt; }
  .lh-dept { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
  .lh-rep { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
  .lh-motto { font-size: 9.5pt; font-weight: bold; }
  .lh-line { width: 60%; height: 1px; border-bottom: 1px solid #000; margin: 2px auto 0; }
- /* ── DATE / TITLE ── */
- .date { text-align: right; font-size: 9pt; font-style: italic; margin: 4px 0 4px; }
- .title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 3px; }
- .info { text-align: center; font-size: 9pt; color: #444; margin: 0 0 6px; }
- /* ── TABLE ── */
- table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: avoid; }
- th, td { border: 1px solid #aaa; padding: 3px 4px; vertical-align: middle; }
- th { background: #dde3ea; font-weight: bold; text-align: center; font-size: 7.5pt; line-height: 1.3; white-space: pre-line; }
+ .date { text-align: right; font-size: 9pt; font-style: italic; margin: 3px 0 3px; }
+ .title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 3px 0 2px; }
+ .info { text-align: center; font-size: 9pt; color: #444; margin: 0 0 5px; }
+ table { width: 100%; border-collapse: collapse; font-size: ${tableFontSize}; }
+ th, td { border: 1px solid #aaa; padding: ${cellPadding}; vertical-align: middle; }
+ th { background: #dde3ea; font-weight: bold; text-align: center; font-size: ${tableFontSize}; line-height: 1.3; white-space: pre-line; }
  td.c { text-align: center; }
  td.l { text-align: left; }
- td.sm { font-size: 7.5pt; }
+ td.sm { font-size: calc(${tableFontSize} - 0.5pt); }
  tr.alt { background: #f5f7fa; }
- /* ── COL WIDTHS ── */
  col.w-stt { width: 4%; }
  col.w-code { width: 10%; }
  col.w-name { width: 24%; }
@@ -3529,111 +3527,70 @@ function printTable() {
  col.w-dob { width: 10%; }
  col.w-obj { width: 14%; }
  col.w-crs { width: 14%; }
- /* ── SIGNATURE ── */
- .sig { display: table; width: 100%; margin-top: 14px; }
+ .sig { display: table; width: 100%; margin-top: 10px; }
  .sig-cell { display: table-cell; width: 50%; text-align: center; font-size: 9pt; vertical-align: top; }
- .sig-title { font-weight: bold; margin-bottom: 36px; font-size: 9pt; }
+ .sig-title { font-weight: bold; margin-bottom: ${sigMarginBottom}; font-size: 9pt; }
  .sig-name { font-weight: bold; }
- .sig-note { font-style: italic; font-size: 8.5pt; color: #555; }
- /* ── GHI CHÚ ── */
- .ghi-chu { margin-top: 10px; border: 1px solid #aaa; border-radius: 3px; padding: 5px 8px; font-size: 8.5pt; }
- .ghi-chu-title { font-weight: bold; margin-bottom: 3px; }
- /* ── QR CODE ── */
+ .ghi-chu { margin-top: 8px; border: 1px solid #aaa; border-radius: 3px; padding: 4px 8px; font-size: 8pt; }
+ .ghi-chu-title { font-weight: bold; margin-bottom: 2px; }
  .qr-block { text-align: center; }
- .qr-block img { width: 70px; height: 70px; display: block; margin: 0 auto 3px; }
- .qr-label { font-size: 7.5pt; color: #555; font-style: italic; }
- /* ── FORCE SINGLE PAGE ── */
+ .qr-block img { width: 65px; height: 65px; display: block; margin: 0 auto 2px; }
+ .qr-label { font-size: 7pt; color: #555; font-style: italic; }
+ /* Force everything on one page */
  html, body { height: auto; overflow: visible; }
- .page-container { page-break-after: avoid; page-break-inside: avoid; }
+ * { page-break-inside: avoid; }
 </style>
-</head>
-<body><div class="page-container">
-
-<!-- LETTERHEAD -->
+</head><body>
 <div class="lh">
-    <div class="lh-col">
-        <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
-        <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
-        <div class="lh-line"></div>
-    </div>
-    <div class="lh-col">
-        <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-        <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
-        <div class="lh-line"></div>
-    </div>
+ <div class="lh-col">
+ <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+ <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+ <div class="lh-line"></div>
+ </div>
+ <div class="lh-col">
+ <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+ <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
+ <div class="lh-line"></div>
+ </div>
 </div>
-
 <div class="date">${ngay}</div>
-<div class="doc-title">${title}</div>
-<div class="doc-info">${info}</div>
-
-<!-- BẢNG DANH SÁCH -->
+<div class="title">${title}</div>
+<div class="info">${info}</div>
 <table>
-    <colgroup>
-        <col class="w-stt">
-        <col class="w-code">
-        <col class="w-name">
-        <col class="w-unit">
-        <col class="w-dob">
-        <col class="w-obj">
-        <col class="w-crs">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>MÃ HV/\nTÀI KHOẢN</th>
-            <th style="text-align:left">HỌ VÀ TÊN</th>
-            <th style="text-align:left">ĐƠN VỊ</th>
-            <th>NGÀY\nSINH</th>
-            <th>ĐỐI\nTƯỢNG</th>
-            <th>KHÓA\nHỌC</th>
-        </tr>
-    </thead>
-    <tbody>
-        ${rows}
-    </tbody>
+ <colgroup>
+ <col class="w-stt"><col class="w-code"><col class="w-name">
+ <col class="w-unit"><col class="w-dob"><col class="w-obj"><col class="w-crs">
+ </colgroup>
+ <thead><tr>
+ <th>#</th>
+ <th>MÃ HV/TÀI\\nKHOẢN</th>
+ <th style="text-align:left">HỌ VÀ TÊN</th>
+ <th style="text-align:left">ĐƠN VỊ</th>
+ <th>NGÀY\\nSINH</th>
+ <th>ĐỐI\\nTƯỢNG</th>
+ <th>KHÓA\\nHỌC</th>
+ </tr></thead>
+ <tbody>${rows}</tbody>
 </table>
-
-<!-- GHI CHÚ -->
 <div class="ghi-chu">
-    <div class="ghi-chu-title">Ghi chú:</div>
-    <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. 
-    Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
+ <div class="ghi-chu-title">Ghi chú:</div>
+ <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. Khuyến cáo đổi mật khẩu ngay sau khi đăng nhập lần đầu.</div>
 </div>
-
-<!-- CHỮ KÝ + QR 
-     Nếu nhiều dòng (> 25) → sang trang mới tránh lồng trang -->
-<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
-    <div class="sig">
-        <div class="sig-cell">
-            <div class="qr-block">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
-                     alt="QR đăng nhập"
-                     onerror="this.style.display='none'">
-                <div class="qr-label">Quét để đăng nhập hệ thống</div>
-            </div>
-        </div>
-        <div class="sig-cell">
-            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-            <div class="sig-name">(Ký tên, đóng dấu)</div>
-        </div>
-    </div>
-</div>
+<div class="sig">
+ <div class="sig-cell">
+ <div class="qr-block">
+ <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" alt="QR">
+ <div class="qr-label">Quét để đăng nhập</div>
+ </div>
+ </div>
+ <div class="sig-cell">
+ <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+ <div class="sig-name">(Ký tên, đóng dấu)</div>
+ </div>
 </div>
 <script>window.onload = function(){ window.print(); };<\/script>
-</body></html>
-    
-    win.document.close();
-}
-// ==========================================
-// 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
-// ==========================================
-let currentExamType = 'moto';
-function switchExamType(type, btn) {
-    currentExamType = type;
-    document.querySelectorAll('.exam-type-tab').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    loadQuestionSets();
+</body></html>`);
+ win.document.close();
 }
 
 function loadQuestionSets() {
