@@ -3798,36 +3798,11 @@ function printTable() {
 </div>
 
 <script>
-(function() {
-  let printed = false;
-
-  function doPrint() {
-    if (printed) return;
-    printed = true;
-    setTimeout(function () {
-      window.print();
-    }, 300);
-  }
-
-  window.addEventListener('load', function () {
-    const qrImg = document.querySelector('.qr-block img');
-
-    if (!qrImg) {
-      doPrint();
-      return;
-    }
-
-    if (qrImg.complete) {
-      doPrint();
-      return;
-    }
-
-    qrImg.addEventListener('load', doPrint, { once: true });
-    qrImg.addEventListener('error', doPrint, { once: true });
-
-    setTimeout(doPrint, 2000);
-  }, { once: true });
-})();
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    window.print();
+  }, 300);
+}, { once: true });
 <\/script>
 </body>
 </html>`);
