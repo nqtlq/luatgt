@@ -1840,32 +1840,20 @@ D. Đáp án D
           </div>
         </div>
         <div class="form-group" id="scheduleTimeGroup" style="display:none;">
-    <label style="font-weight:700;"> Thời gian gửi thông báo</label>
-    
-    <!-- Dòng 1: Chọn ngày (giống hệt trang Kết quả thi) -->
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-        
-        <!-- Từ ngày -->
-        <div style="display:flex;flex-direction:column;gap:3px;">
-            <span style="font-size:11px;color:var(--text-muted);font-weight:600;">NGÀY GỬI</span>
-            <div class="date-picker-wrap" style="position:relative;">
-                <input type="text" 
-                    id="schedDate" 
-                    placeholder="dd/mm/yyyy" 
-                    maxlength="10" 
-                    readonly
-                    onclick="openDatePicker('schedDate')"
-                    style="padding:6px 10px;
-                           border:1px solid var(--border);
-                           border-radius:var(--radius-sm);
-                           font-size:13px;
-                           width:110px;
-                           text-align:center;
-                           cursor:pointer;
-                           background:var(--bg-card);
-                           color:var(--text-primary);">
-            </div>
-        </div>
+ <label style="font-weight:700;">📅 Ngày giờ gửi</label>
+ <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+ <div class="date-picker-wrap">
+ <input type="text" id="schedDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
+ onclick="openDatePicker('schedDate')"
+ style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:120px;text-align:center;cursor:pointer;background:var(--bg-input);color:var(--text-primary);">
+ </div>
+ <span style="font-size:12px;color:var(--text-muted);">lúc</span>
+ <input type="text" id="schedTime" placeholder="HH:MM" maxlength="5" value="08:00"
+ oninput="formatTimeInput(this); previewScheduleTime()"
+ style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;width:80px;text-align:center;background:var(--bg-input);color:var(--text-primary);">
+ </div>
+ <div id="scheduleTimePreview" style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic;min-height:18px;"></div>
+</div>
         
         <!-- Giờ gửi -->
         <div style="display:flex;flex-direction:column;gap:3px;">
@@ -3510,220 +3498,56 @@ function printTable() {
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>
-    /* ── RESET ── */
-    *, *::before, *::after { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-    }
-    
-    /* ── PAGE SETUP ── */
-    @page { 
-        size: A4 portrait; 
-        margin-top: 1.5cm; 
-        margin-bottom: 1.8cm; 
-        margin-left: 2.5cm; 
-        margin-right: 1.5cm; 
-    }
-    
-    body { 
-        font-family: "Times New Roman", Times, serif; 
-        font-size: 10pt; 
-        color: #000; 
-        background: #fff;
-        /* Quan trọng: không để body cao hơn trang */
-        width: 100%;
-    }
-    
-    /* ── LETTERHEAD ── */
-    .lh { 
-        display: flex; 
-        width: 100%; 
-        margin-bottom: 4px; 
-    }
-    .lh-col { 
-        flex: 1; 
-        text-align: center; 
-        font-size: 10pt; 
-        line-height: 1.5; 
-    }
-    .lh-school { font-size: 10pt; }
-    .lh-dept { 
-        font-size: 10.5pt; 
-        font-weight: bold; 
-        text-transform: uppercase; 
-    }
-    .lh-rep { 
-        font-size: 10.5pt; 
-        font-weight: bold; 
-        text-transform: uppercase; 
-    }
-    .lh-motto { 
-        font-size: 10pt; 
-        font-weight: bold; 
-    }
-    .lh-line { 
-        width: 60%; 
-        height: 1px; 
-        border-bottom: 1px solid #000; 
-        margin: 2px auto 0; 
-    }
-    
-    /* ── DATE / TITLE ── */
-    .date { 
-        text-align: right; 
-        font-size: 10pt; 
-        font-style: italic; 
-        margin: 6px 0 4px; 
-    }
-    .doc-title { 
-        text-align: center; 
-        font-size: 13pt; 
-        font-weight: bold; 
-        text-transform: uppercase; 
-        letter-spacing: 1px; 
-        margin: 4px 0 2px; 
-    }
-    .doc-info { 
-        text-align: center; 
-        font-size: 9.5pt; 
-        color: #444; 
-        margin: 0 0 6px; 
-    }
-    
-    /* ── TABLE ── */
-    table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        font-size: 9pt;
-        /* Cho phép bảng ngắt trang tự nhiên */
-        page-break-inside: auto;
-    }
-    thead { 
-        /* Lặp lại header ở mỗi trang */
-        display: table-header-group; 
-    }
-    tfoot {
-        display: table-footer-group;
-    }
-    tbody tr { 
-        /* Không ngắt trang giữa chừng 1 dòng */
-        page-break-inside: avoid; 
-        page-break-after: auto; 
-    }
-    th, td { 
-        border: 1px solid #aaa; 
-        padding: 4px 5px; 
-        vertical-align: middle; 
-    }
-    th { 
-        background: #dde3ea !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        font-weight: bold; 
-        text-align: center; 
-        font-size: 8.5pt; 
-        line-height: 1.3; 
-        white-space: pre-line; 
-    }
-    td.c { text-align: center; }
-    td.l { text-align: left; }
-    td.sm { font-size: 8pt; }
-    tr.alt { 
-        background: #f5f7fa !important; 
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    
-    /* ── COL WIDTHS ── */
-    col.w-stt  { width: 5%; }
-    col.w-code { width: 11%; }
-    col.w-name { width: 26%; }
-    col.w-unit { width: 23%; }
-    col.w-dob  { width: 11%; }
-    col.w-obj  { width: 12%; }
-    col.w-crs  { width: 12%; }
-    
-    /* ── GHI CHÚ ── */
-    .ghi-chu { 
-        margin-top: 8px; 
-        border: 1px solid #aaa; 
-        border-radius: 3px; 
-        padding: 6px 10px; 
-        font-size: 9pt;
-        /* Không ngắt trang bên trong ghi chú */
-        page-break-inside: avoid;
-    }
-    .ghi-chu-title { 
-        font-weight: bold; 
-        margin-bottom: 3px; 
-    }
-    
-    /* ── SIGNATURE BLOCK ── */
-    .sig-wrapper {
-        width: 100%;
-        margin-top: 10px;
-        /* Quan trọng: không ngắt trang giữa chừng khối chữ ký */
-        page-break-inside: avoid;
-    }
-    /* Nếu cần trang mới cho chữ ký */
-    .sig-wrapper.new-page {
-        page-break-before: always;
-        margin-top: 0;
-        padding-top: 20px;
-    }
-    .sig { 
-        display: table; 
-        width: 100%; 
-    }
-    .sig-cell { 
-        display: table-cell; 
-        width: 50%; 
-        text-align: center; 
-        font-size: 10pt; 
-        vertical-align: top; 
-    }
-    .sig-title { 
-        font-weight: bold; 
-        /* Khoảng trống để ký tên - giảm xuống để tiết kiệm chỗ */
-        margin-bottom: 45px; 
-        font-size: 10pt; 
-    }
-    .sig-name { font-weight: bold; }
-    
-    /* ── QR CODE ── */
-    .qr-block { text-align: center; }
-    .qr-block img { 
-        /* Giảm kích thước QR từ 90px xuống 75px */
-        width: 75px; 
-        height: 75px; 
-        display: block; 
-        margin: 0 auto 3px; 
-    }
-    .qr-label { 
-        font-size: 8pt; 
-        color: #555; 
-        font-style: italic; 
-    }
-    
-    /* ── PRINT SPECIFIC ── */
-    @media print {
-        body { 
-            /* Đảm bảo không có margin/padding thừa */
-            margin: 0 !important; 
-            padding: 0 !important;
-        }
-        .no-print { display: none !important; }
-        
-        /* Header lặp lại */
-        thead { display: table-header-group; }
-        
-        /* Tránh trang trắng cuối */
-        html, body { height: auto !important; }
-    }
+ *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ @page { size: auto; margin: 10mm; }
+ body { font-family: "Times New Roman", Times, serif; font-size: 9pt; color: #000; background: #fff; }
+ /* ── LETTERHEAD ── */
+ .lh { display: flex; width: 100%; margin-bottom: 2px; }
+ .lh-col { flex: 1; text-align: center; font-size: 9pt; line-height: 1.45; padding: 0; }
+ .lh-school { font-size: 9pt; }
+ .lh-dept { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
+ .lh-rep { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
+ .lh-motto { font-size: 9.5pt; font-weight: bold; }
+ .lh-line { width: 60%; height: 1px; border-bottom: 1px solid #000; margin: 2px auto 0; }
+ /* ── DATE / TITLE ── */
+ .date { text-align: right; font-size: 9pt; font-style: italic; margin: 4px 0 4px; }
+ .title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 3px; }
+ .info { text-align: center; font-size: 9pt; color: #444; margin: 0 0 6px; }
+ /* ── TABLE ── */
+ table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: avoid; }
+ th, td { border: 1px solid #aaa; padding: 3px 4px; vertical-align: middle; }
+ th { background: #dde3ea; font-weight: bold; text-align: center; font-size: 7.5pt; line-height: 1.3; white-space: pre-line; }
+ td.c { text-align: center; }
+ td.l { text-align: left; }
+ td.sm { font-size: 7.5pt; }
+ tr.alt { background: #f5f7fa; }
+ /* ── COL WIDTHS ── */
+ col.w-stt { width: 4%; }
+ col.w-code { width: 10%; }
+ col.w-name { width: 24%; }
+ col.w-unit { width: 24%; }
+ col.w-dob { width: 10%; }
+ col.w-obj { width: 14%; }
+ col.w-crs { width: 14%; }
+ /* ── SIGNATURE ── */
+ .sig { display: table; width: 100%; margin-top: 14px; }
+ .sig-cell { display: table-cell; width: 50%; text-align: center; font-size: 9pt; vertical-align: top; }
+ .sig-title { font-weight: bold; margin-bottom: 36px; font-size: 9pt; }
+ .sig-name { font-weight: bold; }
+ .sig-note { font-style: italic; font-size: 8.5pt; color: #555; }
+ /* ── GHI CHÚ ── */
+ .ghi-chu { margin-top: 10px; border: 1px solid #aaa; border-radius: 3px; padding: 5px 8px; font-size: 8.5pt; }
+ .ghi-chu-title { font-weight: bold; margin-bottom: 3px; }
+ /* ── QR CODE ── */
+ .qr-block { text-align: center; }
+ .qr-block img { width: 70px; height: 70px; display: block; margin: 0 auto 3px; }
+ .qr-label { font-size: 7.5pt; color: #555; font-style: italic; }
+ /* ── FORCE SINGLE PAGE ── */
+ html, body { height: auto; overflow: visible; }
+ .page-container { page-break-after: avoid; page-break-inside: avoid; }
 </style>
 </head>
-<body>
+<body><div class="page-container">
 
 <!-- LETTERHEAD -->
 <div class="lh">
@@ -3795,27 +3619,9 @@ function printTable() {
         </div>
     </div>
 </div>
-
-<script>
-    // Đợi QR load xong rồi mới in
-    window.onload = function() {
-        const qrImg = document.querySelector('.qr-block img');
-        if (qrImg && !qrImg.complete) {
-            qrImg.onload = function() { 
-                setTimeout(function(){ window.print(); }, 300); 
-            };
-            qrImg.onerror = function() { 
-                setTimeout(function(){ window.print(); }, 300); 
-            };
-            // Timeout dự phòng nếu QR load quá lâu
-            setTimeout(function(){ window.print(); }, 2000);
-        } else {
-            setTimeout(function(){ window.print(); }, 300);
-        }
-    };
-<\/script>
-</body>
-</html>`);
+</div>
+<script>window.onload = function(){ window.print(); };<\/script>
+</body></html>
     
     win.document.close();
 }
