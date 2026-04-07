@@ -3457,215 +3457,325 @@ function exportToExcel() {
 }
 
 function printTable() {
-    const now = new Date();
-    const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
-    const fc = document.getElementById('filterCourse')?.value || '';
-    const q  = document.getElementById('searchAll')?.value  || '';
-    const fs = document.getElementById('filterStatus')?.value || '';
-    const fo = document.getElementById('filterObject')?.value || '';
-    const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
-
-    let info = '';
-    if (!q && !fs && !fo && !fc) {
-        info = `Tổng: ${filteredStudents.length} học viên`;
-    } else {
-        const parts = [];
-        if (fc) parts.push('Khóa: ' + fc);
-        if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
-        if (fo) parts.push('Đối tượng: ' + fo);
-        if (q)  parts.push('Tìm kiếm: "' + q + '"');
-        info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
-    }
-
-    const e = t => {
-        const d = document.createElement('div');
-        d.textContent = t || '';
-        return d.innerHTML;
-    };
-
-    const rows = filteredStudents.map((s, i) => `
-        <tr class="${i % 2 === 1 ? 'alt' : ''}">
-            <td class="c">${i + 1}</td>
-            <td class="c"><b>${e(s.code)}</b></td>
-            <td class="l">${e(s.name)}</td>
-            <td class="l sm">${e(s.unit || '—')}</td>
-            <td class="c">${formatDate(s.dob) || '—'}</td>
-            <td class="c">${e(s.object || '—')}</td>
-            <td class="c">${e(s.course || '—')}</td>
-        </tr>`).join('');
-
-    const needNewPageForSig = filteredStudents.length > 25;
-
-    // ✅ FIX 1: Tách HTML ra biến riêng, không dùng document.write()
-    const htmlContent = `<!DOCTYPE html>
+ const now = new Date();
+ const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+ const fc = document.getElementById('filterCourse')?.value || '';
+ const q = document.getElementById('searchAll')?.value || '';
+ const fs = document.getElementById('filterStatus')?.value || '';
+ const fo = document.getElementById('filterObject')?.value || '';
+ const title = fc ? `DANH SÁCH HỌC VIÊN – ${fc.toUpperCase()}` : 'DANH SÁCH HỌC VIÊN';
+ 
+ let info = '';
+ if (!q && !fs && !fo && !fc) {
+ info = `Tổng: ${filteredStudents.length} học viên`;
+ } else {
+ const parts = [];
+ if (fc) parts.push('Khóa: ' + fc);
+ if (fs) parts.push(fs === 'active' ? 'Hoạt động' : 'Đã khóa');
+ if (fo) parts.push('Đối tượng: ' + fo);
+ if (q) parts.push('Tìm kiếm: "' + q + '"');
+ info = parts.join(' · ') + ` · ${filteredStudents.length} kết quả`;
+ }
+ 
+ const e = t => { 
+ const d = document.createElement('div'); 
+ d.textContent = t || ''; 
+ return d.innerHTML; 
+ };
+ 
+ const rows = filteredStudents.map((s, i) => `
+ <tr class="${i % 2 === 1 ? 'alt' : ''}">
+ <td class="c">${i + 1}</td>
+ <td class="c"><b>${e(s.code)}</b></td>
+ <td class="l">${e(s.name)}</td>
+ <td class="l sm">${e(s.unit || '—')}</td>
+ <td class="c">${formatDate(s.dob) || '—'}</td>
+ <td class="c">${e(s.object || '—')}</td>
+ <td class="c">${e(s.course || '—')}</td>
+ </tr>`).join('');
+ 
+ const win = window.open('', '_blank', 'width=960,height=760');
+ if (!win) { 
+ showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning'); 
+ return; 
+ }
+ 
+ win.document.write(`<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    @page { 
-        size: A4 portrait; 
-        margin-top: 1.5cm; margin-bottom: 1.8cm; 
-        margin-left: 2.5cm;  margin-right: 1.5cm; 
-    }
-
-    body { 
-        font-family: "Times New Roman", Times, serif; 
-        font-size: 10pt; color: #000; background: #fff; width: 100%; 
-    }
-
-    .lh { display: flex; width: 100%; margin-bottom: 4px; }
-    .lh-col { flex: 1; text-align: center; font-size: 10pt; line-height: 1.5; }
-    .lh-school { font-size: 10pt; }
-    .lh-dept  { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; }
-    .lh-rep   { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; }
-    .lh-motto { font-size: 10pt; font-weight: bold; }
-    .lh-line  { width: 60%; height: 1px; border-bottom: 1px solid #000; margin: 2px auto 0; }
-
-    .date      { text-align: right; font-size: 10pt; font-style: italic; margin: 6px 0 4px; }
-    .doc-title { text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 2px; }
-    .doc-info  { text-align: center; font-size: 9.5pt; color: #444; margin: 0 0 6px; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 9pt; page-break-inside: auto; }
-    thead { display: table-header-group; }
-    tfoot { display: table-footer-group; }
-    tbody tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #aaa; padding: 4px 5px; vertical-align: middle; }
-    th { 
-        background: #dde3ea !important; 
-        -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        font-weight: bold; text-align: center; font-size: 8.5pt; 
-        line-height: 1.3; white-space: pre-line; 
-    }
-    td.c { text-align: center; }
-    td.l { text-align: left; }
-    td.sm { font-size: 8pt; }
-    tr.alt { 
-        background: #f5f7fa !important; 
-        -webkit-print-color-adjust: exact; print-color-adjust: exact; 
-    }
-
-    col.w-stt  { width: 5%; }
-    col.w-code { width: 11%; }
-    col.w-name { width: 26%; }
-    col.w-unit { width: 23%; }
-    col.w-dob  { width: 11%; }
-    col.w-obj  { width: 12%; }
-    col.w-crs  { width: 12%; }
-
-    .ghi-chu { 
-        margin-top: 8px; border: 1px solid #aaa; border-radius: 3px;
-        padding: 6px 10px; font-size: 9pt; page-break-inside: avoid; 
-    }
-    .ghi-chu-title { font-weight: bold; margin-bottom: 3px; }
-
-    .sig-wrapper { width: 100%; margin-top: 10px; page-break-inside: avoid; }
-    .sig-wrapper.new-page { page-break-before: always; margin-top: 0; padding-top: 20px; }
-    .sig { display: table; width: 100%; }
-    .sig-cell { 
-        display: table-cell; width: 50%; 
-        text-align: center; font-size: 10pt; vertical-align: top; 
-    }
-    .sig-title { font-weight: bold; margin-bottom: 45px; font-size: 10pt; }
-    .sig-name  { font-weight: bold; }
-
-    .qr-block img { 
-        width: 75px; height: 75px; 
-        display: block; margin: 0 auto 3px; 
-    }
-    .qr-label { font-size: 8pt; color: #555; font-style: italic; }
-
-    @media print {
-        html, body { height: auto !important; margin: 0 !important; padding: 0 !important; }
-        thead { display: table-header-group; }
-    }
+ /* ── RESET ── */
+ *, *::before, *::after { 
+ box-sizing: border-box; 
+ margin: 0; 
+ padding: 0; 
+ }
+ 
+ /* ── PAGE SETUP ── */
+ @page { 
+ size: A4 portrait; 
+ margin-top: 1.5cm; 
+ margin-bottom: 1.8cm; 
+ margin-left: 2.5cm; 
+ margin-right: 1.5cm; 
+ }
+ 
+ body { 
+ font-family: "Times New Roman", Times, serif; 
+ font-size: 10pt; 
+ color: #000; 
+ background: #fff;
+ width: 100%;
+ }
+ 
+ /* ── LETTERHEAD ── */
+ .lh { 
+ display: flex; 
+ width: 100%; 
+ margin-bottom: 4px; 
+ }
+ .lh-col { 
+ flex: 1; 
+ text-align: center; 
+ font-size: 10pt; 
+ line-height: 1.5; 
+ }
+ .lh-school { font-size: 10pt; }
+ .lh-dept { 
+ font-size: 10.5pt; 
+ font-weight: bold; 
+ text-transform: uppercase; 
+ }
+ .lh-rep { 
+ font-size: 10.5pt; 
+ font-weight: bold; 
+ text-transform: uppercase; 
+ }
+ .lh-motto { 
+ font-size: 10pt; 
+ font-weight: bold; 
+ }
+ .lh-line { 
+ width: 60%; 
+ height: 1px; 
+ border-bottom: 1px solid #000; 
+ margin: 2px auto 0; 
+ }
+ 
+ /* ── DATE / TITLE ── */
+ .date { 
+ text-align: right; 
+ font-size: 10pt; 
+ font-style: italic; 
+ margin: 6px 0 4px; 
+ }
+ .doc-title { 
+ text-align: center; 
+ font-size: 13pt; 
+ font-weight: bold; 
+ text-transform: uppercase; 
+ letter-spacing: 1px; 
+ margin: 4px 0 2px; 
+ }
+ .doc-info { 
+ text-align: center; 
+ font-size: 9.5pt; 
+ color: #444; 
+ margin: 0 0 6px; 
+ }
+ 
+ /* ── TABLE ── */
+ table { 
+ width: 100%; 
+ border-collapse: collapse; 
+ font-size: 9pt;
+ page-break-inside: auto;
+ }
+ thead { 
+ display: table-header-group; 
+ }
+ tbody tr { 
+ page-break-inside: avoid; 
+ page-break-after: auto; 
+ }
+ th, td { 
+ border: 1px solid #aaa; 
+ padding: 4px 5px; 
+ vertical-align: middle; 
+ }
+ th { 
+ background: #dde3ea !important;
+ -webkit-print-color-adjust: exact;
+ print-color-adjust: exact;
+ font-weight: bold; 
+ text-align: center; 
+ font-size: 8.5pt; 
+ line-height: 1.3; 
+ white-space: pre-line; 
+ }
+ td.c { text-align: center; }
+ td.l { text-align: left; }
+ td.sm { font-size: 8pt; }
+ tr.alt { 
+ background: #f5f7fa !important; 
+ -webkit-print-color-adjust: exact;
+ print-color-adjust: exact;
+ }
+ 
+ /* ── COL WIDTHS ── */
+ col.w-stt { width: 5%; }
+ col.w-code { width: 11%; }
+ col.w-name { width: 26%; }
+ col.w-unit { width: 23%; }
+ col.w-dob { width: 11%; }
+ col.w-obj { width: 12%; }
+ col.w-crs { width: 12%; }
+ 
+ /* ── GHI CHÚ ── */
+ .ghi-chu { 
+ margin-top: 8px; 
+ border: 1px solid #aaa; 
+ border-radius: 3px; 
+ padding: 6px 10px; 
+ font-size: 9pt;
+ page-break-inside: avoid;
+ }
+ .ghi-chu-title { 
+ font-weight: bold; 
+ margin-bottom: 3px; 
+ }
+ 
+ /* ── SIGNATURE BLOCK ── */
+ .sig-wrapper {
+ width: 100%;
+ margin-top: 12px;
+ page-break-inside: avoid;
+ }
+ .sig { 
+ display: table; 
+ width: 100%; 
+ }
+ .sig-cell { 
+ display: table-cell; 
+ width: 50%; 
+ text-align: center; 
+ font-size: 10pt; 
+ vertical-align: top; 
+ }
+ .sig-title { 
+ font-weight: bold; 
+ margin-bottom: 45px; 
+ font-size: 10pt; 
+ }
+ .sig-name { font-weight: bold; }
+ 
+ /* ── QR CODE ── */
+ .qr-block { text-align: center; }
+ .qr-block img { 
+ width: 75px; 
+ height: 75px; 
+ display: block; 
+ margin: 0 auto 3px; 
+ }
+ .qr-label { 
+ font-size: 8pt; 
+ color: #555; 
+ font-style: italic; 
+ }
+ 
+ /* ── PRINT SPECIFIC ── */
+ @media print {
+ body { 
+ margin: 0 !important; 
+ padding: 0 !important;
+ }
+ .no-print { display: none !important; }
+ thead { display: table-header-group; }
+ html, body { height: auto !important; }
+ }
 </style>
 </head>
 <body>
-
+<!-- LETTERHEAD -->
 <div class="lh">
-    <div class="lh-col">
-        <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
-        <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
-        <div class="lh-line"></div>
-    </div>
-    <div class="lh-col">
-        <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-        <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
-        <div class="lh-line"></div>
-    </div>
+ <div class="lh-col">
+ <div class="lh-school">TRƯỜNG SĨ QUAN LỤC QUÂN 1</div>
+ <div class="lh-dept">PHÒNG HẬU CẦN – KỸ THUẬT</div>
+ <div class="lh-line"></div>
+ </div>
+ <div class="lh-col">
+ <div class="lh-rep">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+ <div class="lh-motto">Độc lập – Tự do – Hạnh phúc</div>
+ <div class="lh-line"></div>
+ </div>
 </div>
-
 <div class="date">${ngay}</div>
 <div class="doc-title">${title}</div>
 <div class="doc-info">${info}</div>
 
+<!-- BẢNG DANH SÁCH -->
 <table>
-    <colgroup>
-        <col class="w-stt"><col class="w-code"><col class="w-name">
-        <col class="w-unit"><col class="w-dob"><col class="w-obj"><col class="w-crs">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>MÃ HV /\nTÀI KHOẢN</th>
-            <th style="text-align:left">HỌ VÀ TÊN</th>
-            <th style="text-align:left">ĐƠN VỊ</th>
-            <th>NGÀY\nSINH</th>
-            <th>ĐỐI\nTƯỢNG</th>
-            <th>KHÓA\nHỌC</th>
-        </tr>
-    </thead>
-    <tbody>${rows}</tbody>
+ <colgroup>
+ <col class="w-stt">
+ <col class="w-code">
+ <col class="w-name">
+ <col class="w-unit">
+ <col class="w-dob">
+ <col class="w-obj">
+ <col class="w-crs">
+ </colgroup>
+ <thead>
+ <tr>
+ <th>#</th>
+ <th>MÃ HV/\\nTÀI KHOẢN</th>
+ <th style="text-align:left">HỌ VÀ TÊN</th>
+ <th style="text-align:left">ĐƠN VỊ</th>
+ <th>NGÀY\\nSINH</th>
+ <th>ĐỐI\\nTƯỢNG</th>
+ <th>KHÓA\\nHỌC</th>
+ </tr>
+ </thead>
+ <tbody>
+ ${rows}
+ </tbody>
 </table>
 
+<!-- GHI CHÚ -->
 <div class="ghi-chu">
-    <div class="ghi-chu-title">Ghi chú:</div>
-    <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. 
-    Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
+ <div class="ghi-chu-title">Ghi chú:</div>
+ <div>Mật khẩu mặc định của tài khoản là <b>123456</b>. 
+ Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
 </div>
 
-<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
-    <div class="sig">
-        <div class="sig-cell">
-            <div class="qr-block">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
-                     alt="QR đăng nhập"
-                     onerror="this.style.display='none'">
-                <div class="qr-label">Quét để đăng nhập hệ thống</div>
-            </div>
-        </div>
-        <div class="sig-cell">
-            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-            <div class="sig-name">(Ký tên, đóng dấu)</div>
-        </div>
-    </div>
+<!-- CHỮ KÝ + QR -->
+<div class="sig-wrapper">
+ <div class="sig">
+ <div class="sig-cell">
+ <div class="qr-block">
+ <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
+ alt="QR đăng nhập"
+ onerror="this.style.display='none'">
+ <div class="qr-label">Quét để đăng nhập hệ thống</div>
+ </div>
+ </div>
+ <div class="sig-cell">
+ <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+ <div class="sig-name">(Ký tên, đóng dấu)</div>
+ </div>
+ </div>
 </div>
 
 <script>
-    // ✅ FIX 2: Dùng setTimeout đơn giản thay vì load event
-    // Tránh load event bị fire nhiều lần (do document.close + QR image load)
-    setTimeout(function () { window.print(); }, 400);
+window.onload = function() {
+ window.print();
+};
 <\/script>
 </body>
-</html>`;
-
-    // ✅ FIX 1: Dùng Blob URL thay cho document.write()
-    // document.write() khiến trình duyệt render 2 lần → print preview nhân đôi nội dung
-    const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-    const blobUrl = URL.createObjectURL(blob);
-
-    const win = window.open(blobUrl, '_blank', 'width=960,height=760');
-    if (!win) {
-        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning');
-        URL.revokeObjectURL(blobUrl); // Dọn dẹp nếu không mở được
-        return;
-    }
-
-    // ✅ FIX 3: Giải phóng Blob URL sau khi cửa sổ đã load xong
-    win.addEventListener('load', () => URL.revokeObjectURL(blobUrl), { once: true });
+</html>`);
+ 
+ win.document.close();
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
