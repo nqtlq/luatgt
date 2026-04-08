@@ -888,7 +888,7 @@ tbody tr:hover { background: var(--bg-hover); }
                             <button class="btn btn-primary" onclick="openAddModal()">＋ Thêm</button>
                             <button class="btn btn-success" onclick="openImportModal()">📥 Nhập Excel</button>
                             <button class="btn btn-info" onclick="exportToExcel()">📤 Xuất Excel</button>
-                            <button class="btn btn-secondary" onclick="printTable()">🖨 In</button>
+                            <button class="btn btn-secondary" onclick="printTable()">🖨 In danh sách HV</button>
                         </div>
                         <div class="toolbar-filters">
                             <input type="text" id="searchAll"  placeholder=" Tìm tên, Mã HV, Đơn vị..."  oninput="debounceFilter()"  style="flex:1; min-width:420px;">
@@ -3643,11 +3643,6 @@ function printTable() {
     </div>
 </div>
 
-<script>
-    // ✅ FIX 2: Dùng setTimeout đơn giản thay vì load event
-    // Tránh load event bị fire nhiều lần (do document.close + QR image load)
-    setTimeout(function () { window.print(); }, 400);
-<\/script>
 </body>
 </html>`;
 
@@ -3663,8 +3658,15 @@ function printTable() {
         return;
     }
 
-    // ✅ FIX 3: Giải phóng Blob URL sau khi cửa sổ đã load xong
-    win.addEventListener('load', () => URL.revokeObjectURL(blobUrl), { once: true });
+    // ✅ FIX 3: Gọi print từ outer window sau khi load, revoke blob CHỈ sau khi đóng print dialog
+    // Không revoke ngay khi load vì print preview cần blob URL còn sống để render lại trang
+    win.addEventListener('load', function () {
+        win.focus();
+        win.print();
+        win.addEventListener('afterprint', function () {
+            URL.revokeObjectURL(blobUrl);
+        }, { once: true });
+    }, { once: true });
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
