@@ -1129,17 +1129,9 @@ async function beginExam() {
     updateLimitDisplay();
   }
 
-  // Student: update presence khi bắt đầu thi
-  if (IS_STUDENT && db && studentCode) {
-    try {
-      await db.collection("presence").doc(studentCode).set({
-        isOnline:       true,
-        studentCode:    studentCode,
-        currentSection: "Đang thi: " + s.name,
-        lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
-        startAt:        firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    } catch (e) {}
+  // Student: cập nhật _currentPresenceSection → heartbeat sẽ tự ghi Firestore
+  if (IS_STUDENT) {
+    _currentPresenceSection = "Đang thi: " + s.name;
   }
 
   document.getElementById("startMsg").textContent = "⏳ Đang tải ngân hàng câu hỏi…";
@@ -1229,22 +1221,15 @@ async function beginExam() {
     // Switch to exam page
     document.getElementById("startOverlay").classList.remove("show");
     showPage("pgExam");
+    _currentPresenceSection = "Đang thi: " + s.name;
     document.getElementById("examSetName").textContent = s.name;
     document.getElementById("headerVi").textContent = "🖊 ĐANG THI – " + s.name.toUpperCase();
 
     renderQmap();
     renderQuestion(0);
     startTimer();
-
-    // Presence update khi vào trang thi
-    if (db && studentCode) {
-      db.collection("presence").doc(studentCode).set({
-        isOnline:       true,
-        studentCode:    studentCode,
-        currentSection: "Đang thi: " + s.name,
-        lastActive:     firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true }).catch(() => {});
-    }
+    // Gọi heartbeat ngay để Admin thấy trạng thái "Đang thi" tức thì
+    if (typeof window._presenceHb === 'function') window._presenceHb();
 
   } catch(e) {
     console.error("beginExam error:", e);
@@ -1467,6 +1452,7 @@ async function submitExam(autoSub) {
 
 function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, requireLiet, details, timeTaken, s }) {
   showPage("pgResult");
+  _currentPresenceSection = "Xem kết quả thi";
   document.getElementById("headerVi").textContent = "📊 KẾT QUẢ BÀI THI";
 
   const verdictEmoji = passed ? "🏆" : "📉";
@@ -1536,16 +1522,6 @@ function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, r
       ${dropdownHtml}
     </div>`;
   }).join("");
-
-  // Update presence
-  if (db && studentCode) {
-    db.collection("presence").doc(studentCode).set({
-      isOnline: true,
-      currentSection: "Xem kết quả thi",
-      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-      _clientTime:    Date.now(),  // fallback khi serverTimestamp chưa round-trip
-    }, { merge: true }).catch(() => {});
-  }
 }
 
 function toggleRqDropdown(i) {
@@ -1557,6 +1533,8 @@ function toggleRqDropdown(i) {
 }
 
 function retryExam() {
+  _currentPresenceSection = "Đang chọn đề";
+  if (typeof window._presenceHb === 'function') window._presenceHb();
   if (selectedSet) {
     showPage("pgSelect");
     document.getElementById("headerVi").textContent = "📝 CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ";
@@ -1616,6 +1594,9 @@ if (db) {
 
 // ── Heartbeat ── cả khách lẫn học viên đều ghi presence ──────
 const _presenceId = IS_GUEST ? getGuestId() : studentCode;
+// Theo dõi section hiện tại để heartbeat luôn ghi đúng trạng thái
+let _currentPresenceSection = "Đang chọn đề";
+
 if (db && _presenceId) {
   const pRef = db.collection("presence").doc(_presenceId);
   let _hbInited = false;
@@ -1623,13 +1604,15 @@ if (db && _presenceId) {
     if (isKicked) return;
     const payload = {
       isOnline:       true,
-      currentSection: "Đang chọn đề",
+      currentSection: _currentPresenceSection,
       lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime:    Date.now(),
       userType:       IS_GUEST ? "guest" : "student"
     };
     if (IS_GUEST) {
-      payload.guestId    = getGuestId();
-      payload.guestLabel = localStorage.getItem("guestSeqNumber") || "Khách";
+      payload.guestId     = getGuestId();
+      payload.guestLabel  = localStorage.getItem("guestSeqNumber") || "Khách";
+      payload.studentName = "Khách " + (localStorage.getItem("guestSeqNumber") || "");
     } else {
       payload.studentCode = studentCode;
       payload.studentName = studentName;
@@ -1641,9 +1624,20 @@ if (db && _presenceId) {
     pRef.set(payload, { merge: true }).catch(() => {});
   };
   hb();
+  window._presenceHb = hb;   // expose để beginExam/retryExam gọi ngay
   setInterval(hb, 20000);
   window.addEventListener("beforeunload", () => {
     if (!isKicked) pRef.set({ isOnline: false, currentSection: "Đã thoát" }, { merge: true });
+  });
+
+  // Khi tab bị ẩn → đánh dấu offline; khi hiện lại → heartbeat ngay
+  document.addEventListener("visibilitychange", () => {
+    if (isKicked) return;
+    if (document.visibilityState === "hidden") {
+      pRef.set({ isOnline: false, currentSection: "Tạm ẩn" }, { merge: true }).catch(() => {});
+    } else {
+      hb();
+    }
   });
 }
 
