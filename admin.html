@@ -3533,8 +3533,6 @@ function printTable() {
             <td class="c">${e(s.course || '—')}</td>
         </tr>`).join('');
 
-    const needNewPageForSig = filteredStudents.length > 25;
-
     // ✅ FIX 1: Tách HTML ra biến riêng, không dùng document.write()
     const htmlContent = `<!DOCTYPE html>
 <html lang="vi">
@@ -3600,19 +3598,13 @@ function printTable() {
     }
     .ghi-chu-title { font-weight: bold; margin-bottom: 3px; }
 
-    .sig-wrapper { width: 100%; margin-top: 10px; page-break-inside: avoid; }
-    .sig-wrapper.new-page { page-break-before: always; margin-top: 0; padding-top: 20px; }
-    .sig { display: table; width: 100%; }
-    .sig-cell { 
-        display: table-cell; width: 50%; 
-        text-align: center; font-size: 10pt; vertical-align: top; 
+    .qr-block { 
+        margin-top: 8px; text-align: left; 
+        page-break-inside: avoid; 
     }
-    .sig-title { font-weight: bold; margin-bottom: 45px; font-size: 10pt; }
-    .sig-name  { font-weight: bold; }
-
     .qr-block img { 
-        width: 75px; height: 75px; 
-        display: block; margin: 0 auto 3px; 
+        width: 70px; height: 70px; 
+        display: block; margin-bottom: 3px; 
     }
     .qr-label { font-size: 8pt; color: #555; font-style: italic; }
 
@@ -3666,47 +3658,33 @@ function printTable() {
     Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
 </div>
 
-<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
-    <div class="sig">
-        <div class="sig-cell">
-            <div class="qr-block">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
-                     alt="QR đăng nhập"
-                     onerror="this.style.display='none'">
-                <div class="qr-label">Quét để đăng nhập hệ thống</div>
-            </div>
-        </div>
-        <div class="sig-cell">
-            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
-            <div class="sig-name">(Ký tên, đóng dấu)</div>
-        </div>
-    </div>
+<div class="qr-block">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
+         alt="QR đăng nhập"
+         onerror="this.style.display='none'">
+    <div class="qr-label">Quét để đăng nhập hệ thống</div>
 </div>
 
 </body>
 </html>`;
 
-    // ✅ FIX 1: Dùng Blob URL thay cho document.write()
-    // document.write() khiến trình duyệt render 2 lần → print preview nhân đôi nội dung
+    // ✅ Dùng iframe ẩn để in trực tiếp — không mở trang blob trung gian
     const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
 
-    const win = window.open(blobUrl, '_blank', 'width=960,height=760');
-    if (!win) {
-        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning');
-        URL.revokeObjectURL(blobUrl); // Dọn dẹp nếu không mở được
-        return;
-    }
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:0;height:0;border:0;opacity:0;';
+    document.body.appendChild(iframe);
+    iframe.src = blobUrl;
 
-    // ✅ FIX 3: Gọi print từ outer window sau khi load, revoke blob CHỈ sau khi đóng print dialog
-    // Không revoke ngay khi load vì print preview cần blob URL còn sống để render lại trang
-    win.addEventListener('load', function () {
-        win.focus();
-        win.print();
-        win.addEventListener('afterprint', function () {
+    iframe.onload = function () {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        iframe.contentWindow.addEventListener('afterprint', function () {
             URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(iframe);
         }, { once: true });
-    }, { once: true });
+    };
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
