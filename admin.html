@@ -487,9 +487,10 @@ tbody tr:hover { background: var(--bg-hover); }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
 /* ===== BẢNG CỘT TỐI ƯU ===== */
+#studentTable { table-layout: fixed; }
 #studentTable th, #studentTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
-#studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
+#studentTable td:nth-child(4) { text-align: left; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#studentTable td:nth-child(5) { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ===== PRINT STYLES - IMPROVED ===== */
 #printHeader { display: none; }
@@ -958,16 +959,16 @@ tbody tr:hover { background: var(--bg-hover); }
                     <table id="studentTable">
                         <thead>
                             <tr>
-                                <th style="width:40px">STT</th>
-                                <th style="width:95px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
-                                <th class="no-print" style="width:80px">Mật khẩu</th>
-                                <th style="min-width:220px;cursor:pointer;text-align:left;padding-left:12px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
-                                <th style="width:130px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
-                                <th style="width:90px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
-                                <th class="no-print" style="width:90px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
-                                <th style="width:85px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
-                                <th class="no-print" style="width:100px">Trạng thái</th>
-                                <th class="no-print" style="width:80px">Thao tác</th>
+                                <th style="width:38px">STT</th>
+                                <th style="width:88px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
+                                <th class="no-print" style="width:76px">Mật khẩu</th>
+                                <th style="width:170px;cursor:pointer;text-align:left;padding-left:10px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
+                                <th style="width:115px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
+                                <th style="width:82px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
+                                <th class="no-print" style="width:86px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
+                                <th style="width:74px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
+                                <th class="no-print" style="width:96px">Trạng thái</th>
+                                <th class="no-print" style="width:78px">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody"></tbody>
@@ -2855,10 +2856,11 @@ function startPresenceListener() {
                 const d = doc.data();
                 if (!d || !d.isOnline) return; // Bỏ qua doc không hợp lệ hoặc đã offline
                 
-                // Validate lastActive
+                // Validate lastActive — dùng _clientTime làm fallback khi serverTimestamp chưa round-trip
                 let lastActive = null;
                 if (d.lastActive?.toDate) lastActive = d.lastActive.toDate();
                 else if (d.lastActive) lastActive = new Date(d.lastActive);
+                else if (d._clientTime) lastActive = new Date(d._clientTime);
                 
                 // Bỏ qua session quá cũ (> 5 phút không heartbeat)
                 if (lastActive && (now - lastActive.getTime()) > 300000) return;
@@ -2889,6 +2891,7 @@ function updateOnlineUI() {
         if (data.lastActive?.toDate) lastActive = data.lastActive.toDate();
         else if (data.lastActive instanceof Date) lastActive = data.lastActive;
         else if (data.lastActive) lastActive = new Date(data.lastActive);
+        else if (data._clientTime) lastActive = new Date(data._clientTime); // serverTimestamp pending
 
         const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
         if (diffSeconds < 90) {
@@ -2935,7 +2938,7 @@ function updateOnlineUI() {
     let examingCnt = 0, browsingCnt = 0;
     onlineByCode.forEach(data => {
         const sec = (data.currentSection || '').toLowerCase();
-        if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
+        if (sec.startsWith('Đang thi:') || sec.toLowerCase() === 'exam') examingCnt++;
         else browsingCnt++;
     });
     safeSet('examingCount', examingCnt);
@@ -3160,8 +3163,8 @@ function renderStudentTable() {
                 <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td class="no-print"><span class="password-mask">${escapeHtml(pwDisplay)}</span></td>
-                <td style="text-align:left;padding-left:12px;font-weight:600;max-width:220px;">${escapeHtml(s.name)}</td>
-                <td style="text-align:left;font-size:12px;max-width:130px;white-space:normal;word-break:break-word;">${escapeHtml(s.unit)}</td>
+                <td style="font-weight:600;">${escapeHtml(s.name)}</td>
+                <td style="font-size:12px;">${escapeHtml(s.unit)}</td>
                 <td>${formatDate(s.dob)}</td>
                 <td class="no-print">${escapeHtml(s.object)}</td>
                 <td>${escapeHtml(s.course || '—')}</td>
@@ -3533,6 +3536,8 @@ function printTable() {
             <td class="c">${e(s.course || '—')}</td>
         </tr>`).join('');
 
+    const needNewPageForSig = filteredStudents.length > 25;
+
     // ✅ FIX 1: Tách HTML ra biến riêng, không dùng document.write()
     const htmlContent = `<!DOCTYPE html>
 <html lang="vi">
@@ -3598,13 +3603,19 @@ function printTable() {
     }
     .ghi-chu-title { font-weight: bold; margin-bottom: 3px; }
 
-    .qr-block { 
-        margin-top: 8px; text-align: left; 
-        page-break-inside: avoid; 
+    .sig-wrapper { width: 100%; margin-top: 10px; page-break-inside: avoid; }
+    .sig-wrapper.new-page { page-break-before: always; margin-top: 0; padding-top: 20px; }
+    .sig { display: table; width: 100%; }
+    .sig-cell { 
+        display: table-cell; width: 50%; 
+        text-align: center; font-size: 10pt; vertical-align: top; 
     }
+    .sig-title { font-weight: bold; margin-bottom: 45px; font-size: 10pt; }
+    .sig-name  { font-weight: bold; }
+
     .qr-block img { 
-        width: 70px; height: 70px; 
-        display: block; margin-bottom: 3px; 
+        width: 75px; height: 75px; 
+        display: block; margin: 0 auto 3px; 
     }
     .qr-label { font-size: 8pt; color: #555; font-style: italic; }
 
@@ -3658,33 +3669,47 @@ function printTable() {
     Khuyến cáo người dùng đổi mật khẩu ngay sau khi đăng nhập lần đầu tiên.</div>
 </div>
 
-<div class="qr-block">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
-         alt="QR đăng nhập"
-         onerror="this.style.display='none'">
-    <div class="qr-label">Quét để đăng nhập hệ thống</div>
+<div class="sig-wrapper ${needNewPageForSig ? 'new-page' : ''}">
+    <div class="sig">
+        <div class="sig-cell">
+            <div class="qr-block">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=https%3A%2F%2Fthiluatgt.github.io%2FThi-luat-giao-thong%2F" 
+                     alt="QR đăng nhập"
+                     onerror="this.style.display='none'">
+                <div class="qr-label">Quét để đăng nhập hệ thống</div>
+            </div>
+        </div>
+        <div class="sig-cell">
+            <div class="sig-title">TRƯỞNG PHÒNG HẬU CẦN – KỸ THUẬT</div>
+            <div class="sig-name">(Ký tên, đóng dấu)</div>
+        </div>
+    </div>
 </div>
 
 </body>
 </html>`;
 
-    // ✅ Dùng iframe ẩn để in trực tiếp — không mở trang blob trung gian
+    // ✅ FIX 1: Dùng Blob URL thay cho document.write()
+    // document.write() khiến trình duyệt render 2 lần → print preview nhân đôi nội dung
     const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
 
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:0;height:0;border:0;opacity:0;';
-    document.body.appendChild(iframe);
-    iframe.src = blobUrl;
+    const win = window.open(blobUrl, '_blank', 'width=960,height=760');
+    if (!win) {
+        showToast('Trình duyệt đã chặn pop-up. Vui lòng cho phép!', 'warning');
+        URL.revokeObjectURL(blobUrl); // Dọn dẹp nếu không mở được
+        return;
+    }
 
-    iframe.onload = function () {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        iframe.contentWindow.addEventListener('afterprint', function () {
+    // ✅ FIX 3: Gọi print từ outer window sau khi load, revoke blob CHỈ sau khi đóng print dialog
+    // Không revoke ngay khi load vì print preview cần blob URL còn sống để render lại trang
+    win.addEventListener('load', function () {
+        win.focus();
+        win.print();
+        win.addEventListener('afterprint', function () {
             URL.revokeObjectURL(blobUrl);
-            document.body.removeChild(iframe);
         }, { once: true });
-    };
+    }, { once: true });
 }
 // ==========================================
 // 8. QUẢN LÝ ĐỀ THI (QUESTION SETS)
@@ -5586,10 +5611,11 @@ function renderOnlineDetailPage() {
     presenceMap.forEach((data, code) => {
         if (!data.isOnline) return;
 
-        // Xác định lastActive
+        // Xác định lastActive — dùng _clientTime làm fallback khi serverTimestamp chưa round-trip
         let lastActive = null;
         if (data.lastActive?.toDate) lastActive = data.lastActive.toDate();
         else if (data.lastActive)    lastActive = new Date(data.lastActive);
+        else if (data._clientTime)   lastActive = new Date(data._clientTime);
 
         // serverTimestamp() trả null trên client trước khi round-trip hoàn thành.
         // Treat null → 0ms ago (vừa đăng nhập). Chỉ bỏ qua nếu lastActive đã quá 90s.
@@ -5608,10 +5634,11 @@ function renderOnlineDetailPage() {
             });
         } else {
             // Khách / ID không có trong danh sách HV
+            const guestSeq  = data.guestLabel || data.guestId || ('Khách - ' + (code || '').slice(-6));
             guestOnline.push({
                 code,
-                name:           data.studentName || '',
-                guestLabel:     'Khách - ' + (code || '').slice(-6),
+                name:           data.studentName || guestSeq,
+                guestLabel:     guestSeq,
                 currentSection: data.currentSection || 'Đang xem đề',
                 lastActiveDate: lastActive,
                 startAt:        data.startAt?.toDate ? data.startAt.toDate() : null,
@@ -5625,7 +5652,7 @@ function renderOnlineDetailPage() {
     // ── Cập nhật số liệu summary ──
     document.getElementById('onlineTotal').textContent    = allOnline.length;
     document.getElementById('onlineStudying').textContent = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('học')).length;
-    document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('thi')).length;
+    document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).startsWith('Đang thi:')).length;
     document.getElementById('onlineIdle').textContent     = allOnline.filter(s => !safeText(s.currentSection) || s.currentSection === 'Đang chờ').length;
 
     // ── Biểu đồ phân bố đối tượng ──
@@ -5665,9 +5692,9 @@ function filterOnlineDetail() {
         safeText(s.unit).toLowerCase().includes(search)
     );
     if (sectionFilter === 'examing') {
-        list = list.filter(s => (s.currentSection || '').toLowerCase().includes('thi'));
+        list = list.filter(s => (s.currentSection || '').startsWith('Đang thi:'));
     } else if (sectionFilter === 'browsing') {
-        list = list.filter(s => !(s.currentSection || '').toLowerCase().includes('thi'));
+        list = list.filter(s => !(s.currentSection || '').startsWith('Đang thi:'));
     }
     filteredOnlineList = list;
     renderOnlineDetailTable();
@@ -5681,7 +5708,7 @@ function renderOnlineDetailTable() {
     }
     tb.innerHTML = filteredOnlineList.map((s, i) => {
         const sec       = s.currentSection || 'Đang chờ';
-        const isExaming = sec.toLowerCase().includes('thi');
+        const isExaming = sec.startsWith('Đang thi:');
         const isGuest   = !!s.isGuest;
         const secColor  = isExaming ? 'color:#065f46;background:#d1fae5;' : 'color:#1e40af;background:#dbeafe;';
         const typeLabel = isGuest
