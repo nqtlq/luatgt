@@ -14,7 +14,10 @@
 })();
 </script>
 <style>body { visibility: hidden; }</style>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -476,6 +479,25 @@ header {
   .cat-tab .cat-icon { font-size: 22px; }
   .set-card h3 { font-size: 13px; }
 }
+/* ─── Touch & Safe-area tối ưu mobile ─── */
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { -webkit-overflow-scrolling: touch; }
+button, .answer-btn, .btn-header, .sidebar-submit {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.answer-btn { min-height: 50px; }
+header { padding-top: env(safe-area-inset-top); }
+.pg { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+/* Exam sidebar (bottom bar on mobile) thêm safe-area dưới */
+@media (max-width: 768px) {
+  .exam-sidebar {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  .exam-question-area { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+.modal { padding-bottom: env(safe-area-inset-bottom); }
 </style>
 </head>
 <body>
@@ -950,7 +972,16 @@ function doLogout() {
   if (db && studentCode) {
     db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(() => {});
   }
+  // Giữ lại trạng thái đã đọc/xóa thông báo theo từng tài khoản
+  const notifKeysToKeep = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+      notifKeysToKeep[k] = localStorage.getItem(k);
+    }
+  }
   localStorage.clear();
+  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
   location.href = "index.html";
 }
 
@@ -1129,9 +1160,20 @@ async function beginExam() {
     updateLimitDisplay();
   }
 
-  // Student: cập nhật _currentPresenceSection → heartbeat sẽ tự ghi Firestore
-  if (IS_STUDENT) {
-    _currentPresenceSection = "Đang thi: " + s.name;
+  // Student: update presence khi bắt đầu thi
+  if (IS_STUDENT && db && studentCode) {
+    try {
+      await db.collection("presence").doc(studentCode).set({
+        isOnline:       true,
+        studentCode:    studentCode,
+        studentName:    studentName || localStorage.getItem("studentName") || "",
+        userType:       "student",
+        currentSection: "Đang thi: " + s.name,
+        lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+        _clientTime:    Date.now(),
+        startAt:        firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (e) {}
   }
 
   document.getElementById("startMsg").textContent = "⏳ Đang tải ngân hàng câu hỏi…";
@@ -1221,15 +1263,25 @@ async function beginExam() {
     // Switch to exam page
     document.getElementById("startOverlay").classList.remove("show");
     showPage("pgExam");
-    _currentPresenceSection = "Đang thi: " + s.name;
     document.getElementById("examSetName").textContent = s.name;
     document.getElementById("headerVi").textContent = "🖊 ĐANG THI – " + s.name.toUpperCase();
 
     renderQmap();
     renderQuestion(0);
     startTimer();
-    // Gọi heartbeat ngay để Admin thấy trạng thái "Đang thi" tức thì
-    if (typeof window._presenceHb === 'function') window._presenceHb();
+
+    // Presence update khi vào trang thi
+    if (db && studentCode) {
+      db.collection("presence").doc(studentCode).set({
+        isOnline:       true,
+        studentCode:    studentCode,
+        studentName:    studentName || localStorage.getItem("studentName") || "",
+        userType:       "student",
+        currentSection: "Đang thi: " + s.name,
+        lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+        _clientTime:    Date.now()
+      }, { merge: true }).catch(() => {});
+    }
 
   } catch(e) {
     console.error("beginExam error:", e);
@@ -1452,7 +1504,6 @@ async function submitExam(autoSub) {
 
 function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, requireLiet, details, timeTaken, s }) {
   showPage("pgResult");
-  _currentPresenceSection = "Xem kết quả thi";
   document.getElementById("headerVi").textContent = "📊 KẾT QUẢ BÀI THI";
 
   const verdictEmoji = passed ? "🏆" : "📉";
@@ -1522,6 +1573,19 @@ function showResultPage({ totalQ, correctCount, passed, passScore, lietFailed, r
       ${dropdownHtml}
     </div>`;
   }).join("");
+
+  // Update presence
+  if (db && studentCode) {
+    db.collection("presence").doc(studentCode).set({
+      isOnline:       true,
+      studentCode:    studentCode,
+      studentName:    studentName || localStorage.getItem("studentName") || "",
+      userType:       "student",
+      currentSection: "Xem kết quả thi",
+      lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime:    Date.now(),
+    }, { merge: true }).catch(() => {});
+  }
 }
 
 function toggleRqDropdown(i) {
@@ -1533,8 +1597,6 @@ function toggleRqDropdown(i) {
 }
 
 function retryExam() {
-  _currentPresenceSection = "Đang chọn đề";
-  if (typeof window._presenceHb === 'function') window._presenceHb();
   if (selectedSet) {
     showPage("pgSelect");
     document.getElementById("headerVi").textContent = "📝 CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ";
@@ -1594,9 +1656,6 @@ if (db) {
 
 // ── Heartbeat ── cả khách lẫn học viên đều ghi presence ──────
 const _presenceId = IS_GUEST ? getGuestId() : studentCode;
-// Theo dõi section hiện tại để heartbeat luôn ghi đúng trạng thái
-let _currentPresenceSection = "Đang chọn đề";
-
 if (db && _presenceId) {
   const pRef = db.collection("presence").doc(_presenceId);
   let _hbInited = false;
@@ -1604,18 +1663,17 @@ if (db && _presenceId) {
     if (isKicked) return;
     const payload = {
       isOnline:       true,
-      currentSection: _currentPresenceSection,
+      currentSection: "Đang chọn đề",
       lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
       _clientTime:    Date.now(),
       userType:       IS_GUEST ? "guest" : "student"
     };
     if (IS_GUEST) {
-      payload.guestId     = getGuestId();
-      payload.guestLabel  = localStorage.getItem("guestSeqNumber") || "Khách";
-      payload.studentName = "Khách " + (localStorage.getItem("guestSeqNumber") || "");
+      payload.guestId    = getGuestId();
+      payload.guestLabel = localStorage.getItem("guestSeqNumber") || "Khách";
     } else {
       payload.studentCode = studentCode;
-      payload.studentName = studentName;
+      payload.studentName = studentName || localStorage.getItem("studentName") || "";
     }
     if (!_hbInited) {
       payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -1624,20 +1682,9 @@ if (db && _presenceId) {
     pRef.set(payload, { merge: true }).catch(() => {});
   };
   hb();
-  window._presenceHb = hb;   // expose để beginExam/retryExam gọi ngay
   setInterval(hb, 20000);
   window.addEventListener("beforeunload", () => {
     if (!isKicked) pRef.set({ isOnline: false, currentSection: "Đã thoát" }, { merge: true });
-  });
-
-  // Khi tab bị ẩn → đánh dấu offline; khi hiện lại → heartbeat ngay
-  document.addEventListener("visibilitychange", () => {
-    if (isKicked) return;
-    if (document.visibilityState === "hidden") {
-      pRef.set({ isOnline: false, currentSection: "Tạm ẩn" }, { merge: true }).catch(() => {});
-    } else {
-      hb();
-    }
   });
 }
 
