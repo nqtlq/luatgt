@@ -220,7 +220,34 @@ main { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
 
 /* ===== TABLE ===== */
 .tableWrap { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); border: 1px solid var(--border); }
-.table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); }
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;   /* cố định tỉ lệ cột, không bị kéo dãn */
+  min-width: 720px;      /* tránh vỡ layout trên mobile → scroll ngang */
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  padding: 10px 12px;    /* giảm từ mặc định xuống, cân đối hơn */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* Cột tên đề cho phép xuống dòng */
+.table-wrapper td:nth-child(3),
+.table-wrapper th:nth-child(3) {
+  white-space: normal;
+  word-break: break-word;
+}
 table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
 th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-light); text-align: center; vertical-align: middle; }
 th { background: var(--bg-table-head); color: var(--text-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 5; cursor: pointer; user-select: none; }
