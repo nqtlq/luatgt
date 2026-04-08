@@ -819,19 +819,24 @@ function toggleNotifPanel() {
   }
 }
 
+// Khoá localStorage gắn với studentCode để trạng thái đọc/xóa không bị
+// lẫn giữa các tài khoản khác nhau trên cùng thiết bị.
+const _notifDeletedKey = `deletedNotifIds_${studentCode}`;
+const _notifReadKey    = `readNotifIds_${studentCode}`;
+
 function _getDeletedIds() {
-  try { return new Set(JSON.parse(localStorage.getItem("deletedNotifIds") || "[]")); }
+  try { return new Set(JSON.parse(localStorage.getItem(_notifDeletedKey) || "[]")); }
   catch(_) { return new Set(); }
 }
 function _saveDeletedIds(set) {
-  localStorage.setItem("deletedNotifIds", JSON.stringify([...set]));
+  localStorage.setItem(_notifDeletedKey, JSON.stringify([...set]));
 }
 function _getReadIds() {
-  try { return new Set(JSON.parse(localStorage.getItem("readNotifIds") || "[]")); }
+  try { return new Set(JSON.parse(localStorage.getItem(_notifReadKey) || "[]")); }
   catch(_) { return new Set(); }
 }
 function _saveReadIds(set) {
-  localStorage.setItem("readNotifIds", JSON.stringify([...set]));
+  localStorage.setItem(_notifReadKey, JSON.stringify([...set]));
 }
 
 function _renderNotifList() {
@@ -869,7 +874,8 @@ function _renderNotifList() {
   }).join("");
 
   // Mở panel nếu có thông báo chưa đọc mới
-  const newest = notifs.find(n => !n.read);
+  const deletedIds2 = _getDeletedIds();
+  const newest = notifs.find(n => !n.read && !deletedIds2.has(n.id));
   if (newest) {
     if (!notifPanelOpen) toggleNotifPanel();
     showNotifBanner(newest);
@@ -921,6 +927,18 @@ function _filterNotifs(all) {
   });
 }
 
+// Xóa các notif ID đã xóa/đọc mà server không còn trả về nữa
+// (phòng localStorage không phình vô hạn)
+function _pruneStaleNotifIds(cacheList) {
+  const serverIds = new Set(cacheList.map(n => n.id));
+  const del  = _getDeletedIds();
+  const read = _getReadIds();
+  let changed = false;
+  del.forEach(id => { if (!serverIds.has(id)) { del.delete(id); changed = true; } });
+  read.forEach(id => { if (!serverIds.has(id)) { read.delete(id); changed = true; } });
+  if (changed) { _saveDeletedIds(del); _saveReadIds(read); }
+}
+
 let notifUnsub = null;
 
 function loadNotifications() {
@@ -938,6 +956,8 @@ function loadNotifications() {
         return tb - ta;
       });
       notifCache = _filterNotifs(all).slice(0, 30);
+      // Dọn dẹp các ID đã xóa/đã đọc không còn tồn tại trên server (giữ localStorage gọn)
+      _pruneStaleNotifIds(notifCache);
       _renderNotifList();
     }, e => {
       console.warn("Notif snapshot error:", e.message);
@@ -951,6 +971,7 @@ function loadNotifications() {
           return tb - ta;
         });
         notifCache = _filterNotifs(sent).slice(0, 30);
+        _pruneStaleNotifIds(notifCache);
         _renderNotifList();
       }).catch(() => {
         document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
@@ -1047,9 +1068,11 @@ const heartbeat = () => {
   const payload = {
     isOnline:       true,
     studentCode:    studentCode,
+    studentName:    localStorage.getItem('studentName') || studentCode,
     currentSection: 'Trang chủ cá nhân',
     lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
     _clientTime:    Date.now(),  // fallback khi serverTimestamp chưa round-trip
+    userType:       'student',
   };
   // Lưu thời điểm vào trang lần đầu
   if (!_heartbeatStartAt) {
@@ -1063,6 +1086,18 @@ setInterval(heartbeat, 20000);
 
 window.addEventListener('beforeunload', () => {
   if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+});
+
+// Khi tab bị ẩn (người dùng chuyển tab/ứng dụng), đánh dấu offline ngay
+// để Admin không đếm nhầm. Khi tab hiện trở lại, heartbeat tiếp tục.
+document.addEventListener('visibilitychange', () => {
+  if (isKicked) return;
+  if (document.visibilityState === 'hidden') {
+    presenceRef.set({ isOnline: false, currentSection: 'Tạm ẩn' }, { merge: true }).catch(() => {});
+  } else {
+    // Tab hiện lại — gửi heartbeat ngay lập tức
+    heartbeat();
+  }
 });
 </script>
 </body>
