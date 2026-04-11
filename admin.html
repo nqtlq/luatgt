@@ -759,7 +759,7 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
                     </div>
                     <div class="card-label">Lượt thi</div>
                     <div class="card-value" id="todayExams">0</div>
-                    <div class="card-subtitle">Đạt: <strong id="todayPass" style="color:var(--success);">0</strong> · Trượt: <strong id="todayFail" style="color:var(--danger);">0</strong></div>
+                    <div class="card-subtitle">Đạt: <strong id="todayPass" style="color:var(--success);">0</strong> · Không đạt: <strong id="todayFail" style="color:var(--danger);">0</strong></div>
                 </div>
 
                 <div class="dash-card">
@@ -1644,7 +1644,7 @@ D. Đáp án D
               <select id="resultFilterStatus" onchange="applyResultFilters()">
                 <option value="">-- Kết quả --</option>
                 <option value="pass">Đạt</option>
-                <option value="fail">Trượt</option>
+                <option value="fail">Không đạt</option>
               </select>
               <!-- Bộ lọc thời gian dạng dropdown -->
               <select id="resultDateRange" onchange="onResultDateRangeChange()"
@@ -1717,7 +1717,7 @@ D. Đáp án D
         <div class="stat-card">
           <div class="stat-info">
             <div class="stat-number" id="resultFailCount" style="color:var(--danger)">0</div>
-            <div class="stat-label">Trượt</div>
+            <div class="stat-label">Không đạt</div>
           </div>
         </div>
         <div class="stat-card">
@@ -3091,7 +3091,7 @@ function renderDashboardCharts() {
         });
     }
 
-    // Biểu đồ tỷ lệ đạt/trượt
+    // Biểu đồ tỷ lệ đạt/Không đạt
     const ctx2 = document.getElementById('chartPassRate');
     if (ctx2) {
         const passed = dashboardPassFail.pass;
@@ -4909,7 +4909,7 @@ function renderResultsTable() {
                 <td>${r.totalQuestions || 0}</td>
                 <td><b>${r.score || 0}</b></td>
                 <td>${lietFail ? '<span style="color:var(--danger)">✗</span>' : (r.lietQuestion ? '<span style="color:var(--success)">✓</span>' : '-')}</td>
-                <td><span class="status-badge ${pass ? 'status-active' : 'status-locked'}">${pass ? '✓ ĐẠT' : '✗ TRƯỢT'}</span></td>
+                <td><span class="status-badge ${pass ? 'status-active' : 'status-locked'}">${pass ? '✓ ĐẠT' : '✗ Không đạt'}</span></td>
                 <td>Lần ${r.attemptNumber || '?'}</td>
                 <td class="no-print"><button class="btn btn-info btn-sm" onclick="showExamDetail('${r.id}')">👁</button></td>
             </tr>
@@ -4953,7 +4953,7 @@ async function showExamDetail(resultId) {
             <div><strong>Thời gian:</strong> ${formatDateTime(result.timestamp)}</div>
             <div><strong>Số đúng:</strong> ${result.correctCount || 0}/${result.totalQuestions || 0}</div>
             <div><strong>Điểm:</strong> <b>${result.score || 0}</b></div>
-            <div><strong>Kết quả:</strong> <span class="status-badge ${pass ? 'status-active' : 'status-locked'}">${pass ? '✓ ĐẠT' : '✗ TRƯỢT'}</span></div>
+            <div><strong>Kết quả:</strong> <span class="status-badge ${pass ? 'status-active' : 'status-locked'}">${pass ? '✓ ĐẠT' : '✗ Không đạt'}</span></div>
         </div>
     `;
     
@@ -4967,7 +4967,7 @@ async function showExamDetail(resultId) {
                 <td>${escapeHtml(r.setName || r.setCode || '')}</td>
                 <td>${r.correctCount || 0}/${r.totalQuestions || 0}</td>
                 <td><b>${r.score || 0}</b></td>
-                <td><span class="status-badge ${p ? 'status-active' : 'status-locked'}">${p ? 'Đạt' : 'Trượt'}</span></td>
+                <td><span class="status-badge ${p ? 'status-active' : 'status-locked'}">${p ? 'Đạt' : 'Không đạt'}</span></td>
                 <td>${r.id !== resultId ? `<button class="btn btn-info btn-sm" onclick="showExamDetail('${r.id}')">👁</button>` : '<b>Đang xem</b>'}</td>
             </tr>
         `;
