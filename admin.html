@@ -64,17 +64,47 @@
     --danger-light: rgba(220,53,69,0.15);
     --warning-light: rgba(255,193,7,0.15);
 }
-    #question_sets table { table-layout: fixed; min-width: unset; }
+    /* ===== QUẢN LÝ ĐỀ THI ===== */
+    #question_sets table { table-layout: auto; min-width: unset; }
     #question_sets table th,
-    #question_sets table td { padding: 12px 14px; }
+    #question_sets table td { padding: 12px 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #question_sets table th { text-align: center !important; }
-    #question_sets table td:nth-child(3) { text-align: left; padding-left: 10px; }
+    #question_sets table td:nth-child(3) { text-align: left; padding-left: 14px; white-space: normal; word-break: break-word; max-width: 220px; }
     #question_sets table td:nth-child(1),
     #question_sets table td:nth-child(2),
     #question_sets table td:nth-child(4),
     #question_sets table td:nth-child(5),
     #question_sets table td:nth-child(6),
-    #question_sets table td:nth-child(7) { text-align: center; }
+    #question_sets table td:nth-child(7),
+    #question_sets table td:nth-child(8) { text-align: center; }
+
+    /* ===== KẾT QUẢ THI ===== */
+    #results table th, #results table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #results table th { text-align: center !important; }
+    #results table td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
+    #results table td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; word-break: break-word; }
+    #results table td:nth-child(1),
+    #results table td:nth-child(2),
+    #results table td:nth-child(3),
+    #results table td:nth-child(6),
+    #results table td:nth-child(7),
+    #results table td:nth-child(8),
+    #results table td:nth-child(9),
+    #results table td:nth-child(10),
+    #results table td:nth-child(11),
+    #results table td:nth-child(12) { text-align: center; }
+
+    /* ===== BẢNG XẾP HẠNG ===== */
+    #stats table th, #stats table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #stats table th { text-align: center !important; }
+    #stats table td:nth-child(3) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
+    #stats table td:nth-child(4) { text-align: left; max-width: 140px; font-size: 12px; white-space: normal; word-break: break-word; }
+    #stats table td:nth-child(1),
+    #stats table td:nth-child(2),
+    #stats table td:nth-child(5),
+    #stats table td:nth-child(6),
+    #stats table td:nth-child(7),
+    #stats table td:nth-child(8) { text-align: center; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-main); color: var(--text-primary); line-height: 1.5; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -1009,14 +1039,14 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
           <table>
             <thead>
               <tr>
-                  <th style="width:38px">STT</th>
-                  <th style="width:95px">Mã đề</th>
+                  <th style="width:40px">STT</th>
+                  <th style="width:90px">Mã đề</th>
                   <th style="width:auto">TÊN ĐỀ THI</th>
-                  <th style="width:70px">Số câu</th>
-                  <th style="width:65px">Nhóm</th>
-                  <th style="width:110px">Thời gian làm bài</th>
-                  <th style="width:95px">Trạng thái</th>
-                  <th style="width:170px">Thao tác</th>
+                  <th style="width:72px">Số câu</th>
+                  <th style="width:68px">Nhóm</th>
+                  <th style="width:115px">Thời gian</th>
+                  <th style="width:105px">Trạng thái</th>
+                  <th style="width:168px">Thao tác</th>
               </tr>
             </thead>
             <tbody id="setTableBody"></tbody>
@@ -1705,17 +1735,17 @@ D. Đáp án D
             <thead>
               <tr>
                 <th style="width:36px">STT</th>
-                <th style="width:120px">Thời gian</th>
+                <th style="width:115px">Thời gian</th>
                 <th style="width:80px">Mã HV</th>
                 <th style="width:auto">Họ và tên</th>
                 <th style="width:auto">Đề thi</th>
-                <th style="width:50px">Đúng</th>
-                <th style="width:50px">Tổng</th>
+                <th style="width:52px">Đúng</th>
+                <th style="width:52px">Tổng</th>
                 <th style="width:58px">Điểm</th>
-                <th style="width:50px">Liệt</th>
-                <th style="width:70px">Kết quả</th>
-                <th style="width:60px">Lần thứ</th>
-                <th class="no-print" style="width:62px">Chi tiết</th>
+                <th style="width:52px">Liệt</th>
+                <th style="width:78px">Kết quả</th>
+                <th style="width:65px">Lần thứ</th>
+                <th class="no-print" style="width:64px">Chi tiết</th>
               </tr>
             </thead>
             <tbody id="resultsTableBody"></tbody>
@@ -2008,14 +2038,14 @@ D. Đáp án D
         <div class="tableWrap">
           <table>
             <thead><tr>
-              <th style="width:50px">Hạng</th>
+              <th style="width:52px">Hạng</th>
               <th style="width:80px">Mã HV</th>
               <th style="width:auto">Họ tên</th>
-              <th style="width:130px">Đơn vị</th>
-              <th style="width:72px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
-              <th style="width:82px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
-              <th style="width:75px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
-              <th style="width:80px">Đánh giá</th>
+              <th style="width:140px">Đơn vị</th>
+              <th style="width:75px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
+              <th style="width:88px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
+              <th style="width:78px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
+              <th style="width:82px">Đánh giá</th>
             </tr></thead>
             <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
           </table>
