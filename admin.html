@@ -64,13 +64,16 @@
     --danger-light: rgba(220,53,69,0.15);
     --warning-light: rgba(255,193,7,0.15);
 }
+    #question_sets table { table-layout: fixed; min-width: unset; }
     #question_sets table th,
-    #question_sets table td {
-      padding: 10px 8px;
-    }
-    #question_sets table td:nth-child(3){
-      text-align:left;
-}
+    #question_sets table td { padding: 9px 10px; }
+    #question_sets table th { text-align: center !important; }
+    #question_sets table td:nth-child(3) { text-align: left; }
+    #question_sets table td:nth-child(1),
+    #question_sets table td:nth-child(2),
+    #question_sets table td:nth-child(4),
+    #question_sets table td:nth-child(5),
+    #question_sets table td:nth-child(6) { text-align: center; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-main); color: var(--text-primary); line-height: 1.5; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -221,9 +224,9 @@ main { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
 /* ===== TABLE ===== */
 .tableWrap { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); border: 1px solid var(--border); }
 .table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
-th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-light); text-align: center; vertical-align: middle; }
-th { background: var(--bg-table-head); color: var(--text-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 5; cursor: pointer; user-select: none; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+th, td { padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; vertical-align: middle; }
+th { background: var(--bg-table-head); color: var(--text-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; position: sticky; top: 0; z-index: 5; cursor: pointer; user-select: none; text-align: center !important; white-space: nowrap; }
 tbody tr { transition: var(--transition); }
 tbody tr:hover { background: var(--bg-hover); }
 .sort-icon { font-size: 10px; margin-left: 3px; opacity: 0.5; }
@@ -281,7 +284,7 @@ tbody tr:hover { background: var(--bg-hover); }
 .activity-section h3 { margin: 0 0 16px; font-size: 16px; font-weight: 700; color: var(--text-primary); }
 .activity-table { width: 100%; border-collapse: collapse; }
 .activity-table thead { background: var(--bg-table-head); }
-.activity-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+.activity-table th { padding: 10px 12px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
 .activity-table td { padding: 12px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); text-align: left; }
 .activity-table tr:hover { background: var(--bg-hover); }
 .activity-empty { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
@@ -488,6 +491,7 @@ tbody tr:hover { background: var(--bg-hover); }
 
 /* ===== BẢNG CỘT TỐI ƯU ===== */
 #studentTable th, #studentTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#studentTable th { text-align: center !important; }
 #studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
@@ -852,16 +856,16 @@ tbody tr:hover { background: var(--bg-hover); }
                 <div class="table-wrapper">
                     <table>
                         <thead>
-                            <tr>
-                                <th style="width:45px">STT</th>
-                                <th style="width:100px">Mã HV</th>
-                                <th>Họ và tên</th>
-                                <th>Đơn vị</th>
-                                <th>Đối tượng</th>
-                                <th style="width:120px">Trạng thái</th>
-                                <th style="width:140px">Thời gian vào</th>
-                                <th style="width:140px">Hoạt động cuối</th>
-                            </tr>
+                          <tr>
+                              <th style="width:40px">STT</th>
+                              <th style="width:90px">Mã HV</th>
+                              <th style="width:auto">Họ và tên</th>
+                              <th style="width:130px">Đơn vị</th>
+                              <th style="width:90px">Đối tượng</th>
+                              <th style="width:105px">Trạng thái</th>
+                              <th style="width:130px">Thời gian vào</th>
+                              <th style="width:130px">Hoạt động cuối</th>
+                          </tr>
                         </thead>
                         <tbody id="onlineDetailTableBody">
                             <tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr>
@@ -959,15 +963,15 @@ tbody tr:hover { background: var(--bg-hover); }
                         <thead>
                             <tr>
                                 <th style="width:40px">STT</th>
-                                <th style="width:95px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
-                                <th class="no-print" style="width:80px">Mật khẩu</th>
-                                <th style="min-width:220px;cursor:pointer;text-align:left;padding-left:12px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
-                                <th style="width:130px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
-                                <th style="width:90px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
-                                <th class="no-print" style="width:90px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
-                                <th style="width:85px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
-                                <th class="no-print" style="width:100px">Trạng thái</th>
-                                <th class="no-print" style="width:80px">Thao tác</th>
+                                <th style="width:90px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
+                                <th class="no-print" style="width:75px">Mật khẩu</th>
+                                <th style="width:200px;cursor:pointer" onclick="sortTable(2)">Họ và Tên ⇅</th>
+                                <th style="width:130px;cursor:pointer" onclick="sortTable(3)">Đơn vị ⇅</th>
+                                <th style="width:95px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
+                                <th class="no-print" style="width:85px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
+                                <th style="width:80px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
+                                <th class="no-print" style="width:95px">Trạng thái</th>
+                                <th class="no-print" style="width:75px">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody"></tbody>
@@ -1003,14 +1007,14 @@ tbody tr:hover { background: var(--bg-hover); }
           <table>
             <thead>
               <tr>
-                  <th style="width:50px">STT</th>
-                  <th style="width:110px">Mã đề</th>
-                  <th style="min-width:360px;text-align:left;">TÊN ĐỀ THI</th>
-                  <th style="width:90px">Số câu</th>
-                  <th style="width:90px">Nhóm</th>
-                  <th style="width:110px">Trạng thái</th>
-                  <th style="width:220px">Thao tác</th>
-            </tr>
+                  <th style="width:44px">STT</th>
+                  <th style="width:100px">Mã đề</th>
+                  <th style="width:auto">TÊN ĐỀ THI</th>
+                  <th style="width:80px">Số câu</th>
+                  <th style="width:80px">Nhóm</th>
+                  <th style="width:100px">Trạng thái</th>
+                  <th style="width:200px">Thao tác</th>
+              </tr>
             </thead>
             <tbody id="setTableBody"></tbody>
           </table>
@@ -1697,17 +1701,17 @@ D. Đáp án D
             <thead>
               <tr>
                 <th style="width:40px">STT</th>
-                <th style="width:140px">Thời gian</th>
-                <th style="width:90px">Mã HV</th>
-                <th>Họ và tên</th>
-                <th>Đề thi</th>
-                <th style="width:60px">Đúng</th>
-                <th style="width:60px">Tổng</th>
-                <th style="width:70px">Điểm</th>
-                <th style="width:60px">Liệt</th>
-                <th style="width:80px">Kết quả</th>
-                <th style="width:70px">Lần thứ</th>
-                <th class="no-print" style="width:80px">Chi tiết</th>
+                <th style="width:130px">Thời gian</th>
+                <th style="width:85px">Mã HV</th>
+                <th style="width:auto">Họ và tên</th>
+                <th style="width:auto">Đề thi</th>
+                <th style="width:55px">Đúng</th>
+                <th style="width:55px">Tổng</th>
+                <th style="width:65px">Điểm</th>
+                <th style="width:55px">Liệt</th>
+                <th style="width:75px">Kết quả</th>
+                <th style="width:65px">Lần thứ</th>
+                <th class="no-print" style="width:70px">Chi tiết</th>
               </tr>
             </thead>
             <tbody id="resultsTableBody"></tbody>
@@ -2000,14 +2004,14 @@ D. Đáp án D
         <div class="tableWrap">
           <table>
             <thead><tr>
-              <th style="width:60px">Hạng</th>
-              <th>Mã HV</th>
-              <th style="text-align:left">Họ tên</th>
-              <th style="text-align:left">Đơn vị</th>
-              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
-              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
-              <th style="cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
-              <th>Đánh giá</th>
+              <th style="width:55px">Hạng</th>
+              <th style="width:85px">Mã HV</th>
+              <th style="width:auto">Họ tên</th>
+              <th style="width:130px">Đơn vị</th>
+              <th style="width:80px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
+              <th style="width:90px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
+              <th style="width:80px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
+              <th style="width:90px">Đánh giá</th>
             </tr></thead>
             <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
           </table>
@@ -3642,8 +3646,8 @@ function printTable() {
         <tr>
             <th>#</th>
             <th>MÃ HV /\TÀI KHOẢN</th>
-            <th style="text-align:left">HỌ VÀ TÊN</th>
-            <th style="text-align:left">ĐƠN VỊ</th>
+            <th>HỌ VÀ TÊN</th>
+            <th>ĐƠN VỊ</th>
             <th>NGÀY\SINH</th>
             <th>ĐỐI\TƯỢNG</th>
             <th>KHÓA\HỌC</th>
@@ -5040,8 +5044,8 @@ async function showStudentProfile(code) {
                 <thead>
                     <tr style="background:var(--bg-table-head);">
                         <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Lần</th>
-                        <th style="padding:9px 10px;text-align:left;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Thời gian thi</th>
-                        <th style="padding:9px 10px;text-align:left;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Tên đề thi</th>
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Thời gian thi</th>
+                        <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Tên đề thi</th>
                         <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Điểm</th>
                         <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Kết quả</th>
                         <th style="padding:9px 10px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);">Chi tiết</th>
