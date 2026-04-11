@@ -220,34 +220,7 @@ main { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
 
 /* ===== TABLE ===== */
 .tableWrap { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); border: 1px solid var(--border); }
-.table-wrapper {
-  overflow-x: auto;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.table-wrapper table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;   /* cố định tỉ lệ cột, không bị kéo dãn */
-  min-width: 720px;      /* tránh vỡ layout trên mobile → scroll ngang */
-}
-
-.table-wrapper th,
-.table-wrapper td {
-  padding: 10px 12px;    /* giảm từ mặc định xuống, cân đối hơn */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-}
-
-/* Cột tên đề cho phép xuống dòng */
-.table-wrapper td:nth-child(3),
-.table-wrapper th:nth-child(3) {
-  white-space: normal;
-  word-break: break-word;
-}
+.table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 520px; border-radius: var(--radius-md); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
 th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-light); text-align: center; vertical-align: middle; }
 th { background: var(--bg-table-head); color: var(--text-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 5; cursor: pointer; user-select: none; }
@@ -514,10 +487,9 @@ tbody tr:hover { background: var(--bg-hover); }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
 /* ===== BẢNG CỘT TỐI ƯU ===== */
-#studentTable { table-layout: fixed; }
 #studentTable th, #studentTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#studentTable td:nth-child(4) { text-align: left; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#studentTable td:nth-child(5) { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
+#studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
 
 /* ===== PRINT STYLES - IMPROVED ===== */
 #printHeader { display: none; }
@@ -986,16 +958,16 @@ tbody tr:hover { background: var(--bg-hover); }
                     <table id="studentTable">
                         <thead>
                             <tr>
-                                <th style="width:38px">STT</th>
-                                <th style="width:88px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
-                                <th class="no-print" style="width:76px">Mật khẩu</th>
-                                <th style="width:170px;cursor:pointer;text-align:left;padding-left:10px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
-                                <th style="width:115px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
-                                <th style="width:82px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
-                                <th class="no-print" style="width:86px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
-                                <th style="width:74px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
-                                <th class="no-print" style="width:96px">Trạng thái</th>
-                                <th class="no-print" style="width:78px">Thao tác</th>
+                                <th style="width:40px">STT</th>
+                                <th style="width:95px;cursor:pointer" onclick="sortTable(1)">Mã HV ⇅</th>
+                                <th class="no-print" style="width:80px">Mật khẩu</th>
+                                <th style="min-width:220px;cursor:pointer;text-align:left;padding-left:12px;" onclick="sortTable(2)">Họ và Tên ⇅</th>
+                                <th style="width:130px;cursor:pointer;text-align:left;" onclick="sortTable(3)">Đơn vị ⇅</th>
+                                <th style="width:90px;cursor:pointer" onclick="sortTable(4)">Ngày sinh ⇅</th>
+                                <th class="no-print" style="width:90px;cursor:pointer" onclick="sortTable(5)">Đối tượng ⇅</th>
+                                <th style="width:85px;cursor:pointer" onclick="sortTable(6)">Khóa ⇅</th>
+                                <th class="no-print" style="width:100px">Trạng thái</th>
+                                <th class="no-print" style="width:80px">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody"></tbody>
@@ -1027,23 +999,24 @@ tbody tr:hover { background: var(--bg-hover); }
       </div>
       
       <div class="card">
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:44px;text-align:center;">STT</th>
-          <th style="width:100px;text-align:center;">Mã đề</th>
-          <th style="width:auto;text-align:left;">TÊN ĐỀ THI</th>
-          <th style="width:80px;text-align:center;">Tổng số câu hỏi</th>
-          <th style="width:80px;text-align:center;">Số nhóm câu hỏi</th>
-          <th style="width:100px;text-align:center;">Trạng thái</th>
-          <th style="width:200px;text-align:center;">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody id="setTableBody"></tbody>
-    </table>
-  </div>
-</div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                  <th style="width:50px">STT</th>
+                  <th style="width:110px">Mã đề</th>
+                  <th style="min-width:360px;text-align:left;">TÊN ĐỀ THI</th>
+                  <th style="width:90px">Số câu</th>
+                  <th style="width:90px">Nhóm</th>
+                  <th style="width:110px">Trạng thái</th>
+                  <th style="width:220px">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody id="setTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- ========== ADD SET PAGE ========== -->
     <div id="add_set_page" class="page">
@@ -2882,11 +2855,10 @@ function startPresenceListener() {
                 const d = doc.data();
                 if (!d || !d.isOnline) return; // Bỏ qua doc không hợp lệ hoặc đã offline
                 
-                // Validate lastActive — dùng _clientTime làm fallback khi serverTimestamp chưa round-trip
+                // Validate lastActive
                 let lastActive = null;
                 if (d.lastActive?.toDate) lastActive = d.lastActive.toDate();
                 else if (d.lastActive) lastActive = new Date(d.lastActive);
-                else if (d._clientTime) lastActive = new Date(d._clientTime);
                 
                 // Bỏ qua session quá cũ (> 5 phút không heartbeat)
                 if (lastActive && (now - lastActive.getTime()) > 300000) return;
@@ -2917,7 +2889,6 @@ function updateOnlineUI() {
         if (data.lastActive?.toDate) lastActive = data.lastActive.toDate();
         else if (data.lastActive instanceof Date) lastActive = data.lastActive;
         else if (data.lastActive) lastActive = new Date(data.lastActive);
-        else if (data._clientTime) lastActive = new Date(data._clientTime); // serverTimestamp pending
 
         const diffSeconds = lastActive ? (now - lastActive) / 1000 : 0;
         if (diffSeconds < 90) {
@@ -2964,7 +2935,7 @@ function updateOnlineUI() {
     let examingCnt = 0, browsingCnt = 0;
     onlineByCode.forEach(data => {
         const sec = (data.currentSection || '').toLowerCase();
-        if (sec.startsWith('Đang thi:') || sec.toLowerCase() === 'exam') examingCnt++;
+        if (sec.includes('thi') || sec.includes('exam')) examingCnt++;
         else browsingCnt++;
     });
     safeSet('examingCount', examingCnt);
@@ -3189,8 +3160,8 @@ function renderStudentTable() {
                 <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td class="no-print"><span class="password-mask">${escapeHtml(pwDisplay)}</span></td>
-                <td style="font-weight:600;">${escapeHtml(s.name)}</td>
-                <td style="font-size:12px;">${escapeHtml(s.unit)}</td>
+                <td style="text-align:left;padding-left:12px;font-weight:600;max-width:220px;">${escapeHtml(s.name)}</td>
+                <td style="text-align:left;font-size:12px;max-width:130px;white-space:normal;word-break:break-word;">${escapeHtml(s.unit)}</td>
                 <td>${formatDate(s.dob)}</td>
                 <td class="no-print">${escapeHtml(s.object)}</td>
                 <td>${escapeHtml(s.course || '—')}</td>
@@ -5637,11 +5608,10 @@ function renderOnlineDetailPage() {
     presenceMap.forEach((data, code) => {
         if (!data.isOnline) return;
 
-        // Xác định lastActive — dùng _clientTime làm fallback khi serverTimestamp chưa round-trip
+        // Xác định lastActive
         let lastActive = null;
         if (data.lastActive?.toDate) lastActive = data.lastActive.toDate();
         else if (data.lastActive)    lastActive = new Date(data.lastActive);
-        else if (data._clientTime)   lastActive = new Date(data._clientTime);
 
         // serverTimestamp() trả null trên client trước khi round-trip hoàn thành.
         // Treat null → 0ms ago (vừa đăng nhập). Chỉ bỏ qua nếu lastActive đã quá 90s.
@@ -5660,11 +5630,10 @@ function renderOnlineDetailPage() {
             });
         } else {
             // Khách / ID không có trong danh sách HV
-            const guestSeq  = data.guestLabel || data.guestId || ('Khách - ' + (code || '').slice(-6));
             guestOnline.push({
                 code,
-                name:           data.studentName || guestSeq,
-                guestLabel:     guestSeq,
+                name:           data.studentName || '',
+                guestLabel:     'Khách - ' + (code || '').slice(-6),
                 currentSection: data.currentSection || 'Đang xem đề',
                 lastActiveDate: lastActive,
                 startAt:        data.startAt?.toDate ? data.startAt.toDate() : null,
@@ -5678,7 +5647,7 @@ function renderOnlineDetailPage() {
     // ── Cập nhật số liệu summary ──
     document.getElementById('onlineTotal').textContent    = allOnline.length;
     document.getElementById('onlineStudying').textContent = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('học')).length;
-    document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).startsWith('Đang thi:')).length;
+    document.getElementById('onlineExaming').textContent  = allOnline.filter(s => safeText(s.currentSection).toLowerCase().includes('thi')).length;
     document.getElementById('onlineIdle').textContent     = allOnline.filter(s => !safeText(s.currentSection) || s.currentSection === 'Đang chờ').length;
 
     // ── Biểu đồ phân bố đối tượng ──
@@ -5718,9 +5687,9 @@ function filterOnlineDetail() {
         safeText(s.unit).toLowerCase().includes(search)
     );
     if (sectionFilter === 'examing') {
-        list = list.filter(s => (s.currentSection || '').startsWith('Đang thi:'));
+        list = list.filter(s => (s.currentSection || '').toLowerCase().includes('thi'));
     } else if (sectionFilter === 'browsing') {
-        list = list.filter(s => !(s.currentSection || '').startsWith('Đang thi:'));
+        list = list.filter(s => !(s.currentSection || '').toLowerCase().includes('thi'));
     }
     filteredOnlineList = list;
     renderOnlineDetailTable();
@@ -5734,7 +5703,7 @@ function renderOnlineDetailTable() {
     }
     tb.innerHTML = filteredOnlineList.map((s, i) => {
         const sec       = s.currentSection || 'Đang chờ';
-        const isExaming = sec.startsWith('Đang thi:');
+        const isExaming = sec.toLowerCase().includes('thi');
         const isGuest   = !!s.isGuest;
         const secColor  = isExaming ? 'color:#065f46;background:#d1fae5;' : 'color:#1e40af;background:#dbeafe;';
         const typeLabel = isGuest
