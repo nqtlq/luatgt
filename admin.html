@@ -1022,6 +1022,7 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
             <tbody id="setTableBody"></tbody>
           </table>
         </div>
+        <div id="setPagination" class="pagination" style="margin-top:12px;"></div>
       </div>
     </div>
 
@@ -2019,6 +2020,7 @@ D. Đáp án D
             <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
           </table>
         </div>
+        <div id="leaderboardPagination" class="pagination" style="margin-top:12px;"></div>
       </div>
     </div>
 
@@ -2235,6 +2237,8 @@ let filteredNotifications = [];
 Object.defineProperty(window,'allExamResults',{ get:()=>allResults, set:(v)=>{ allResults=v; } });
 let filteredResults = [];
 let resultCurrentPage = 1;
+let setCurrentPage = 1;
+const setPerPage = 5;
 let resultFilterTimeout = null;
 let currentExamDetailResult = null;
 let notiCurrentPage = 1;
@@ -3699,6 +3703,7 @@ function printTable() {
 let currentExamType = 'moto';
 function switchExamType(type, btn) {
     currentExamType = type;
+    setCurrentPage = 1;
     document.querySelectorAll('.exam-type-tab').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     loadQuestionSets();
@@ -3713,16 +3718,22 @@ function loadQuestionSets() {
     
     if (!filtered.length) {
         tb.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Chưa có đề thi ${currentExamType === 'moto' ? 'Mô tô' : 'Ô tô'}</td></tr>`;
+        const pp = document.getElementById('setPagination'); if (pp) pp.innerHTML = '';
         return;
     }
-    tb.innerHTML = filtered.map((s, i) => {
+    const totalPages = Math.ceil(filtered.length / setPerPage);
+    if (setCurrentPage > totalPages) setCurrentPage = totalPages;
+    const start = (setCurrentPage - 1) * setPerPage;
+    const pageItems = filtered.slice(start, start + setPerPage);
+
+    tb.innerHTML = pageItems.map((s, i) => {
         const isLocked = s.status === 'locked';
         const badge = isLocked
             ? `<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','active')">● Khóa</span>`
             : `<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','locked')">● Hoạt động</span>`;
         return `
             <tr>
-                <td>${i + 1}</td>
+                <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td style="text-align:left">${escapeHtml(s.name)}</td>
                 <td><b style="color:var(--accent)">${s.actualCount !== undefined ? s.actualCount : (s.totalQuestions || 0)}</b></td>
@@ -3738,6 +3749,22 @@ function loadQuestionSets() {
             </tr>
         `;
     }).join('');
+    renderSetPagination(filtered.length, totalPages);
+}
+
+function renderSetPagination(total, totalPages) {
+    const p = document.getElementById('setPagination');
+    if (!p) return;
+    if (totalPages <= 1) { p.innerHTML = `<span class="page-info">Tổng: ${total}</span>`; return; }
+    let html = `<button onclick="setCurrentPage=1;loadQuestionSets()" ${setCurrentPage===1?'disabled':''}>⟨⟨</button>
+                <button onclick="setCurrentPage=${setCurrentPage-1};loadQuestionSets()" ${setCurrentPage===1?'disabled':''}>⟨</button>`;
+    let ps = Math.max(1, setCurrentPage-2), pe = Math.min(totalPages, ps+4);
+    if (pe-ps < 4) ps = Math.max(1, pe-4);
+    for (let i=ps; i<=pe; i++) html += `<button onclick="setCurrentPage=${i};loadQuestionSets()" class="${i===setCurrentPage?'active':''}">${i}</button>`;
+    html += `<button onclick="setCurrentPage=${setCurrentPage+1};loadQuestionSets()" ${setCurrentPage===totalPages?'disabled':''}>⟩</button>
+             <button onclick="setCurrentPage=${totalPages};loadQuestionSets()" ${setCurrentPage===totalPages?'disabled':''}>⟩⟩</button>
+             <span class="page-info">Trang ${setCurrentPage}/${totalPages} (${total})</span>`;
+    p.innerHTML = html;
 }
 
 async function toggleSetStatus(code, newStatus) {
@@ -4829,8 +4856,8 @@ function updateResultStats() {
 function renderResultsTable() {
     const tb = document.getElementById('resultsTableBody');
     if (!tb) return;
-    const start = (resultCurrentPage - 1) * 10;
-    const page = filteredResults.slice(start, start + 10);
+    const start = (resultCurrentPage - 1) * 5;
+    const page = filteredResults.slice(start, start + 5);
     
     if (!page.length) {
         tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted)">Không có kết quả</td></tr>';
@@ -4862,7 +4889,7 @@ function renderResultsTable() {
 }
 
 function renderResultsPagination() {
-    const totalPages = Math.ceil(filteredResults.length / 10);
+    const totalPages = Math.ceil(filteredResults.length / 5);
     const p = document.getElementById('resultsPagination');
     if (!p) return;
     if (totalPages <= 1) { p.innerHTML = `<span class="page-info">Tổng: ${filteredResults.length}</span>`; return; }
@@ -5754,6 +5781,7 @@ function loadStats() {
 
 // ─── Leaderboard sort helpers ───
 function sortLeaderboard(col) {
+    window._leaderboardPage = 1;
     if (!window._leaderboardSort) window._leaderboardSort = { col: 'bestScore', dir: -1 };
     if (window._leaderboardSort.col === col) {
         window._leaderboardSort.dir *= -1; // toggle
@@ -5782,15 +5810,25 @@ function renderLeaderboard() {
     if (!tb) return;
     if (!sorted.length) {
         tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Chưa có dữ liệu</td></tr>';
+        const lp = document.getElementById('leaderboardPagination'); if (lp) lp.innerHTML = '';
         return;
     }
-    tb.innerHTML = sorted.slice(0, 30).map((s, i) => {
-        const rank   = i < 3 ? medals[i] : (i + 1);
+
+    if (!window._leaderboardPage) window._leaderboardPage = 1;
+    const lbPerPage = 5;
+    const totalPages = Math.ceil(sorted.length / lbPerPage);
+    if (window._leaderboardPage > totalPages) window._leaderboardPage = totalPages;
+    const start = (window._leaderboardPage - 1) * lbPerPage;
+    const pageItems = sorted.slice(start, start + lbPerPage);
+
+    tb.innerHTML = pageItems.map((s, i) => {
+        const globalIndex = start + i;
+        const rank   = globalIndex < 3 ? medals[globalIndex] : (globalIndex + 1);
         const rateClass = (s.avgScore || 0) >= 25 ? 'good' : (s.avgScore || 0) >= 18 ? 'mid' : 'bad';
         const rateText  = (s.avgScore || 0) >= 25 ? 'Xuất sắc' : (s.avgScore || 0) >= 18 ? 'Khá' : 'TB';
-        const rowStyle  = i < 3 ? 'background:rgba(255,215,0,0.08);font-weight:600;' : '';
+        const rowStyle  = globalIndex < 3 ? 'background:rgba(255,215,0,0.08);font-weight:600;' : '';
         return `<tr style="${rowStyle}">
-            <td style="text-align:center;font-size:${i<3?'18px':'13px'}">${rank}</td>
+            <td style="text-align:center;font-size:${globalIndex<3?'18px':'13px'}">${rank}</td>
             <td><b>${escapeHtml(s.code)}</b></td>
             <td style="text-align:left">${escapeHtml(s.name)}</td>
             <td style="text-align:left;font-size:12px;color:var(--text-muted)">${escapeHtml(s.unit||'—')}</td>
@@ -5800,6 +5838,24 @@ function renderLeaderboard() {
             <td><span class="rate ${rateClass}">${rateText}</span></td>
         </tr>`;
     }).join('');
+
+    // Render leaderboard pagination
+    const lp = document.getElementById('leaderboardPagination');
+    if (lp) {
+        if (totalPages <= 1) {
+            lp.innerHTML = `<span class="page-info">Tổng: ${sorted.length}</span>`;
+        } else {
+            let html = `<button onclick="window._leaderboardPage=1;renderLeaderboard()" ${window._leaderboardPage===1?'disabled':''}>⟨⟨</button>
+                        <button onclick="window._leaderboardPage=${window._leaderboardPage-1};renderLeaderboard()" ${window._leaderboardPage===1?'disabled':''}>⟨</button>`;
+            let ps = Math.max(1, window._leaderboardPage-2), pe = Math.min(totalPages, ps+4);
+            if (pe-ps < 4) ps = Math.max(1, pe-4);
+            for (let i=ps; i<=pe; i++) html += `<button onclick="window._leaderboardPage=${i};renderLeaderboard()" class="${i===window._leaderboardPage?'active':''}">${i}</button>`;
+            html += `<button onclick="window._leaderboardPage=${window._leaderboardPage+1};renderLeaderboard()" ${window._leaderboardPage===totalPages?'disabled':''}>⟩</button>
+                     <button onclick="window._leaderboardPage=${totalPages};renderLeaderboard()" ${window._leaderboardPage===totalPages?'disabled':''}>⟩⟩</button>
+                     <span class="page-info">Trang ${window._leaderboardPage}/${totalPages} (${sorted.length})</span>`;
+            lp.innerHTML = html;
+        }
+    }
 }
 
 function renderStatsCharts() {
