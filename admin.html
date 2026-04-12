@@ -2239,24 +2239,26 @@ D. Đáp án D
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ==========================================
 // 1. KHỞI TẠO FIREBASE
-// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
     authDomain: "thi-luat-giao-thong.firebaseapp.com",
     projectId: "thi-luat-giao-thong"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db  = firebase.firestore();
+const auth = firebase.auth();
+ 
+// Bật persistence để giữ phiên đăng nhập qua reload
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
 // ==========================================
 // 2. BIẾN TOÀN CỤC & CẤU HÌNH
 // ==========================================
 const DEFAULT_PASSWORD = '123456';
 const ADMIN_EMAIL = 'trunglq002@gmail.com';
+// Danh sách email admin được phép (thêm nếu có nhiều admin)
+const ADMIN_EMAILS = ['trunglq002@gmail.com'];
 
-if (localStorage.getItem("userType") !== "admin") {
-    location.href = "index.html"; // Chuyển hướng nếu không phải admin
-}
 
 let allStudents = [];
 let filteredStudents = [];
@@ -2515,9 +2517,18 @@ function formatDateInput(el) {
   if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5);
   el.value = v.slice(0, 10);
 }
-function simpleHash(str) {
+const HASH_SALT = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
+async function secureHash(plaintext) {
+    if (!plaintext && plaintext !== 0) return '';
+    const encoder = new TextEncoder();
+    const data = encoder.encode(HASH_SALT + String(plaintext) + HASH_SALT);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray  = Array.from(new Uint8Array(hashBuffer));
+    return 'h2_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function simpleHash_LEGACY(str) {
     let hash = 0;
-    const input = safeText(str);
+    const input = (str === undefined || str === null) ? '' : String(str);
     for (let i = 0; i < input.length; i++) {
         const char = input.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
@@ -2525,7 +2536,31 @@ function simpleHash(str) {
     }
     return 'h_' + Math.abs(hash).toString(36);
 }
-
+async function verifyAdminSession() {
+    return new Promise((resolve, reject) => {
+        const unsub = auth.onAuthStateChanged(async user => {
+            unsub();
+            if (!user) {
+                // Chưa đăng nhập → về trang login
+                localStorage.removeItem('userType');
+                location.href = 'index.html';
+                return reject('unauthenticated');
+            }
+            if (!ADMIN_EMAILS.includes(user.email)) {
+                // Email không thuộc admin list → đăng xuất
+                await auth.signOut();
+                showToast('Tài khoản không có quyền truy cập!', 'error');
+                setTimeout(() => { location.href = 'index.html'; }, 1500);
+                return reject('unauthorized');
+            }
+            // Thành công — lưu thông tin cơ bản
+            localStorage.setItem('userType', 'admin');
+            const displayName = user.displayName || user.email.split('@')[0];
+            localStorage.setItem('adminName', displayName);
+            resolve(user);
+        });
+    });
+}
 // ==========================================
 // 4. GIAO DIỆN & TƯƠNG TÁC CHUNG
 // ==========================================
