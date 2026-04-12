@@ -275,19 +275,81 @@ function hideMaintenancePage() {
 }
 
 // KHỞI TẠO TRANG
-window.onload = async function() {
-    QRCode.render(document.getElementById('qrCanvas'), window.location.href.split('?')[0].replace(/\/[^\/]*$/,'/'), 110);
-    localStorage.clear();
-    const li = document.getElementById('loginInput'), pw = document.getElementById('password'), showPwCheckbox = document.getElementById('showPass');
-    li.addEventListener('keydown', e => { if(e.key==='Enter'){ if(!pw.value) pw.focus(); else login(); }});
-    li.addEventListener('input', () => { hideError(); });
-    pw.addEventListener('keydown', e => { if(e.key==='Enter') login(); });
-    document.getElementById('loginBtn').onclick = login;
-    document.getElementById('tryBtn').onclick = tryExam;
-    showPwCheckbox.addEventListener('change', function() { pw.type = this.checked ? 'text' : 'password'; });
-    li.focus();
-    if(await checkMaintenanceMode()){ showMaintenancePage(); }
+window.onload = async function () {
+    // ── 4.1: Xác thực Firebase Auth trước tiên ──────────────────
+    showLoading('Đang xác thực phiên đăng nhập...');
+    try {
+        await verifyAdminSession();
+    } catch(e) {
+        // verifyAdminSession đã redirect, chỉ cần return
+        return;
+    }
+ 
+    // ── 4.2: Kiểm tra maintenance (giữ nguyên logic cũ) ─────────
+    let isMaintenanceOn = false;
+    try {
+        const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
+        if (maintDoc.exists && maintDoc.data().enabled) isMaintenanceOn = true;
+    } catch (_) {
+        try {
+            const local = JSON.parse(localStorage.getItem('maintenanceMode') || '{}');
+            if (local.enabled) isMaintenanceOn = true;
+        } catch (_) {}
+    }
+ 
+    // Admin luôn được vào, kể cả khi maintenance
+    if (isMaintenanceOn) {
+        const banner = document.getElementById('maintenanceBanner');
+        if (banner) { banner.classList.add('show'); }
+    }
+ 
+    // ── 4.3: Giao diện cơ bản ────────────────────────────────────
+    bindGlobalEvents();
+ 
+    const t = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    updateThemeIcon(t);
+ 
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        document.getElementById('sidebar')?.classList.add('collapsed');
+    }
+ 
+    const adminName = localStorage.getItem('adminName') || 'Admin';
+    document.getElementById('headerAdminName').textContent = adminName;
+ 
+    const avatarEl = document.getElementById('adminAvatar');
+    if (avatarEl) avatarEl.textContent = adminName.charAt(0).toUpperCase();
+ 
+    updateClock();
+    setInterval(updateClock, 1000);
+ 
+    // ── 4.4: Khởi tạo hệ thống Firebase + dữ liệu ───────────────
+    await initializeSystem();
+ 
+    // ── 4.5: Lắng nghe thay đổi trạng thái auth realtime ────────
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            // Bị đăng xuất từ tab khác hoặc hết session
+            showToast('⚠ Phiên đăng nhập đã kết thúc. Đang chuyển hướng...', 'warning', 2500);
+            setTimeout(() => { location.href = 'index.html'; }, 2500);
+        }
+    });
 };
+async function writeAuditLog(action, detail = {}) {
+    try {
+        const user = auth.currentUser;
+        await db.collection('auditLogs').add({
+            action,
+            adminEmail: user?.email || 'unknown',
+            adminUid:   user?.uid || 'unknown',
+            detail,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            userAgent: navigator.userAgent.substring(0, 200)
+        });
+    } catch(e) {
+        console.warn('[AuditLog] Lỗi ghi log:', e.message);
+    }
+}
 
 // LOGIC ĐĂNG NHẬP
 async function login() {
@@ -431,6 +493,19 @@ const LOGIN_RATE = {
         return Math.ceil((this.WINDOW_MS - (Date.now() - since)) / 60000);
     }
 };
+async function verifyStudentPassword(inputPassword, storedHash) {
+    if (!storedHash) return false;
+ 
+    if (storedHash.startsWith('h2_')) {
+        // Hash mới (SHA-256)
+        const computed = await secureHash(inputPassword);
+        return computed === storedHash;
+    } else if (storedHash.startsWith('h_')) {
+        // Hash cũ (legacy) — vẫn cho đăng nhập nhưng tự động upgrade
+        return simpleHash_LEGACY(inputPassword) === storedHash;
+    }
+    return false;
+}
 // XỬ LÝ MODAL
 function skipChangePw() { document.getElementById('pwPromptModal').classList.remove('show'); showSuccess('✅ Đang chuyển vào hệ thống...'); setTimeout(() => { location.href = 'exam.html'; }, 800); }
 function acceptChangePw() { document.getElementById('pwPromptModal').classList.remove('show'); openChangePwModal(localStorage.getItem('studentCode')); }
