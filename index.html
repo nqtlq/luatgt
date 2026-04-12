@@ -198,6 +198,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <!-- THƯ VIỆN FIREBASE & QR CODE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 // MINI QR CODE GENERATOR
 const QRCode=(function(){function QR(t,e){var r=e||4,n=function(t){for(var e=function(t){for(var e=t.length,r=[],n=0;n<e;n++){var o=t.charCodeAt(n);o<128?r.push(o):o<2048?r.push(192|o>>6,128|63&o):o<55296||o>=57344?r.push(224|o>>12,128|o>>6&63,128|63&o):(n++,o=65536+((1023&o)<<10|1023&t.charCodeAt(n)),r.push(240|o>>18,128|o>>12&63,128|o>>6&63,128|63&o))}return r}(t),r=e.length,n=[[10,9,8,8],[12,11,16,10],[14,13,16,12],[16,15,16,14],[17,16,16,16],[18,17,16,18],[20,18,16,20],[21,20,16,22],[24,22,16,24],[25,23,16,26]],o=0;o<n.length;o++)if(r<=n[o][0])return o+1;return-1}(t);if(n<1)return null;for(var o,a,i,s,l=function(t,e){for(var r=4*t+17,n=[],o=0;o<r;o++){n[o]=[];for(var a=0;a<r;a++)n[o][a]=null}return n}(n),u=l.length,c=function(t){for(var e=[],r=0;r<t.length;r++)for(var n=t.charCodeAt(r),o=n<128?[n]:n<2048?[192|n>>6,128|63&n]:n<55296||n>=57344?[224|n>>12,128|o>>6&63,128|63&n]:[],a=0;a<o.length;a++)e.push(o[a]);return e}(t),d=0;d<u;d++)for(var f=0;f<u;f++)l[d][f]=null;!function(t,e){var r=t.length;t[0][0]=1;t[0][1]=1;t[0][2]=1;t[0][3]=1;t[0][4]=1;t[0][5]=1;t[0][6]=1;t[1][0]=1;t[1][6]=1;t[2][0]=1;t[2][2]=1;t[2][3]=1;t[2][4]=1;t[2][6]=1;t[3][0]=1;t[3][2]=1;t[3][3]=1;t[3][4]=1;t[3][6]=1;t[4][0]=1;t[4][2]=1;t[4][3]=1;t[4][4]=1;t[4][6]=1;t[5][0]=1;t[5][6]=1;t[6][0]=1;t[6][1]=1;t[6][2]=1;t[6][3]=1;t[6][4]=1;t[6][5]=1;t[6][6]=1;for(var n=0;n<7;n++)t[n][r-7]=n===0||n===6?1:n===1||n===5?n===0||n===6?1:0:n>=2&&n<=4?1:0;t[0][r-7]=1;t[0][r-6]=1;t[0][r-5]=1;t[0][r-4]=1;t[0][r-3]=1;t[0][r-2]=1;t[0][r-1]=1;t[1][r-7]=1;t[1][r-1]=1;t[2][r-7]=1;t[2][r-5]=1;t[2][r-4]=1;t[2][r-3]=1;t[2][r-1]=1;t[3][r-7]=1;t[3][r-5]=1;t[3][r-4]=1;t[3][r-3]=1;t[3][r-1]=1;t[4][r-7]=1;t[4][r-5]=1;t[4][r-4]=1;t[4][r-3]=1;t[4][r-1]=1;t[5][r-7]=1;t[5][r-1]=1;t[6][r-7]=1;t[6][r-6]=1;t[6][r-5]=1;t[6][r-4]=1;t[6][r-3]=1;t[6][r-2]=1;t[6][r-1]=1;for(n=0;n<7;n++){t[r-7+n][0]=n===0||n===6?1:n===1||n===5?n===0||n===6?1:0:n>=2&&n<=4?1:0}t[r-7][0]=1;t[r-6][0]=1;t[r-5][0]=1;t[r-4][0]=1;t[r-3][0]=1;t[r-2][0]=1;t[r-1][0]=1;t[r-7][1]=1;t[r-1][1]=1;t[r-7][2]=1;t[r-5][2]=1;t[r-4][2]=1;t[r-3][2]=1;t[r-1][2]=1;t[r-7][3]=1;t[r-5][3]=1;t[r-4][3]=1;t[r-3][3]=1;t[r-1][3]=1;t[r-7][4]=1;t[r-5][4]=1;t[r-4][4]=1;t[r-3][4]=1;t[r-1][4]=1;t[r-7][5]=1;t[r-1][5]=1;t[r-7][6]=1;t[r-6][6]=1;t[r-5][6]=1;t[r-4][6]=1;t[r-3][6]=1;t[r-2][6]=1;t[r-1][6]=1;for(n=8;n<r-8;n++)t[6][n]=n%2===0?1:0,t[n][6]=n%2===0?1:0;t[r-8][8]=1}(l);return l}
@@ -302,38 +303,46 @@ async function login() {
     finally { showLoginLoading(false); }
 }
 
-async function processAdminLogin(pass) {
-    let matched = false;
-    if (pass === _AF) matched = true;
-    if (!matched && firebaseReady && db) {
-        try {
-            // Kiểm tra cả 2 vị trí lưu mật khẩu admin
-            // 1) systemConfig/admin  (cũ)
-            const d1 = await db.collection('systemConfig').doc('admin').get();
-            if (d1.exists) {
-                const data = d1.data();
-                if (data.passwordHash && simpleHash(pass) === data.passwordHash) matched = true;
-                if (!matched && data.password && pass === data.password) matched = true;
-            }
-            // 2) systemConfig/adminCredentials  (admin.html changeAdminPassword lưu tại đây)
-            if (!matched) {
-                const d2 = await db.collection('systemConfig').doc('adminCredentials').get();
-                if (d2.exists) {
-                    const data2 = d2.data();
-                    if (data2.passwordHash && simpleHash(pass) === data2.passwordHash) matched = true;
-                }
-            }
-        } catch(e) {}
+async function adminLogin() {
+    const email    = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+
+    // Kiểm tra rate limit
+    if (!LOGIN_RATE.check()) {
+        showError(`Quá nhiều lần thử. Vui lòng chờ ${LOGIN_RATE.remainingTime()} phút.`);
+        return;
     }
-    if (matched) {
+
+    showLoading('Đang đăng nhập...');
+    try {
+        const credential = await auth.signInWithEmailAndPassword(email, password);
+        const user = credential.user;
+
+        // Kiểm tra email admin
+        const ADMIN_EMAILS = ['trunglq002@gmail.com'];
+        if (!ADMIN_EMAILS.includes(user.email)) {
+            await auth.signOut();
+            hideLoading();
+            showError('Tài khoản không có quyền Admin!');
+            return;
+        }
+
+        // Thành công
         localStorage.setItem('userType', 'admin');
-        localStorage.setItem('adminName', 'Admin');
-        showSuccess('✅ Đăng nhập Admin thành công!');
-        setTimeout(() => { location.href = 'admin.html'; }, 800);
-    } else {
-        showError('❌ Bạn đã nhập sai mật khẩu Admin.');
-        document.getElementById('password').value = '';
-        document.getElementById('password').focus();
+        localStorage.setItem('adminName', user.displayName || user.email.split('@')[0]);
+        LOGIN_RATE.reset?.(); // reset attempts nếu có hàm này
+        location.href = 'admin.html';
+
+    } catch(e) {
+        hideLoading();
+        LOGIN_RATE.record();
+        const errMap = {
+            'auth/user-not-found':  'Email không tồn tại!',
+            'auth/wrong-password':  'Mật khẩu không đúng!',
+            'auth/too-many-requests': 'Quá nhiều lần thử. Tài khoản tạm thời bị khóa.',
+            'auth/invalid-email':   'Email không hợp lệ!',
+        };
+        showError(errMap[e.code] || ('Lỗi đăng nhập: ' + e.message));
     }
 }
 
