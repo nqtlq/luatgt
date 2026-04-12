@@ -2646,8 +2646,11 @@ function showPage(id, btn) {
 }
 
 function logout() {
-    showConfirm('Đăng xuất', 'Bạn muốn đăng xuất?', '⚠').then(ok => {
+    showConfirm('Đăng xuất', 'Bạn muốn đăng xuất khỏi hệ thống?', '🔓').then(async ok => {
         if (!ok) return;
+        try {
+            await auth.signOut();
+        } catch(_) {}
         localStorage.removeItem('userType');
         localStorage.removeItem('adminUser');
         localStorage.removeItem('adminName');
@@ -3412,7 +3415,7 @@ async function saveStudent() {
             }
             const newStudent = {
                 code: candidate, name, unit, dob, object, course,
-                password: simpleHash(DEFAULT_PASSWORD), passwordChanged: false,
+                password: await secureHash(DEFAULT_PASSWORD), passwordChanged: false,
                 status: 'active', exams: 0, bestScore: 0, avgScore: 0,
                 nameSearch: name.toLowerCase(), createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -3547,7 +3550,7 @@ async function importStudents() {
                 const code = sd.prefix + String(counters[sd.prefix]).padStart(4, '0');
                 batch.set(db.collection('students').doc(code), {
                     code, name: sd.name, unit: sd.unit, dob: sd.dob, object: sd.object, course: sd.course || '',
-                    password: simpleHash(DEFAULT_PASSWORD), passwordChanged: false, status: 'active',
+                    password: await secureHash(DEFAULT_PASSWORD), passwordChanged: false, status: 'active',
                     exams: 0, bestScore: 0, avgScore: 0, nameSearch: sd.name.toLowerCase(),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -6111,72 +6114,60 @@ function openChangeAdminPasswordModal() {
 }
 
 async function changeAdminPassword() {
-    const current = document.getElementById('pwCurrent')?.value || '';
-    const newPw   = document.getElementById('pwNew')?.value || '';
-    const confirm = document.getElementById('pwConfirm')?.value || '';
-
-    if (!current || !newPw || !confirm) return showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
-    if (newPw.length < 6) return showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
-    if (newPw !== confirm) return showToast('Mật khẩu xác nhận không khớp!', 'error');
-    if (newPw === current) return showToast('Mật khẩu mới phải khác mật khẩu hiện tại!', 'error');
-
+    const current = (document.getElementById('pwCurrent')?.value || '').trim();
+    const newPw   = (document.getElementById('pwNew')?.value   || '').trim();
+    const confirm = (document.getElementById('pwConfirm')?.value || '').trim();
+ 
+    if (!current || !newPw || !confirm)
+        return showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
+    if (newPw.length < 8)
+        return showToast('Mật khẩu mới phải có ít nhất 8 ký tự!', 'error');
+    if (!/[A-Z]/.test(newPw) || !/[0-9]/.test(newPw))
+        return showToast('Mật khẩu cần có ít nhất 1 chữ hoa và 1 số!', 'error');
+    if (newPw !== confirm)
+        return showToast('Mật khẩu xác nhận không khớp!', 'error');
+    if (newPw === current)
+        return showToast('Mật khẩu mới phải khác mật khẩu hiện tại!', 'error');
+ 
     showLoading('Đang xác thực...');
     try {
-        // Kiểm tra MK hiện tại — đọc từ CẢ 2 vị trí (adminCredentials + admin)
-        const currentHash = simpleHash(current);
-        let storedHash = null;
-
-        const d1 = await db.collection('systemConfig').doc('adminCredentials').get();
-        if (d1.exists && d1.data().passwordHash) {
-            storedHash = d1.data().passwordHash;
-        } else {
-            const d2 = await db.collection('systemConfig').doc('admin').get();
-            if (d2.exists) {
-                storedHash = d2.data().passwordHash || (d2.data().password ? simpleHash(d2.data().password) : null);
-            }
-        }
-        // Fallback: mặc định admin123
-        if (!storedHash) storedHash = simpleHash('admin123');
-
-        if (currentHash !== storedHash) {
-            hideLoading();
-            return showToast('❌ Mật khẩu hiện tại không đúng!', 'error');
-        }
-
-        // Lưu MK mới vào ĐỒNG THỜI CẢ 2 doc để không bị lệch
-        const newHash = simpleHash(newPw);
-        const batch = db.batch();
-        batch.set(db.collection('systemConfig').doc('adminCredentials'), {
-            passwordHash: newHash,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedBy: 'Admin'
+        const user = auth.currentUser;
+        if (!user) throw { code: 'auth/no-user', message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' };
+ 
+        // Re-authenticate trước khi đổi mật khẩu (bảo mật)
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+        await user.reauthenticateWithCredential(credential);
+ 
+        // Đổi mật khẩu qua Firebase Auth (an toàn, không cần hash thủ công)
+        await user.updatePassword(newPw);
+ 
+        // Ghi log thay đổi (không lưu mật khẩu rõ)
+        await db.collection('systemConfig').doc('adminAuditLog').set({
+            lastPasswordChange: firebase.firestore.FieldValue.serverTimestamp(),
+            changedByEmail: user.email
         }, { merge: true });
-        batch.set(db.collection('systemConfig').doc('admin'), {
-            passwordHash: newHash,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        await batch.commit();
-
-        // Ghi queue email
-        await sendAdminPasswordEmail(newPw);
-
+ 
         hideLoading();
         closeModal('changeAdminPwModal');
-        showToast(`✅ Đổi mật khẩu thành công! Hệ thống sẽ đăng xuất sau 3 giây...`, 'success', 3500);
-
-        // Tự động đăng xuất sau 3s
-        setTimeout(() => {
-            localStorage.removeItem('userType');
-            localStorage.removeItem('adminUser');
+        showToast('✅ Đổi mật khẩu thành công! Đăng xuất sau 3 giây...', 'success', 3500);
+ 
+        setTimeout(async () => {
+            await auth.signOut();
+            localStorage.clear();
             location.href = 'index.html';
         }, 3000);
-
+ 
     } catch(e) {
         hideLoading();
-        showToast('Lỗi: ' + e.message, 'error');
+        const errMap = {
+            'auth/wrong-password':    '❌ Mật khẩu hiện tại không đúng!',
+            'auth/weak-password':     '❌ Mật khẩu quá yếu! Cần ít nhất 8 ký tự.',
+            'auth/requires-recent-login': '⚠ Phiên đăng nhập quá cũ. Vui lòng đăng xuất và đăng nhập lại.',
+            'auth/no-user':           '⚠ Phiên đăng nhập đã hết hạn.',
+        };
+        showToast(errMap[e.code] || ('Lỗi: ' + e.message), 'error');
     }
 }
-
 async function sendAdminPasswordEmail(newPassword) {
     // Ghi vào emailQueue — có thể dùng Firebase Cloud Functions hoặc EmailJS để xử lý
     try {
@@ -6192,7 +6183,50 @@ async function sendAdminPasswordEmail(newPassword) {
         console.warn('[Email] Lỗi ghi queue:', e.message);
     }
 }
-
+async function migrateOldPasswords() {
+    const ok = await showConfirm(
+        '🔄 Migrate mật khẩu',
+        'Chuyển đổi tất cả mật khẩu cũ (hash yếu) sang SHA-256. Chạy 1 lần duy nhất?',
+        '🔐'
+    );
+    if (!ok) return;
+ 
+    showLoading('Đang migrate mật khẩu...');
+    try {
+        const snap = await db.collection('students').get();
+        const legacyDefault = simpleHash_LEGACY(DEFAULT_PASSWORD);
+        const newDefault    = await secureHash(DEFAULT_PASSWORD);
+ 
+        let migrated = 0;
+        const batchSize = 400;
+ 
+        for (let i = 0; i < snap.docs.length; i += batchSize) {
+            const batch = db.batch();
+            const chunk = snap.docs.slice(i, i + batchSize);
+ 
+            for (const doc of chunk) {
+                const data = doc.data();
+                // Chỉ migrate nếu vẫn đang dùng hash cũ
+                if (data.password && data.password.startsWith('h_')) {
+                    batch.update(doc.ref, {
+                        password: newDefault,
+                        passwordChanged: false,
+                        migratedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    migrated++;
+                }
+            }
+            await batch.commit();
+        }
+ 
+        hideLoading();
+        showToast(`✅ Đã migrate ${migrated} tài khoản sang SHA-256!`, 'success', 5000);
+        console.log(`[Migrate] Hoàn thành: ${migrated}/${snap.docs.length} tài khoản.`);
+    } catch(e) {
+        hideLoading();
+        showToast('Lỗi migrate: ' + e.message, 'error');
+    }
+}
 // ==========================================
 // 16. KHỞI TẠO HỆ THỐNG CHÍNH (ONLOAD)
 // ==========================================
