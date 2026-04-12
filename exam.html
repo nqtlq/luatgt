@@ -590,6 +590,167 @@ header { padding-top: env(safe-area-inset-top); }
 </div>
 
 <script>
+  const EXAM_PRESENCE_CODE = `
+// ── PRESENCE NÂNG CAO (dán vào exam.html) ────────────────────
+ 
+let _presenceTimer   = null;
+let _presenceUnsub   = null;
+let _tabHiddenSince  = null;
+let _signalUnsub     = null;
+ 
+/**
+ * Cập nhật presence với dữ liệu thi realtime.
+ * Gọi sau mỗi thao tác của học viên và mỗi 20 giây.
+ *
+ * @param {object} examState - Trạng thái bài thi hiện tại
+ *   examState.setCode        - Mã đề thi
+ *   examState.setName        - Tên đề thi
+ *   examState.currentIndex   - Chỉ số câu hỏi hiện tại (0-based)
+ *   examState.totalQuestions - Tổng số câu
+ *   examState.answers        - Mảng đáp án (null = chưa trả lời)
+ *   examState.timeLeft       - Thời gian còn lại (giây)
+ *   examState.startTime      - Thời gian bắt đầu (Date object)
+ *   examState.studentName    - Tên học viên
+ */
+async function updateExamPresence(examState) {
+    if (!window._currentStudentCode) return;
+    try {
+        const answered = (examState.answers || []).filter(a => a !== null && a !== undefined).length;
+        await db.collection('presence').doc(window._currentStudentCode).set({
+            isOnline:        true,
+            currentSection:  'Đang thi',
+            examSetCode:     examState.setCode  || '',
+            examSetName:     examState.setName  || '',
+            currentQuestion: (examState.currentIndex || 0) + 1,
+            totalQuestions:  examState.totalQuestions || 0,
+            answeredCount:   answered,
+            timeRemaining:   Math.max(0, examState.timeLeft || 0),
+            tabHidden:       document.hidden,
+            startAt:         examState.startTime ? firebase.firestore.Timestamp.fromDate(examState.startTime) : null,
+            lastActive:      firebase.firestore.FieldValue.serverTimestamp(),
+            studentName:     examState.studentName || window._currentStudentCode,
+            studentCode:     window._currentStudentCode
+        }, { merge: true });
+    } catch(e) {
+        console.warn('[Presence] Lỗi cập nhật:', e.message);
+    }
+}
+ 
+/** Khởi động presence khi học viên bắt đầu thi */
+function startExamPresence(studentCode, examState) {
+    window._currentStudentCode = studentCode;
+ 
+    // Heartbeat mỗi 20 giây
+    if (_presenceTimer) clearInterval(_presenceTimer);
+    _presenceTimer = setInterval(() => updateExamPresence(examState), 20_000);
+ 
+    // Phát hiện chuyển tab / thu nhỏ cửa sổ
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            _tabHiddenSince = Date.now();
+            db.collection('presence').doc(studentCode).update({
+                tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(() => {});
+        } else {
+            const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
+            _tabHiddenSince = null;
+            db.collection('presence').doc(studentCode).update({
+                tabHidden: false, tabReturnedAfterMs: hiddenMs,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(() => {});
+        }
+    });
+ 
+    // Lắng nghe tín hiệu từ admin
+    listenAdminSignals(studentCode, examState);
+ 
+    // Đánh dấu offline khi rời trang
+    window.addEventListener('beforeunload', () => {
+        db.collection('presence').doc(studentCode).update({
+            isOnline: false, currentSection: 'Đã nộp bài / Rời trang',
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+        if (_presenceTimer) clearInterval(_presenceTimer);
+    });
+ 
+    // Gửi ngay lần đầu
+    updateExamPresence(examState);
+}
+ 
+/** Lắng nghe tín hiệu admin: cảnh báo, kết thúc sớm */
+function listenAdminSignals(studentCode, examState) {
+    if (_signalUnsub) _signalUnsub();
+    _signalUnsub = db.collection('presence').doc(studentCode)
+        .onSnapshot(snap => {
+            if (!snap.exists) return;
+            const data = snap.data();
+            const signal = data?.adminSignal;
+            if (!signal || !signal.sentAt) return;
+ 
+            // Tránh xử lý lại tín hiệu cũ (trong 5 giây)
+            const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+            if (Date.now() - sentAt.getTime() > 5000) return;
+ 
+            if (signal.type === 'warning' || signal.type === 'broadcast') {
+                // Hiện popup cảnh báo từ giám thị
+                showAdminWarning(signal.message);
+            } else if (signal.type === 'force_end') {
+                // Kết thúc bài thi ngay lập tức
+                showAdminWarning('⚠ ' + signal.message);
+                setTimeout(() => {
+                    // Gọi hàm nộp bài của trang thi
+                    if (typeof submitExam === 'function') submitExam(true);
+                    else if (typeof endExam === 'function') endExam();
+                }, 3000);
+            }
+ 
+            // Xóa signal sau khi xử lý
+            db.collection('presence').doc(studentCode).update({ adminSignal: null }).catch(() => {});
+        });
+}
+ 
+/** Hiện modal cảnh báo từ giám thị */
+function showAdminWarning(message) {
+    let modal = document.getElementById('adminWarningModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'adminWarningModal';
+        modal.style.cssText = \`
+            position:fixed;inset:0;background:rgba(0,0,0,.7);
+            display:flex;align-items:center;justify-content:center;
+            z-index:99999;animation:fadeIn .3s;
+        \`;
+        modal.innerHTML = \`
+            <div style="background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%;
+                        text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+                <div style="font-size:48px;margin-bottom:12px;">📢</div>
+                <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;">Thông báo từ Giám thị</h3>
+                <p id="adminWarningMsg" style="font-size:15px;color:#444;margin:0 0 20px;line-height:1.6;"></p>
+                <button onclick="document.getElementById('adminWarningModal').style.display='none'"
+                        style="background:#0d6efd;color:#fff;border:none;padding:10px 28px;
+                               border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">
+                    Đã hiểu
+                </button>
+            </div>
+        \`;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('adminWarningMsg').textContent = message;
+    modal.style.display = 'flex';
+    // Rung chuông
+    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA...').play().catch(()=>{}); } catch(_) {}
+}
+ 
+/** Đánh dấu offline khi kết thúc thi bình thường */
+function endExamPresence(studentCode) {
+    if (_presenceTimer) clearInterval(_presenceTimer);
+    if (_signalUnsub) _signalUnsub();
+    db.collection('presence').doc(studentCode).update({
+        isOnline: false,
+        currentSection: 'Đã nộp bài',
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(() => {});
+}
 // =====================================================================
 // FIREBASE
 // =====================================================================
