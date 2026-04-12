@@ -1228,10 +1228,13 @@ maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot(doc => 
     kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
 });
 
-// Heartbeat – cập nhật presence để Admin thấy online real-time
+// =====================================================================
+// PRESENCE NÂNG CAO — Tích hợp giám sát admin realtime
+// =====================================================================
 const presenceRef = db.collection('presence').doc(studentCode);
 let _heartbeatStartAt = null;
 
+// Heartbeat chính — gửi mỗi 20 giây
 const heartbeat = () => {
   if (isKicked) return;
   const payload = {
@@ -1240,10 +1243,10 @@ const heartbeat = () => {
     studentName:    localStorage.getItem('studentName') || '',
     userType:       'student',
     currentSection: 'Trang chủ cá nhân',
+    tabHidden:      document.hidden,
     lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
     _clientTime:    Date.now(),
   };
-  // Lưu thời điểm vào trang lần đầu
   if (!_heartbeatStartAt) {
     _heartbeatStartAt = true;
     payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -1253,8 +1256,38 @@ const heartbeat = () => {
 heartbeat();
 setInterval(heartbeat, 20000);
 
+// Phát hiện chuyển tab / ẩn cửa sổ
+document.addEventListener('visibilitychange', () => {
+  if (isKicked) return;
+  if (document.hidden) {
+    _tabHiddenSince = Date.now();
+    presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  } else {
+    const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
+    _tabHiddenSince = null;
+    presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  }
+});
+
+// Lắng nghe tín hiệu từ Admin (cảnh báo, v.v.)
+_signalUnsub = presenceRef.onSnapshot(snap => {
+  if (!snap.exists || isKicked) return;
+  const signal = snap.data()?.adminSignal;
+  if (!signal || !signal.sentAt) return;
+  const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+  if (Date.now() - sentAt.getTime() > 5000) return; // Bỏ qua tín hiệu cũ hơn 5 giây
+
+  if (signal.type === 'warning' || signal.type === 'broadcast') {
+    showAdminWarning(signal.message);
+  }
+  // Xóa signal sau khi đã xử lý
+  presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(() => {});
+});
+
+
 window.addEventListener('beforeunload', () => {
-  if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
+  if (_signalUnsub) _signalUnsub();
+  if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true });
 });
 </script>
 </body>
