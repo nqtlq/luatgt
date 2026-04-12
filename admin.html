@@ -619,7 +619,78 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
 
-
+const LIVE_MONITOR_CSS = `
+/* ═══ LIVE EXAM MONITOR ═══ */
+.live-monitor-wrap { margin-top: 16px; }
+.live-monitor-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+}
+.live-monitor-toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.live-monitor-search {
+    padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 13px;
+    background: var(--bg-input); color: var(--text-primary); min-width: 200px;
+}
+.lm-table-wrap {
+    border-radius: var(--radius-md); overflow: hidden;
+    border: 1px solid var(--border); background: var(--bg-card);
+}
+.lm-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+.lm-table th {
+    background: var(--bg-table-head); padding: 10px 12px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--text-secondary);
+    border-bottom: 1px solid var(--border); white-space: nowrap; text-align: center;
+}
+.lm-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.lm-table tr:last-child td { border-bottom: none; }
+.lm-table tr:hover td { background: var(--bg-hover); }
+ 
+/* Progress bar câu hỏi */
+.q-progress { width: 100%; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; min-width: 80px; }
+.q-progress-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+.q-progress-fill.ok   { background: var(--success); }
+.q-progress-fill.warn { background: var(--warning); }
+.q-progress-fill.danger { background: var(--danger); }
+ 
+/* Timer countdown */
+.lm-timer { font-family: 'Courier New', monospace; font-weight: 700; font-size: 13px; }
+.lm-timer.ok     { color: var(--success); }
+.lm-timer.warn   { color: var(--warning); }
+.lm-timer.danger { color: var(--danger); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+ 
+/* Tab bị ẩn badge */
+.tab-hidden-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px;
+    font-weight: 700; background: var(--danger-light); color: var(--danger);
+    margin-left: 4px;
+}
+ 
+/* Action buttons */
+.lm-actions { display: flex; gap: 4px; justify-content: center; }
+.lm-btn { padding: 4px 10px; border: none; border-radius: 6px; font-size: 11px;
+          font-weight: 700; cursor: pointer; transition: opacity .2s; }
+.lm-btn:hover { opacity: .8; }
+.lm-btn-warn  { background: var(--warning-light); color: #856404; }
+.lm-btn-kick  { background: var(--danger-light);  color: var(--danger); }
+ 
+/* Stats mini row */
+.lm-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.lm-stat-pill {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 14px;
+    font-size: 12px; text-align: center;
+}
+.lm-stat-pill .num { font-size: 20px; font-weight: 800; line-height: 1.2; }
+.lm-stat-pill .lbl { color: var(--text-muted); font-size: 11px; }
+ 
+/* Empty state */
+.lm-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+`;
 
 </style>
 </head>
@@ -751,7 +822,62 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
                     <div class="card-value" id="onlineCount" style="color:var(--success);">0</div>
                     <div class="card-subtitle">HV: <strong id="examingCount" style="color:var(--warning);">0</strong> thi · Khách: <strong id="guestOnlineCount" style="color:var(--info,#0dcaf0);">0</strong></div>
                 </div>
-
+                const LIVE_MONITOR_HTML = `
+<!-- ═══ LIVE EXAM MONITOR PANEL ═══ -->
+<div class="live-monitor-wrap" id="liveMonitorWrap">
+  <div class="live-monitor-header">
+    <h3 style="margin:0;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;">
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--danger);animation:blink 1s infinite;"></span>
+      Giám sát thi trực tiếp
+      <span id="lmExamCount" style="background:var(--danger);color:white;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:700;">0</span>
+    </h3>
+    <div class="live-monitor-toolbar">
+      <input class="live-monitor-search" id="lmSearch" placeholder="Tìm học viên..." oninput="filterLiveMonitor()">
+      <select id="lmFilterStatus" onchange="filterLiveMonitor()"
+              style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+        <option value="">Tất cả trạng thái</option>
+        <option value="exam">Đang thi</option>
+        <option value="idle">Chờ / Duyệt</option>
+        <option value="hidden">Tab bị ẩn</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="refreshLiveMonitor()">🔄 Làm mới</button>
+      <button class="btn btn-danger btn-sm" onclick="broadcastWarning()">📢 Cảnh báo tất cả</button>
+    </div>
+  </div>
+ 
+  <!-- Mini stats -->
+  <div class="lm-stats" id="lmStats">
+    <div class="lm-stat-pill"><div class="num" id="lmTotalOnline">0</div><div class="lbl">Đang online</div></div>
+    <div class="lm-stat-pill"><div class="num" id="lmExaming">0</div><div class="lbl">Đang thi</div></div>
+    <div class="lm-stat-pill"><div class="num" id="lmTabHidden">0</div><div class="lbl">Tab bị ẩn</div></div>
+    <div class="lm-stat-pill"><div class="num" id="lmAvgProgress">—</div><div class="lbl">% TB hoàn thành</div></div>
+    <div class="lm-stat-pill"><div class="num" id="lmAvgTime">—</div><div class="lbl">Thời gian TB còn</div></div>
+  </div>
+ 
+  <!-- Bảng realtime -->
+  <div class="lm-table-wrap">
+    <div style="overflow-x:auto;">
+      <table class="lm-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th style="text-align:left;">Học viên</th>
+            <th>Đề thi</th>
+            <th>Câu hỏi</th>
+            <th>Tiến độ</th>
+            <th>Thời gian còn</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="lmTableBody">
+          <tr><td colspan="8" class="lm-empty">📡 Đang kết nối realtime...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
                 <div class="dash-card">
                     <div class="card-stripe purple"></div>
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -6500,6 +6626,221 @@ window.onload = async function () {
     // Khởi tạo hệ thống (Firebase + load dữ liệu)
     await initializeSystem();
 };
+// Dữ liệu giám sát thi
+let lmData = [];  // Mảng học viên đang online với dữ liệu thi
+let lmTimer = null; // Interval cập nhật timer
+ 
+/**
+ * Khởi động Live Monitor — gọi trong startPresenceListener()
+ * Thêm dòng: startLiveExamMonitor(); vào cuối hàm startPresenceListener()
+ */
+function startLiveExamMonitor() {
+    // Lắng nghe presence với dữ liệu thi nâng cao
+    if (window._lmUnsub) window._lmUnsub();
+    window._lmUnsub = db.collection('presence')
+        .where('isOnline', '==', true)
+        .onSnapshot(snap => {
+            const now = Date.now();
+            lmData = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (!d) return;
+                // Bỏ qua nếu lastActive > 2 phút
+                const lastMs = d.lastActive?.toDate ? d.lastActive.toDate().getTime()
+                             : d.lastActive ? new Date(d.lastActive).getTime() : 0;
+                if (now - lastMs > 120_000) return;
+                lmData.push({ code: doc.id, ...d, _lastMs: lastMs });
+            });
+            renderLiveMonitorTable();
+            updateLmStats();
+        });
+ 
+    // Cập nhật countdown timer mỗi giây
+    if (lmTimer) clearInterval(lmTimer);
+    lmTimer = setInterval(() => {
+        // Cập nhật chỉ cột timer, không re-render toàn bộ bảng
+        lmData.forEach(s => {
+            if (!s.timeRemaining && s.timeRemaining !== 0) return;
+            const elapsed = Math.floor((Date.now() - s._lastMs) / 1000);
+            const remaining = Math.max(0, s.timeRemaining - elapsed);
+            const el = document.getElementById(`lm_timer_${s.code}`);
+            if (el) {
+                el.textContent = formatSeconds(remaining);
+                el.className = 'lm-timer ' +
+                    (remaining > 300 ? 'ok' : remaining > 60 ? 'warn' : 'danger');
+            }
+        });
+    }, 1000);
+}
+ 
+function renderLiveMonitorTable() {
+    const tb = document.getElementById('lmTableBody');
+    if (!tb) return;
+ 
+    let list = [...lmData];
+ 
+    // Filter
+    const search = (document.getElementById('lmSearch')?.value || '').toLowerCase();
+    const status = document.getElementById('lmFilterStatus')?.value || '';
+ 
+    if (search) {
+        list = list.filter(s =>
+            (s.studentName || s.code || '').toLowerCase().includes(search) ||
+            (s.code || '').toLowerCase().includes(search)
+        );
+    }
+    if (status === 'exam')   list = list.filter(s => s.currentSection?.includes('thi'));
+    if (status === 'idle')   list = list.filter(s => !s.currentSection?.includes('thi'));
+    if (status === 'hidden') list = list.filter(s => s.tabHidden);
+ 
+    // Sort: đang thi trước, tab ẩn cuối
+    list.sort((a, b) => {
+        const aExam = a.currentSection?.includes('thi') ? 0 : 1;
+        const bExam = b.currentSection?.includes('thi') ? 0 : 1;
+        return aExam - bExam;
+    });
+ 
+    if (!list.length) {
+        tb.innerHTML = '<tr><td colspan="8" class="lm-empty">📭 Không có học viên nào đang online</td></tr>';
+        document.getElementById('lmExamCount').textContent = '0';
+        return;
+    }
+ 
+    const examingCount = list.filter(s => s.currentSection?.includes('thi')).length;
+    document.getElementById('lmExamCount').textContent = examingCount;
+ 
+    tb.innerHTML = list.map((s, i) => {
+        const isExaming = s.currentSection?.toLowerCase().includes('thi');
+        const answered  = s.answeredCount || 0;
+        const total     = s.totalQuestions || 0;
+        const pct       = total ? Math.round(answered / total * 100) : 0;
+        const pctClass  = pct >= 80 ? 'ok' : pct >= 40 ? 'warn' : 'danger';
+        const remaining = s.timeRemaining || 0;
+        const timerClass = remaining > 300 ? 'ok' : remaining > 60 ? 'warn' : 'danger';
+        const student   = allStudents.find(st => st.code === s.code);
+ 
+        const tabHiddenBadge = s.tabHidden
+            ? `<span class="tab-hidden-badge">⚠ Rời tab</span>` : '';
+ 
+        const sectionBadge = isExaming
+            ? `<span style="background:var(--success-light);color:var(--success);padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;">Đang thi</span>`
+            : `<span style="background:var(--accent-light);color:var(--accent);padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;">${escapeHtml(s.currentSection||'Online')}</span>`;
+ 
+        return `<tr>
+            <td style="text-align:center;color:var(--text-muted);">${i+1}</td>
+            <td>
+                <b>${escapeHtml(student?.name || s.studentName || s.code)}</b>
+                <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(s.code)} · ${escapeHtml(student?.unit||'—')}</div>
+                ${tabHiddenBadge}
+            </td>
+            <td style="text-align:center;font-size:12px;">${escapeHtml(s.examSetName || s.examSetCode || '—')}</td>
+            <td style="text-align:center;">
+                ${isExaming ? `<b>${s.currentQuestion||0}</b>/<span style="color:var(--text-muted)">${total}</span>` : '—'}
+            </td>
+            <td style="min-width:120px;">
+                ${isExaming && total ? `
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="q-progress"><div class="q-progress-fill ${pctClass}" style="width:${pct}%"></div></div>
+                    <span style="font-size:11px;color:var(--text-muted);min-width:28px;">${pct}%</span>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${answered}/${total} câu đã trả lời</div>
+                ` : '—'}
+            </td>
+            <td style="text-align:center;">
+                ${isExaming
+                    ? `<span class="lm-timer ${timerClass}" id="lm_timer_${escapeHtml(s.code)}">${formatSeconds(remaining)}</span>`
+                    : '—'}
+            </td>
+            <td style="text-align:center;">${sectionBadge}</td>
+            <td>
+                <div class="lm-actions">
+                    <button class="lm-btn lm-btn-warn" onclick="sendWarningToStudent('${escapeHtml(s.code)}')" title="Gửi cảnh báo">⚠ Cảnh báo</button>
+                    ${isExaming ? `<button class="lm-btn lm-btn-kick" onclick="forceEndExam('${escapeHtml(s.code)}')" title="Kết thúc bài thi">⏹ Kết thúc</button>` : ''}
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+ 
+function updateLmStats() {
+    const total    = lmData.length;
+    const examing  = lmData.filter(s => s.currentSection?.includes('thi')).length;
+    const hidden   = lmData.filter(s => s.tabHidden).length;
+ 
+    const examers  = lmData.filter(s => s.currentSection?.includes('thi') && s.totalQuestions > 0);
+    const avgProg  = examers.length
+        ? Math.round(examers.reduce((a, s) => a + (s.answeredCount||0)/(s.totalQuestions||1)*100, 0) / examers.length)
+        : null;
+    const avgTime  = examers.length
+        ? Math.round(examers.reduce((a, s) => a + (s.timeRemaining||0), 0) / examers.length)
+        : null;
+ 
+    document.getElementById('lmTotalOnline').textContent = total;
+    document.getElementById('lmExaming').textContent     = examing;
+    document.getElementById('lmTabHidden').textContent   = hidden;
+    document.getElementById('lmAvgProgress').textContent = avgProg !== null ? avgProg + '%' : '—';
+    document.getElementById('lmAvgTime').textContent     = avgTime !== null ? formatSeconds(avgTime) : '—';
+}
+ 
+function filterLiveMonitor() { renderLiveMonitorTable(); }
+function refreshLiveMonitor() { renderLiveMonitorTable(); updateLmStats(); }
+ 
+/** Gửi cảnh báo đến học viên cụ thể qua Firestore signal */
+async function sendWarningToStudent(code) {
+    const msg = prompt(`Nội dung cảnh báo gửi đến ${code}:`, 'Chú ý! Giám thị đang theo dõi.');
+    if (!msg) return;
+    try {
+        await db.collection('presence').doc(code).update({
+            adminSignal: { type: 'warning', message: msg, sentAt: firebase.firestore.FieldValue.serverTimestamp() }
+        });
+        showToast(`Đã gửi cảnh báo đến ${code}!`, 'success', 2000);
+    } catch(e) {
+        showToast('Lỗi gửi cảnh báo: ' + e.message, 'error');
+    }
+}
+ 
+/** Phát cảnh báo đến tất cả học viên đang thi */
+async function broadcastWarning() {
+    const ok = await showConfirm('📢 Cảnh báo toàn phòng', 'Gửi thông báo đến TẤT CẢ học viên đang thi?', '📢');
+    if (!ok) return;
+    const msg = prompt('Nội dung thông báo:', 'Thông báo từ giám thị: Tập trung làm bài!');
+    if (!msg) return;
+    const examers = lmData.filter(s => s.currentSection?.includes('thi'));
+    const batch = db.batch();
+    examers.forEach(s => {
+        batch.update(db.collection('presence').doc(s.code), {
+            adminSignal: { type: 'broadcast', message: msg, sentAt: firebase.firestore.FieldValue.serverTimestamp() }
+        });
+    });
+    try {
+        await batch.commit();
+        showToast(`Đã phát cảnh báo đến ${examers.length} học viên!`, 'success');
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+ 
+/** Kết thúc sớm bài thi của học viên */
+async function forceEndExam(code) {
+    const ok = await showConfirm('⏹ Kết thúc bài thi', `Kết thúc sớm bài thi của ${code}?`, '⚠');
+    if (!ok) return;
+    try {
+        await db.collection('presence').doc(code).update({
+            adminSignal: { type: 'force_end', message: 'Bài thi đã bị kết thúc bởi giám thị.', sentAt: firebase.firestore.FieldValue.serverTimestamp() }
+        });
+        showToast(`Đã gửi lệnh kết thúc tới ${code}!`, 'warning', 2000);
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+ 
+/** Format giây thành mm:ss */
+function formatSeconds(sec) {
+    if (!sec && sec !== 0) return '—';
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
 </script>
 </body>
 </html>
