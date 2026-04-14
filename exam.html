@@ -653,16 +653,17 @@ function kickOut(title, message, icon) {
 async function initPage() {
   const loaderMsg = document.getElementById('loaderMsg');
 
-  // ── BƯỚC 1: Đảm bảo Anonymous Auth ───────────────────────────
+  // ── BƯỚC 1: Anonymous Auth ────────────────────────────────────
   try {
-    loaderMsg.textContent = 'Đang xác thực tài khoản...';
+    loaderMsg.textContent = '🔐 Đang xác thực...';
     await ensureAuth();
-  } catch(authErr) {
-    console.error('Auth lỗi:', authErr.code, authErr.message);
-    if (authErr.code === 'auth/operation-not-allowed') {
-      alert('❌ Lỗi cấu hình: Anonymous Auth chưa được bật trong Firebase Console.\nVào: Authentication → Sign-in methods → Anonymous → Enable');
+    console.log('✅ Auth sẵn sàng, UID:', auth.currentUser?.uid);
+  } catch(e) {
+    console.error('Auth thất bại:', e.code);
+    if (e.code === 'auth/operation-not-allowed') {
+      alert('❌ Anonymous Auth chưa được bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable');
     } else {
-      alert('⚠️ Không thể kết nối máy chủ xác thực. Kiểm tra mạng và tải lại trang.');
+      alert('⚠️ Lỗi kết nối: ' + e.message);
     }
     location.href = 'index.html';
     return;
@@ -670,55 +671,46 @@ async function initPage() {
 
   // ── BƯỚC 2: Kiểm tra bảo trì ──────────────────────────────────
   try {
-    loaderMsg.textContent = 'Đang kiểm tra hệ thống...';
+    loaderMsg.textContent = '🔍 Kiểm tra hệ thống...';
     const maint = await db.collection('systemConfig').doc('maintenance').get();
     if (maint.exists && maint.data().enabled) {
-      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
       return;
     }
   } catch(e) {
-    console.warn('Kiểm tra bảo trì lỗi:', e.code, e.message);
-    // Không chặn nếu lỗi kiểm tra bảo trì
+    console.warn('Bảo trì check lỗi:', e.code); // Không chặn
   }
 
-  // ── BƯỚC 3: Load dữ liệu học viên ─────────────────────────────
-  loaderMsg.textContent = 'Đang tải thông tin học viên...';
+  // ── BƯỚC 3: Load học viên ─────────────────────────────────────
+  loaderMsg.textContent = '👤 Đang tải thông tin...';
   let studentData = null;
   try {
-    // Thử tìm theo document ID (nếu studentCode là doc ID)
+    // Tìm theo doc ID trước
     const docSnap = await db.collection('students').doc(studentCode).get();
     if (docSnap.exists) {
       studentData = { id: docSnap.id, ...docSnap.data() };
     } else {
-      // Tìm theo field "code"
+      // Tìm theo field code
       const q = await db.collection('students')
         .where('code', '==', studentCode).limit(1).get();
       if (!q.empty) studentData = { id: q.docs[0].id, ...q.docs[0].data() };
     }
   } catch(e) {
     console.error('Load student lỗi:', e.code, e.message);
-    if (e.code === 'permission-denied') {
-      alert('❌ Lỗi quyền truy cập dữ liệu.\nKiểm tra Firestore Rules: students phải allow read khi request.auth != null');
-      location.href = 'index.html';
-      return;
-    }
-    alert('⚠️ Lỗi tải dữ liệu: ' + e.message);
+    alert('❌ Lỗi tải dữ liệu học viên: ' + e.message);
     location.href = 'index.html';
     return;
   }
 
   if (!studentData) {
-    alert('❌ Không tìm thấy dữ liệu học viên!');
-    localStorage.clear();
-    location.href = 'index.html';
-    return;
+    alert('❌ Không tìm thấy tài khoản!');
+    localStorage.clear(); location.href = 'index.html'; return;
   }
   if (studentData.status === 'locked') {
-    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '🔒');
-    return;
+    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '🔒'); return;
   }
 
-  // ── BƯỚC 4: Cập nhật thông tin vào localStorage và UI ────────
+  // ── BƯỚC 4: Cập nhật UI ───────────────────────────────────────
   localStorage.setItem('studentObject', studentData.object || '');
   localStorage.setItem('studentCourse', studentData.course || '');
   localStorage.setItem('studentName',   studentData.name   || '');
@@ -726,84 +718,181 @@ async function initPage() {
   document.getElementById('studentName').textContent  = studentData.name || '';
   document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
   document.getElementById('infoCode').textContent     = studentData.code || studentCode;
-  document.getElementById('infoName').textContent     = studentData.name || '—';
-  document.getElementById('infoUnit').textContent     = studentData.unit || '—';
+  document.getElementById('infoName').textContent     = studentData.name   || '—';
+  document.getElementById('infoUnit').textContent     = studentData.unit   || '—';
   document.getElementById('infoDob').textContent      = fmtDate(studentData.dob);
   document.getElementById('infoObject').textContent   = studentData.object || '—';
   document.getElementById('infoCourse').textContent   = studentData.course || '—';
 
   const isActive = studentData.status !== 'locked';
   document.getElementById('infoStatus').innerHTML =
-    `<span class="status-badge ${isActive?'badge-active':'badge-locked'}">${isActive?'✅ Hoạt động':'🔒 Đã khóa'}</span>`;
+    `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">
+      ${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}
+    </span>`;
 
-  // ── BƯỚC 5: Ẩn loader, hiện nội dung ─────────────────────────
+  // ── BƯỚC 5: Ẩn loader ─────────────────────────────────────────
   document.getElementById('pageLoader').style.display = 'none';
 
-  // ── BƯỚC 6: Load dữ liệu phụ + Realtime listeners ────────────
-  loadExamResults();
-  loadNotifications();
-  startRealtimeListeners();
-  startPresence();
+  // ── BƯỚC 6: Load dữ liệu + listeners ─────────────────────────
+  loadExamResults();       // Tải lịch sử bài thi
+  loadNotifications();     // Tải thông báo
+  startRealtimeListeners(); // Giám sát khóa TK + bảo trì
+  startPresence();         // Ghi nhận online
+
+  console.log('✅ Trang exam sẵn sàng');
 }
 
 // =====================================================================
-// EXAM RESULTS + CHART — REAL-TIME
+// EXAM RESULTS + CHART — REAL-TIME với xử lý lỗi đầy đủ
 // =====================================================================
 function loadExamResults() {
-  if (examResultsUnsub) examResultsUnsub();
-  examResultsUnsub = db.collection('examResults')
-    .where('studentCode', '==', studentCode)
-    .limit(100)
-    .onSnapshot(snap => {
-      let pass = 0, fail = 0;
-      const logs = [];
-      snap.forEach(d => {
-        const data = d.data();
-        logs.push(data);
-        if (data.passed) pass++; else fail++;
-      });
-      logs.sort((a,b) => {
-        const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
-        const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
-        return tb - ta;
-      });
-      animNum(document.getElementById('totalExam'), logs.length);
-      animNum(document.getElementById('passExam'), pass);
-      animNum(document.getElementById('failExam'), fail);
-      if (!logs.length) {
-        document.getElementById('noDataMsg').style.display     = 'block';
-        document.getElementById('resultTableWrap').style.display = 'none';
-        document.getElementById('chartWrap').style.display     = 'none';
-        return;
-      }
-      const tb = document.getElementById('resultTableBody');
-      tb.innerHTML = logs.slice(0,5).map((d,i) => {
-        const ts      = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
-        const correct = d.correctCount ?? d.score ?? 0;
-        const total   = d.totalQuestions || 0;
-        return `<tr>
-          <td>${i+1}</td>
-          <td>${fmtDateTime(ts)}</td>
-          <td>${d.setName||d.setCode||'—'}</td>
-          <td><b style="color:${d.passed?'var(--green)':'var(--red)'}">${correct}/${total}</b></td>
-          <td class="${d.passed?'pass':'fail'}">${d.passed?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}</td>
-        </tr>`;
-      }).join('');
-      document.getElementById('resultTableWrap').style.display = 'block';
-      document.getElementById('noDataMsg').style.display       = 'none';
-      document.getElementById('chartWrap').style.display       = 'block';
-      const total2 = pass + fail;
-      const pPct   = total2 ? Math.round(pass*100/total2) : 0;
-      if (chart) chart.destroy();
-      chart = new Chart(document.getElementById('resultChart'), {
-        type: 'doughnut',
-        data: {
-          labels: [`Đạt (${pPct}%)`, `Không đạt (${100-pPct}%)`],
-          datasets: [{ data: [pass||0, fail||0], backgroundColor: ['#2a9d8f','#e63946'], borderWidth: 3, borderColor: '#fff', cutout: '60%' }]
+  if (examResultsUnsub) { examResultsUnsub(); examResultsUnsub = null; }
+
+  console.log('📊 Đang tải lịch sử bài thi cho:', studentCode);
+
+  // Hiện trạng thái loading
+  document.getElementById('noDataMsg').textContent  = '⏳ Đang tải dữ liệu...';
+  document.getElementById('noDataMsg').style.display = 'block';
+  document.getElementById('resultTableWrap').style.display = 'none';
+  document.getElementById('chartWrap').style.display      = 'none';
+
+  try {
+    examResultsUnsub = db.collection('examResults')
+      .where('studentCode', '==', studentCode)
+      .limit(100)
+      .onSnapshot(
+        snap => {
+          console.log('✅ examResults snapshot nhận được:', snap.size, 'bản ghi');
+          renderExamResults(snap);
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
-    }, err => console.warn('Lỗi tải kết quả:', err.code, err.message));
+        err => {
+          console.error('❌ examResults lỗi:', err.code, err.message);
+          handleExamResultsError(err);
+        }
+      );
+  } catch(e) {
+    console.error('❌ Không thể tạo listener:', e);
+    handleExamResultsError(e);
+  }
+}
+
+function handleExamResultsError(err) {
+  const noDataEl = document.getElementById('noDataMsg');
+
+  if (err.code === 'permission-denied') {
+    noDataEl.innerHTML = `
+      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
+        ❌ <b>Không có quyền đọc dữ liệu bài thi.</b><br>
+        Kiểm tra Firestore Rules cho collection <code>examResults</code>.<br>
+        <small style="color:#666;">Mã lỗi: permission-denied</small>
+      </div>`;
+    noDataEl.style.display = 'block';
+    // Thử fallback: đọc một lần thay vì realtime
+    _fallbackLoadExamResults();
+  } else if (err.code === 'failed-precondition') {
+    noDataEl.innerHTML = `
+      <div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
+        ⚠️ <b>Cần tạo Index trong Firestore.</b><br>
+        Vào Firebase Console → Firestore → Indexes → Tạo index cho:<br>
+        <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code>
+      </div>`;
+    noDataEl.style.display = 'block';
+  } else {
+    noDataEl.innerHTML = `
+      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
+        ⚠️ Lỗi tải dữ liệu: ${err.message || err.code}<br>
+        <button onclick="loadExamResults()" 
+          style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">
+          🔄 Thử lại
+        </button>
+      </div>`;
+    noDataEl.style.display = 'block';
+  }
+}
+
+// Fallback: đọc một lần (không realtime) nếu onSnapshot bị từ chối
+async function _fallbackLoadExamResults() {
+  console.log('🔄 Thử fallback get() cho examResults...');
+  try {
+    const snap = await db.collection('examResults')
+      .where('studentCode', '==', studentCode)
+      .limit(100)
+      .get();
+    console.log('✅ Fallback thành công:', snap.size, 'bản ghi');
+    renderExamResults(snap);
+  } catch(e) {
+    console.error('❌ Fallback cũng thất bại:', e.code, e.message);
+  }
+}
+
+function renderExamResults(snap) {
+  let pass = 0, fail = 0;
+  const logs = [];
+
+  snap.forEach(d => {
+    const data = d.data();
+    logs.push(data);
+    if (data.passed) pass++; else fail++;
+  });
+
+  // Sắp xếp mới nhất trước (client-side)
+  logs.sort((a, b) => {
+    const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+    const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+    return tb - ta;
+  });
+
+  // Cập nhật stat boxes
+  animNum(document.getElementById('totalExam'), logs.length);
+  animNum(document.getElementById('passExam'),  pass);
+  animNum(document.getElementById('failExam'),  fail);
+
+  if (!logs.length) {
+    document.getElementById('noDataMsg').textContent  = '📋 Chưa có dữ liệu kiểm tra';
+    document.getElementById('noDataMsg').style.display = 'block';
+    document.getElementById('resultTableWrap').style.display = 'none';
+    document.getElementById('chartWrap').style.display      = 'none';
+    return;
+  }
+
+  // Render bảng kết quả
+  const tb = document.getElementById('resultTableBody');
+  tb.innerHTML = logs.slice(0, 5).map((d, i) => {
+    const ts      = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+    const correct = d.correctCount ?? d.score ?? 0;
+    const total   = d.totalQuestions || 0;
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${fmtDateTime(ts)}</td>
+      <td>${d.setName || d.setCode || '—'}</td>
+      <td><b style="color:${d.passed ? 'var(--green)' : 'var(--red)'}">${correct}/${total}</b></td>
+      <td class="${d.passed ? 'pass' : 'fail'}">${d.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('resultTableWrap').style.display = 'block';
+  document.getElementById('noDataMsg').style.display       = 'none';
+  document.getElementById('chartWrap').style.display       = 'block';
+
+  // Render biểu đồ
+  const total2 = pass + fail;
+  const pPct   = total2 ? Math.round(pass * 100 / total2) : 0;
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('resultChart'), {
+    type: 'doughnut',
+    data: {
+      labels: [`Đạt (${pPct}%)`, `Không đạt (${100 - pPct}%)`],
+      datasets: [{
+        data: [pass || 0, fail || 0],
+        backgroundColor: ['#2a9d8f', '#e63946'],
+        borderWidth: 3, borderColor: '#fff', cutout: '60%'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
 }
 
 function animNum(el, val) {
