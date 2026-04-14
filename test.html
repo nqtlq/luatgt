@@ -904,19 +904,23 @@
   // HELPER
   // ================================================================
   function esc(s) {
-    return String(s ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  function pickRandom(arr, n) {
+    return shuffle([...arr]).slice(0, Math.min(n, arr.length));
   }
 
   // ================================================================
   // FIREBASE INIT
   // ================================================================
   let db = null, auth = null;
-
   try {
     if (!firebase.apps.length) {
       firebase.initializeApp({
@@ -925,41 +929,30 @@
         projectId: "thi-luat-giao-thong"
       });
     }
-    db = firebase.firestore();
+    db   = firebase.firestore();
     auth = firebase.auth();
-  } catch (e) {
-    console.error("Firebase init error:", e);
-  }
+  } catch (e) { console.error("Firebase init:", e); }
 
   // ================================================================
   // AUTH INFO
   // ================================================================
-  const userType = localStorage.getItem("userType");
+  const userType    = localStorage.getItem("userType");
   const studentCode = localStorage.getItem("studentCode") || "";
   const studentName = localStorage.getItem("studentName") || "";
   const studentUnit = localStorage.getItem("studentUnit") || "";
-  const studentObj = localStorage.getItem("studentObject") || "";
-  const studentCrs = localStorage.getItem("studentCourse") || "";
+  const studentObj  = localStorage.getItem("studentObject") || "";
+  const studentCrs  = localStorage.getItem("studentCourse") || "";
 
-  const IS_GUEST = userType === "guest";
+  const IS_GUEST   = userType === "guest";
   const IS_STUDENT = userType === "student";
 
   let _authUser = null;
-
   async function ensureAuth() {
     if (_authUser) return _authUser;
     if (!auth) throw new Error("Auth chưa khởi tạo");
-
-    if (auth.currentUser) {
-      _authUser = auth.currentUser;
-      return _authUser;
-    }
-
-    // Rules của questionSets yêu cầu request.auth != null
-    // => cần anonymous auth để đọc đề active
+    if (auth.currentUser) { _authUser = auth.currentUser; return _authUser; }
     const cred = await auth.signInAnonymously();
     _authUser = cred.user;
-    console.log("Anonymous auth OK:", _authUser.uid);
     return _authUser;
   }
 
@@ -968,113 +961,61 @@
   // ================================================================
   (function startClock() {
     function tick() {
-      const n = new Date();
-      const pad = x => String(x).padStart(2, '0');
-      const thu = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][n.getDay()];
+      const n = new Date(), pad = x => String(x).padStart(2,'0');
+      const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
       const el = document.getElementById('liveClock');
-
-      if (el) {
-        el.innerHTML =
-          `<b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>` +
-          `<span style="opacity:0.4;margin:0 6px;">|</span>` +
-          `<span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
-      }
+      if (el) el.innerHTML =
+        `<b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>`+
+        `<span style="opacity:0.4;margin:0 6px;">|</span>`+
+        `<span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
     }
-
-    tick();
-    setInterval(tick, 1000);
+    tick(); setInterval(tick, 1000);
   })();
 
   // ================================================================
-  // GUEST LIMIT - LOCAL ONLY
-  // Vì rules hiện tại KHÔNG cho guest đọc/ghi guestUsage hoặc guestCounter
+  // GUEST LIMIT
   // ================================================================
   const DAILY_LIMIT = 3;
   let _guestExamedThisSession = false;
 
-  function getTodayVN() {
-    return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
-  }
-
+  function getTodayVN() { return new Date(Date.now() + 7*3600000).toISOString().slice(0,10); }
   function getGuestId() {
     let gid = localStorage.getItem("guestId");
-    if (!gid) {
-      gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 5).toUpperCase();
-      localStorage.setItem("guestId", gid);
-    }
+    if (!gid) { gid = "G"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,5).toUpperCase(); localStorage.setItem("guestId",gid); }
     return gid;
   }
-
-  function getLogsLocal() {
-    try {
-      return JSON.parse(localStorage.getItem("guestExamLogs") || "[]");
-    } catch (_) {
-      return [];
-    }
-  }
-
-  function saveLogsLocal(logs) {
-    try {
-      localStorage.setItem("guestExamLogs", JSON.stringify(logs));
-    } catch (_) {}
-  }
-
-  async function restoreLogsFromFirestore() {
-    // Không làm gì cả vì rules hiện tại không cho guestUsage
-    return;
-  }
-
-  async function saveGuestLog() {
-    const logs = getLogsLocal();
-    const entry = { date: getTodayVN(), time: Date.now() };
-    logs.push(entry);
-    saveLogsLocal(logs);
-    _guestExamedThisSession = true;
-  }
-
-  function getTodayCount() {
-    return getLogsLocal().filter(l => l.date === getTodayVN()).length;
-  }
-
+  function getLogsLocal() { try { return JSON.parse(localStorage.getItem("guestExamLogs")||"[]"); } catch(_) { return []; } }
+  function saveLogsLocal(logs) { try { localStorage.setItem("guestExamLogs",JSON.stringify(logs)); } catch(_){} }
+  function getTodayCount() { return getLogsLocal().filter(l=>l.date===getTodayVN()).length; }
   function canTakeExam() {
     if (IS_STUDENT) return true;
     if (_guestExamedThisSession) return false;
     return getTodayCount() < DAILY_LIMIT;
   }
-
+  async function saveGuestLog() {
+    const logs = getLogsLocal();
+    logs.push({ date: getTodayVN(), time: Date.now() });
+    saveLogsLocal(logs);
+    _guestExamedThisSession = true;
+  }
   function updateLimitDisplay() {
     if (!IS_GUEST) return;
-
     const td = getTodayCount();
     const rm = _guestExamedThisSession ? 0 : Math.max(0, DAILY_LIMIT - td);
-
-    document.getElementById("todayUsed").textContent = td;
-    document.getElementById("remainCount").textContent = rm;
-
-    document.getElementById("lcToday").className = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
-    document.getElementById("lcRemain").className = "lcard " + (rm <= 0 ? "danger" : "ok");
-
-    const wkEl = document.getElementById("weekUsed");
-    const lcWeek = document.getElementById("lcWeek");
-
-    if (wkEl) wkEl.textContent = td;
-    if (lcWeek) lcWeek.className = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
+    const safe = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const cls  = (id, c)   => { const el = document.getElementById(id); if (el) el.className = c; };
+    safe("todayUsed", td); safe("remainCount", rm); safe("weekUsed", td);
+    cls("lcToday",  "lcard "+(td>=DAILY_LIMIT?"danger":"ok"));
+    cls("lcRemain", "lcard "+(rm<=0?"danger":"ok"));
+    cls("lcWeek",   "lcard "+(td>=DAILY_LIMIT?"danger":"ok"));
   }
-
   async function assignGuestSequentialNumber() {
     const el = document.getElementById("guestSeqDisplay");
     const saved = localStorage.getItem("guestSeqNumber");
-
-    if (saved) {
-      el.textContent = saved;
-      return saved;
-    }
-
-    // Vì rules không cho write systemConfig/guestCounter
-    // => chỉ fallback local
-    const fb = "L" + String(Date.now()).slice(-4);
+    if (saved) { if(el) el.textContent = saved; return saved; }
+    const fb = "L"+String(Date.now()).slice(-4);
     localStorage.setItem("guestSeqNumber", fb);
-    el.textContent = fb;
+    if(el) el.textContent = fb;
     return fb;
   }
 
@@ -1082,262 +1023,653 @@
   // UI SETUP
   // ================================================================
   async function setupUI() {
-    // pre-auth để đọc questionSets
-    ensureAuth().catch(e => console.warn("Pre-auth:", e.code || e.message));
-
+    ensureAuth().catch(e => console.warn("Pre-auth:", e.code||e.message));
     if (IS_GUEST) {
       document.getElementById("guestBanner").style.display = "flex";
       document.getElementById("studentBanner").style.display = "none";
-      await restoreLogsFromFirestore();
       updateLimitDisplay();
       await assignGuestSequentialNumber();
     } else {
       document.getElementById("guestBanner").style.display = "none";
       document.getElementById("studentBanner").style.display = "flex";
-      document.getElementById("svName").textContent = studentName || studentCode;
-      document.getElementById("svCode").textContent = studentCode;
-      document.getElementById("svUnit").textContent = studentUnit || "—";
-      document.getElementById("svObject").textContent = studentObj || "—";
-
+      const safe = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      safe("svName",   studentName||studentCode);
+      safe("svCode",   studentCode);
+      safe("svUnit",   studentUnit||"—");
+      safe("svObject", studentObj||"—");
       if (studentCrs) {
-        document.getElementById("svCourseChip").style.display = "inline-flex";
-        document.getElementById("svCourse").textContent = studentCrs;
+        const chip = document.getElementById("svCourseChip");
+        if (chip) chip.style.display = "inline-flex";
+        safe("svCourse", studentCrs);
       }
     }
-
-    document.getElementById("examStudentInfo").textContent =
-      IS_GUEST
-        ? "Khách thi thử"
-        : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
+    const info = IS_GUEST ? "Khách thi thử"
+      : `${studentName} (${studentCode})${studentUnit?" – "+studentUnit:""}`;
+    const infoEl = document.getElementById("examStudentInfo");
+    if (infoEl) infoEl.textContent = info;
   }
 
   // ================================================================
   // LOGOUT
   // ================================================================
-  function showConfirmLogout() {
-    document.getElementById("confirmLogoutModal").classList.add("show");
-  }
-
-  function closeConfirmLogout() {
-    document.getElementById("confirmLogoutModal").classList.remove("show");
-  }
-
+  function showConfirmLogout() { document.getElementById("confirmLogoutModal").classList.add("show"); }
+  function closeConfirmLogout() { document.getElementById("confirmLogoutModal").classList.remove("show"); }
   async function doLogout() {
-    // Không ghi presence vì rules hiện tại dễ bị permission-denied
-    // nếu auth uid không đúng studentCode
-    try {
-      if (auth && auth.currentUser) await auth.signOut();
-    } catch (_) {}
-
-    const notifKeysToKeep = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
-        notifKeysToKeep[k] = localStorage.getItem(k);
-      }
+    // Cập nhật presence offline
+    if (IS_STUDENT && db && studentCode) {
+      try { await db.collection('presence').doc(studentCode).set({ isOnline:false }, { merge:true }); } catch(_){}
     }
-
+    try { if (auth?.currentUser) await auth.signOut(); } catch(_){}
+    const keep = {};
+    for (let i=0; i<localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('deletedNotifIds_')||k.startsWith('readNotifIds_'))) keep[k] = localStorage.getItem(k);
+    }
     localStorage.clear();
-    Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+    Object.entries(keep).forEach(([k,v]) => localStorage.setItem(k,v));
     location.href = "index.html";
   }
 
   // ================================================================
   // SELECTION PAGE
   // ================================================================
-  let allSets = [];
-  let selectedSet = null;
+  let allSets = [], selectedSet = null;
 
   function switchCat(cat) {
-    document.querySelectorAll(".cat-tab").forEach(t => {
-      t.classList.toggle("active", t.dataset.cat === cat);
-    });
-    document.getElementById("motoSection").classList.toggle("active", cat === "moto");
-    document.getElementById("otoSection").classList.toggle("active", cat === "oto");
+    document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.dataset.cat===cat));
+    document.getElementById("motoSection").classList.toggle("active", cat==="moto");
+    document.getElementById("otoSection").classList.toggle("active", cat==="oto");
   }
 
   function renderCard(s, type) {
-    const totalQ = s.totalQuestions || s.questionCount || (Array.isArray(s.questions) ? s.questions.length : 0) || "—";
-    const duration = s.duration || s.timeLimit || "—";
+    const totalQ = s.totalQuestions || s.questionCount || 0;
+    const duration = s.examTime || s.duration || s.timeLimit || "—";
     const pass = s.passScore || s.minCorrect || "—";
     const liet = s.lietCount || s.criticalCount || s.numLiet || 0;
-
     return `
       <div class="set-card ${type}" onclick="openSet('${esc(s.id)}')">
-        <span class="badge ${type === 'oto' ? 'badge-oto' : 'badge-moto'}">${type === 'oto' ? 'Ô tô' : 'Mô tô'}</span>
-        <h3>${esc(s.name || s.title || 'Đề thi')}</h3>
-        <p>${esc(s.description || 'Đề thi lý thuyết giao thông đường bộ')}</p>
+        <span class="badge ${type==='oto'?'badge-oto':'badge-moto'}">${type==='oto'?'Ô tô':'Mô tô'}</span>
+        <h3>${esc(s.name||s.title||'Đề thi')}</h3>
+        <p>${esc(s.description||'Đề thi lý thuyết giao thông đường bộ')}</p>
         <div class="set-meta">
           <span class="meta-item">${esc(totalQ)} câu</span>
           <span class="meta-item">${esc(duration)} phút</span>
           <span class="meta-item pass">Đạt: ${esc(pass)}</span>
-          ${liet ? `<span class="meta-item liet">Liệt: ${esc(liet)}</span>` : ''}
+          ${liet?`<span class="meta-item liet">Liệt: ${esc(liet)}</span>`:''}
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
   function openSet(id) {
-    selectedSet = allSets.find(s => s.id === id);
+    selectedSet = allSets.find(s => s.id===id);
     if (!selectedSet) return;
-
-    document.getElementById("mTitle").textContent = selectedSet.name || selectedSet.title || "Đề thi";
-    document.getElementById("mDesc").textContent = selectedSet.description || "Đề thi lý thuyết giao thông đường bộ";
-    document.getElementById("mQuestions").textContent =
-      selectedSet.totalQuestions || selectedSet.questionCount || (Array.isArray(selectedSet.questions) ? selectedSet.questions.length : 0) || 0;
-    document.getElementById("mTime").textContent = (selectedSet.duration || selectedSet.timeLimit || 0) + "'";
-    document.getElementById("mPass").textContent = selectedSet.passScore || selectedSet.minCorrect || "—";
+    const safe = (elId, v) => { const el=document.getElementById(elId); if(el) el.textContent=v; };
+    safe("mTitle", selectedSet.name||selectedSet.title||"Đề thi");
+    safe("mDesc",  selectedSet.description||"Đề thi lý thuyết giao thông đường bộ");
+    safe("mQuestions", selectedSet.totalQuestions||selectedSet.questionCount||0);
+    safe("mTime",  (selectedSet.examTime||selectedSet.duration||selectedSet.timeLimit||0)+"'");
+    safe("mPass",  selectedSet.passScore||selectedSet.minCorrect||"—");
 
     const groupsEl = document.getElementById("mGroups");
-    groupsEl.innerHTML = "";
-
-    const groups = selectedSet.groups || selectedSet.categories || [];
-    if (Array.isArray(groups)) {
+    if (groupsEl) {
+      groupsEl.innerHTML = "";
+      const groups = selectedSet.groups||[];
       groups.forEach(g => {
         const chip = document.createElement("span");
         chip.className = "mg-chip";
-        chip.textContent = g;
+        chip.textContent = typeof g==='object' ? (g.name||`Nhóm`) : g;
         groupsEl.appendChild(chip);
       });
+      if (selectedSet.hasLiet) {
+        const c = document.createElement("span");
+        c.className = "mg-chip liet-chip";
+        c.textContent = `⚠ ${selectedSet.lietCount||1} câu liệt`;
+        groupsEl.appendChild(c);
+      }
     }
-
     const lietRule = document.getElementById("mRuleLiet");
-    const lietCount = selectedSet.lietCount || selectedSet.criticalCount || selectedSet.numLiet || 0;
-
-    if (lietCount > 0) {
-      lietRule.style.display = "list-item";
-      lietRule.textContent = `Có ${lietCount} câu điểm liệt. Trả lời sai câu liệt có thể không đạt bài thi.`;
-    } else {
-      lietRule.style.display = "none";
-      lietRule.textContent = "";
+    const liet = selectedSet.lietCount||selectedSet.criticalCount||selectedSet.numLiet||0;
+    if (lietRule) {
+      if (liet > 0 || selectedSet.hasLiet) {
+        lietRule.style.display = "list-item";
+        lietRule.textContent = `Có ${liet} câu điểm liệt. Trả lời sai câu liệt sẽ không đạt.`;
+      } else { lietRule.style.display = "none"; }
     }
-
-    if (IS_GUEST && !canTakeExam()) {
-      document.getElementById("mStartBtn").disabled = true;
-      document.getElementById("mStartBtn").textContent = "Hết lượt thi hôm nay";
-    } else {
-      document.getElementById("mStartBtn").disabled = false;
-      document.getElementById("mStartBtn").textContent = "▶ Bắt đầu làm bài";
+    const btn = document.getElementById("mStartBtn");
+    if (btn) {
+      if (IS_GUEST && !canTakeExam()) {
+        btn.disabled = true; btn.textContent = "Hết lượt thi hôm nay";
+      } else { btn.disabled = false; btn.textContent = "▶ Bắt đầu làm bài"; }
     }
-
     document.getElementById("examModal").classList.add("show");
   }
 
-  function closeModal() {
-    document.getElementById("examModal").classList.remove("show");
-  }
+  function closeModal() { document.getElementById("examModal").classList.remove("show"); }
 
   async function loadSets() {
-    const loadingBox = document.getElementById("loadingBox");
-
-    if (!db) {
-      loadingBox.innerHTML = "<p>❌ Không thể kết nối cơ sở dữ liệu.</p>";
+    const lb = document.getElementById("loadingBox");
+    if (!db) { if(lb) lb.innerHTML = "<p>❌ Không thể kết nối cơ sở dữ liệu.</p>"; return; }
+    try { await ensureAuth(); } catch(authErr) {
+      if (authErr.code==="auth/operation-not-allowed") {
+        if(lb) lb.innerHTML = "<p>⚠️ Anonymous Authentication chưa bật. Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
+      } else if(lb) lb.innerHTML = `<p>❌ Lỗi xác thực: ${esc(authErr.message||authErr.code)}</p>`;
       return;
     }
-
     try {
-      await ensureAuth();
-    } catch (authErr) {
-      console.error("Anonymous auth error:", authErr);
-
-      if (authErr.code === "auth/operation-not-allowed") {
-        loadingBox.innerHTML =
-          "<p>⚠️ Anonymous Authentication chưa được bật.<br>" +
-          "Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
-      } else {
-        loadingBox.innerHTML =
-          `<p>❌ Lỗi xác thực Firebase: ${esc(authErr.message || authErr.code || 'Không xác định')}</p>`;
-      }
-      return;
-    }
-
-    try {
-      // Rules:
-      // allow read if request.auth != null && resource.data.status == 'active'
-      // => query active only
-      const snap = await db.collection("questionSets")
-        .where("status", "==", "active")
-        .get();
-
-      const moto = [];
-      const oto = [];
+      const snap = await db.collection("questionSets").where("status","==","active").get();
+      const moto=[], oto=[];
       allSets = [];
-
       snap.forEach(doc => {
-        const s = { id: doc.id, ...doc.data() };
-        const cat = (s.examType || s.category || "").toLowerCase();
-        const isOto = cat === "oto" || cat === "ô tô" || cat === "car";
-
-        (isOto ? oto : moto).push(s);
-        allSets.push(s);
+        const s = { id:doc.id, ...doc.data() };
+        const cat = (s.examType||s.category||"").toLowerCase();
+        const isOto = cat==="oto"||cat==="ô tô"||cat==="car";
+        (isOto?oto:moto).push(s); allSets.push(s);
       });
-
-      loadingBox.style.display = "none";
-      document.getElementById("catTabs").style.display = "flex";
-
-      document.getElementById("motoCount").textContent = moto.length + " đề";
-      document.getElementById("otoCount").textContent = oto.length + " đề";
-
-      document.getElementById("motoGrid").innerHTML =
-        moto.length ? moto.map(s => renderCard(s, "moto")).join("") : "";
-      document.getElementById("otoGrid").innerHTML =
-        oto.length ? oto.map(s => renderCard(s, "oto")).join("") : "";
-
-      document.getElementById("motoEmpty").style.display = moto.length ? "none" : "block";
-      document.getElementById("otoEmpty").style.display = oto.length ? "none" : "block";
-    } catch (e) {
-      console.error("loadSets error:", e.code, e.message);
-
-      let msg = `Lỗi tải đề thi: ${e.message || e.code || 'Không xác định'}`;
-
-      if (e.code === "permission-denied") {
-        msg =
-          "❌ Firestore từ chối đọc questionSets.\n" +
-          "Với rules hiện tại, chỉ đọc được document có status == 'active'.\n" +
-          "Hãy kiểm tra các document questionSets đã có field status: 'active'.";
-      }
-
-      loadingBox.innerHTML = `<p>${esc(msg)}</p>`;
+      if(lb) lb.style.display="none";
+      const tabs = document.getElementById("catTabs"); if(tabs) tabs.style.display="flex";
+      const safeText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      safeText("motoCount", moto.length+" đề");
+      safeText("otoCount",  oto.length+" đề");
+      const mGrid = document.getElementById("motoGrid");
+      const oGrid = document.getElementById("otoGrid");
+      if(mGrid) mGrid.innerHTML = moto.length ? moto.map(s=>renderCard(s,"moto")).join("") : "";
+      if(oGrid) oGrid.innerHTML = oto.length  ? oto.map(s=>renderCard(s,"oto")).join("")  : "";
+      const mEmp = document.getElementById("motoEmpty"); if(mEmp) mEmp.style.display=moto.length?"none":"block";
+      const oEmp = document.getElementById("otoEmpty");  if(oEmp) oEmp.style.display=oto.length?"none":"block";
+    } catch(e) {
+      let msg = `Lỗi tải đề thi: ${e.message||e.code||'Không xác định'}`;
+      if (e.code==="permission-denied") msg = "❌ Firestore từ chối đọc. Kiểm tra Security Rules và trạng thái status='active' của đề thi.";
+      if(lb) lb.innerHTML = `<p>${esc(msg)}</p>`;
     }
   }
 
   // ================================================================
-  // PLACEHOLDER
+  // EXAM ENGINE
   // ================================================================
+  let questions   = [];   // Final question array for this exam
+  let userAnswers = [];   // userAnswers[i] = 1-4 or null
+  let currentIdx  = 0;
+  let timerSec    = 0;
+  let timerInterval = null;
+  let examStartTime = null;
+  let examSubmitted = false;
+
+  // Load questions from Firestore and build exam question array
+  async function loadQuestionsForSet(set) {
+    const setCode = set.code || set.id;
+    const snap = await db.collection("questions")
+      .where("setCode","==", setCode)
+      .get();
+
+    if (snap.empty) throw new Error(`Chưa có câu hỏi trong bộ đề này (setCode: ${setCode})`);
+
+    const allQ = snap.docs.map(d => ({ docId:d.id, ...d.data() }));
+
+    // Separate liet questions
+    const lietQ = allQ.filter(q => q.group === -99 || q.group === "-99" || q.isLiet);
+    const normalQ = allQ.filter(q => q.group !== -99 && q.group !== "-99" && !q.isLiet);
+
+    // Build group buckets
+    const groups = Array.isArray(set.groups) ? set.groups : [];
+    let selected = [];
+
+    if (groups.length > 0) {
+      groups.forEach((g, idx) => {
+        if (g.groupIndex === -99) return; // skip liet group config
+        const count = g.count || g.questionCount || 0;
+        const bucket = normalQ.filter(q => q.group === idx || q.group === String(idx));
+        const picked = pickRandom(bucket, count);
+        selected = selected.concat(picked);
+      });
+    } else {
+      // No group config: pick totalQuestions randomly from all normal questions
+      const total = set.totalQuestions || set.questionCount || normalQ.length;
+      selected = pickRandom(normalQ, total);
+    }
+
+    // Handle liet questions
+    const lietCount = set.lietCount || set.criticalCount || lietQ.length;
+    const pickedLiet = lietQ.slice(0, lietCount);
+
+    // Place liet at specified positions, or append to end
+    const lietPositions = Array.isArray(set.lietPositions) ? set.lietPositions : [];
+    let finalQ = [...selected];
+
+    if (lietPositions.length > 0 && pickedLiet.length > 0) {
+      // Insert liet at 0-based positions
+      pickedLiet.forEach((lq, i) => {
+        const pos = (lietPositions[i] || 1) - 1;
+        finalQ.splice(Math.min(pos, finalQ.length), 0, { ...lq, isLietQuestion: true });
+      });
+    } else if (pickedLiet.length > 0) {
+      // Append at end
+      pickedLiet.forEach(lq => finalQ.push({ ...lq, isLietQuestion: true }));
+    }
+
+    return finalQ;
+  }
+
   async function beginExam() {
     const overlay = document.getElementById("startOverlay");
-    overlay.classList.add("show");
+    if(overlay) overlay.classList.add("show");
+    const msg = document.getElementById("startMsg");
+    if(msg) msg.textContent = "Đang tải câu hỏi từ thư viện…";
 
-    setTimeout(async () => {
-      overlay.classList.remove("show");
-      closeModal();
-
-      if (IS_GUEST) {
-        if (!canTakeExam()) {
-          alert("Bạn đã hết lượt thi hôm nay.");
-          return;
-        }
-        await saveGuestLog();
-        updateLimitDisplay();
+    try {
+      if (IS_GUEST && !canTakeExam()) {
+        if(overlay) overlay.classList.remove("show");
+        alert("Bạn đã hết lượt thi hôm nay. Vui lòng đăng nhập tài khoản Học viên để thi không giới hạn.");
+        return;
       }
+      await ensureAuth();
+      questions = await loadQuestionsForSet(selectedSet);
+      if (!questions.length) throw new Error("Không có câu hỏi nào được tải.");
+    } catch(e) {
+      if(overlay) overlay.classList.remove("show");
+      alert("Lỗi tải câu hỏi: " + e.message);
+      return;
+    }
 
-      document.getElementById("pgSelect").classList.remove("active");
-      document.getElementById("pgExam").classList.add("active");
-      document.getElementById("examSetName").textContent = selectedSet?.name || selectedSet?.title || "Đề thi";
-      document.getElementById("examQuestionArea").innerHTML = `
-        <div class="q-progress">Đây là phần thi mẫu</div>
-        <div class="q-number">Bắt đầu bài thi</div>
-        <div class="q-text">Bạn đã chọn: <b>${esc(selectedSet?.name || selectedSet?.title || "Đề thi")}</b></div>
-      `;
-    }, 900);
+    // Init state
+    userAnswers   = new Array(questions.length).fill(null);
+    currentIdx    = 0;
+    examSubmitted = false;
+    examStartTime = new Date();
+
+    // Timer
+    const examMinutes = selectedSet.examTime || selectedSet.duration || selectedSet.timeLimit || 19;
+    timerSec = examMinutes * 60;
+    startTimer();
+
+    // Update presence for student
+    if (IS_STUDENT) startExamPresence();
+
+    // Close modal & switch page
+    closeModal();
+    document.getElementById("pgSelect").classList.remove("active");
+    document.getElementById("pgExam").classList.add("active");
+    document.getElementById("examSetName").textContent = selectedSet.name||selectedSet.title||"Đề thi";
+
+    // Update header
+    const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "ĐANG THI – "+((selectedSet.name||"").toUpperCase());
+    const he = document.getElementById("headerEn"); if(he) he.textContent = "Không thoát trình duyệt khi đang làm bài";
+    const hBtn = document.getElementById("headerBtns"); if(hBtn) hBtn.innerHTML="";
+
+    if(overlay) overlay.classList.remove("show");
+    if (IS_GUEST) { await saveGuestLog(); updateLimitDisplay(); }
+
+    renderQuestion(0);
+    buildQmap();
   }
 
+  // ── Render câu hỏi ──────────────────────────────────────────────
+  function renderQuestion(idx) {
+    currentIdx = idx;
+    const q = questions[idx];
+    const area = document.getElementById("examQuestionArea");
+    if (!area || !q) return;
+
+    const answers = q.answers || [];
+    const labels  = ["A","B","C","D","E"];
+    const isLiet  = q.isLietQuestion || q.group === -99;
+
+    let html = `
+      <div class="q-progress">Câu ${idx+1} / ${questions.length}</div>
+      <div class="q-number">Câu ${idx+1}
+        ${isLiet ? '<span class="liet-badge">⚠ Câu liệt</span>' : ''}
+      </div>
+      <div class="q-text">${esc(q.content||q.question||"")}</div>`;
+
+    if (q.imageUrl) {
+      html += `<div style="text-align:center;margin-bottom:16px;">
+        <img src="${esc(q.imageUrl)}" style="max-width:100%;max-height:300px;border-radius:10px;border:1px solid #dfe6e9;" loading="lazy">
+      </div>`;
+    }
+
+    html += `<div class="answers-list">`;
+    answers.forEach((ans, i) => {
+      const chosen = userAnswers[idx] === (i+1);
+      html += `<button class="answer-btn ${chosen?'selected':''}"
+        onclick="selectAnswer(${idx}, ${i+1})">
+        <span class="answer-key">${labels[i]}.</span>
+        <span>${esc(ans)}</span>
+      </button>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="exam-nav">
+      <button class="nav-btn nav-prev" onclick="goTo(${idx-1})" ${idx===0?"disabled":""}>← Trước</button>
+      <div style="font-size:13px;color:var(--muted);">Đã trả lời: ${userAnswers.filter(a=>a!==null).length}/${questions.length}</div>
+      ${idx < questions.length-1
+        ? `<button class="nav-btn nav-next" onclick="goTo(${idx+1})">Tiếp →</button>`
+        : `<button class="nav-btn nav-submit" onclick="confirmSubmit()">Nộp bài ✓</button>`}
+    </div>`;
+
+    area.innerHTML = html;
+    updateQmap();
+  }
+
+  function selectAnswer(idx, val) {
+    userAnswers[idx] = val;
+    renderQuestion(idx);
+    // Update presence mỗi khi chọn đáp án
+    if (IS_STUDENT) updatePresenceState();
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= questions.length) return;
+    renderQuestion(idx);
+  }
+
+  // ── Question map ────────────────────────────────────────────────
+  function buildQmap() {
+    const el = document.getElementById("qmap");
+    if (!el) return;
+    el.innerHTML = questions.map((q, i) => {
+      const isLiet = q.isLietQuestion || q.group === -99;
+      return `<button class="qmap-btn ${isLiet?'liet-btn':''}" id="qb${i}" onclick="goTo(${i})">${i+1}</button>`;
+    }).join("");
+  }
+
+  function updateQmap() {
+    questions.forEach((q, i) => {
+      const btn = document.getElementById("qb"+i);
+      if (!btn) return;
+      const isLiet = q.isLietQuestion || q.group === -99;
+      const answered = userAnswers[i] !== null;
+      const isCurrent = i === currentIdx;
+      let cls = "qmap-btn";
+      if (isLiet) cls += " liet-btn";
+      if (answered) cls += " answered";
+      if (isCurrent) cls += " current";
+      btn.className = cls;
+    });
+  }
+
+  // ── Timer ───────────────────────────────────────────────────────
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSec--;
+      if (timerSec <= 0) { clearInterval(timerInterval); timerSec = 0; submitExam(true); }
+      renderTimer();
+      // Update presence every 30s automatically
+      if (IS_STUDENT && timerSec % 30 === 0) updatePresenceState();
+    }, 1000);
+    renderTimer();
+  }
+
+  function renderTimer() {
+    const el = document.getElementById("timerDisplay");
+    if (!el) return;
+    const m = Math.floor(timerSec/60), s = timerSec%60;
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    el.className = "timer-value" + (timerSec<=60?" danger":timerSec<=300?" warning":"");
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────
   function confirmSubmit() {
-    alert("Chức năng nộp bài chưa được nối đầy đủ trong đoạn code này.");
+    const unanswered = userAnswers.filter(a=>a===null).length;
+    const msg = unanswered > 0
+      ? `Bạn còn ${unanswered} câu chưa trả lời. Xác nhận nộp bài?`
+      : "Xác nhận nộp bài?";
+    if (confirm(msg)) submitExam(false);
   }
 
-  function retryExam() {
-    location.reload();
+  async function submitExam(autoSubmit) {
+    if (examSubmitted) return;
+    examSubmitted = true;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+    // Chấm điểm
+    let correct=0, wrong=0, skip=0, lietFailed=false;
+    const set = selectedSet;
+    const passScore = set.passScore || set.minCorrect || Math.ceil(questions.length*0.8);
+    const passRequireLiet = set.passRequireLiet !== false;
+
+    questions.forEach((q, i) => {
+      const chosen = userAnswers[i];
+      const isLiet = q.isLietQuestion || q.group === -99;
+      if (chosen === null) { skip++; if(isLiet) lietFailed=true; }
+      else if (chosen === q.correctAnswer) { correct++; }
+      else { wrong++; if(isLiet) lietFailed=true; }
+    });
+
+    const passed = correct >= passScore && (!passRequireLiet || !lietFailed);
+    const timeTaken = Math.round((Date.now() - examStartTime.getTime()) / 1000);
+
+    // Lưu kết quả lên Firestore (chỉ student)
+    if (IS_STUDENT && db) {
+      try {
+        const existSnap = await db.collection("examResults")
+          .where("studentCode","==",studentCode)
+          .where("setCode","==", set.code||set.id)
+          .orderBy("timestamp","desc").limit(1).get();
+        const attemptNumber = existSnap.size + 1;
+
+        const resultData = {
+          studentCode, studentName, studentUnit,
+          setCode: set.code||set.id,
+          setName: set.name||set.title||"",
+          correctCount: correct,
+          wrongCount:   wrong,
+          skipCount:    skip,
+          totalQuestions: questions.length,
+          score: correct,
+          passed,
+          lietFailed,
+          timeTaken,
+          attemptNumber,
+          answers: userAnswers,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await db.collection("examResults").add(resultData);
+
+        // Cập nhật thống kê học viên
+        const stuRef = db.collection("students").doc(studentCode);
+        const stuSnap = await stuRef.get();
+        if (stuSnap.exists) {
+          const stuData = stuSnap.data();
+          const prevBest = stuData.bestScore || 0;
+          const prevExams = stuData.exams || 0;
+          const prevAvg = stuData.avgScore || 0;
+          const newBest = Math.max(prevBest, correct);
+          const newExams = prevExams + 1;
+          const newAvg = Math.round((prevAvg * prevExams + correct) / newExams);
+          await stuRef.update({ exams: newExams, bestScore: newBest, avgScore: newAvg });
+        }
+      } catch(e) { console.warn("Lỗi lưu kết quả:", e.message); }
+    }
+
+    // Cập nhật presence
+    if (IS_STUDENT && db) {
+      try {
+        await db.collection('presence').doc(studentCode).set({
+          isOnline: true, currentSection: 'Đã nộp bài', tabHidden: false,
+          lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch(_){}
+    }
+
+    showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore });
+  }
+
+  // ── Result page ─────────────────────────────────────────────────
+  function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore }) {
+    document.getElementById("pgExam").classList.remove("active");
+    document.getElementById("pgResult").classList.add("active");
+
+    const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "KẾT QUẢ BÀI THI";
+    const he = document.getElementById("headerEn"); if(he) he.textContent = "";
+    const hBtn = document.getElementById("headerBtns");
+    if(hBtn) hBtn.innerHTML=`<button class="btn-header btn-back" onclick="retryExam()">Thi lại</button>
+      <button class="btn-header" style="background:var(--green);color:white;" onclick="location.href='exam.html'">Trang chủ</button>`;
+
+    const safe = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    safe("resVerdict",     passed?"🎉":"😔");
+    safe("resVerdictText", passed?"ĐẠT":"KHÔNG ĐẠT");
+    safe("resScore",       `${correct}/${questions.length}`);
+    safe("resScoreLabel",  `câu đúng trên tổng ${questions.length} câu · Cần ${passScore} câu để đạt`);
+
+    const vt = document.getElementById("resVerdictText");
+    if(vt) vt.className = "result-verdict-text "+(passed?"pass":"fail");
+
+    const mm = Math.floor(timeTaken/60), ss2 = timeTaken%60;
+    const grid = document.getElementById("resDetailGrid");
+    if(grid) grid.innerHTML = `
+      <div class="rd-card"><div class="rd-num" style="color:var(--green)">${correct}</div><div class="rd-lbl">Câu đúng</div></div>
+      <div class="rd-card"><div class="rd-num" style="color:var(--red)">${wrong}</div><div class="rd-lbl">Câu sai</div></div>
+      <div class="rd-card"><div class="rd-num" style="color:var(--muted)">${skip}</div><div class="rd-lbl">Bỏ qua</div></div>
+      <div class="rd-card"><div class="rd-num">${String(mm).padStart(2,'0')}:${String(ss2).padStart(2,'0')}</div><div class="rd-lbl">Thời gian</div></div>
+      ${lietFailed?`<div class="rd-card"><div class="rd-num" style="color:var(--yellow)">⚠</div><div class="rd-lbl">Sai câu liệt</div></div>`:""}`;
+
+    const bd = document.getElementById("resBreakdown");
+    if(bd) {
+      bd.innerHTML = questions.map((q, i) => {
+        const chosen = userAnswers[i];
+        const correct2 = q.correctAnswer;
+        const isLiet = q.isLietQuestion || q.group === -99;
+        const isRight = chosen === correct2;
+        const isSkip  = chosen === null;
+        const cls = isLiet?"q-liet ":"";
+        const statusCls = isRight?"q-correct":isSkip?"q-skip":"q-wrong";
+        const labels = ["A","B","C","D","E"];
+
+        let chosenAns="", correctAns="";
+        const ansList = q.answers||[];
+        if(chosen) chosenAns = `${labels[chosen-1]}. ${ansList[chosen-1]||""}`;
+        if(correct2) correctAns = `${labels[correct2-1]}. ${ansList[correct2-1]||""}`;
+
+        let detail = "";
+        if (!isRight) {
+          detail = `<div class="rq-dropdown open">
+            <div class="rq-full-content">${esc(q.content||q.question||"")}</div>
+            <div class="rq-answers-grid">
+              ${ansList.map((a,ai) => {
+                let cls2="rqa-item";
+                if (ai+1===correct2) cls2+=" rqa-correct";
+                else if (ai+1===chosen) cls2+=" rqa-chosen";
+                return `<div class="${cls2}"><span class="rqa-label">${labels[ai]}.</span><span>${esc(a)}</span>
+                  ${ai+1===correct2?'<span class="rqa-badge">✔ Đúng</span>':''}
+                  ${ai+1===chosen && ai+1!==correct2?'<span class="rqa-badge">✘ Bạn chọn</span>':''}</div>`;
+              }).join("")}
+            </div>
+          </div>`;
+        }
+
+        return `<div class="result-q-item ${cls}${statusCls}">
+          <div class="rq-header">
+            <span><b>Câu ${i+1}${isLiet?' ⚠':''}:</b> ${esc((q.content||q.question||"").substring(0,60))}${(q.content||"").length>60?"…":""}</span>
+            <span>${isRight?"✅ Đúng":isSkip?"⬜ Bỏ qua":"❌ Sai"}</span>
+          </div>
+          ${!isRight?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">
+            ${chosen?`Bạn chọn: <b>${chosenAns}</b> · `:""}Đáp án đúng: <b style="color:var(--green)">${correctAns}</b>
+          </div>`:""}
+          ${detail}
+        </div>`;
+      }).join("");
+    }
+  }
+
+  function retryExam() { location.reload(); }
+
+  // ================================================================
+  // PRESENCE — Hiển thị online như trang exam.html
+  // ================================================================
+  let _presenceRef      = null;
+  let _presenceHbTimer  = null;
+  let _tabHiddenSince   = null;
+  let _signalUnsub      = null;
+  let _presenceStarted  = false;
+
+  function startExamPresence() {
+    if (!IS_STUDENT || !db || !studentCode || _presenceStarted) return;
+    _presenceStarted = true;
+    _presenceRef = db.collection('presence').doc(studentCode);
+    _sendPresence(true);
+    if (_presenceHbTimer) clearInterval(_presenceHbTimer);
+    _presenceHbTimer = setInterval(() => _sendPresence(false), 20000);
+
+    // Tab visibility
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        _tabHiddenSince = Date.now();
+        _presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true }).catch(()=>{});
+      } else {
+        const ms = _tabHiddenSince ? Date.now()-_tabHiddenSince : 0;
+        _tabHiddenSince = null;
+        _presenceRef.set({ tabHidden:false, tabReturnedAfterMs:ms, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true }).catch(()=>{});
+      }
+    });
+
+    // Admin signals
+    if (_signalUnsub) _signalUnsub();
+    _signalUnsub = _presenceRef.onSnapshot(snap => {
+      if (!snap.exists) return;
+      const signal = snap.data()?.adminSignal;
+      if (!signal?.sentAt) return;
+      const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+      if (Date.now() - sentAt.getTime() > 5000) return;
+      if (signal.type === 'warning' || signal.type === 'broadcast') showAdminWarning(signal.message);
+      else if (signal.type === 'force_end' && !examSubmitted) {
+        showAdminWarning('⚠ ' + signal.message);
+        setTimeout(() => submitExam(true), 3000);
+      }
+      _presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (_signalUnsub) _signalUnsub();
+      _presenceRef.set({ isOnline:false, currentSection:'Đã thoát', tabHidden:false }, { merge:true });
+    });
+  }
+
+  function _sendPresence(isFirst) {
+    if (!_presenceRef || !studentCode) return;
+    const answered = userAnswers.filter(a=>a!==null).length;
+    const payload = {
+      isOnline:        true,
+      studentCode,
+      studentName:     studentName || '',
+      userType:        'student',
+      currentSection:  examSubmitted ? 'Đã nộp bài' : (examStartTime ? 'Đang thi' : 'Trang chọn đề'),
+      tabHidden:       document.hidden,
+      lastActive:      firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime:     Date.now(),
+    };
+    if (examStartTime && !examSubmitted) {
+      payload.examSetCode      = selectedSet?.code || selectedSet?.id || '';
+      payload.examSetName      = selectedSet?.name || selectedSet?.title || '';
+      payload.currentQuestion  = currentIdx + 1;
+      payload.totalQuestions   = questions.length;
+      payload.answeredCount    = answered;
+      payload.timeRemaining    = timerSec;
+    }
+    if (isFirst) payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
+    _presenceRef.set(payload, { merge:true }).catch(()=>{});
+  }
+
+  function updatePresenceState() { _sendPresence(false); }
+
+  // Admin warning modal
+  function showAdminWarning(message) {
+    let modal = document.getElementById('adminWarningModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'adminWarningModal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;';
+      modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:92%;
+          text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="font-size:48px;margin-bottom:12px;">📢</div>
+        <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;font-weight:700;">Thông báo từ Giám thị</h3>
+        <p id="adminWarnMsg" style="font-size:15px;color:#333;margin:0 0 20px;line-height:1.7;"></p>
+        <button onclick="document.getElementById('adminWarningModal').style.display='none'"
+          style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button>
+      </div>`;
+      document.body.appendChild(modal);
+    }
+    document.getElementById('adminWarnMsg').textContent = message;
+    modal.style.display = 'flex';
   }
 
   // ================================================================
@@ -1347,12 +1679,32 @@
     try {
       await setupUI();
       await loadSets();
-    } catch (e) {
-      console.error("Init error:", e);
-      const loadingBox = document.getElementById("loadingBox");
-      if (loadingBox) {
-        loadingBox.innerHTML = `<p>❌ Lỗi khởi tạo: ${esc(e.message || e)}</p>`;
+      // Presence cho trang chọn đề (student)
+      if (IS_STUDENT && db && studentCode) {
+        _presenceRef = db.collection('presence').doc(studentCode);
+        _presenceRef.set({
+          isOnline: true, studentCode, studentName: studentName||'',
+          userType: 'student', currentSection: 'Trang chọn đề',
+          tabHidden: false, lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+          startAt: firebase.firestore.FieldValue.serverTimestamp(), _clientTime: Date.now()
+        }, { merge: true }).catch(()=>{});
+        // Heartbeat khi đang ở trang chọn đề
+        setInterval(() => {
+          if (_presenceStarted) return; // exam presence đã xử lý
+          if (_presenceRef) _presenceRef.set({
+            isOnline:true, currentSection:'Trang chọn đề', tabHidden: document.hidden,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(), _clientTime: Date.now()
+          }, { merge:true }).catch(()=>{});
+        }, 20000);
+        window.addEventListener('beforeunload', () => {
+          if (!_presenceStarted && _presenceRef)
+            _presenceRef.set({ isOnline:false, currentSection:'Đã thoát' }, { merge:true });
+        });
       }
+    } catch(e) {
+      console.error("Init error:", e);
+      const lb = document.getElementById("loadingBox");
+      if(lb) lb.innerHTML = `<p>❌ Lỗi khởi tạo: ${esc(e.message||e)}</p>`;
     }
     document.body.style.visibility = "visible";
   });
