@@ -21,6 +21,7 @@
 <title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -749,10 +750,10 @@ header { padding-top: env(safe-area-inset-top); }
 </div>
 
 <script>
-// =====================================================================
-// FIREBASE INIT — PHẢI có Auth compat
-// =====================================================================
-let db = null, auth = null, firebaseReady = false;
+// ================================================================
+// FIREBASE INIT — ĐÃ SỬA
+// ================================================================
+let db = null, auth = null;
 try {
   if (!firebase.apps.length) {
     firebase.initializeApp({
@@ -763,12 +764,24 @@ try {
   }
   db   = firebase.firestore();
   auth = firebase.auth();
-  firebaseReady = true;
 } catch(e) { console.error("Firebase init:", e); }
 
-// =====================================================================
-// AUTH — Variables
-// =====================================================================
+// ================================================================
+// ANONYMOUS AUTH — bắt buộc vì Rules yêu cầu request.auth != null
+// ================================================================
+let _authReady = false;
+async function ensureAuth() {
+  if (!auth) throw new Error('Auth chưa sẵn sàng');
+  if (auth.currentUser) return auth.currentUser;
+  const cred = await auth.signInAnonymously();
+  _authReady = true;
+  console.log('✅ Anonymous auth:', cred.user.uid);
+  return cred.user;
+}
+
+// ================================================================
+// AUTH (giữ nguyên phần còn lại)
+// ================================================================
 const userType    = localStorage.getItem("userType");
 const studentCode = localStorage.getItem("studentCode") || "";
 const studentName = localStorage.getItem("studentName") || "";
@@ -929,38 +942,31 @@ async function assignGuestSequentialNumber() {
 // SETUP UI — Nút quay lại đúng theo userType
 // =====================================================================
 async function setupUI() {
-  // Nút quay lại: khách → index.html, học viên → exam.html
-  const backBtn = document.querySelector('.btn-back');
-  if (backBtn) {
-    if (IS_GUEST) {
-      backBtn.textContent = '← Trang chủ';
-      backBtn.onclick = () => { location.href = 'index.html'; };
-    } else {
-      backBtn.textContent = '← Quay lại';
-      backBtn.onclick = () => { location.href = 'exam.html'; };
-    }
-  }
+  // ✅ THÊM: Pre-auth ngầm (không chặn UI)
+  ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
 
   if (IS_GUEST) {
-    document.getElementById("guestBanner").style.display  = "flex";
+    document.getElementById("guestBanner").style.display   = "flex";
     document.getElementById("studentBanner").style.display = "none";
     await restoreLogsFromFirestore();
     updateLimitDisplay();
     await assignGuestSequentialNumber();
   } else {
-    document.getElementById("guestBanner").style.display  = "none";
+    document.getElementById("guestBanner").style.display   = "none";
     document.getElementById("studentBanner").style.display = "flex";
-    document.getElementById("svName").textContent   = studentName || studentCode;
-    document.getElementById("svCode").textContent   = studentCode;
-    document.getElementById("svUnit").textContent   = studentUnit || "—";
-    document.getElementById("svObject").textContent = studentObj  || "—";
+    document.getElementById("svName").textContent    = studentName || studentCode;
+    document.getElementById("svCode").textContent    = studentCode;
+    document.getElementById("svUnit").textContent    = studentUnit || "—";
+    document.getElementById("svObject").textContent  = studentObj  || "—";
     if (studentCrs) {
       document.getElementById("svCourseChip").style.display = "inline-flex";
-      document.getElementById("svCourse").textContent = studentCrs;
+      document.getElementById("svCourse").textContent       = studentCrs;
     }
   }
   document.getElementById("examStudentInfo").textContent =
-    IS_GUEST ? "Khách thi thử" : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
+    IS_GUEST
+      ? "Khách thi thử"
+      : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
 }
 
 // =====================================================================
@@ -971,13 +977,15 @@ function closeConfirmLogout() { document.getElementById("confirmLogoutModal").cl
 
 async function doLogout() {
   if (db && studentCode) {
-    try { await db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }); } catch(_){}
+    db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
   }
-  try { if (auth && auth.currentUser) await auth.signOut(); } catch(_){}
+  // ✅ THÊM: Sign out anonymous auth
+  try { if(auth && auth.currentUser) await auth.signOut(); } catch(_){}
+
   const notifKeysToKeep = {};
   for (let i=0; i<localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+    if(k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
       notifKeysToKeep[k] = localStorage.getItem(k);
     }
   }
@@ -1003,15 +1011,19 @@ async function loadSets() {
     return;
   }
 
-  // ── Bắt buộc có Auth trước khi query Firestore ──
+  // ✅ THÊM: Đảm bảo auth trước khi query
+  // Rules questionSets: allow read: if request.auth != null
   try {
     await ensureAuth();
   } catch(authErr) {
-    console.error('Auth lỗi khi loadSets:', authErr.code);
-    document.getElementById("loadingBox").innerHTML =
-      `<p>❌ Lỗi xác thực: ${authErr.code === 'auth/operation-not-allowed'
-        ? 'Anonymous Auth chưa được bật trong Firebase Console.'
-        : authErr.message}</p>`;
+    console.error('Auth lỗi:', authErr.code);
+    if(authErr.code === 'auth/operation-not-allowed') {
+      document.getElementById("loadingBox").innerHTML =
+        "<p>❌ Lỗi cấu hình: Anonymous Auth chưa bật.<br>Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
+    } else {
+      document.getElementById("loadingBox").innerHTML =
+        "<p>⚠️ Không thể kết nối máy chủ. Kiểm tra mạng và thử lại.</p>";
+    }
     return;
   }
 
@@ -1022,15 +1034,29 @@ async function loadSets() {
     snap.forEach(doc => {
       const s = { id: doc.id, ...doc.data() };
       if (s.status === "active" || !s.status) {
-        const cat   = (s.examType || s.category || "").toLowerCase();
+        const cat = (s.examType || s.category || "").toLowerCase();
         const isOto = cat === "oto" || cat === "ô tô" || cat === "car";
         (isOto ? oto : moto).push(s);
         allSets.push(s);
       }
     });
-    document.getElementById("loadingBox").style.display  = "none";
-    document.getElementById("catTabs").style.display     = "flex";
-    document.getElementById("motoCount").textContent     = moto.length 
+    document.getElementById("loadingBox").style.display    = "none";
+    document.getElementById("catTabs").style.display       = "flex";
+    document.getElementById("motoCount").textContent       = moto.length + " đề";
+    document.getElementById("otoCount").textContent        = oto.length + " đề";
+    document.getElementById("motoGrid").innerHTML          = moto.length ? moto.map(s=>renderCard(s,"moto")).join("") : "";
+    document.getElementById("otoGrid").innerHTML           = oto.length  ? oto.map(s=>renderCard(s,"oto")).join("")  : "";
+    document.getElementById("motoEmpty").style.display     = moto.length ? "none" : "block";
+    document.getElementById("otoEmpty").style.display      = oto.length  ? "none" : "block";
+  } catch(e) {
+    console.error("loadSets lỗi:", e.code, e.message);
+    let msg = `Lỗi tải đề thi: ${e.message}`;
+    if(e.code === 'permission-denied') {
+      msg = '❌ Không có quyền đọc đề thi.\nKiểm tra Firestore Rules cho questionSets.\nRules cần: allow read: if request.auth != null';
+    }
+    document.getElementById("loadingBox").innerHTML = `<p>❌ ${esc(msg)}</p>`;
+  }
+}
 </script>
 </body>
 </html>
