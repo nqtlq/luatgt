@@ -5,73 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng nhập - Hệ thống thi luật Giao thông</title>
 <style>
-/* GENERAL & LAYOUT */
 *{box-sizing:border-box;}
 body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:url("bg.jpg") center/cover no-repeat fixed;}
 .overlay{background:rgba(0,0,0,.45);min-height:100vh;display:flex;align-items:center;justify-content:center;}
 .box{background:white;width:500px;max-width:94%;padding:32px;border-radius:18px;box-shadow:0 14px 36px rgba(0,0,0,.35);}
+
+/* SYSTEM NAME */
 .system-name{text-align:center;margin-bottom:18px;}
 .system-name .vi{font-size:17px;font-weight:800;color:#1d3557;letter-spacing:.6px;text-transform:uppercase;}
 .system-name .en{font-size:14px;font-weight:600;color:#2a9d8f;margin-top:6px;letter-spacing:.8px;text-transform:uppercase;opacity:.95;}
 h2{text-align:center;font-size:18px;color:#1d3557;margin:18px 0 22px;}
+
+/* FORM */
 .form-group{position:relative;margin-bottom:14px;}
-.form-group input{width:100%;padding:13px;border-radius:9px;border:1px solid #ccc;font-size:15px;transition:border-color .2s;}
+.form-group input{width:100%;padding:13px 13px 13px 44px;border-radius:9px;border:1.5px solid #ccc;font-size:15px;transition:border-color .2s,box-shadow .2s;}
 .form-group input:focus{outline:none;border-color:#1d3557;box-shadow:0 0 0 3px rgba(29,53,87,.1);}
-.checkbox-row{display:flex;align-items:center;width:100%;margin:-2px 0 16px;}
+.form-group .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:17px;pointer-events:none;user-select:none;}
+
+/* BADGE nhận dạng loại tài khoản */
+.type-badge{display:none;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:20px;margin-bottom:12px;width:fit-content;margin-left:auto;margin-right:auto;}
+.type-badge.student{background:#e8f4fd;color:#1d3557;border:1px solid #bee3f8;display:flex;}
+.type-badge.admin{background:#fff3cd;color:#856404;border:1px solid #ffc107;display:flex;}
+
+/* CHECKBOX */
+.checkbox-row{display:flex;align-items:center;margin:-2px 0 16px;}
 .checkbox-left{display:flex;align-items:center;gap:8px;font-size:14px;color:#333;cursor:pointer;user-select:none;}
 .checkbox-left input[type="checkbox"]{width:16px;height:16px;margin:0;cursor:pointer;}
+
+/* BUTTONS */
 button{width:100%;padding:14px;border:none;border-radius:11px;background:#1d3557;color:white;font-size:16px;cursor:pointer;transition:all .2s;font-weight:600;}
 button:hover{opacity:.88;transform:translateY(-1px);}
 button:active{transform:translateY(0);}
 button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-.try{margin-top:12px;background:#2a9d8f;}
-.bottom-section{display:flex;gap:20px;margin-top:18px;align-items:flex-start;}
-.note-left{flex:1;font-size:13px;color:#555;line-height:1.55;}
-.zalo{display:inline-flex;align-items:center;gap:6px;margin-top:6px;}
-.zalo img{width:26px;height:26px;cursor:pointer;}
-.qr-right{flex:0 0 auto;text-align:center;}
-.qr-right canvas{border:2px solid #e9ecef;border-radius:10px;padding:4px;background:white;}
-.qr-right p{font-size:11px;color:#888;margin:6px 0 0;line-height:1.3;}
+.btn-try{margin-top:12px;background:#2a9d8f;}
+
+/* MESSAGES */
 .login-error,.login-success{padding:12px 16px;border-radius:10px;font-size:13.5px;margin-bottom:14px;display:none;text-align:center;line-height:1.5;}
 .login-error{background:#f8d7da;color:#842029;border:1px solid #f5c2c7;}
 .login-success{background:#d1e7dd;color:#0f5132;border:1px solid #badbcc;}
 .login-error.show,.login-success.show{display:block;}
 .login-loading{display:none;text-align:center;padding:10px;color:#1d3557;font-size:14px;}
 .login-loading.show{display:block;}
-.login-loading .spinner-small{display:inline-block;width:18px;height:18px;border:3px solid #ccc;border-top-color:#1d3557;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;}
+.login-loading .spinner{display:inline-block;width:18px;height:18px;border:3px solid #ccc;border-top-color:#1d3557;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.admin-toggle{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:18px;font-size:13px;color:#999;cursor:pointer;user-select:none;border-top:1px solid #f0f0f0;padding-top:14px;}
-.admin-toggle:hover{color:#1d3557;}
-.admin-section{display:none;margin-top:14px;background:#f8f9fa;border-radius:12px;padding:18px;border:1px solid #e9ecef;}
-.admin-section.open{display:block;}
-.admin-section label{display:block;font-size:12px;font-weight:700;color:#666;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
-.admin-section input{width:100%;padding:11px 13px;border-radius:8px;border:1px solid #ccc;font-size:14px;margin-bottom:12px;transition:border-color .2s;}
-.admin-section input:focus{outline:none;border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.1);}
-.admin-section .admin-err{background:#f8d7da;color:#842029;border:1px solid #f5c2c7;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none;text-align:center;}
-.admin-section .admin-err.show{display:block;}
-.btn-admin{background:linear-gradient(135deg,#1a1f36,#0d6efd);padding:12px;}
+
+/* BOTTOM */
+.bottom-section{display:flex;gap:20px;margin-top:18px;align-items:flex-start;}
+.note-left{flex:1;font-size:13px;color:#555;line-height:1.6;}
+.zalo{display:inline-flex;align-items:center;gap:6px;margin-top:6px;}
+.zalo img{width:26px;height:26px;}
+.qr-right{flex:0 0 auto;text-align:center;}
+.qr-right canvas{border:2px solid #e9ecef;border-radius:10px;padding:4px;background:white;}
+.qr-right p{font-size:11px;color:#888;margin:6px 0 0;line-height:1.3;}
+
+/* MAINTENANCE */
 .maintenance-page{position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36,#1e3a5f,#0d6efd);display:none;align-items:center;justify-content:center;z-index:99999;color:white;text-align:center;flex-direction:column;gap:18px;padding:20px;}
 .maintenance-page.show{display:flex;}
-.maintenance-page .maint-icon{font-size:64px;animation:maintPulse 2s infinite;}
+.maintenance-page .maint-icon{font-size:64px;animation:pulse 2s infinite;}
 .maintenance-page h1{font-size:24px;font-weight:800;margin:0;}
-.maintenance-page .maint-desc{font-size:15px;opacity:.85;max-width:700px;line-height:1.8;margin:0;}
-.maintenance-page .maint-back-btn{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:12px 32px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;transition:all .25s;width:auto;}
-.maintenance-page .maint-back-btn:hover{background:rgba(255,255,255,.25);}
-@keyframes maintPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
-.maint-clock{background:rgba(0,0,0,.25);padding:20px 40px;border-radius:24px;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(10px);margin:10px 0 20px;box-shadow:0 10px 30px rgba(0,0,0,.2);}
+.maintenance-page p{font-size:15px;opacity:.85;max-width:600px;line-height:1.8;margin:0;}
+.maint-back-btn{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:12px 32px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;transition:all .25s;width:auto;}
+.maint-back-btn:hover{background:rgba(255,255,255,.25);}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.maint-clock{background:rgba(0,0,0,.25);padding:20px 40px;border-radius:24px;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(10px);margin:10px 0 20px;}
 .maint-clock .time{font-size:72px;font-weight:800;letter-spacing:4px;line-height:1;text-shadow:0 4px 15px rgba(0,0,0,.5);font-variant-numeric:tabular-nums;}
 .maint-clock .date{font-size:15px;margin-top:12px;opacity:.85;text-transform:uppercase;letter-spacing:1px;}
+
+/* MODALS */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;backdrop-filter:blur(3px);}
 .modal-overlay.show{display:flex;}
-.modal-box{background:white;padding:28px;border-radius:16px;width:100%;max-width:440px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:modalFadeIn .3s;max-height:90vh;overflow-y:auto;}
-@keyframes modalFadeIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-box{background:white;padding:28px;border-radius:16px;width:100%;max-width:440px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:fadeIn .3s;max-height:90vh;overflow-y:auto;}
+@keyframes fadeIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .modal-box h3{margin:0 0 16px;font-size:17px;color:#1d3557;text-align:center;}
 .modal-box label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:5px;}
-.modal-box .pw-field{position:relative;margin-bottom:12px;}
-.modal-box .pw-field input{width:100%;padding:11px;border-radius:8px;border:1px solid #ccc;font-size:14px;}
-.modal-box .pw-field input:focus{outline:none;border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.1);}
+.pw-field{position:relative;margin-bottom:12px;}
+.pw-field input{width:100%;padding:11px;border-radius:8px;border:1px solid #ccc;font-size:14px;transition:border-color .2s;}
+.pw-field input:focus{outline:none;border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.1);}
 .modal-show-pw{display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin:-4px 0 14px;cursor:pointer;}
-.modal-show-pw input[type="checkbox"]{width:15px;height:15px;margin:0;}
+.modal-show-pw input{width:15px;height:15px;margin:0;}
 .modal-btns{display:flex;gap:10px;margin-top:18px;}
 .modal-btns button{flex:1;padding:12px;font-size:14px;border-radius:8px;font-weight:600;}
 .btn-cancel{background:#6c757d;}
@@ -81,6 +92,8 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .modal-error{background:#f8d7da;color:#842029;border:1px solid #f5c2c7;}
 .modal-success{background:#d1e7dd;color:#0f5132;border:1px solid #badbcc;}
 .modal-error.show,.modal-success.show{display:block;}
+
+/* PASSWORD STRENGTH */
 .pw-strength-wrap{margin:-4px 0 12px;}
 .pw-strength-bar{height:6px;border-radius:3px;background:#e9ecef;overflow:hidden;margin-bottom:6px;}
 .pw-strength-bar .fill{height:100%;border-radius:3px;width:0;transition:width .3s,background .3s;}
@@ -90,12 +103,13 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .pw-tips ul{margin:0;padding-left:18px;}
 .pw-tips li.met{color:#198754;}
 .pw-tips li.unmet{color:#999;}
+
 @media(max-width:480px){
   .system-name .vi{font-size:14px;}
   .box{padding:22px;}
   .bottom-section{flex-direction:column;align-items:center;}
-  .maint-clock{padding:15px 20px;}
-  .maint-clock .time{font-size:52px;}
+  .maint-clock .time{font-size:48px;}
+  .maint-clock{padding:15px 24px;}
 }
 </style>
 </head>
@@ -109,7 +123,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <div class="date" id="maintDate">Đang cập nhật...</div>
   </div>
   <h1>Hệ thống đang bảo trì</h1>
-  <p class="maint-desc">Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.<br>Vui lòng quay lại sau.</p>
+  <p>Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.<br>Vui lòng quay lại sau.</p>
   <button class="maint-back-btn" onclick="hideMaintenancePage()">← Quay lại trang đăng nhập</button>
 </div>
 
@@ -167,37 +181,51 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <!-- NỘI DUNG CHÍNH -->
 <div class="overlay" id="mainLoginContent">
 <div class="box">
+
   <div class="system-name">
     <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
     <div class="en">Road Traffic Law Examination System</div>
   </div>
   <h2>🔒 ĐĂNG NHẬP HỆ THỐNG</h2>
+
+  <!-- Messages -->
   <div class="login-error" id="loginError"></div>
   <div class="login-success" id="loginSuccess"></div>
-  <div class="login-loading" id="loginLoading"><span class="spinner-small"></span> Đang kiểm tra...</div>
+  <div class="login-loading" id="loginLoading"><span class="spinner"></span> Đang kiểm tra...</div>
 
-  <!-- Đăng nhập học viên -->
+  <!-- Badge nhận dạng loại tài khoản -->
+  <div class="type-badge" id="typeBadge"></div>
+
+  <!-- Form gộp duy nhất -->
   <div class="form-group">
-    <input id="loginInput" placeholder="Nhập mã học viên hoặc Họ và tên..." autocomplete="off"
-      onkeydown="if(event.key==='Enter')login()">
+    <span class="icon" id="inputIcon">👤</span>
+    <input id="loginInput"
+      placeholder="Mã học viên hoặc Email quản trị..."
+      autocomplete="off"
+      oninput="detectLoginType()"
+      onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
   </div>
   <div class="form-group">
+    <span class="icon">🔑</span>
     <input id="password" type="password" placeholder="Mật khẩu"
       onkeydown="if(event.key==='Enter')login()">
   </div>
   <div class="checkbox-row">
     <label class="checkbox-left">
-      <input type="checkbox" id="showPass" onchange="document.getElementById('password').type=this.checked?'text':'password'">
+      <input type="checkbox" id="showPass"
+        onchange="document.getElementById('password').type=this.checked?'text':'password'">
       Hiện mật khẩu
     </label>
   </div>
+
   <button id="loginBtn" onclick="login()">Đăng nhập</button>
-  <button class="try" id="tryBtn" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
+  <button class="btn-try" id="tryBtn" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
 
   <div class="bottom-section">
     <div class="note-left">
-      • Nhập chính xác <b>Mã HV</b> hoặc <b>Họ và tên</b>.<br>
-      • Hệ thống không phân biệt chữ hoa/thường, có/không dấu.<br>
+      • <b>Học viên:</b> nhập Mã HV hoặc Họ và tên.<br>
+      • <b>Quản trị:</b> nhập Email (có ký tự @).<br>
+      • Không phân biệt chữ hoa/thường, có/không dấu.<br>
       • Liên hệ hỗ trợ:
       <div class="zalo">
         <a href="https://zalo.me/0973306802" target="_blank">
@@ -212,38 +240,33 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     </div>
   </div>
 
-  <!-- Khu vực đăng nhập Admin -->
-  <div class="admin-toggle" onclick="toggleAdminSection()">
-    <span id="adminToggleIcon">▼</span>
-    <span>Quản trị viên</span>
-  </div>
-  <div class="admin-section" id="adminSection">
-    <div class="admin-err" id="adminErr"></div>
-    <label>Email quản trị</label>
-    <input type="email" id="adminEmail" placeholder="admin@example.com"
-      onkeydown="if(event.key==='Enter')adminLogin()">
-    <label>Mật khẩu</label>
-    <input type="password" id="adminPassword" placeholder="Mật khẩu Admin"
-      onkeydown="if(event.key==='Enter')adminLogin()">
-    <button class="btn-admin" id="adminLoginBtn" onclick="adminLogin()">🔑 Đăng nhập Admin</button>
-  </div>
 </div>
 </div>
 
-<!-- THƯ VIỆN FIREBASE -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-<!-- MINI QR CODE GENERATOR -->
+<!-- QR -->
 <script>
-const QRCode=(function(){function render(canvas,text,size){size=size||120;var img=new Image();img.crossOrigin="anonymous";img.onload=function(){canvas.width=size;canvas.height=size;canvas.getContext('2d').drawImage(img,0,0,size,size);};img.onerror=function(){canvas.width=size;canvas.height=size;var ctx=canvas.getContext('2d');ctx.fillStyle='#f8f9fa';ctx.fillRect(0,0,size,size);ctx.fillStyle='#666';ctx.font='11px Arial';ctx.textAlign='center';ctx.fillText('QR Code',size/2,size/2-6);};img.src='https://api.qrserver.com/v1/create-qrcode/?size='+size+'x'+size+'&data='+encodeURIComponent(text);}return{render:render};})();
+const QRCode=(function(){
+  function render(canvas,text,size){
+    size=size||120;
+    var img=new Image();
+    img.crossOrigin="anonymous";
+    img.onload=function(){canvas.width=size;canvas.height=size;canvas.getContext('2d').drawImage(img,0,0,size,size);};
+    img.onerror=function(){canvas.width=size;canvas.height=size;var ctx=canvas.getContext('2d');ctx.fillStyle='#f8f9fa';ctx.fillRect(0,0,size,size);ctx.fillStyle='#666';ctx.font='11px Arial';ctx.textAlign='center';ctx.fillText('QR Code',size/2,size/2);};
+    img.src='https://api.qrserver.com/v1/create-qrcode/?size='+size+'x'+size+'&data='+encodeURIComponent(text);
+  }
+  return{render:render};
+})();
 </script>
 
 <script>
-// =====================================================================
-// KHỞI TẠO FIREBASE
-// =====================================================================
+// ================================================================
+// FIREBASE INIT
+// ================================================================
 let db = null, auth = null, firebaseReady = false;
 try {
   if (firebase.apps.length === 0) {
@@ -259,98 +282,123 @@ try {
   firebaseReady = true;
 } catch(e) { console.error('Firebase init:', e); }
 
-// =====================================================================
-// HẰNG SỐ & HASH
-// =====================================================================
-const _DP = '123456';
+// ================================================================
+// HẰNG SỐ
+// ================================================================
+const _DP          = '123456';
 const ADMIN_EMAILS = ['trunglq002@gmail.com'];
-const HASH_SALT = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
+const HASH_SALT    = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
 
+// ================================================================
+// HASH
+// ================================================================
 async function secureHash(plaintext) {
   if (!plaintext && plaintext !== 0) return '';
-  const encoder = new TextEncoder();
-  const data = encoder.encode(HASH_SALT + String(plaintext) + HASH_SALT);
-  const buf = await crypto.subtle.digest('SHA-256', data);
-  return 'h2_' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  const enc  = new TextEncoder();
+  const data = enc.encode(HASH_SALT + String(plaintext) + HASH_SALT);
+  const buf  = await crypto.subtle.digest('SHA-256', data);
+  return 'h2_' + Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
 function simpleHash_LEGACY(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
   return 'h_' + Math.abs(h).toString(36);
 }
-function simpleHash(s) { return simpleHash_LEGACY(s); }
-
 async function verifyStudentPassword(input, stored) {
   if (!stored) return false;
   if (stored.startsWith('h2_')) return (await secureHash(input)) === stored;
-  if (stored.startsWith('h_')) return simpleHash_LEGACY(input) === stored;
+  if (stored.startsWith('h_'))  return simpleHash_LEGACY(input) === stored;
   return false;
 }
 
-// =====================================================================
-// CACHE BẢO TRÌ — tránh gọi Firestore lặp lại
-// =====================================================================
-let _maintCache = null;        // null = chưa check, true/false = kết quả
-let _maintCacheTime = 0;
-const MAINT_CACHE_TTL = 60000; // Cache 60 giây
+// ================================================================
+// CACHE BẢO TRÌ
+// ================================================================
+let _maintCache = null, _maintCacheTime = 0;
+const MAINT_TTL = 60000;
 
 async function checkMaintenanceMode() {
-  // FIX: Dùng cache để tránh gọi Firestore mỗi lần click
   const now = Date.now();
-  if (_maintCache !== null && (now - _maintCacheTime) < MAINT_CACHE_TTL) {
-    return _maintCache;
-  }
+  if (_maintCache !== null && (now - _maintCacheTime) < MAINT_TTL) return _maintCache;
   if (!firebaseReady || !db) return false;
   try {
     const d = await db.collection('systemConfig').doc('maintenance').get();
-    _maintCache = d.exists && d.data().enabled;
+    _maintCache     = d.exists && !!d.data().enabled;
     _maintCacheTime = now;
     return _maintCache;
   } catch(e) { return false; }
 }
+function clearMaintenanceCache() { _maintCache = null; _maintCacheTime = 0; }
 
-// Xóa cache khi cần kiểm tra lại (ví dụ sau khi admin thay đổi)
-function clearMaintenanceCache() {
-  _maintCache = null;
-  _maintCacheTime = 0;
-}
-
-// =====================================================================
-// RATE LIMIT ĐĂNG NHẬP ADMIN
-// =====================================================================
+// ================================================================
+// RATE LIMIT (ADMIN)
+// ================================================================
 const LOGIN_RATE = {
-  MAX_ATTEMPTS: 5,
-  WINDOW_MS: 15 * 60 * 1000,
-  key: 'admin_login_attempts',
+  MAX: 5, WIN: 15 * 60 * 1000, KEY: 'adm_attempts',
   check() {
-    const raw = sessionStorage.getItem(this.key);
-    if (!raw) return true;
-    const { count, since } = JSON.parse(raw);
-    if (Date.now() - since > this.WINDOW_MS) { sessionStorage.removeItem(this.key); return true; }
-    return count < this.MAX_ATTEMPTS;
+    const r = sessionStorage.getItem(this.KEY);
+    if (!r) return true;
+    const {count, since} = JSON.parse(r);
+    if (Date.now() - since > this.WIN) { sessionStorage.removeItem(this.KEY); return true; }
+    return count < this.MAX;
   },
   record() {
-    const raw = sessionStorage.getItem(this.key);
-    if (!raw) { sessionStorage.setItem(this.key, JSON.stringify({ count: 1, since: Date.now() })); }
-    else { const o = JSON.parse(raw); o.count++; sessionStorage.setItem(this.key, JSON.stringify(o)); }
+    const r = sessionStorage.getItem(this.KEY);
+    if (!r) sessionStorage.setItem(this.KEY, JSON.stringify({count:1, since:Date.now()}));
+    else { const o=JSON.parse(r); o.count++; sessionStorage.setItem(this.KEY, JSON.stringify(o)); }
   },
-  remainingTime() {
-    const raw = sessionStorage.getItem(this.key);
-    if (!raw) return 0;
-    return Math.ceil((this.WINDOW_MS - (Date.now() - JSON.parse(raw).since)) / 60000);
+  remaining() {
+    const r = sessionStorage.getItem(this.KEY);
+    if (!r) return 0;
+    return Math.ceil((this.WIN - (Date.now() - JSON.parse(r).since)) / 60000);
   }
 };
 
-// =====================================================================
-// TIỆN ÍCH UI
-// =====================================================================
+// ================================================================
+// NHẬN DẠNG LOẠI TÀI KHOẢN (real-time khi gõ)
+// ================================================================
+function isEmail(s) { return s.includes('@'); }
+
+function detectLoginType() {
+  const val   = document.getElementById('loginInput').value.trim();
+  const badge = document.getElementById('typeBadge');
+  const icon  = document.getElementById('inputIcon');
+  const btn   = document.getElementById('loginBtn');
+
+  if (!val) {
+    badge.className = 'type-badge';
+    badge.innerHTML = '';
+    icon.textContent = '👤';
+    btn.textContent  = 'Đăng nhập';
+    return;
+  }
+
+  if (isEmail(val)) {
+    // Chế độ Admin
+    badge.className = 'type-badge admin';
+    badge.innerHTML = '🛡️ Quản trị viên';
+    icon.textContent = '📧';
+    btn.textContent  = '🛡️ Đăng nhập Quản trị';
+    btn.style.background = 'linear-gradient(135deg,#1a1f36,#0d6efd)';
+  } else {
+    // Chế độ Học viên
+    badge.className = 'type-badge student';
+    badge.innerHTML = '🎓 Học viên';
+    icon.textContent = '🎓';
+    btn.textContent  = '🎓 Đăng nhập Học viên';
+    btn.style.background = '#1d3557';
+  }
+}
+
+// ================================================================
+// UI HELPERS
+// ================================================================
 function showError(m) {
   const e = document.getElementById('loginError');
   e.innerHTML = m; e.classList.add('show');
   document.getElementById('loginSuccess').classList.remove('show');
   clearTimeout(window._et);
-  window._et = setTimeout(() => e.classList.remove('show'), 6000);
+  window._et = setTimeout(() => e.classList.remove('show'), 7000);
 }
 function hideError() { document.getElementById('loginError').classList.remove('show'); }
 function showSuccess(m) {
@@ -358,193 +406,123 @@ function showSuccess(m) {
   e.innerHTML = m; e.classList.add('show');
   document.getElementById('loginError').classList.remove('show');
 }
-function setLoading(on) {
+function setLoading(on, msg) {
   document.getElementById('loginLoading').classList.toggle('show', on);
-  document.getElementById('loginBtn').disabled = on;
-  document.getElementById('tryBtn').disabled = on;
-}
-function showAdminError(m) {
-  const e = document.getElementById('adminErr');
-  e.textContent = m; e.classList.add('show');
-  clearTimeout(window._ae);
-  window._ae = setTimeout(() => e.classList.remove('show'), 6000);
-}
-function setAdminLoading(on) {
-  const btn = document.getElementById('adminLoginBtn');
+  const btn = document.getElementById('loginBtn');
   btn.disabled = on;
-  btn.textContent = on ? '⏳ Đang xác thực...' : '🔑 Đăng nhập Admin';
-}
-function toggleAdminSection() {
-  const s = document.getElementById('adminSection');
-  const ic = document.getElementById('adminToggleIcon');
-  const open = s.classList.toggle('open');
-  ic.textContent = open ? '▲' : '▼';
-  if (open) setTimeout(() => document.getElementById('adminEmail').focus(), 100);
-}
-function normalize(s) {
-  if (!s) return '';
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  document.getElementById('tryBtn').disabled = on;
+  if (on && msg) {
+    const el = document.getElementById('loginLoading');
+    el.innerHTML = `<span class="spinner"></span> ${msg}`;
+  }
 }
 
-// =====================================================================
-// BẢO TRÌ
-// =====================================================================
-let isSystemMaintenance = false, maintClockInterval = null;
-function updateMaintenanceClock() {
-  const n = new Date();
-  const hh = String(n.getHours()).padStart(2,'0');
-  const mm = String(n.getMinutes()).padStart(2,'0');
-  const ss = String(n.getSeconds()).padStart(2,'0');
-  const dd = String(n.getDate()).padStart(2,'0');
-  const mo = String(n.getMonth()+1).padStart(2,'0');
-  const yy = n.getFullYear();
-  const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
-  const tEl = document.getElementById('maintTime');
-  const dEl = document.getElementById('maintDate');
-  if (tEl) tEl.textContent = `${hh}:${mm}:${ss}`;
-  if (dEl) dEl.textContent = `${thu}, ${dd}/${mo}/${yy}`;
-}
-function showMaintenancePage() {
-  isSystemMaintenance = true;
-  document.getElementById('maintenancePage').classList.add('show');
-  document.getElementById('mainLoginContent').style.display = 'none';
-  updateMaintenanceClock();
-  if (maintClockInterval) clearInterval(maintClockInterval);
-  maintClockInterval = setInterval(updateMaintenanceClock, 1000);
-}
-function hideMaintenancePage() {
-  isSystemMaintenance = false;
-  clearMaintenanceCache(); // Xóa cache khi quay lại
-  document.getElementById('maintenancePage').classList.remove('show');
-  document.getElementById('mainLoginContent').style.display = '';
-  if (maintClockInterval) { clearInterval(maintClockInterval); maintClockInterval = null; }
-}
-
-// =====================================================================
+// ================================================================
 // KHỞI TẠO TRANG
-// =====================================================================
+// ================================================================
 window.onload = async function () {
-  // Nếu đã đăng nhập học viên → về exam
+  // Đã đăng nhập HV
   if (localStorage.getItem('userType') === 'student' && localStorage.getItem('studentCode')) {
     location.href = 'exam.html'; return;
   }
-  // Nếu đã đăng nhập admin → về admin
+  // Đã đăng nhập Admin
   if (auth) {
     auth.onAuthStateChanged(user => {
-      if (user && ADMIN_EMAILS.includes(user.email)) {
-        location.href = 'admin.html';
-      }
+      if (user && ADMIN_EMAILS.includes(user.email)) location.href = 'admin.html';
     });
   }
   // Kiểm tra bảo trì
   if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
-  // Render QR Code
-  try {
-    QRCode.render(document.getElementById('qrCanvas'), location.href, 110);
-  } catch(_) {}
+  // QR
+  try { QRCode.render(document.getElementById('qrCanvas'), location.href, 110); } catch(_){}
 };
 
-// =====================================================================
-// ĐĂNG NHẬP HỌC VIÊN — ĐÃ SỬA: dùng query thay vì get() toàn bộ
-// =====================================================================
+// ================================================================
+// ĐĂNG NHẬP — TỰ PHÂN LOẠI
+// ================================================================
 async function login() {
   hideError();
-  const raw = document.getElementById('loginInput').value.trim();
+  const raw  = document.getElementById('loginInput').value.trim();
   const pass = document.getElementById('password').value;
-  if (!raw) { showError('⚠ Vui lòng nhập Mã học viên hoặc Họ và tên.'); return; }
-  if (!pass) { showError('⚠ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
-  setLoading(true);
-  try {
-    await processStudentLogin(raw, pass);
-  } catch(err) {
-    showError('⚠ Hệ thống đang bận hoặc lỗi kết nối.');
-    console.error(err);
-  } finally {
-    setLoading(false);
+
+  if (!raw)  { showError('⚠️ Vui lòng nhập Mã học viên hoặc Email.'); return; }
+  if (!pass) { showError('⚠️ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
+
+  if (isEmail(raw)) {
+    // → ADMIN
+    await doAdminLogin(raw, pass);
+  } else {
+    // → HỌC VIÊN
+    setLoading(true, 'Đang kiểm tra học viên...');
+    try { await doStudentLogin(raw, pass); }
+    catch(e) { showError('⚠️ Lỗi kết nối. Vui lòng thử lại.'); console.error(e); }
+    finally  { setLoading(false); }
   }
 }
 
-async function processStudentLogin(raw, pass) {
-  if (!firebaseReady || !db) { showError('⚠ Không thể kết nối máy chủ.'); return; }
-  
+// ================================================================
+// ĐĂNG NHẬP HỌC VIÊN
+// ================================================================
+async function doStudentLogin(raw, pass) {
+  if (!firebaseReady || !db) { showError('⚠️ Không thể kết nối máy chủ.'); return; }
+
   const searchStr = normalize(raw);
   let st = null, sid = null;
 
   try {
-    // ✅ FIX CHÍNH: Query theo mã học viên trước (nhanh, có index)
-    // Thử tìm theo field "code" trước
+    // 1) Tìm theo field "code" (chính xác)
     const byCode = await db.collection('students')
-      .where('code', '==', raw.trim())
-      .limit(1)
-      .get();
-
+      .where('code', '==', raw).limit(1).get();
     if (!byCode.empty) {
       const doc = byCode.docs[0];
-      st = { id: doc.id, ...doc.data() };
-      sid = doc.id;
+      st = { id: doc.id, ...doc.data() }; sid = doc.id;
     }
 
-    // Nếu không tìm thấy theo code → thử tìm theo document ID
+    // 2) Tìm theo document ID
     if (!st) {
-      const byId = await db.collection('students').doc(raw.trim()).get();
-      if (byId.exists) {
-        st = { id: byId.id, ...byId.data() };
-        sid = byId.id;
+      const byId = await db.collection('students').doc(raw).get();
+      if (byId.exists) { st = { id: byId.id, ...byId.data() }; sid = byId.id; }
+    }
+
+    // 3) Tìm theo nameNorm (field chuẩn hoá tên — nếu đã thêm)
+    if (!st) {
+      const byName = await db.collection('students')
+        .where('nameNorm', '==', searchStr).limit(1).get();
+      if (!byName.empty) {
+        const doc = byName.docs[0];
+        st = { id: doc.id, ...doc.data() }; sid = doc.id;
       }
     }
 
-    // Nếu vẫn không tìm thấy → thử tìm theo tên (normalize)
-    // Lưu ý: Firestore không hỗ trợ query normalize trực tiếp
-    // → Cần field "nameNorm" được lưu sẵn trong Firestore
+    // 4) Fallback scan giới hạn (nếu chưa có nameNorm)
     if (!st) {
-      const byNameNorm = await db.collection('students')
-        .where('nameNorm', '==', searchStr)
-        .limit(1)
-        .get();
-      if (!byNameNorm.empty) {
-        const doc = byNameNorm.docs[0];
-        st = { id: doc.id, ...doc.data() };
-        sid = doc.id;
-      }
-    }
-
-    // Fallback cuối: nếu không có field nameNorm → scan nhưng giới hạn 500
-    // (Chỉ dùng tạm thời, nên thêm field nameNorm vào Firestore)
-    if (!st) {
-      console.warn('⚠ nameNorm field chưa có, đang fallback scan (chậm)...');
       const snap = await db.collection('students').limit(500).get();
       for (const doc of snap.docs) {
         const d = doc.data();
-        if (normalize(d.code || doc.id) === searchStr || normalize(d.name || '') === searchStr) {
+        if (normalize(d.code || doc.id) === searchStr ||
+            normalize(d.name || '')     === searchStr) {
           st = { id: doc.id, ...d }; sid = doc.id; break;
         }
       }
     }
-
   } catch(e) {
-    console.error('Login query error:', e);
-    showError('⚠ Lỗi kết nối. Thử lại sau.');
-    return;
+    showError('⚠️ Lỗi kết nối. Thử lại sau.'); return;
   }
 
   if (!st) {
-    showError('⚠ Không tìm thấy học viên. Vui lòng nhập ĐÚNG và ĐẦY ĐỦ Mã HV hoặc Họ và tên.');
+    showError('⚠️ Không tìm thấy học viên.<br>Vui lòng nhập đúng <b>Mã HV</b> hoặc <b>Họ và tên đầy đủ</b>.');
     return;
   }
   if (st.status === 'locked') {
-    showError('🔒 Tài khoản đã bị khóa. Vui lòng liên hệ Quản trị viên.');
+    showError('🔒 Tài khoản đã bị khóa. Liên hệ Quản trị viên.');
     return;
   }
 
   // Xác thực mật khẩu
   const storedHash = st.password || '';
-  let ok = false;
-  if (storedHash) {
-    ok = await verifyStudentPassword(pass, storedHash);
-  } else {
-    // Tài khoản chưa có password → chấp nhận mật khẩu mặc định
-    ok = (pass === _DP);
-  }
+  let ok = storedHash
+    ? await verifyStudentPassword(pass, storedHash)
+    : (pass === _DP);
 
   if (!ok) {
     showError('❌ Sai mật khẩu. Vui lòng thử lại.');
@@ -553,18 +531,18 @@ async function processStudentLogin(raw, pass) {
     return;
   }
 
-  // Kiểm tra bảo trì (dùng cache, không gọi Firestore thêm)
+  // Kiểm tra bảo trì (cache)
   if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
 
   // Lưu session
-  localStorage.setItem('userType', 'student');
-  localStorage.setItem('studentCode', st.code || sid);
-  localStorage.setItem('studentName', st.name || '');
-  localStorage.setItem('studentUnit', st.unit || '');
-  localStorage.setItem('studentObject', st.object || '');
-  localStorage.setItem('studentCourse', st.course || '');
+  localStorage.setItem('userType',       'student');
+  localStorage.setItem('studentCode',    st.code || sid);
+  localStorage.setItem('studentName',    st.name || '');
+  localStorage.setItem('studentUnit',    st.unit || '');
+  localStorage.setItem('studentObject',  st.object || '');
+  localStorage.setItem('studentCourse',  st.course || '');
 
-  showSuccess('✅ Xin chào, ' + (st.name || st.code) + '!');
+  showSuccess('✅ Xin chào, <b>' + (st.name || st.code || sid) + '</b>!');
 
   const isDefaultPass = !storedHash || pass === _DP;
   if (!st.passwordChanged && isDefaultPass) {
@@ -574,60 +552,90 @@ async function processStudentLogin(raw, pass) {
   }
 }
 
-// =====================================================================
-// ĐĂNG NHẬP ADMIN (Firebase Auth)
-// =====================================================================
-async function adminLogin() {
-  const email = document.getElementById('adminEmail').value.trim();
-  const pass = document.getElementById('adminPassword').value;
-  if (!email) { showAdminError('⚠ Vui lòng nhập email.'); return; }
-  if (!pass) { showAdminError('⚠ Vui lòng nhập mật khẩu.'); return; }
+// ================================================================
+// ĐĂNG NHẬP ADMIN
+// ================================================================
+async function doAdminLogin(email, pass) {
   if (!LOGIN_RATE.check()) {
-    showAdminError(`⛔ Quá nhiều lần thử. Vui lòng chờ ${LOGIN_RATE.remainingTime()} phút.`);
+    showError(`⛔ Quá nhiều lần thử. Vui lòng chờ ${LOGIN_RATE.remaining()} phút.`);
     return;
   }
-  setAdminLoading(true);
+  setLoading(true, 'Đang xác thực quản trị viên...');
   try {
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     const user = cred.user;
     if (!ADMIN_EMAILS.includes(user.email)) {
       await auth.signOut();
-      showAdminError('❌ Tài khoản không có quyền quản trị!');
+      showError('❌ Email này không có quyền quản trị!');
       return;
     }
-    localStorage.setItem('userType', 'admin');
-    localStorage.setItem('adminName', user.displayName || user.email.split('@')[0]);
-    location.href = 'admin.html';
+    localStorage.setItem('userType',   'admin');
+    localStorage.setItem('adminName',  user.displayName || user.email.split('@')[0]);
+    showSuccess('✅ Xác thực thành công! Đang chuyển trang...');
+    setTimeout(() => { location.href = 'admin.html'; }, 600);
   } catch(e) {
     LOGIN_RATE.record();
     const map = {
-      'auth/user-not-found': '❌ Email không tồn tại!',
-      'auth/wrong-password': '❌ Mật khẩu không đúng!',
-      'auth/invalid-credential': '❌ Email hoặc mật khẩu không đúng!',
-      'auth/too-many-requests': '⚠ Quá nhiều lần thử. Tài khoản tạm thời bị khóa.',
-      'auth/invalid-email': '⚠ Định dạng email không hợp lệ!',
-      'auth/network-request-failed': '⚠ Lỗi kết nối mạng.',
+      'auth/user-not-found':        '❌ Email không tồn tại!',
+      'auth/wrong-password':        '❌ Mật khẩu không đúng!',
+      'auth/invalid-credential':    '❌ Email hoặc mật khẩu không đúng!',
+      'auth/too-many-requests':     '⚠️ Quá nhiều lần thử. Tài khoản tạm khóa.',
+      'auth/invalid-email':         '⚠️ Định dạng email không hợp lệ!',
+      'auth/network-request-failed':'⚠️ Lỗi kết nối mạng.',
     };
-    showAdminError(map[e.code] || ('Lỗi: ' + e.message));
+    showError(map[e.code] || '❌ Lỗi: ' + e.message);
   } finally {
-    setAdminLoading(false);
+    setLoading(false);
   }
 }
 
-// =====================================================================
-// THI THỬ — FIX: Dùng cache maintenance, không gọi Firestore thừa
-// =====================================================================
+// ================================================================
+// THI THỬ
+// ================================================================
 async function tryExam() {
-  // Chỉ check nếu cache còn mới, tránh chờ Firestore
-  const isMaint = await checkMaintenanceMode();
-  if (isMaint) { showMaintenancePage(); return; }
+  if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
   localStorage.setItem('userType', 'guest');
   location.href = 'test.html';
 }
 
-// =====================================================================
-// MODAL ĐỔI MẬT KHẨU HỌC VIÊN
-// =====================================================================
+// ================================================================
+// BẢO TRÌ
+// ================================================================
+let maintClockInterval = null;
+function updateMaintenanceClock() {
+  const n   = new Date();
+  const pad = x => String(x).padStart(2,'0');
+  const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+  const tEl = document.getElementById('maintTime');
+  const dEl = document.getElementById('maintDate');
+  if (tEl) tEl.textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  if (dEl) dEl.textContent = `${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}`;
+}
+function showMaintenancePage() {
+  document.getElementById('maintenancePage').classList.add('show');
+  document.getElementById('mainLoginContent').style.display = 'none';
+  updateMaintenanceClock();
+  if (maintClockInterval) clearInterval(maintClockInterval);
+  maintClockInterval = setInterval(updateMaintenanceClock, 1000);
+}
+function hideMaintenancePage() {
+  clearMaintenanceCache();
+  document.getElementById('maintenancePage').classList.remove('show');
+  document.getElementById('mainLoginContent').style.display = '';
+  if (maintClockInterval) { clearInterval(maintClockInterval); maintClockInterval = null; }
+}
+
+// ================================================================
+// NORMALIZE
+// ================================================================
+function normalize(s) {
+  if (!s) return '';
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+// ================================================================
+// MODAL ĐỔI MẬT KHẨU
+// ================================================================
 function skipChangePw() {
   document.getElementById('pwPromptModal').classList.remove('show');
   showSuccess('✅ Đang chuyển vào hệ thống...');
@@ -662,27 +670,29 @@ function closeChangePwModal() {
 }
 
 async function submitChangePassword() {
-  const o = document.getElementById('cpOldPw').value;
-  const n = document.getElementById('cpNewPw').value;
-  const c = document.getElementById('cpConfirmPw').value;
+  const o   = document.getElementById('cpOldPw').value;
+  const n   = document.getElementById('cpNewPw').value;
+  const c   = document.getElementById('cpConfirmPw').value;
   const err = document.getElementById('changePwError');
   const suc = document.getElementById('changePwSuccess');
   const btn = document.getElementById('cpSubmitBtn');
   err.classList.remove('show'); suc.classList.remove('show');
-  if (!o || !n || !c) { err.textContent = '⚠ Nhập đầy đủ thông tin!'; err.classList.add('show'); return; }
-  if (n.length < 6) { err.textContent = '⚠ Mật khẩu mới ít nhất 6 ký tự!'; err.classList.add('show'); return; }
-  if (n !== c) { err.textContent = '⚠ Xác nhận không khớp!'; err.classList.add('show'); return; }
-  if (n === o) { err.textContent = '⚠ Mật khẩu mới phải khác cũ!'; err.classList.add('show'); return; }
+  if (!o||!n||!c)  { err.textContent='⚠️ Nhập đầy đủ thông tin!'; err.classList.add('show'); return; }
+  if (n.length < 6){ err.textContent='⚠️ Mật khẩu mới ít nhất 6 ký tự!'; err.classList.add('show'); return; }
+  if (n !== c)     { err.textContent='⚠️ Xác nhận không khớp!'; err.classList.add('show'); return; }
+  if (n === o)     { err.textContent='⚠️ Mật khẩu mới phải khác cũ!'; err.classList.add('show'); return; }
   btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
   try {
     const d = await db.collection('students').doc(changePwSid).get();
-    if (!d.exists) { err.textContent = '❌ Không tìm thấy dữ liệu!'; err.classList.add('show'); return; }
+    if (!d.exists) { err.textContent='❌ Không tìm thấy dữ liệu!'; err.classList.add('show'); return; }
     const storedHash = d.data().password || '';
-    let ok = storedHash ? await verifyStudentPassword(o, storedHash) : (o === _DP);
-    if (!ok) { err.textContent = '❌ Sai mật khẩu hiện tại!'; err.classList.add('show'); return; }
+    const ok = storedHash
+      ? await verifyStudentPassword(o, storedHash)
+      : (o === _DP);
+    if (!ok) { err.textContent='❌ Sai mật khẩu hiện tại!'; err.classList.add('show'); return; }
     await db.collection('students').doc(changePwSid).update({
-      password: await secureHash(n),
-      passwordChanged: true,
+      password:          await secureHash(n),
+      passwordChanged:   true,
       passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     suc.textContent = '✅ Đổi mật khẩu thành công!';
@@ -697,26 +707,35 @@ async function submitChangePassword() {
 }
 
 function checkPasswordStrength() {
-  const pw = document.getElementById('cpNewPw').value;
+  const pw   = document.getElementById('cpNewPw').value;
   const fill = document.getElementById('pwStrengthFill');
-  const txt = document.getElementById('pwStrengthText');
-  const hl = pw.length >= 8, hu = /[A-Z]/.test(pw), hlo = /[a-z]/.test(pw), hn = /[0-9]/.test(pw), hs = /[^A-Za-z0-9]/.test(pw);
-  updTip('tipLen',hl); updTip('tipUpper',hu); updTip('tipLower',hlo); updTip('tipNum',hn); updTip('tipSpec',hs);
+  const txt  = document.getElementById('pwStrengthText');
+  const hl   = pw.length >= 8, hu = /[A-Z]/.test(pw), hlo = /[a-z]/.test(pw),
+        hn   = /[0-9]/.test(pw), hs = /[^A-Za-z0-9]/.test(pw);
+  updTip('tipLen',hl); updTip('tipUpper',hu); updTip('tipLower',hlo);
+  updTip('tipNum',hn); updTip('tipSpec',hs);
   let sc = 0;
-  if (pw.length >= 6) sc++; if (hl) sc++; if (hu) sc++; if (hlo) sc++; if (hn) sc++; if (hs) sc++; if (pw.length >= 12) sc++;
+  if (pw.length>=6) sc++; if(hl)sc++; if(hu)sc++; if(hlo)sc++;
+  if(hn)sc++; if(hs)sc++; if(pw.length>=12)sc++;
   if (!pw) { fill.style.width='0'; txt.textContent=''; return; }
-  if (sc <= 2) { fill.style.width='25%'; fill.style.background='#dc3545'; txt.style.color='#dc3545'; txt.textContent='🔴 Yếu'; }
-  else if (sc <= 4) { fill.style.width='50%'; fill.style.background='#fd7e14'; txt.style.color='#fd7e14'; txt.textContent='🟡 Trung bình'; }
-  else if (sc <= 5) { fill.style.width='75%'; fill.style.background='#0d6efd'; txt.style.color='#0d6efd'; txt.textContent='🔵 Khá'; }
-  else { fill.style.width='100%'; fill.style.background='#198754'; txt.style.color='#198754'; txt.textContent='🟢 Mạnh'; }
+  if (sc<=2) { fill.style.cssText='width:25%;background:#dc3545'; txt.style.color='#dc3545'; txt.textContent='🔴 Yếu'; }
+  else if(sc<=4){ fill.style.cssText='width:50%;background:#fd7e14'; txt.style.color='#fd7e14'; txt.textContent='🟡 Trung bình'; }
+  else if(sc<=5){ fill.style.cssText='width:75%;background:#0d6efd'; txt.style.color='#0d6efd'; txt.textContent='🔵 Khá'; }
+  else          { fill.style.cssText='width:100%;background:#198754'; txt.style.color='#198754'; txt.textContent='🟢 Mạnh'; }
   checkConfirmMatch();
 }
-function updTip(id, m) { const e=document.getElementById(id); e.className=m?'met':'unmet'; e.querySelector('span').textContent=m?'✔':'○'; }
+function updTip(id,m){
+  const e=document.getElementById(id);
+  e.className=m?'met':'unmet';
+  e.querySelector('span').textContent=m?'✔':'○';
+}
 function checkConfirmMatch() {
-  const p=document.getElementById('cpNewPw').value, c=document.getElementById('cpConfirmPw').value, m=document.getElementById('confirmMatchMsg');
-  if (!c) { m.textContent=''; return; }
-  if (p===c) { m.textContent='✔ Khớp'; m.style.color='#198754'; }
-  else { m.textContent='✘ Chưa khớp'; m.style.color='#dc3545'; }
+  const p=document.getElementById('cpNewPw').value;
+  const c=document.getElementById('cpConfirmPw').value;
+  const m=document.getElementById('confirmMatchMsg');
+  if (!c){m.textContent='';return;}
+  if(p===c){m.textContent='✔ Khớp';m.style.color='#198754';}
+  else     {m.textContent='✘ Chưa khớp';m.style.color='#dc3545';}
 }
 function toggleModalPasswords() {
   const t = document.getElementById('cpShowPw').checked ? 'text' : 'password';
