@@ -10,62 +10,84 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #eef2f6; --card: #ffffff; --blue: #1d3557; --accent: #264a8a;
-  --green: #2a9d8f; --red: #e63946; --yellow: #f4a261;
-  --text: #2d3436; --muted: #636e72; --border: #dfe6e9;
-  --shadow: 0 4px 20px rgba(0,0,0,0.08); --radius: 16px;
+  --bg: #eef2f6;
+  --card: #ffffff;
+  --blue: #1d3557;
+  --accent: #264a8a;
+  --green: #2a9d8f;
+  --red: #e63946;
+  --yellow: #f4a261;
+  --text: #2d3436;
+  --muted: #636e72;
+  --border: #dfe6e9;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --radius: 16px;
 }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* ===== LOADING OVERLAY ===== */
-#pageLoader {
-  position: fixed; inset: 0; background: linear-gradient(135deg,#1d3557,#264a8a);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 99999; color: white; gap: 20px;
-}
-#pageLoader .spinner-lg {
-  width: 52px; height: 52px; border: 5px solid rgba(255,255,255,0.3);
-  border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-#pageLoader p { font-size: 15px; opacity: 0.85; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== HEADER ===== */
 header {
   background: linear-gradient(135deg, #1d3557 0%, #264a8a 60%, #2a9d8f 100%);
-  color: white; padding: 0;
+  color: white;
+  padding: 0;
   box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  position: sticky; top: 0; z-index: 100;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 .header-top {
-  padding: 12px 28px; display: flex;
-  justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 12px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   border-bottom: 1px solid rgba(255,255,255,0.12);
 }
-.header-title { display: flex; flex-direction: column; gap: 2px; }
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .header-title .vi { font-size: 15px; font-weight: 800; letter-spacing: 0.3px; }
 .header-title .en { font-size: 11px; opacity: 0.75; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
 .header-clock {
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 12px; padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 8px 16px;
 }
+/* clock-time và clock-date không còn dùng riêng lẻ */
 #logoutBtn {
-  background: linear-gradient(135deg, #e63946, #c0392b); color: white;
-  border: none; border-radius: 10px; padding: 9px 18px; cursor: pointer;
-  font-size: 13px; font-weight: 700; transition: all 0.2s;
-  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #e63946, #c0392b);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   box-shadow: 0 3px 10px rgba(230,57,70,0.4);
 }
 #logoutBtn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(230,57,70,0.5); }
 .welcome-bar {
-  padding: 10px 28px; background: rgba(0,0,0,0.15);
-  font-size: 14px; display: flex; align-items: center; gap: 8px;
+  padding: 10px 28px;
+  background: rgba(0,0,0,0.15);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .welcome-bar b { font-size: 15px; }
 
@@ -73,13 +95,20 @@ header {
 .notif-banner {
   display: none;
   background: linear-gradient(135deg, #f4a261, #e76f51);
-  color: white; padding: 0; animation: slideDown 0.4s;
+  color: white;
+  padding: 0;
+  animation: slideDown 0.4s;
 }
 .notif-banner.show { display: block; }
 @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .notif-item {
-  padding: 10px 28px; border-bottom: 1px solid rgba(255,255,255,0.15);
-  display: flex; align-items: flex-start; gap: 10px; cursor: pointer; transition: background 0.2s;
+  padding: 10px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 .notif-item:hover { background: rgba(0,0,0,0.1); }
 .notif-item:last-child { border-bottom: none; }
@@ -93,29 +122,76 @@ header {
 #container { max-width: 1100px; margin: 28px auto; padding: 0 20px 40px; }
 
 /* ===== GRID LAYOUT ===== */
-.main-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
+.main-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
 @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
 
 /* ===== CARDS ===== */
-.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
-.card-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .card-header h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin: 0; }
 .card-body { padding: 20px; }
 
 /* ===== STUDENT INFO ===== */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
 .info-item { display: flex; flex-direction: column; gap: 3px; }
 .info-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .info-value { font-size: 14px; font-weight: 600; color: var(--text); }
 .info-item.full { grid-column: 1 / -1; }
-.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
 .badge-active { background: #d1fae5; color: #065f46; }
 .badge-locked { background: #fee2e2; color: #991b1b; }
 
 /* ===== STAT BLOCKS ===== */
-.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-.stat-box { border-radius: 14px; padding: 16px; text-align: center; color: white; position: relative; overflow: hidden; }
-.stat-box::before { content: ''; position: absolute; right: -10px; bottom: -10px; width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-box {
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.stat-box::before {
+  content: '';
+  position: absolute;
+  right: -10px; bottom: -10px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
 .stat-box .s-num { font-size: 28px; font-weight: 800; display: block; line-height: 1; margin-bottom: 4px; }
 .stat-box .s-lbl { font-size: 11px; opacity: 0.9; font-weight: 600; }
 .sb-blue { background: linear-gradient(135deg, #457b9d, #1d3557); }
@@ -126,8 +202,16 @@ header {
 .chart-wrap { height: 200px; margin: 16px 0; }
 
 /* ===== RESULT TABLE ===== */
-.result-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.result-table th, .result-table td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.result-table th, .result-table td {
+  padding: 9px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
 .result-table th { background: #f8fafc; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .result-table tbody tr:hover { background: #f8fafc; }
 .pass { color: var(--green); font-weight: 700; }
@@ -135,19 +219,39 @@ header {
 .no-data { text-align: center; color: var(--muted); font-style: italic; padding: 30px; }
 
 /* ===== ACTION BUTTONS ===== */
-.action-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+.action-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
 .action-btn {
-  flex: 1; min-width: 160px; padding: 16px 20px; border: none; border-radius: 14px;
-  cursor: pointer; font-size: 15px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: all 0.2s; color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  flex: 1;
+  min-width: 160px;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+  color: white;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
 }
 .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
 .btn-start { background: linear-gradient(135deg, #2a9d8f, #1a7a6e); }
 .btn-detail { background: linear-gradient(135deg, #457b9d, #1d3557); }
 
 /* ===== NOTIFICATIONS PANEL ===== */
-.notif-panel .card-header { background: linear-gradient(135deg, #f4a261, #e76f51); cursor: pointer; user-select: none; }
+.notif-panel .card-header {
+  background: linear-gradient(135deg, #f4a261, #e76f51);
+  cursor: pointer;
+  user-select: none;
+}
 .notif-panel .card-header h3 { color: white; }
 .notif-panel .card-header span { color: white; }
 .notif-panel-toggle { font-size: 13px; color: rgba(255,255,255,0.85); transition: transform 0.3s; }
@@ -156,8 +260,14 @@ header {
 #notifListWrap.hidden { max-height: 0; opacity: 0; pointer-events: none; }
 .notif-empty { text-align: center; padding: 24px 16px; color: var(--muted); font-size: 13px; }
 .notif-list-item {
-  padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer;
-  transition: background 0.15s; position: relative; display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
 }
 .notif-list-item:hover { background: #fff8f2; }
 .notif-list-item.unread { border-left: 3px solid var(--yellow); background: #fff9f4; }
@@ -167,24 +277,43 @@ header {
 .notif-list-item .n-text { font-size: 11.5px; color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .notif-list-item .n-time { font-size: 10.5px; color: #b2bec3; margin-top: 2px; }
 .notif-del-btn {
-  flex-shrink: 0; background: none; border: none; color: #b2bec3; cursor: pointer;
-  font-size: 14px; padding: 2px 4px; border-radius: 4px; line-height: 1;
-  transition: color 0.15s, background 0.15s; align-self: flex-start; margin-top: 2px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #b2bec3;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 .notif-del-btn:hover { color: var(--red); background: #fee2e2; }
 .type-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; flex-shrink: 0; }
-.type-info { background: #0d6efd; } .type-exam { background: #ffc107; }
-.type-result { background: #198754; } .type-urgent { background: #dc3545; }
+.type-info { background: #0d6efd; }
+.type-exam { background: #ffc107; }
+.type-result { background: #198754; }
+.type-urgent { background: #dc3545; }
 .type-reminder { background: #7c3aed; }
-.notif-actions-bar { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
-.notif-action-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.notif-actions-bar {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.notif-action-link {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
 .notif-action-link:hover { color: var(--red); }
 
-/* ===== MODALS ===== */
-.confirm-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-  display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px;
-}
+/* ===== CONFIRM MODAL ===== */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
 .confirm-overlay.show { display: flex; }
 .confirm-box { background: white; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.25); animation: cIn 0.25s; }
 @keyframes cIn { from { opacity:0; transform: scale(.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
@@ -197,7 +326,6 @@ header {
 .c-btn-cancel:hover { background: #e0e7ff; }
 .c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
 .c-btn-confirm:hover { opacity: 0.9; }
-
 .kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
 .kickout-modal.show { display: flex; }
 .kickout-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kFadeIn .4s; border-top: 6px solid #dc3545; }
@@ -208,6 +336,7 @@ header {
 .kickout-box .countdown { font-size: 13px; color: #888; }
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
 
+/* ===== NOTIF DETAIL MODAL ===== */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
 .modal-overlay.show { display: flex; }
 .modal-box { background: white; border-radius: 16px; width: 100%; max-width: 520px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: mIn 0.3s; }
@@ -219,13 +348,15 @@ header {
 .modal-box-body { padding: 20px 24px 24px; font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
 .modal-box-footer { padding: 0 24px 20px; font-size: 12px; color: var(--muted); }
 
-/* ===== MOBILE RESPONSIVE ===== */
+/* ═══ MOBILE RESPONSIVE ══════════════════════════════════════ */
 @media (max-width: 768px) {
   .main-grid { grid-template-columns: 1fr; }
   .header-top { padding: 10px 14px; gap: 8px; }
   .header-title .vi { font-size: 13px; }
   .header-title .en { display: none; }
   .header-clock { padding: 6px 10px; }
+  .clock-time { font-size: 15px; }
+  .clock-date { display: none; }
   .welcome-bar { padding: 8px 14px; font-size: 13px; }
   #container { padding: 14px 12px 32px; margin-top: 0; }
   .card-body { padding: 14px; }
@@ -240,9 +371,11 @@ header {
   .result-table { font-size: 12px; }
   .result-table th, .result-table td { padding: 7px 5px; }
   .notif-list-item { padding: 8px 10px; }
+  .notif-list-item .n-title { font-size: 12px; }
+  .notif-list-item .n-text { display: none; } /* chỉ hiển thị tiêu đề trên mobile nhỏ */
   .modal-box { max-height: 90vh; border-radius: 12px; }
   .action-btn { padding: 13px 16px; font-size: 14px; }
-  .result-table td:nth-child(2) { display: none; }
+  .result-table td:nth-child(2) { display: none; } /* ẩn cột Thời gian trên mobile nhỏ */
 }
 @media (max-width: 400px) {
   .stat-row { grid-template-columns: repeat(3, 1fr); }
@@ -250,24 +383,24 @@ header {
   .stat-box .s-lbl { font-size: 10px; }
   #container { padding: 10px 8px 24px; }
 }
+/* ─── Touch & Safe-area tối ưu mobile ─── */
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body { -webkit-overflow-scrolling: touch; }
-button, .action-btn, .notif-del-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px; }
+button, .action-btn, .notif-del-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
 .action-btn { min-height: 50px; }
 .notif-list-item { min-height: 48px; }
 header { padding-top: env(safe-area-inset-top); }
 #container { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .confirm-overlay, .modal-overlay { padding-bottom: env(safe-area-inset-bottom); }
+/* Prevent double-tap zoom on buttons */
 .confirm-btns button, .header-actions button { touch-action: manipulation; }
 </style>
 </head>
 <body>
-
-<!-- LOADING OVERLAY — hiện trong khi chờ auth + load data -->
-<div id="pageLoader">
-  <div class="spinner-lg"></div>
-  <p id="loaderMsg">Đang xác thực tài khoản...</p>
-</div>
 
 <!-- HEADER -->
 <header>
@@ -276,7 +409,7 @@ header { padding-top: env(safe-area-inset-top); }
       <div class="vi">🚦 HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
       <div class="en">Road Traffic Law Examination System</div>
     </div>
-    <div class="header-clock" id="headerClock">⏰ --:--:--</div>
+    <div class="header-clock" id="headerClock">🕐 --:--:--</div>
     <div class="header-actions">
       <button id="logoutBtn" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
     </div>
@@ -286,7 +419,7 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </header>
 
-<!-- NOTIFICATION BANNER -->
+<!-- NOTIFICATION BANNER (real-time) -->
 <div class="notif-banner" id="notifBanner"></div>
 
 <!-- CONFIRM LOGOUT MODAL -->
@@ -326,7 +459,8 @@ header { padding-top: env(safe-area-inset-top); }
 
 <div id="container">
   <div class="main-grid">
-    <!-- LEFT -->
+
+    <!-- LEFT: Student Info + Notifications -->
     <div>
       <!-- Student Info Card -->
       <div class="card" style="margin-bottom:20px;">
@@ -387,13 +521,13 @@ header { padding-top: env(safe-area-inset-top); }
             <span class="notif-action-link" onclick="deleteAllNotifs(event)">Xóa tất cả</span>
           </div>
           <div id="notifList">
-            <div class="notif-empty">🔕 Chưa có thông báo nào</div>
+            <div class="notif-empty">📭 Chưa có thông báo nào</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: Stats + Results + Actions -->
     <div>
       <!-- Stats -->
       <div class="stat-row">
@@ -421,106 +555,60 @@ header { padding-top: env(safe-area-inset-top); }
           <div class="chart-wrap" id="chartWrap">
             <canvas id="resultChart"></canvas>
           </div>
-          <div id="resultTableWrap" style="display:none;margin-top:10px;">
+
+          <div id="resultTableWrap" style="display:none; margin-top:10px;">
             <h4 style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">5 kết quả gần nhất</h4>
             <table class="result-table">
               <thead>
-                <tr><th>#</th><th>Thời gian</th><th>Đề thi</th><th>Điểm</th><th>Kết quả</th></tr>
+                <tr>
+                  <th>#</th>
+                  <th>Thời gian</th>
+                  <th>Đề thi</th>
+                  <th>Điểm</th>
+                  <th>Kết quả</th>
+                </tr>
               </thead>
               <tbody id="resultTableBody"></tbody>
             </table>
           </div>
-          <div id="noDataMsg" class="no-data">📋 Chưa có dữ liệu kiểm tra</div>
+          <div id="noDataMsg" class="no-data">📂 Chưa có dữ liệu kiểm tra</div>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div class="action-row">
         <button class="action-btn btn-detail" onclick="location.href='exam_detail.html'">
-          📋 Thống kê chi tiết
+          📜 Thống kê chi tiết
         </button>
         <button class="action-btn btn-start" onclick="location.href='test.html'">
           ▶ Làm bài kiểm tra
         </button>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 // =====================================================================
-// FIREBASE INIT — PHẢI có Auth để Firestore rules hoạt động
+// PRESENCE HELPERS — dùng cho trang thi (test.html gọi qua)
 // =====================================================================
-let db = null, auth = null, firebaseReady = false;
-try {
-  if (firebase.apps.length === 0) {
-    firebase.initializeApp({
-      apiKey:     "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-      authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId:  "thi-luat-giao-thong"
-    });
-  }
-  db   = firebase.firestore();
-  auth = firebase.auth();
-  firebaseReady = true;
-} catch(e) { console.error('Firebase init lỗi:', e); }
+let _tabHiddenSince = null;
+let _signalUnsub    = null;
+let _presenceTimer  = null;
 
-// =====================================================================
-// BIẾN TOÀN CỤC
-// =====================================================================
-const userType    = localStorage.getItem('userType');
-const studentCode = localStorage.getItem('studentCode');
-
-// Kiểm tra session cơ bản trước (chưa cần auth)
-if (userType !== 'student' || !studentCode) {
-  location.href = 'index.html';
-}
-
-let chart = null, isKicked = false;
-let studentUnsub = null, maintUnsub = null, notifUnsub = null, examResultsUnsub = null;
-let _signalUnsub = null, _tabHiddenSince = null, _heartbeatStartAt = null;
-let notifCache = [];
-const _shownBannerIds = new Set();
-let notifPanelOpen = true;
-
-// =====================================================================
-// ANONYMOUS AUTH — giải quyết rules yêu cầu request.auth != null
-// Học viên dùng anonymous auth để đọc Firestore
-// Presence write sẽ được bỏ qua lỗi (anonymous UID ≠ studentCode)
-// =====================================================================
-let _authReady = false;
-let _authUser  = null;
-
-async function ensureAuth() {
-  if (_authUser) return _authUser;
-  if (!auth) throw new Error('Auth chưa khởi tạo');
-  // Kiểm tra user hiện tại
-  if (auth.currentUser) {
-    _authUser  = auth.currentUser;
-    _authReady = true;
-    return _authUser;
-  }
-  // Sign in anonymous
-  const cred = await auth.signInAnonymously();
-  _authUser  = cred.user;
-  _authReady = true;
-  console.log('✅ Anonymous auth OK, UID:', _authUser.uid);
-  return _authUser;
-}
-
-// =====================================================================
-// HASH (dùng cho đổi mật khẩu nếu cần)
-// =====================================================================
+/** SHA-256 + Salt — dùng để xác thực mật khẩu học viên khi đổi MK */
 const HASH_SALT = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
 async function secureHash(plaintext) {
   if (!plaintext && plaintext !== 0) return '';
-  const data = new TextEncoder().encode(HASH_SALT + String(plaintext) + HASH_SALT);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(HASH_SALT + String(plaintext) + HASH_SALT);
   const buf  = await crypto.subtle.digest('SHA-256', data);
-  return 'h2_' + Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return 'h2_' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 function simpleHash_LEGACY(s) {
   let h = 0;
-  for (let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
   return 'h_' + Math.abs(h).toString(36);
 }
 async function verifyStudentPassword(input, stored) {
@@ -530,9 +618,7 @@ async function verifyStudentPassword(input, stored) {
   return false;
 }
 
-// =====================================================================
-// ADMIN WARNING MODAL
-// =====================================================================
+/** Hiện modal cảnh báo từ giám thị — dùng cho cả exam.html và test.html */
 function showAdminWarning(message) {
   let modal = document.getElementById('adminWarningModal');
   if (!modal) {
@@ -541,12 +627,12 @@ function showAdminWarning(message) {
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;';
     modal.innerHTML = `
       <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:92%;
-        text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+                  text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);">
         <div style="font-size:48px;margin-bottom:12px;">📢</div>
         <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;font-weight:700;">Thông báo từ Giám thị</h3>
         <p id="adminWarningMsg" style="font-size:15px;color:#333;margin:0 0 20px;line-height:1.7;"></p>
         <button onclick="document.getElementById('adminWarningModal').style.display='none'"
-          style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button>
+                style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button>
       </div>`;
     document.body.appendChild(modal);
   }
@@ -554,18 +640,67 @@ function showAdminWarning(message) {
   modal.style.display = 'flex';
 }
 
+// FIREBASE
+// =====================================================================
+try {
+  if (firebase.apps.length === 0) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+      authDomain: "thi-luat-giao-thong.firebaseapp.com",
+      projectId: "thi-luat-giao-thong"
+    });
+  }
+} catch(e) { console.error('Firebase init:', e); }
+const db = firebase.firestore();
+
+// =====================================================================
+// AUTH CHECK
+// =====================================================================
+const userType = localStorage.getItem("userType");
+const studentCode = localStorage.getItem("studentCode");
+if (userType !== "student" || !studentCode) location.href = "index.html";
+
+// =====================================================================
+// LOGOUT CONFIRM
+// =====================================================================
+function showConfirmLogout() {
+  document.getElementById('confirmLogoutModal').classList.add('show');
+}
+function closeConfirmLogout() {
+  document.getElementById('confirmLogoutModal').classList.remove('show');
+}
+function doLogout() {
+  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
+  // Giữ lại trạng thái đã đọc/xóa thông báo theo từng tài khoản
+  const notifKeysToKeep = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+      notifKeysToKeep[k] = localStorage.getItem(k);
+    }
+  }
+  localStorage.clear();
+  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+  location.href = 'index.html';
+}
+
 // =====================================================================
 // CLOCK
 // =====================================================================
 function updateClock() {
-  const n   = new Date();
-  const pad = x => String(x).padStart(2,'0');
+  const n = new Date();
+  const hh = String(n.getHours()).padStart(2,'0');
+  const mm = String(n.getMinutes()).padStart(2,'0');
+  const ss = String(n.getSeconds()).padStart(2,'0');
+  const dd = String(n.getDate()).padStart(2,'0');
+  const mo = String(n.getMonth()+1).padStart(2,'0');
+  const yy = n.getFullYear();
   const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
-  const el  = document.getElementById('headerClock');
+  const el = document.getElementById('headerClock');
   if (el) el.innerHTML =
-    `⏰ <b style="font-family:'Courier New',monospace;font-size:16px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>`+
+    `🕐 <b style="font-family:'Courier New',monospace;font-size:16px;letter-spacing:1px;">${hh}:${mm}:${ss}</b>`+
     `<span style="opacity:0.4;margin:0 6px;">|</span>`+
-    `<span style="font-size:12px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
+    `<span style="font-size:12px;">${thu}, ${dd}/${mo}/${yy}</span>`;
 }
 updateClock();
 setInterval(updateClock, 1000);
@@ -575,355 +710,157 @@ setInterval(updateClock, 1000);
 // =====================================================================
 function fmtDate(val) {
   if (!val) return '—';
-  if (val.includes('-')) { const [y,m,d]=val.split('-'); return `${d}/${m}/${y}`; }
+  if (val.includes('-')) {
+    const [y, m, d] = val.split('-');
+    return `${d}/${m}/${y}`;
+  }
   return val;
 }
 function fmtDateTime(val) {
   if (!val) return '';
   const d = val?.toDate ? val.toDate() : new Date(val);
   if (isNaN(d)) return '';
-  const pad = x=>String(x).padStart(2,'0');
-  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function timeAgo(val) {
   if (!val) return '';
-  const d    = val?.toDate ? val.toDate() : new Date(val);
+  const d = val?.toDate ? val.toDate() : new Date(val);
   const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60)    return 'Vừa xong';
-  if (diff < 3600)  return Math.floor(diff/60) + ' phút trước';
-  if (diff < 86400) return Math.floor(diff/3600) + ' giờ trước';
+  if (diff < 60) return 'Vừa xong';
+  if (diff < 3600) return Math.floor(diff / 60) + ' phút trước';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' giờ trước';
   return fmtDateTime(d);
 }
 
 // =====================================================================
-// LOGOUT
+// MAIN INIT
 // =====================================================================
-function showConfirmLogout() { document.getElementById('confirmLogoutModal').classList.add('show'); }
-function closeConfirmLogout() { document.getElementById('confirmLogoutModal').classList.remove('show'); }
+let chart = null;
+let isKicked = false;
+let studentUnsub = null, maintUnsub = null;
 
-async function doLogout() {
-  // 1. Thử sign out Firebase (có thể bỏ qua nếu lỗi)
-  try {
-    if (auth && auth.currentUser) await auth.signOut();
-  } catch (_) {}
-
-  // 2. Giữ lại các cấu hình không liên quan đến user (như thông báo đã đọc)
-  const notifKeysToKeep = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
-      notifKeysToKeep[k] = localStorage.getItem(k);
-    }
-  }
-
-  // 3. Xóa sạch LocalStorage để phá vòng lặp Auth Guard
-  localStorage.clear();
-  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
-  
-  // 4. Quay về trang chủ
-  location.replace('index.html');
-}
-function forceKickOut(reason) {
-  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập.");
-  localStorage.clear(); // XÓA SẠCH DỮ LIỆU CŨ
-  location.replace('index.html'); // ÉP QUAY VỀ
-}
-
-// Khối khởi tạo chính của trang
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    // Luôn hiện body lên để tránh trang trắng nếu JS lỗi
-    document.body.style.visibility = 'visible';
-
-    // Đảm bảo Auth
-    await ensureAuth();
-
-    // Giả sử đây là hàm load thông tin/load đề thi của bạn
-    await setupUI();
-    await loadSets();
-
-  } catch (err) {
-    console.error("Lỗi hệ thống:", err);
-
-    // ĐÂY LÀ CHÌA KHÓA PHÁ VÒNG LẶP:
-    if (err.code === 'permission-denied' || err.message.includes('Missing or insufficient permissions')) {
-      forceKickOut("Phiên đăng nhập không hợp lệ hoặc đã thay đổi quyền truy cập.");
-    } else {
-      // Nếu là lỗi khác, chỉ báo lỗi trên màn hình
-      const loadingBox = document.getElementById("loadingBox");
-      if (loadingBox) {
-        loadingBox.innerHTML = `<p>❌ Lỗi: ${err.message}</p>
-                                <button onclick="doLogout()">Quay về Đăng nhập</button>`;
-      }
-    }
-  }
-});
-// =====================================================================
-// KICK OUT
-// =====================================================================
-function kickOut(title, message, icon) {
-  if (isKicked) return;
-  isKicked = true;
-  if (studentUnsub)    studentUnsub();
-  if (maintUnsub)      maintUnsub();
-  if (notifUnsub)      notifUnsub();
-  if (examResultsUnsub) examResultsUnsub();
-  if (_signalUnsub)    _signalUnsub();
-  // Cập nhật offline
-  try { db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true }); } catch(_){}
-  document.getElementById('kickoutIcon').textContent      = icon;
-  document.getElementById('kickoutTitle').textContent     = title;
-  document.getElementById('kickoutMessage').textContent   = message;
-  document.getElementById('kickoutModal').classList.add('show');
-  let s = 5;
-  const cdEl = document.getElementById('kickoutCountdown');
-  setInterval(() => {
-    s--; if (cdEl) cdEl.textContent = s;
-    if (s <= 0) { localStorage.clear(); location.href = 'index.html'; }
-  }, 1000);
-}
-
-// =====================================================================
-// MAIN INIT — Chạy sau khi Anonymous Auth thành công
-// =====================================================================
 async function initPage() {
-  const loaderMsg = document.getElementById('loaderMsg');
-
-  // ── BƯỚC 1: Anonymous Auth ────────────────────────────────────
   try {
-    loaderMsg.textContent = '🔐 Đang xác thực...';
-    await ensureAuth();
-    console.log('✅ Auth sẵn sàng, UID:', auth.currentUser?.uid);
-  } catch(e) {
-    console.error('Auth thất bại:', e.code);
-    if (e.code === 'auth/operation-not-allowed') {
-      alert('❌ Anonymous Auth chưa được bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable');
-    } else {
-      alert('⚠️ Lỗi kết nối: ' + e.message);
-    }
-    location.href = 'index.html';
-    return;
-  }
-
-  // ── BƯỚC 2: Kiểm tra bảo trì ──────────────────────────────────
-  try {
-    loaderMsg.textContent = '🔍 Kiểm tra hệ thống...';
+    // Check maintenance
     const maint = await db.collection('systemConfig').doc('maintenance').get();
     if (maint.exists && maint.data().enabled) {
-      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
       return;
     }
-  } catch(e) {
-    console.warn('Bảo trì check lỗi:', e.code); // Không chặn
-  }
 
-  // ── BƯỚC 3: Load học viên ─────────────────────────────────────
-  loaderMsg.textContent = '👤 Đang tải thông tin...';
-  let studentData = null;
-  try {
-    // Tìm theo doc ID trước
-    const docSnap = await db.collection('students').doc(studentCode).get();
+    // Load student
+    let studentData = null;
+    const docSnap = await db.collection("students").doc(studentCode).get();
     if (docSnap.exists) {
-      studentData = { id: docSnap.id, ...docSnap.data() };
+      studentData = docSnap.data();
     } else {
-      // Tìm theo field code
-      const q = await db.collection('students')
-        .where('code', '==', studentCode).limit(1).get();
-      if (!q.empty) studentData = { id: q.docs[0].id, ...q.docs[0].data() };
+      const q = await db.collection("students").where("code","==",studentCode).limit(1).get();
+      if (!q.empty) studentData = q.docs[0].data();
     }
+
+    if (!studentData) {
+      alert("Không tìm thấy dữ liệu học viên!");
+      localStorage.clear();
+      location.href = "index.html";
+      return;
+    }
+
+    if (studentData.status === 'locked') {
+      kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+      return;
+    }
+
+    // Lưu thêm thông tin vào localStorage để notification filter dùng
+    localStorage.setItem("studentObject", studentData.object || "");
+    localStorage.setItem("studentCourse", studentData.course || "");
+    localStorage.setItem("studentName",   studentData.name   || "");
+
+    // Update header
+    document.getElementById('studentName').textContent = studentData.name || '';
+    document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
+
+    // Update info card
+    document.getElementById('infoCode').textContent = studentData.code || studentCode;
+    document.getElementById('infoName').textContent = studentData.name || '—';
+    document.getElementById('infoUnit').textContent = studentData.unit || '—';
+    document.getElementById('infoDob').textContent = fmtDate(studentData.dob);
+    document.getElementById('infoObject').textContent = studentData.object || '—';
+    document.getElementById('infoCourse').textContent = studentData.course || '—';
+    const isActive = studentData.status === 'active';
+    document.getElementById('infoStatus').innerHTML = `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}</span>`;
+
+    // Load exam results
+    loadExamResults();
+
+    // Load notifications
+    loadNotifications();
+
   } catch(e) {
-    console.error('Load student lỗi:', e.code, e.message);
-    alert('❌ Lỗi tải dữ liệu học viên: ' + e.message);
-    location.href = 'index.html';
-    return;
+    console.error('Init error:', e);
   }
-
-  if (!studentData) {
-    alert('❌ Không tìm thấy tài khoản!');
-    localStorage.clear(); location.href = 'index.html'; return;
-  }
-  if (studentData.status === 'locked') {
-    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '🔒'); return;
-  }
-
-  // ── BƯỚC 4: Cập nhật UI ───────────────────────────────────────
-  localStorage.setItem('studentObject', studentData.object || '');
-  localStorage.setItem('studentCourse', studentData.course || '');
-  localStorage.setItem('studentName',   studentData.name   || '');
-
-  document.getElementById('studentName').textContent  = studentData.name || '';
-  document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
-  document.getElementById('infoCode').textContent     = studentData.code || studentCode;
-  document.getElementById('infoName').textContent     = studentData.name   || '—';
-  document.getElementById('infoUnit').textContent     = studentData.unit   || '—';
-  document.getElementById('infoDob').textContent      = fmtDate(studentData.dob);
-  document.getElementById('infoObject').textContent   = studentData.object || '—';
-  document.getElementById('infoCourse').textContent   = studentData.course || '—';
-
-  const isActive = studentData.status !== 'locked';
-  document.getElementById('infoStatus').innerHTML =
-    `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">
-      ${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}
-    </span>`;
-
-  // ── BƯỚC 5: Ẩn loader ─────────────────────────────────────────
-  document.getElementById('pageLoader').style.display = 'none';
-
-  // ── BƯỚC 6: Load dữ liệu + listeners ─────────────────────────
-  loadExamResults();       // Tải lịch sử bài thi
-  loadNotifications();     // Tải thông báo
-  startRealtimeListeners(); // Giám sát khóa TK + bảo trì
-  startPresence();         // Ghi nhận online
-
-  console.log('✅ Trang exam sẵn sàng');
 }
 
 // =====================================================================
-// EXAM RESULTS + CHART — REAL-TIME với xử lý lỗi đầy đủ
+// EXAM RESULTS + CHART – REAL-TIME
 // =====================================================================
+let examResultsUnsub = null;
+
 function loadExamResults() {
-  if (examResultsUnsub) { examResultsUnsub(); examResultsUnsub = null; }
-  console.log('📊 Đang tải lịch sử bài thi cho:', studentCode);
+  if (examResultsUnsub) examResultsUnsub();
 
-  document.getElementById('noDataMsg').textContent = '⏳ Đang tải dữ liệu...';
-  document.getElementById('noDataMsg').style.display = 'block';
-  document.getElementById('resultTableWrap').style.display = 'none';
-  document.getElementById('chartWrap').style.display = 'none';
+  // KHÔNG dùng .orderBy() kèm .where() — cần Composite Index chưa tạo → query thất bại.
+  // Sắp xếp theo timestamp phía client sau khi nhận data.
+  examResultsUnsub = db.collection("examResults")
+    .where("studentCode", "==", studentCode)
+    .limit(100)
+    .onSnapshot(snap => {
+      let pass = 0, fail = 0;
+      const logs = [];
+      snap.forEach(d => { const data = d.data(); logs.push(data); if (data.passed) pass++; else fail++; });
+      // Sắp xếp mới nhất trước (client-side)
+      logs.sort((a, b) => {
+        const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+        const tb2 = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+        return tb2 - ta;
+      });
 
-  // Thử onSnapshot, nếu lỗi permission thì fallback
-  try {
-    examResultsUnsub = db.collection('examResults')
-      .where('studentCode', '==', studentCode)
-      .limit(100)
-      .onSnapshot(
-        snap => {
-          console.log('✅ examResults snapshot:', snap.size, 'bản ghi');
-          renderExamResults(snap);
-        },
-        err => {
-          console.error('❌ examResults lỗi:', err.code, err.message);
-          handleExamResultsError(err);
-        }
-      );
-  } catch(e) {
-    console.error('❌ Không thể tạo listener:', e);
-    handleExamResultsError(e);
-  }
-}
+      animNum(document.getElementById("totalExam"), logs.length);
+      animNum(document.getElementById("passExam"), pass);
+      animNum(document.getElementById("failExam"), fail);
 
-function handleExamResultsError(err) {
-  const noDataEl = document.getElementById('noDataMsg');
-  if (err.code === 'permission-denied') {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
-        <b>Không có quyền đọc dữ liệu bài thi.</b><br>
-        Kiểm tra Firestore Rules cho collection <code>examResults</code>.<br>
-        <small style="color:#666;">Mã lỗi: permission-denied</small>
-      </div>`;
-    noDataEl.style.display = 'block';
-    _fallbackLoadExamResults();
-  } else if (err.code === 'failed-precondition') {
-    noDataEl.innerHTML = `
-      <div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
-        <b>⚠️ Cần tạo Index trong Firestore.</b><br>
-        Vào Firebase Console → Firestore → Indexes → Tạo index cho:<br>
-        <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code>
-      </div>`;
-    noDataEl.style.display = 'block';
-  } else {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
-        ⚠️ Lỗi tải dữ liệu: ${err.message || err.code}<br>
-        <button onclick="loadExamResults()"
-          style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">
-          🔄 Thử lại
-        </button>
-      </div>`;
-    noDataEl.style.display = 'block';
-  }
-}
+      if (!logs.length) {
+        document.getElementById("noDataMsg").style.display = "block";
+        document.getElementById("resultTableWrap").style.display = "none";
+        document.getElementById("chartWrap").style.display = "none";
+        return;
+      }
 
-async function _fallbackLoadExamResults() {
-  console.log('🔄 Thử fallback get() cho examResults...');
-  try {
-    const snap = await db.collection('examResults')
-      .where('studentCode', '==', studentCode)
-      .limit(100)
-      .get();
-    console.log('✅ Fallback thành công:', snap.size, 'bản ghi');
-    renderExamResults(snap);
-  } catch(e) {
-    console.error('❌ Fallback cũng thất bại:', e.code, e.message);
-  }
-}
-function renderExamResults(snap) {
-  let pass = 0, fail = 0;
-  const logs = [];
+      const tb = document.getElementById("resultTableBody");
+      tb.innerHTML = logs.slice(0,5).map((d,i) => {
+        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+        const correct = d.correctCount ?? d.score ?? 0;
+        const total = d.totalQuestions || 0;
+        return `<tr>
+          <td>${i+1}</td>
+          <td>${fmtDateTime(ts)}</td>
+          <td>${d.setName||d.setCode||"—"}</td>
+          <td><b style="color:${d.passed?"var(--green)":"var(--red)"}">${correct}/${total}</b></td>
+          <td class="${d.passed?"pass":"fail"}">${d.passed?"✓ ĐẠT":"✗ KHÔNG ĐẠT"}</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("resultTableWrap").style.display = "block";
+      document.getElementById("noDataMsg").style.display = "none";
+      document.getElementById("chartWrap").style.display = "block";
 
-  snap.forEach(d => {
-    const data = d.data();
-    logs.push(data);
-    if (data.passed) pass++; else fail++;
-  });
-
-  // Sắp xếp mới nhất trước (client-side)
-  logs.sort((a, b) => {
-    const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
-    const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
-    return tb - ta;
-  });
-
-  // Cập nhật stat boxes
-  animNum(document.getElementById('totalExam'), logs.length);
-  animNum(document.getElementById('passExam'),  pass);
-  animNum(document.getElementById('failExam'),  fail);
-
-  if (!logs.length) {
-    document.getElementById('noDataMsg').textContent  = '📋 Chưa có dữ liệu kiểm tra';
-    document.getElementById('noDataMsg').style.display = 'block';
-    document.getElementById('resultTableWrap').style.display = 'none';
-    document.getElementById('chartWrap').style.display      = 'none';
-    return;
-  }
-
-  // Render bảng kết quả
-  const tb = document.getElementById('resultTableBody');
-  tb.innerHTML = logs.slice(0, 5).map((d, i) => {
-    const ts      = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
-    const correct = d.correctCount ?? d.score ?? 0;
-    const total   = d.totalQuestions || 0;
-    return `<tr>
-      <td>${i + 1}</td>
-      <td>${fmtDateTime(ts)}</td>
-      <td>${d.setName || d.setCode || '—'}</td>
-      <td><b style="color:${d.passed ? 'var(--green)' : 'var(--red)'}">${correct}/${total}</b></td>
-      <td class="${d.passed ? 'pass' : 'fail'}">${d.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('resultTableWrap').style.display = 'block';
-  document.getElementById('noDataMsg').style.display       = 'none';
-  document.getElementById('chartWrap').style.display       = 'block';
-
-  // Render biểu đồ
-  const total2 = pass + fail;
-  const pPct   = total2 ? Math.round(pass * 100 / total2) : 0;
-  if (chart) chart.destroy();
-  chart = new Chart(document.getElementById('resultChart'), {
-    type: 'doughnut',
-    data: {
-      labels: [`Đạt (${pPct}%)`, `Không đạt (${100 - pPct}%)`],
-      datasets: [{
-        data: [pass || 0, fail || 0],
-        backgroundColor: ['#2a9d8f', '#e63946'],
-        borderWidth: 3, borderColor: '#fff', cutout: '60%'
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
+      const total2 = pass+fail;
+      const pPct = total2 ? Math.round(pass*100/total2) : 0;
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById("resultChart"), {
+        type: "doughnut",
+        data: { labels: [`Đạt (${pPct}%)`,`Không đạt (${100-pPct}%)`], datasets: [{ data: [pass||0,fail||0], backgroundColor: ["#2a9d8f","#e63946"], borderWidth: 3, borderColor: "#fff", cutout: "60%" }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+      });
+    }, err => console.warn("Lỗi tải kết quả:", err));
 }
 
 function animNum(el, val) {
@@ -933,50 +870,82 @@ function animNum(el, val) {
 }
 
 // =====================================================================
-// NOTIFICATIONS
+// NOTIFICATIONS – Đọc từ `notifications` collection (tránh lỗi permissions)
 // =====================================================================
-const TYPE_ICONS = { info:'ℹ️', exam:'📝', result:'📊', urgent:'🚨', reminder:'🔔' };
+let notifCache = []; // array of { id, ...notifData, read:bool }
+const _shownBannerIds = new Set(); // IDs đã hiện banner trong session này → không hiện lại
+
+// =====================================================================
+// NOTIFICATIONS – Compact panel với nút xóa, collapsible
+// =====================================================================
+const TYPE_ICONS = { info: "ℹ️", exam: "📅", result: "📊", urgent: "🚨", reminder: "🔔" };
+let notifPanelOpen = true;  // trạng thái mở/đóng panel
 
 function toggleNotifPanel() {
   notifPanelOpen = !notifPanelOpen;
-  const wrap = document.getElementById('notifListWrap');
-  const icon = document.getElementById('notifToggleIcon');
-  if (notifPanelOpen) { wrap.classList.remove('hidden'); icon.classList.remove('collapsed'); icon.textContent='▾'; }
-  else                { wrap.classList.add('hidden');    icon.classList.add('collapsed');    icon.textContent='▸'; }
+  const wrap = document.getElementById("notifListWrap");
+  const icon = document.getElementById("notifToggleIcon");
+  if (notifPanelOpen) {
+    wrap.classList.remove("hidden");
+    icon.classList.remove("collapsed");
+    icon.textContent = "▾";
+  } else {
+    wrap.classList.add("hidden");
+    icon.classList.add("collapsed");
+    icon.textContent = "▸";
+  }
 }
-function _getDeletedIds() { try { return new Set(JSON.parse(localStorage.getItem('deletedNotifIds_'+studentCode)||'[]')); } catch(_){ return new Set(); } }
-function _saveDeletedIds(set) { localStorage.setItem('deletedNotifIds_'+studentCode, JSON.stringify([...set])); }
-function _getReadIds() { try { return new Set(JSON.parse(localStorage.getItem('readNotifIds_'+studentCode)||'[]')); } catch(_){ return new Set(); } }
-function _saveReadIds(set) { localStorage.setItem('readNotifIds_'+studentCode, JSON.stringify([...set])); }
+
+function _getDeletedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem("deletedNotifIds_" + studentCode) || "[]")); }
+  catch(_) { return new Set(); }
+}
+function _saveDeletedIds(set) {
+  localStorage.setItem("deletedNotifIds_" + studentCode, JSON.stringify([...set]));
+}
+function _getReadIds() {
+  try { return new Set(JSON.parse(localStorage.getItem("readNotifIds_" + studentCode) || "[]")); }
+  catch(_) { return new Set(); }
+}
+function _saveReadIds(set) {
+  localStorage.setItem("readNotifIds_" + studentCode, JSON.stringify([...set]));
+}
 
 function _renderNotifList() {
   const deletedIds = _getDeletedIds();
   const readIds    = _getReadIds();
   const visible    = notifCache.filter(n => !deletedIds.has(n.id));
   const notifs     = visible.map(n => ({ ...n, read: readIds.has(n.id) }));
-  const unread     = notifs.filter(n => !n.read).length;
-  const unreadEl   = document.getElementById('unreadCount');
-  if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = 'inline-block'; }
-  else              unreadEl.style.display = 'none';
-  const actBar = document.getElementById('notifActionsBar');
-  if (actBar) actBar.style.display = notifs.length > 0 ? 'flex' : 'none';
+
+  const unread  = notifs.filter(n => !n.read).length;
+  const unreadEl = document.getElementById("unreadCount");
+  if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = "inline-block"; }
+  else unreadEl.style.display = "none";
+
+  // Hiện/ẩn thanh actions
+  const actBar = document.getElementById("notifActionsBar");
+  if (actBar) actBar.style.display = notifs.length > 0 ? "flex" : "none";
+
   if (notifs.length === 0) {
-    document.getElementById('notifList').innerHTML = '<div class="notif-empty">🔕 Chưa có thông báo nào</div>';
+    document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Chưa có thông báo nào</div>";
     return;
   }
-  document.getElementById('notifList').innerHTML = notifs.map(n => {
-    const icon = TYPE_ICONS[n.type] || 'ℹ️';
+
+  document.getElementById("notifList").innerHTML = notifs.map(n => {
+    const icon = TYPE_ICONS[n.type] || "🔔";
     const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-    return `<div class="notif-list-item ${!n.read?'unread':''}" onclick="openNotifById('${n.id}')">
+    return `<div class="notif-list-item ${!n.read?"unread":""}" onclick="openNotifById('${n.id}')">
       ${!n.read ? '<span class="n-dot"></span>' : '<span style="width:8px;flex-shrink:0;"></span>'}
       <div class="n-body">
-        <div class="n-title"><span class="type-dot type-${n.type||'info'}"></span>${icon} ${n.title||'Thông báo'}</div>
-        <div class="n-text">${(n.content||'').substring(0,80)}</div>
+        <div class="n-title"><span class="type-dot type-${n.type||"info"}"></span>${icon} ${n.title||"Thông báo"}</div>
+        <div class="n-text">${(n.content||"").substring(0,80)}</div>
         <div class="n-time">${timeAgo(ts)}</div>
       </div>
-      <button class="notif-del-btn" onclick="deleteNotif(event,'${n.id}')" title="Xóa">✕</button>
+      <button class="notif-del-btn" onclick="deleteNotif(event,'${n.id}')" title="Xóa thông báo này">✕</button>
     </div>`;
-  }).join('');
+  }).join("");
+
+  // Mở panel nếu có thông báo chưa đọc mới
   const newest = notifs.find(n => !n.read);
   if (newest && !_shownBannerIds.has(newest.id)) {
     _shownBannerIds.add(newest.id);
@@ -987,182 +956,227 @@ function _renderNotifList() {
 
 function deleteNotif(e, id) {
   e.stopPropagation();
-  const del = _getDeletedIds(); del.add(id); _saveDeletedIds(del);
-  const read = _getReadIds(); read.add(id); _saveReadIds(read);
+  const del = _getDeletedIds();
+  del.add(id);
+  _saveDeletedIds(del);
+  // Cũng đánh dấu đã đọc
+  const read = _getReadIds();
+  read.add(id);
+  _saveReadIds(read);
   _renderNotifList();
 }
+
 function markAllRead(e) {
   if (e) e.stopPropagation();
-  const del = _getDeletedIds(); const read = _getReadIds();
+  const del  = _getDeletedIds();
+  const read = _getReadIds();
   notifCache.filter(n => !del.has(n.id)).forEach(n => read.add(n.id));
-  _saveReadIds(read); _renderNotifList();
+  _saveReadIds(read);
+  _renderNotifList();
 }
+
 function deleteAllNotifs(e) {
   if (e) e.stopPropagation();
   const del = _getDeletedIds();
   notifCache.forEach(n => del.add(n.id));
-  _saveDeletedIds(del); _renderNotifList();
+  _saveDeletedIds(del);
+  _renderNotifList();
 }
+
 function _filterNotifs(all) {
-  const studentObj = localStorage.getItem('studentObject') || '';
-  const studentCrs = localStorage.getItem('studentCourse') || '';
+  const studentObj2 = localStorage.getItem("studentObject") || "";
+  const studentCrs2 = localStorage.getItem("studentCourse") || "";
+
   return all.filter(n => {
-    // target='all' luôn hiển thị
-    if (n.target === 'all' || n.targetType === 'all') return true;
-    // targetType='individual': check studentCode (không dùng UID)
-    if (n.targetType === 'individual') {
-      const codes = (n.targetDetail || '').split(',').map(c => c.trim().toUpperCase());
-      return codes.includes((studentCode || '').toUpperCase());
+    if (n.target === "all" || n.targetType === "all") return true;
+    if (n.targetType === "individual") {
+      const codes = (n.targetDetail || "").split(",").map(c => c.trim().toUpperCase());
+      return codes.includes((studentCode || "").toUpperCase());
     }
-    // targetType='course'
-    if (n.targetType === 'course') return (n.targetDetail || '') === studentCrs;
-    // targetType='object'
-    if (n.targetType === 'object' || n.target === studentObj) return (n.target || '') === studentObj;
+    if (n.targetType === "course") return (n.targetDetail || "") === studentCrs2;
+    if (n.targetType === "object" || n.target === studentObj2) return (n.target || "") === studentObj2;
     return false;
   });
 }
+
+let notifUnsub = null;
+
 function loadNotifications() {
   if (notifUnsub) notifUnsub();
-  notifUnsub = db.collection('notifications')
-    .where('status','==','sent').limit(50)
+
+  notifUnsub = db.collection("notifications")
+    .where("status", "==", "sent")
+    .limit(50)
     .onSnapshot(snap => {
       const all = [];
       snap.forEach(d => all.push({ id: d.id, ...d.data() }));
-      all.sort((a,b) => {
+      all.sort((a, b) => {
         const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
         const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
         return tb - ta;
       });
-      notifCache = _filterNotifs(all).slice(0,30);
+      notifCache = _filterNotifs(all).slice(0, 30);
       _renderNotifList();
-    }, err => {
-      console.warn('Notif lỗi:', err.code);
-      document.getElementById('notifList').innerHTML = '<div class="notif-empty">⚠️ Không thể tải thông báo</div>';
+    }, e => {
+      console.warn("Notif snapshot error:", e.message);
+      db.collection("notifications").limit(30).get().then(snap2 => {
+        const all2 = [];
+        snap2.forEach(d => all2.push({ id: d.id, ...d.data() }));
+        const sent = all2.filter(n => n.status === "sent");
+        sent.sort((a, b) => {
+          const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+          const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+          return tb - ta;
+        });
+        notifCache = _filterNotifs(sent).slice(0, 30);
+        _renderNotifList();
+      }).catch(() => {
+        document.getElementById("notifList").innerHTML = "<div class=\"notif-empty\">📭 Không thể tải thông báo</div>";
+      });
     });
 }
+
 function showNotifBanner(notif) {
-  const icon   = TYPE_ICONS[notif.type] || 'ℹ️';
-  const ts     = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
-  const banner = document.getElementById('notifBanner');
+  const icon = TYPE_ICONS[notif.type] || "🔔";
+  const ts   = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
+  const banner = document.getElementById("notifBanner");
   banner.innerHTML = `<div class="notif-item" onclick="openNotifById('${notif.id}')">
     <span class="notif-icon">${icon}</span>
     <div class="notif-body">
-      <div class="notif-title">🔔 ${notif.title||''}</div>
-      <div class="notif-text">${(notif.content||'').substring(0,100)}</div>
+      <div class="notif-title">📢 ${notif.title||""}</div>
+      <div class="notif-text">${(notif.content||"").substring(0,100)}${(notif.content||"").length>100?"...":""}</div>
       <div class="notif-time">${timeAgo(ts)}</div>
     </div>
     <span onclick="event.stopPropagation();closeBanner()" style="cursor:pointer;font-size:16px;opacity:0.7;padding:4px;">✕</span>
   </div>`;
-  banner.classList.add('show');
-  setTimeout(() => banner.classList.remove('show'), 8000);
+  banner.classList.add("show");
+  setTimeout(() => banner.classList.remove("show"), 8000);
 }
-function closeBanner() { document.getElementById('notifBanner').classList.remove('show'); }
+
+function closeBanner() { document.getElementById("notifBanner").classList.remove("show"); }
+
 function openNotifById(id) {
   const n = notifCache.find(x => x.id === id);
   if (!n) return;
-  const read = _getReadIds(); read.add(id); _saveReadIds(read);
-  const icon = TYPE_ICONS[n.type] || 'ℹ️';
+
+  // Đánh dấu đã đọc
+  const readIds = _getReadIds();
+  readIds.add(id);
+  _saveReadIds(readIds);
+
+  const icon = TYPE_ICONS[n.type] || "🔔";
   const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-  document.getElementById('notifModalTitle').textContent  = `${icon} ${n.title||'Thông báo'}`;
-  document.getElementById('notifModalBody').textContent   = n.content || '';
-  document.getElementById('notifModalFooter').textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
-  document.getElementById('notifModal').classList.add('show');
+  document.getElementById("notifModalTitle").textContent  = `${icon} ${n.title||"Thông báo"}`;
+  document.getElementById("notifModalBody").textContent   = n.content || "";
+  document.getElementById("notifModalFooter").textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
+  document.getElementById("notifModal").classList.add("show");
   closeBanner();
   _renderNotifList();
 }
-function closeNotifModal() { document.getElementById('notifModal').classList.remove('show'); }
-document.getElementById('notifModal').addEventListener('click', e => {
+
+function closeNotifModal() { document.getElementById("notifModal").classList.remove("show"); }
+document.getElementById("notifModal").addEventListener("click", e => {
   if (e.target === e.currentTarget) closeNotifModal();
 });
 
 // =====================================================================
-// REALTIME LISTENERS — Giám sát khóa tài khoản & bảo trì
+// SECURITY & REAL-TIME
 // =====================================================================
-function startRealtimeListeners() {
-  // Giám sát tài khoản bị khóa
-  studentUnsub = db.collection('students').doc(studentCode)
-    .onSnapshot(doc => {
-      if (doc.exists && doc.data().status === 'locked')
-        kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
-    }, err => console.warn('Student watch lỗi:', err.code));
-
-  // Giám sát bảo trì
-  maintUnsub = db.collection('systemConfig').doc('maintenance')
-    .onSnapshot(doc => {
-      if (doc.exists && doc.data().enabled === true)
-        kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
-    }, err => console.warn('Maint watch lỗi:', err.code));
+function kickOut(title, message, icon) {
+  if (isKicked) return;
+  isKicked = true;
+  if (studentUnsub) studentUnsub();
+  if (maintUnsub) maintUnsub();
+  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true });
+  document.getElementById('kickoutIcon').textContent = icon;
+  document.getElementById('kickoutTitle').textContent = title;
+  document.getElementById('kickoutMessage').textContent = message;
+  document.getElementById('kickoutModal').classList.add('show');
+  let s = 5;
+  const cdEl = document.getElementById('kickoutCountdown');
+  setInterval(() => {
+    s--;
+    if (cdEl) cdEl.textContent = s;
+    if (s <= 0) { localStorage.clear(); location.href = 'index.html'; }
+  }, 1000);
 }
 
+// Init
+initPage();
+
+// Watch account lock
+studentUnsub = db.collection('students').doc(studentCode).onSnapshot(doc => {
+  if (doc.exists && doc.data().status === 'locked')
+    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+});
+
+// Watch maintenance
+maintUnsub = db.collection('systemConfig').doc('maintenance').onSnapshot(doc => {
+  if (doc.exists && doc.data().enabled === true)
+    kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+});
+
 // =====================================================================
-// PRESENCE — Ghi nhận trạng thái online
-// Rules: allow write if request.auth != null && request.auth.uid == studentCode
-// Vì anonymous UID ≠ studentCode → presence write SẼ BỊ TỪ CHỐI bởi rules
-// → Dùng try/catch để bỏ qua lỗi, không ảnh hưởng chức năng chính
-// → Để presence hoạt động đầy đủ: cần Cloud Function hoặc nới rules
+// PRESENCE NÂNG CAO — Tích hợp giám sát admin realtime
 // =====================================================================
 const presenceRef = db.collection('presence').doc(studentCode);
+let _heartbeatStartAt = null;
 
-function startPresence() {
-  const heartbeat = () => {
-    if (isKicked) return;
-    const payload = {
-      isOnline: true,
-      studentCode: studentCode,
-      studentName: localStorage.getItem('studentName') || '',
-      userType: 'student',
-      currentSection: 'Trang chủ cá nhân',
-      tabHidden: document.hidden,
-      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-      _clientTime: Date.now(),
-    };
-    if (!_heartbeatStartAt) {
-      _heartbeatStartAt = true;
-      payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
-    }
-    // Bỏ qua lỗi permission — presence chỉ là tính năng phụ
-    presenceRef.set(payload, { merge: true }).catch(e => {
-      if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
-    });
+// Heartbeat chính — gửi mỗi 20 giây
+const heartbeat = () => {
+  if (isKicked) return;
+  const payload = {
+    isOnline:       true,
+    studentCode:    studentCode,
+    studentName:    localStorage.getItem('studentName') || '',
+    userType:       'student',
+    currentSection: 'Trang chủ cá nhân',
+    tabHidden:      document.hidden,
+    lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+    _clientTime:    Date.now(),
   };
-  heartbeat();
-  setInterval(heartbeat, 20000);
+  if (!_heartbeatStartAt) {
+    _heartbeatStartAt = true;
+    payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+  presenceRef.set(payload, { merge: true }).catch(() => {});
+};
+heartbeat();
+setInterval(heartbeat, 20000);
 
-  document.addEventListener('visibilitychange', () => {
-    if (isKicked) return;
-    if (document.hidden) {
-      _tabHiddenSince = Date.now();
-      presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
-    } else {
-      const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
-      _tabHiddenSince = null;
-      presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
-    }
-  });
+// Phát hiện chuyển tab / ẩn cửa sổ
+document.addEventListener('visibilitychange', () => {
+  if (isKicked) return;
+  if (document.hidden) {
+    _tabHiddenSince = Date.now();
+    presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  } else {
+    const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
+    _tabHiddenSince = null;
+    presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
+  }
+});
 
-  // Lắng nghe tín hiệu Admin
-  _signalUnsub = presenceRef.onSnapshot(snap => {
-    if (!snap.exists || isKicked) return;
-    const signal = snap.data()?.adminSignal;
-    if (!signal || !signal.sentAt) return;
-    const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
-    if (Date.now() - sentAt.getTime() > 5000) return;
-    if (signal.type === 'warning' || signal.type === 'broadcast') {
-      showAdminWarning(signal.message);
-    }
-    presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
-  }, err => console.warn('Signal watch lỗi:', err.code));
+// Lắng nghe tín hiệu từ Admin (cảnh báo, v.v.)
+_signalUnsub = presenceRef.onSnapshot(snap => {
+  if (!snap.exists || isKicked) return;
+  const signal = snap.data()?.adminSignal;
+  if (!signal || !signal.sentAt) return;
+  const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+  if (Date.now() - sentAt.getTime() > 5000) return; // Bỏ qua tín hiệu cũ hơn 5 giây
 
-  window.addEventListener('beforeunload', () => {
-    if (_signalUnsub) _signalUnsub();
-    if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true }).catch(()=>{});
-  });
-}
+  if (signal.type === 'warning' || signal.type === 'broadcast') {
+    showAdminWarning(signal.message);
+  }
+  // Xóa signal sau khi đã xử lý
+  presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(() => {});
+});
 
-// =====================================================================
-// KHỞI ĐỘNG
-// =====================================================================
-initPage();
+
+window.addEventListener('beforeunload', () => {
+  if (_signalUnsub) _signalUnsub();
+  if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true });
+});
 </script>
 </body>
 </html>
