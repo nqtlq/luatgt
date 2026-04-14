@@ -1,1062 +1,1368 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-  
-// AUTH GUARD
-(function() {
-  var ut = localStorage.getItem('userType');
-  if (ut !== 'student' && ut !== 'guest') {
-    localStorage.setItem('redirectAfterLogin', 'test.html');
-    document.write('');
-    location.replace('index.html');
-  }
-})();
-</script>
-<style>body { visibility: hidden; }</style>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<style>
-/* ===== RESET & BASE ===== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f0f4f8;
-  --card: #fff;
-  --blue: #1d3557;
-  --accent: #264a8a;
-  --green: #2a9d8f;
-  --red: #e63946;
-  --yellow: #f4a261;
-  --muted: #636e72;
-  --border: #dfe6e9;
-  --shadow: 0 4px 20px rgba(0,0,0,0.08);
-  --radius: 16px;
-}
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #2d3436; min-height: 100vh; }
+  <meta charset="UTF-8">
 
-/* ===== HEADER ===== */
-header {
-  background: linear-gradient(135deg, #1d3557, #264a8a, #2a9d8f);
-  color: white;
-  padding: 14px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
-  flex-wrap: wrap;
-  gap: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.header-title { display: flex; flex-direction: column; }
-.header-title .vi { font-size: 16px; font-weight: 800; }
-.header-title .en { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
-.clock-box {
-  background: rgba(255,255,255,.12);
-  padding: 8px 14px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-/* unified clock — single row */
-.header-btns { display: flex; gap: 8px; }
-.btn-header { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s; }
-.btn-back { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
-.btn-back:hover { background: rgba(255,255,255,.28); }
-.btn-logout { background: var(--red); color: white; }
-.btn-logout:hover { opacity: .9; }
-
-/* ===== PAGES ===== */
-.pg { display: none; max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
-.pg.active { display: block; }
-
-/* ===== SELECTION PAGE ===== */
-.student-info-bar {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  border: 1px solid #6ee7b7;
-  border-radius: var(--radius);
-  padding: 18px 24px;
-  margin-bottom: 24px;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.si-greet { flex: 1; }
-.si-greet h2 { color: #065f46; font-size: 17px; margin-bottom: 6px; }
-.si-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-.si-chip { background: rgba(255,255,255,0.6); padding: 5px 12px; border-radius: 8px; font-size: 13px; color: #065f46; font-weight: 600; }
-.cat-tabs { display: flex; background: white; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; }
-.cat-tab { flex: 1; padding: 18px 20px; text-align: center; cursor: pointer; font-size: 15px; font-weight: 600; color: #666; transition: all .25s; border-bottom: 3px solid transparent; }
-.cat-tab:hover { background: #f8f9fa; color: var(--blue); }
-.cat-tab.active { color: var(--blue); background: #f0f4ff; border-bottom-color: #0d6efd; }
-.cat-tab .cat-icon { font-size: 28px; display: block; margin-bottom: 6px; }
-.cat-count { display: inline-block; background: #e9ecef; color: #555; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-top: 4px; }
-.sets-section { display: none; }
-.sets-section.active { display: block; }
-.sets-section h2 { font-size: 18px; color: var(--blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.set-card {
-  background: white;
-  border-radius: var(--radius);
-  padding: 20px;
-  cursor: pointer;
-  border: 2px solid var(--border);
-  transition: all .25s;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-}
-.set-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue), var(--accent)); }
-.set-card.oto::before { background: linear-gradient(90deg, var(--green), #1a7a6e); }
-.set-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
-.set-card h3 { font-size: 15px; color: var(--blue); margin-bottom: 8px; margin-top: 8px; }
-.set-card p { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-.set-meta { display: flex; gap: 10px; flex-wrap: wrap; }
-.meta-item { background: #f1f4f8; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--blue); }
-.meta-item.liet { background: #fee2e2; color: var(--red); }
-.meta-item.pass { background: #d1fae5; color: #065f46; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
-.badge-moto { background: #dbeafe; color: #1e40af; }
-.badge-oto { background: #d1fae5; color: #065f46; }
-.no-sets { text-align: center; padding: 40px; color: var(--muted); }
-.loading-box { text-align: center; padding: 60px; color: var(--muted); }
-.spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: #0d6efd; border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: 14px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ===== START MODAL ===== */
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-.modal-bg.show { display: flex; }
-.modal-content { background: white; width: 520px; max-width: 100%; border-radius: 18px; padding: 28px; box-shadow: 0 10px 40px rgba(0,0,0,.3); animation: mIn .3s; max-height: 92vh; overflow-y: auto; }
-@keyframes mIn { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-.modal-content h3 { margin: 0 0 14px; color: var(--blue); font-size: 18px; }
-.modal-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-.mig-item { background: #f0f4ff; border-radius: 12px; padding: 14px; text-align: center; }
-.mig-item b { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
-.mig-item span { font-size: 22px; font-weight: 800; color: var(--blue); }
-.modal-rules { background: #fff3cd; border: 2px solid #ffca2c; padding: 16px; border-radius: 14px; font-size: 14px; }
-.modal-rules ul { padding-left: 20px; margin: 8px 0 0; }
-.modal-rules li { margin-bottom: 6px; line-height: 1.5; }
-.modal-desc { background: #f8fafc; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin-bottom: 14px; font-size: 14px; color: var(--muted); line-height: 1.6; }
-.modal-groups { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.mg-chip { background: #e0e7ff; color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.mg-chip.liet-chip { background: #fee2e2; color: var(--red); }
-.modal-btns { display: flex; gap: 14px; margin-top: 20px; }
-.modal-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
-.mbtn-back { background: #6c757d; color: white; }
-.mbtn-back:hover { opacity: .85; }
-.mbtn-start { background: var(--green); color: white; }
-.mbtn-start:hover { opacity: .9; }
-.mbtn-start:disabled { opacity: .4; cursor: not-allowed; }
-
-/* ===== EXAM PAGE ===== */
-.exam-header {
-  background: linear-gradient(135deg, var(--blue), var(--accent));
-  color: white;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-radius: var(--radius) var(--radius) 0 0;
-  margin-bottom: 0;
-}
-.exam-header-left h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.exam-header-left p { font-size: 12px; opacity: 0.85; }
-.exam-timer-box {
-  background: rgba(255,255,255,.15);
-  border: 2px solid rgba(255,255,255,.3);
-  border-radius: 14px;
-  padding: 10px 20px;
-  text-align: center;
-  min-width: 120px;
-}
-.timer-label { font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
-.timer-value { font-size: 28px; font-weight: 800; font-family: 'Courier New', monospace; letter-spacing: 2px; }
-.timer-value.warning { color: #ffd166; animation: pulse 1s infinite; }
-.timer-value.danger { color: #ff6b6b; animation: pulse .5s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
-
-.exam-layout { display: grid; grid-template-columns: 1fr 220px; gap: 0; }
-.exam-question-area {
-  background: white;
-  padding: 24px;
-  min-height: calc(100vh - 220px);
-}
-.exam-sidebar {
-  background: #f8fafc;
-  border-left: 1px solid var(--border);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.q-progress {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-.q-number { font-size: 22px; font-weight: 800; color: var(--blue); }
-.q-text {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #2d3436;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border-left: 4px solid var(--blue);
-}
-.liet-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff3cd;
-  border: 1.5px solid #f4a261;
-  color: #c05621;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  animation: lietPulse 2s ease-in-out infinite;
-}
-@keyframes lietPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,162,97,0.4); } 70% { box-shadow: 0 0 0 6px rgba(244,162,97,0); } }
-.q-image { max-width: 100%; max-height: 220px; border-radius: 10px; margin-bottom: 16px; display: block; }
-.answers-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.answer-btn {
-  padding: 14px 16px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  background: white;
-  cursor: pointer;
-  text-align: left;
-  font-size: 14px;
-  line-height: 1.5;
-  transition: all .2s;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.answer-btn:hover { border-color: var(--blue); background: #f0f4ff; }
-.answer-btn.selected { border-color: var(--blue); background: #e0e7ff; font-weight: 600; }
-.answer-btn.correct { border-color: var(--green); background: #d1fae5; }
-.answer-btn.wrong { border-color: var(--red); background: #fee2e2; text-decoration: line-through; opacity: 0.8; }
-.answer-key { font-weight: 800; color: var(--accent); min-width: 20px; }
-
-.exam-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
-.nav-btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; transition: all .2s; }
-.nav-prev { background: #f1f4f8; color: var(--blue); }
-.nav-prev:hover { background: #e0e7ff; }
-.nav-next { background: var(--blue); color: white; }
-.nav-next:hover { opacity: .9; }
-.nav-submit { background: linear-gradient(135deg, var(--green), #1a7a6e); color: white; }
-.nav-submit:hover { opacity: .9; }
-
-/* Sidebar question map */
-.qmap-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.qmap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-.qmap-btn {
-  width: 34px;
-  height: 34px;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  transition: all .15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.qmap-btn:hover { border-color: var(--blue); color: var(--blue); }
-.qmap-btn.answered { background: var(--blue); color: white; border-color: var(--blue); }
-.qmap-btn.current { border-color: var(--green); color: var(--green); background: #d1fae5; }
-.qmap-btn.liet-btn { border-color: var(--yellow); }
-.qmap-btn.liet-btn.answered { background: var(--yellow); border-color: var(--yellow); color: white; }
-.exam-legend { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--muted); }
-.legend-item { display: flex; align-items: center; gap: 6px; }
-.legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-
-.sidebar-submit { background: linear-gradient(135deg, var(--green), #1a7a6e); color: white; border: none; border-radius: 10px; padding: 12px; width: 100%; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; }
-.sidebar-submit:hover { opacity: .9; transform: translateY(-1px); }
-
-/* ===== CONFIRM LOGOUT MODAL ===== */
-.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
-.confirm-overlay.show { display: flex; }
-.confirm-box { background: white; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.25); animation: cIn 0.25s; }
-@keyframes cIn { from { opacity:0; transform: scale(.94); } to { opacity:1; transform: scale(1); } }
-.confirm-box .c-icon { font-size: 48px; margin-bottom: 12px; }
-.confirm-box h3 { font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
-.confirm-box p  { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
-.confirm-btns { display: flex; gap: 10px; }
-.confirm-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; }
-.c-btn-cancel  { background: #f1f4f8; color: var(--blue); }
-.c-btn-cancel:hover { background: #e0e7ff; }
-.c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
-.c-btn-confirm:hover { opacity: 0.9; }
-/* ===== RESULT Q ACCORDION ===== */
-.result-q-item { cursor: default; }
-.result-q-item.q-wrong { cursor: pointer; }
-.result-q-item.q-wrong:hover { box-shadow: 0 2px 10px rgba(230,57,70,0.15); }
-.rq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-.rq-expand-hint { font-size: 11px; color: var(--red); font-weight: 600; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 3px; }
-.rq-dropdown { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #fca5a5; animation: dropIn 0.25s ease; }
-.rq-dropdown.open { display: block; }
-@keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-.rq-full-content { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px; font-weight: 600; }
-.rq-answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.rqa-item { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); font-size: 12px; display: flex; gap: 6px; background: white; }
-.rqa-item.rqa-correct { background: rgba(42,157,143,0.12); border-color: var(--green); color: #065f46; font-weight: 700; }
-.rqa-item.rqa-chosen  { background: rgba(230,57,70,0.10); border-color: var(--red); color: #9b1c1c; font-weight: 600; }
-.rqa-label { font-weight: 800; flex-shrink: 0; }
-.rqa-badge { margin-left: auto; font-size: 11px; flex-shrink: 0; }
-@media (max-width: 480px) { .rq-answers-grid { grid-template-columns: 1fr; } }
-.result-container { max-width: 700px; margin: 0 auto; }
-.result-hero {
-  background: linear-gradient(135deg, var(--blue), var(--accent));
-  color: white;
-  padding: 36px 32px;
-  border-radius: var(--radius);
-  text-align: center;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.result-hero::before { content: ''; position: absolute; right: -30px; top: -30px; width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,0.05); }
-.result-verdict { font-size: 52px; margin-bottom: 10px; }
-.result-verdict-text { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
-.result-verdict-text.pass { color: #6ee7b7; }
-.result-verdict-text.fail { color: #fca5a5; }
-.result-score { font-size: 48px; font-weight: 900; margin-bottom: 4px; font-family: 'Courier New', monospace; }
-.result-score-label { font-size: 14px; opacity: 0.8; }
-
-.result-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.rd-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.rd-card .rd-num { font-size: 26px; font-weight: 800; color: var(--blue); }
-.rd-card .rd-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; text-transform: uppercase; }
-
-.result-breakdown { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
-.result-breakdown h3 { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 16px; }
-.result-q-item { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
-.result-q-item.q-correct { border-color: #6ee7b7; background: #f0fdf4; }
-.result-q-item.q-wrong { border-color: #fca5a5; background: #fff1f2; }
-.result-q-item.q-skip { border-color: #d1d5db; background: #f9fafb; }
-.result-q-item.q-liet { border-left: 3px solid var(--yellow); }
-
-.result-actions { display: flex; gap: 14px; flex-wrap: wrap; }
-.result-actions button { flex: 1; min-width: 150px; padding: 14px 20px; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all .2s; color: white; }
-.btn-retry { background: linear-gradient(135deg, var(--green), #1a7a6e); }
-.btn-home { background: linear-gradient(135deg, var(--blue), var(--accent)); }
-.btn-retry:hover, .btn-home:hover { opacity: .9; transform: translateY(-1px); }
-
-/* ===== KICKOUT MODAL ===== */
-.kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
-.kickout-modal.show { display: flex; }
-.kickout-box { background: white; padding: 32px 28px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.3); animation: kIn .4s; border-top: 6px solid #dc3545; }
-@keyframes kIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
-.kickout-box .k-icon { font-size: 56px; margin-bottom: 14px; display: block; }
-.kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
-.kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 18px; }
-.kickout-box .cd { font-size: 13px; color: #888; }
-.kickout-box .cd b { color: #1d3557; font-size: 15px; }
-
-/* START OVERLAY */
-.start-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
-.start-overlay.show { display: flex; }
-.start-box { background: white; padding: 34px 44px; border-radius: 18px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
-.start-box .spinner { width: 44px; height: 44px; border-width: 5px; border-top-color: var(--green); margin-bottom: 16px; }
-.start-box p { font-size: 15px; color: var(--blue); font-weight: 600; }
-
-/* ===== GUEST BANNER ===== */
-.guest-banner { background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 1px solid #ffc107; border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
-.gb-left { flex: 1; min-width: 260px; }
-.gb-title { color: #856404; font-size: 17px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.gb-seq { display: inline-flex; align-items: center; gap: 5px; background: #856404; color: white; font-size: 12.5px; font-weight: 700; padding: 3px 11px; border-radius: 20px; letter-spacing: .3px; }
-.seq-loading { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
-.perm-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); font-size: 12.5px; }
-.perm-table th { padding: 9px 12px; font-size: 12px; font-weight: 700; text-align: center; }
-.perm-table th:first-child { text-align: left; background: #f8f9fa; color: #555; width: 55%; }
-.perm-table th:nth-child(2) { background: #fff3cd; color: #856404; width: 22%; }
-.perm-table th:nth-child(3) { background: #d1f0e4; color: #0f5132; width: 23%; }
-.perm-table td { padding: 7px 12px; border-top: 1px solid #f0f0f0; color: #444; }
-.perm-table td:first-child { font-weight: 500; }
-.perm-table td:nth-child(2), .perm-table td:nth-child(3) { text-align: center; }
-.p-yes { color: #198754; font-size: 15px; font-weight: 700; }
-.p-no  { color: #dc3545; font-size: 15px; font-weight: 700; }
-.p-limit { color: #856404; font-size: 11px; font-weight: 700; line-height: 1.4; }
-.contact-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px dashed #ffc107; }
-.contact-item { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #664d03; font-weight: 600; }
-.contact-note { margin-top: 10px; font-size: 12.5px; color: #856404; line-height: 1.5; }
-.gb-right { display: flex; gap: 10px; flex-wrap: wrap; align-self: flex-start; }
-.lcard { background: white; border-radius: 12px; padding: 13px 16px; text-align: center; min-width: 86px; box-shadow: 0 2px 8px rgba(0,0,0,.1); transition: all .2s; }
-.lcard .ll { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
-.lcard .lv { font-size: 28px; font-weight: 800; color: var(--blue); line-height: 1; }
-.lcard .ls { font-size: 11px; color: #666; margin-top: 4px; }
-.lcard.ok .lv    { color: #198754; }
-.lcard.danger .lv { color: #dc3545; }
-/* ===== STUDENT BANNER ===== */
-.student-banner { background: linear-gradient(135deg, #d1e7dd, #c3e6cb); border: 1px solid #a3cfbb; border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
-.sb-left { flex: 1; min-width: 240px; }
-.sb-left h2 { color: #0f5132; font-size: 17px; margin-bottom: 6px; }
-.sb-left p  { color: #155724; font-size: 13.5px; line-height: 1.5; margin: 3px 0; }
-.sv-info { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-.sv-item { background: rgba(255,255,255,.6); padding: 7px 13px; border-radius: 8px; font-size: 13px; color: #155724; }
-.sv-item b { color: #0f5132; }
-.sv-perm-list { background: rgba(255,255,255,.55); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #155724; min-width: 200px; align-self: flex-start; }
-.sv-perm-title { font-weight: 700; font-size: 12px; color: #0f5132; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
-.sv-perm-list ul { padding-left: 16px; }
-.sv-perm-list li { margin-bottom: 5px; line-height: 1.45; }
-
-/* ═══ MOBILE RESPONSIVE ══════════════════════════════════════ */
-@media (max-width: 768px) {
-  .guest-banner, .student-banner { flex-direction: column; }
-  .gb-right { justify-content: center; width: 100%; }
-
-  header { padding: 10px 14px; gap: 8px; }
-  .header-title .vi { font-size: 13px; }
-  .header-title .en { display: none; }
-  .clock-box { padding: 6px 10px; }
-  .clock-box .time { font-size: 13px; }
-  .clock-box .date-str { display: none; }
-  .btn-header { padding: 7px 11px; font-size: 12px; }
-
-  .pg { padding: 14px 12px 32px; }
-
-  /* Exam page mobile */
-  .exam-layout { grid-template-columns: 1fr; }
-  .exam-sidebar {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-    flex-direction: row; padding: 10px 14px; gap: 10px;
-    border-left: none; border-top: 2px solid var(--border);
-    background: white; box-shadow: 0 -4px 16px rgba(0,0,0,.12);
-    overflow-x: auto;
-  }
-  .exam-sidebar > div:first-child { display: none; } /* hide qmap on mobile */
-  .exam-legend { display: none; }
-  .sidebar-submit { white-space: nowrap; min-width: 120px; }
-  .exam-question-area { padding: 14px; min-height: calc(100vh - 280px); padding-bottom: 80px; }
-
-  .answers-list { grid-template-columns: 1fr; gap: 8px; }
-  .answer-btn { padding: 10px 12px; font-size: 13px; }
-  .q-text { font-size: 14px; padding: 12px; }
-
-  /* Result page mobile */
-  .result-container { max-width: 100%; }
-  .result-hero { padding: 24px 16px; }
-  .result-verdict { font-size: 38px; }
-  .result-verdict-text { font-size: 22px; }
-  .result-score { font-size: 34px; }
-  .result-detail-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .rd-card { padding: 10px 6px; }
-  .rd-card .rd-num { font-size: 18px; }
-  .result-breakdown { padding: 14px; }
-  .rq-answers-grid { grid-template-columns: 1fr; }
-  .result-actions { flex-direction: column; gap: 10px; }
-
-  /* Modal */
-  .modal-content { padding: 18px; }
-  .modal-info-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .mig-item span { font-size: 18px; }
-  .modal-btns { flex-direction: column; gap: 8px; }
-}
-
-@media (max-width: 480px) {
-  .result-detail-grid { grid-template-columns: 1fr 1fr; }
-  .modal-info-grid { grid-template-columns: 1fr 1fr 1fr; }
-  .cat-tab { padding: 12px 8px; font-size: 13px; }
-  .cat-tab .cat-icon { font-size: 22px; }
-  .set-card h3 { font-size: 13px; }
-}
-/* ─── Touch & Safe-area tối ưu mobile ─── */
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-body { -webkit-overflow-scrolling: touch; }
-button, .answer-btn, .btn-header, .sidebar-submit {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 44px;
-}
-.answer-btn { min-height: 50px; }
-header { padding-top: env(safe-area-inset-top); }
-.pg { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
-/* Exam sidebar (bottom bar on mobile) thêm safe-area dưới */
-@media (max-width: 768px) {
-  .exam-sidebar {
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  }
-  .exam-question-area { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
-}
-.modal { padding-bottom: env(safe-area-inset-bottom); }
-</style>
-</head>
-<body>
-<body onload="document.body.style.visibility='visible'">
-<!-- HEADER -->
-<header>
-  <div class="header-title">
-    <div class="vi" id="headerVi">📝 CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
-    <div class="en" id="headerEn">Road Traffic Law Theory Examination</div>
-  </div>
- <div class="clock-box" id="liveClock">🕐 --:--:--</div>
-  <div class="header-btns" id="headerBtns">
-    <button class="btn-header btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
-    <button class="btn-header btn-logout" onclick="showConfirmLogout()">🚪 Đăng xuất</button>
-  </div>
-</header>
-
-<!-- PAGE: SELECTION -->
-<div class="pg active" id="pgSelect">
-
-  <!-- BANNER KHÁCH -->
-  <div class="guest-banner" id="guestBanner" style="display:none;">
-    <div class="gb-left">
-      <div class="gb-title">
-        👋 Xin chào, Khách viếng thăm
-        <span class="gb-seq">🔢 Khách số&nbsp;<span id="guestSeqDisplay"><span class="seq-loading"></span></span></span>
-      </div>
-      <table class="perm-table">
-        <thead>
-          <tr>
-            <th>Tính năng</th>
-            <th>👤 Khách</th>
-            <th>🎓 Học viên</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Xem danh sách đề thi</td>
-            <td><span class="p-yes">✔</span></td>
-            <td><span class="p-yes">✔</span></td>
-          </tr>
-          <tr>
-            <td>Làm bài thi thử</td>
-            <td><span class="p-limit">3 lần / ngày</span></td>
-            <td><span class="p-yes">✔ Không giới hạn</span></td>
-          </tr>
-          <tr>
-            <td>Kết quả ghi nhận chính thức</td>
-            <td><span class="p-no">✘</span></td>
-            <td><span class="p-yes">✔</span></td>
-          </tr>
-          <tr>
-            <td>Xem lịch sử thi &amp; điểm số</td>
-            <td><span class="p-no">✘</span></td>
-            <td><span class="p-yes">✔</span></td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="contact-row">
-        <span class="contact-item">📞 <b>0973.306.802</b></span>
-      </div>
-      <p class="contact-note">👉 Liên hệ Admin để <b>đăng ký tài khoản Học viên</b> và sử dụng đầy đủ tính năng!</p>
-    </div>
-    <div class="gb-right">
-      <div class="lcard" id="lcToday">
-        <div class="ll">Hôm nay</div>
-        <div class="lv" id="todayUsed">0</div>
-        <div class="ls">/ 3 lượt/ngày</div>
-      </div>
-      <div class="lcard" id="lcWeek">
-        <div class="ll">Tuần này</div>
-        <div class="lv" id="weekUsed">0</div>
-        <div class="ls">/ 3 lượt</div>
-      </div>
-      <div class="lcard ok" id="lcRemain">
-        <div class="ll">Còn lại</div>
-        <div class="lv" id="remainCount">–</div>
-        <div class="ls">lượt hôm nay</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BANNER HỌC VIÊN -->
-  <div class="student-banner" id="studentBanner" style="display:none;">
-    <div class="sb-left">
-      <h2>👋 Xin chào, <span id="svName">...</span>!</h2>
-      <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
-      <div class="sv-info">
-        <div class="sv-item">🎫 Mã HV: <b id="svCode">...</b></div>
-        <div class="sv-item">🏢 Đơn vị: <b id="svUnit">...</b></div>
-        <div class="sv-item" id="svObjectChip">🎯 <b id="svObject">...</b></div>
-        <div class="sv-item" id="svCourseChip" style="display:none">📚 Khóa: <b id="svCourse">...</b></div>
-      </div>
-    </div>
-    <div class="sv-perm-list">
-      <div class="sv-perm-title">✅ Quyền của Học viên</div>
-      <ul>
-        <li>🔓 Thi không giới hạn số lần</li>
-        <li>💾 Kết quả ghi nhận chính thức</li>
-        <li>📊 Xem toàn bộ lịch sử thi</li>
-        <li>🎯 Hỗ trợ ưu tiên từ Admin</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="loading-box" id="loadingBox">
-    <div class="spinner"></div>
-    <p>⏳ Đang tải danh sách đề thi…</p>
-  </div>
-
-  <div id="catTabs" class="cat-tabs" style="display:none;">
-    <div class="cat-tab active" data-cat="moto" onclick="switchCat('moto')">
-      <span class="cat-icon">🏍️</span>
-      Thi xe Mô tô
-      <span class="cat-count" id="motoCount">0 đề</span>
-    </div>
-    <div class="cat-tab" data-cat="oto" onclick="switchCat('oto')">
-      <span class="cat-icon">🚗</span>
-      Thi xe Ô tô
-      <span class="cat-count" id="otoCount">0 đề</span>
-    </div>
-  </div>
-
-  <div class="sets-section active" id="motoSection">
-    <h2>🏍️ Đề thi lý thuyết xe Mô tô (Hạng A1, A2)</h2>
-    <div class="set-grid" id="motoGrid"></div>
-    <div class="no-sets" id="motoEmpty" style="display:none;">📋 Chưa có đề thi mô tô nào.</div>
-  </div>
-  <div class="sets-section" id="otoSection">
-    <h2>🚗 Đề thi lý thuyết xe Ô tô (Hạng B1, B2, C, D, E)</h2>
-    <div class="set-grid" id="otoGrid"></div>
-    <div class="no-sets" id="otoEmpty" style="display:none;">📋 Chưa có đề thi ô tô nào.</div>
-  </div>
-</div>
-
-<!-- MODAL START EXAM -->
-<div class="modal-bg" id="examModal">
-  <div class="modal-content">
-    <h3 id="mTitle"></h3>
-    <div class="modal-desc" id="mDesc"></div>
-    <div class="modal-info-grid">
-      <div class="mig-item"><b>📋 Số câu</b><span id="mQuestions">0</span></div>
-      <div class="mig-item"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
-      <div class="mig-item"><b>✅ Điều kiện đạt</b><span id="mPass">—</span></div>
-    </div>
-    <div class="modal-groups" id="mGroups"></div>
-    <div class="modal-rules">
-      <b>⚠ NỘI QUY THI</b>
-      <ul>
-        <li>🚫 Không thoát khỏi màn hình khi đang thi</li>
-        <li>🔄 Không tải lại trang trong quá trình thi</li>
-        <li>⏰ Hết thời gian, hệ thống tự động nộp bài</li>
-        <li>💾 Kết quả thi được ghi nhận tự động</li>
-        <li id="mRuleLiet" style="display:none; color:#c05621; font-weight:600;"></li>
-      </ul>
-    </div>
-    <div class="modal-btns">
-      <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
-      <button class="mbtn-start" id="mStartBtn" onclick="beginExam()">▶ Bắt đầu làm bài</button>
-    </div>
-  </div>
-</div>
-
-<!-- CONFIRM LOGOUT -->
-<div class="confirm-overlay" id="confirmLogoutModal">
-  <div class="confirm-box">
-    <div class="c-icon">🚪</div>
-    <h3>Xác nhận đăng xuất</h3>
-    <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</p>
-    <div class="confirm-btns">
-      <button class="c-btn-cancel" onclick="closeConfirmLogout()">← Hủy bỏ</button>
-      <button class="c-btn-confirm" onclick="doLogout()">🚪 Đăng xuất</button>
-    </div>
-  </div>
-</div>
-
-<!-- START OVERLAY -->
-<div class="start-overlay" id="startOverlay">
-  <div class="start-box">
-    <div class="spinner"></div>
-    <p id="startMsg">⏳ Đang chuẩn bị đề thi…</p>
-  </div>
-</div>
-
-<!-- PAGE: EXAM -->
-<div class="pg" id="pgExam">
-  <div class="exam-header">
-    <div class="exam-header-left">
-      <h2 id="examSetName">Đề thi</h2>
-      <p id="examStudentInfo"></p>
-    </div>
-    <div class="exam-timer-box">
-      <div class="timer-label">Thời gian còn lại</div>
-      <div class="timer-value" id="timerDisplay">00:00</div>
-    </div>
-  </div>
-  <div class="exam-layout">
-    <div class="exam-question-area" id="examQuestionArea">
-      <!-- Dynamically rendered -->
-    </div>
-    <div class="exam-sidebar">
-      <div>
-        <div class="qmap-title">📋 Bảng câu hỏi</div>
-        <div class="qmap" id="qmap"></div>
-      </div>
-      <div class="exam-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div> Đã trả lời</div>
-        <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);"></div> Chưa trả lời</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div> Câu liệt</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;"></div> Đang xem</div>
-      </div>
-      <button class="sidebar-submit" onclick="confirmSubmit()">📤 Nộp bài</button>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE: RESULT -->
-<div class="pg" id="pgResult">
-  <div class="result-container">
-    <div class="result-hero">
-      <div class="result-verdict" id="resVerdict">🏆</div>
-      <div class="result-verdict-text" id="resVerdictText">ĐẠT</div>
-      <div class="result-score" id="resScore">—</div>
-      <div class="result-score-label" id="resScoreLabel">câu đúng / tổng số câu</div>
-    </div>
-
-    <div class="result-detail-grid" id="resDetailGrid"></div>
-
-    <div class="result-breakdown">
-      <h3>📝 Chi tiết bài làm</h3>
-      <div id="resBreakdown"></div>
-    </div>
-
-    <div class="result-actions">
-      <button class="btn-retry" onclick="retryExam()">🔄 Thi lại</button>
-      <button class="btn-home" onclick="location.href='exam.html'">🏠 Về trang chủ</button>
-    </div>
-  </div>
-</div>
-
-<!-- KICKOUT MODAL -->
-<div class="kickout-modal" id="kickoutModal">
-  <div class="kickout-box">
-    <span class="k-icon" id="kickoutIcon"></span>
-    <h3 id="kickoutTitle"></h3>
-    <p id="kickoutMessage"></p>
-    <div class="cd">Tự động quay về sau <b id="kickoutCountdown">5</b> giây…</div>
-  </div>
-</div>
-
-<script>
-// ================================================================
-// FIREBASE INIT — ĐÃ SỬA
-// ================================================================
-let db = null, auth = null;
-try {
-  if (!firebase.apps.length) {
-    firebase.initializeApp({
-      apiKey:     "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-      authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId:  "thi-luat-giao-thong"
-    });
-  }
-  db   = firebase.firestore();
-  auth = firebase.auth();
-} catch(e) { console.error("Firebase init:", e); }
-
-// ================================================================
-// ANONYMOUS AUTH — bắt buộc vì Rules yêu cầu request.auth != null
-// ================================================================
-let _authReady = false;
-async function ensureAuth() {
-  if (!auth) throw new Error('Auth chưa sẵn sàng');
-  if (auth.currentUser) return auth.currentUser;
-  const cred = await auth.signInAnonymously();
-  _authReady = true;
-  console.log('✅ Anonymous auth:', cred.user.uid);
-  return cred.user;
-}
-
-// ================================================================
-// AUTH (giữ nguyên phần còn lại)
-// ================================================================
-const userType    = localStorage.getItem("userType");
-const studentCode = localStorage.getItem("studentCode") || "";
-const studentName = localStorage.getItem("studentName") || "";
-const studentUnit = localStorage.getItem("studentUnit") || "";
-const studentObj  = localStorage.getItem("studentObject") || "";
-const studentCrs  = localStorage.getItem("studentCourse") || "";
-
-const IS_GUEST   = userType === "guest";
-const IS_STUDENT = userType === "student";
-
-// =====================================================================
-// ANONYMOUS AUTH — Bắt buộc để Firestore rules cho phép đọc
-// =====================================================================
-let _authUser = null;
-
-async function ensureAuth() {
-  if (_authUser) return _authUser;
-  if (!auth) throw new Error('Auth chưa khởi tạo');
-  if (auth.currentUser) { _authUser = auth.currentUser; return _authUser; }
-  console.log('⏳ Đang sign in anonymous...');
-  const cred = await auth.signInAnonymously();
-  _authUser = cred.user;
-  console.log('✅ Anonymous auth OK, UID:', _authUser.uid);
-  return _authUser;
-}
-
-// =====================================================================
-// CLOCK
-// =====================================================================
-(function startClock() {
-  function tick() {
-    const n   = new Date();
-    const pad = x => String(x).padStart(2,'0');
-    const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
-    const el  = document.getElementById('liveClock');
-    if (el) el.innerHTML =
-      `⏰ <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>`+
-      `<span style="opacity:0.4;margin:0 6px;">|</span>`+
-      `<span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
-  }
-  tick();
-  setInterval(tick, 1000);
-})();
-
-// =====================================================================
-// GUEST LIMIT
-// =====================================================================
-const DAILY_LIMIT = 3;
-let _guestExamedThisSession = false;
-
-function getTodayVN() {
-  return new Date(Date.now() + 7*3600000).toISOString().slice(0,10);
-}
-function getWeekKeyVN() {
-  const d = new Date(Date.now() + 7*3600000);
-  const day = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() - day + 1);
-  return "W" + d.toISOString().slice(0,10);
-}
-function getGuestId() {
-  let gid = localStorage.getItem("guestId");
-  if (!gid) {
-    gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2,5).toUpperCase();
-    localStorage.setItem("guestId", gid);
-  }
-  return gid;
-}
-function getLogsLocal() {
-  try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); } catch(_){ return []; }
-}
-function saveLogsLocal(logs) {
-  try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); } catch(_){}
-}
-
-// Firestore sync — bỏ qua lỗi nếu không có auth
-async function getLogsRemote() {
-  if (!db) return [];
-  try {
-    await ensureAuth();
-    const doc = await db.collection("guestUsage").doc(getGuestId()).get();
-    if (doc.exists && Array.isArray(doc.data().logs)) return doc.data().logs;
-  } catch(_) {}
-  return [];
-}
-async function pushLogsRemote(logs) {
-  if (!db) return;
-  try {
-    await ensureAuth();
-    await db.collection("guestUsage").doc(getGuestId()).set(
-      { guestId: getGuestId(), logs, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-      { merge: true }
-    );
-  } catch(_) {}
-}
-async function restoreLogsFromFirestore() {
-  const remote = await getLogsRemote();
-  if (!remote.length) return;
-  const local  = getLogsLocal();
-  const merged = [...local];
-  remote.forEach(r => { if (!merged.find(l => l.time === r.time)) merged.push(r); });
-  merged.sort((a,b) => a.time - b.time);
-  saveLogsLocal(merged);
-}
-async function saveGuestLog() {
-  const logs  = getLogsLocal();
-  const entry = { date: getTodayVN(), time: Date.now() };
-  logs.push(entry);
-  saveLogsLocal(logs);
-  _guestExamedThisSession = true;
-  await pushLogsRemote(logs);
-}
-function getTodayCount() { return getLogsLocal().filter(l => l.date === getTodayVN()).length; }
-function canTakeExam() {
-  if (IS_STUDENT) return true;
-  if (_guestExamedThisSession) return false;
-  return getTodayCount() < DAILY_LIMIT;
-}
-function updateLimitDisplay() {
-  if (!IS_GUEST) return;
-  const td = getTodayCount();
-  const rm = _guestExamedThisSession ? 0 : Math.max(0, DAILY_LIMIT - td);
-  document.getElementById("todayUsed").textContent  = td;
-  document.getElementById("remainCount").textContent = rm;
-  document.getElementById("lcToday").className  = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
-  document.getElementById("lcRemain").className = "lcard " + (rm <= 0 ? "danger" : "ok");
-  const wkEl   = document.getElementById("weekUsed");
-  const lcWeek = document.getElementById("lcWeek");
-  if (wkEl)   wkEl.textContent  = td;
-  if (lcWeek) lcWeek.className  = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
-}
-async function assignGuestSequentialNumber() {
-  const el    = document.getElementById("guestSeqDisplay");
-  const saved = localStorage.getItem("guestSeqNumber");
-  if (saved) { el.textContent = saved; return saved; }
-  if (db) {
-    try {
-      await ensureAuth();
-      const counterRef = db.collection("systemConfig").doc("guestCounter");
-      const num = await db.runTransaction(async tx => {
-        const snap = await tx.get(counterRef);
-        const next = ((snap.exists && snap.data().total) ? snap.data().total : 0) + 1;
-        tx.set(counterRef, { total: next }, { merge: true });
-        return next;
-      });
-      const fmt = String(num).padStart(4,"0");
-      localStorage.setItem("guestSeqNumber", fmt);
-      el.textContent = fmt;
-      return fmt;
-    } catch(e) { console.warn('guestCounter lỗi:', e.code); }
-  }
-  const fb = "L" + String(Date.now()).slice(-4);
-  localStorage.setItem("guestSeqNumber", fb);
-  el.textContent = fb;
-  return fb;
-}
-
-// =====================================================================
-// SETUP UI — Nút quay lại đúng theo userType
-// =====================================================================
-async function setupUI() {
-  // ✅ THÊM: Pre-auth ngầm (không chặn UI)
-  ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
-
-  if (IS_GUEST) {
-    document.getElementById("guestBanner").style.display   = "flex";
-    document.getElementById("studentBanner").style.display = "none";
-    await restoreLogsFromFirestore();
-    updateLimitDisplay();
-    await assignGuestSequentialNumber();
-  } else {
-    document.getElementById("guestBanner").style.display   = "none";
-    document.getElementById("studentBanner").style.display = "flex";
-    document.getElementById("svName").textContent    = studentName || studentCode;
-    document.getElementById("svCode").textContent    = studentCode;
-    document.getElementById("svUnit").textContent    = studentUnit || "—";
-    document.getElementById("svObject").textContent  = studentObj  || "—";
-    if (studentCrs) {
-      document.getElementById("svCourseChip").style.display = "inline-flex";
-      document.getElementById("svCourse").textContent       = studentCrs;
-    }
-  }
-  document.getElementById("examStudentInfo").textContent =
-    IS_GUEST
-      ? "Khách thi thử"
-      : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
-}
-
-// =====================================================================
-// LOGOUT
-// =====================================================================
-function showConfirmLogout()  { document.getElementById("confirmLogoutModal").classList.add("show"); }
-function closeConfirmLogout() { document.getElementById("confirmLogoutModal").classList.remove("show"); }
-
-async function doLogout() {
-  if (db && studentCode) {
-    db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
-  }
-  // ✅ THÊM: Sign out anonymous auth
-  try { if(auth && auth.currentUser) await auth.signOut(); } catch(_){}
-
-  const notifKeysToKeep = {};
-  for (let i=0; i<localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if(k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
-      notifKeysToKeep[k] = localStorage.getItem(k);
-    }
-  }
-  localStorage.clear();
-  Object.entries(notifKeysToKeep).forEach(([k,v]) => localStorage.setItem(k,v));
-  location.href = "index.html";
-}
-
-// =====================================================================
-// SELECTION PAGE — Load đề thi (cần auth trước)
-// =====================================================================
-let allSets = [], selectedSet = null;
-
-function switchCat(cat) {
-  document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.dataset.cat === cat));
-  document.getElementById("motoSection").classList.toggle("active", cat === "moto");
-  document.getElementById("otoSection").classList.toggle("active",  cat === "oto");
-}
-
-async function loadSets() {
-  if (!db) {
-    document.getElementById("loadingBox").innerHTML = "<p>❌ Không thể kết nối cơ sở dữ liệu.</p>";
-    return;
-  }
-
-  // ✅ THÊM: Đảm bảo auth trước khi query
-  // Rules questionSets: allow read: if request.auth != null
-  try {
-    await ensureAuth();
-  } catch(authErr) {
-    console.error('Auth lỗi:', authErr.code);
-    if(authErr.code === 'auth/operation-not-allowed') {
-      document.getElementById("loadingBox").innerHTML =
-        "<p>❌ Lỗi cấu hình: Anonymous Auth chưa bật.<br>Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
-    } else {
-      document.getElementById("loadingBox").innerHTML =
-        "<p>⚠️ Không thể kết nối máy chủ. Kiểm tra mạng và thử lại.</p>";
-    }
-    return;
-  }
-
-  try {
-    const snap = await db.collection("questionSets").get();
-    const moto = [], oto = [];
-    allSets = [];
-    snap.forEach(doc => {
-      const s = { id: doc.id, ...doc.data() };
-      if (s.status === "active" || !s.status) {
-        const cat = (s.examType || s.category || "").toLowerCase();
-        const isOto = cat === "oto" || cat === "ô tô" || cat === "car";
-        (isOto ? oto : moto).push(s);
-        allSets.push(s);
+  <script>
+    // AUTH GUARD
+    (function () {
+      var ut = localStorage.getItem('userType');
+      if (ut !== 'student' && ut !== 'guest') {
+        localStorage.setItem('redirectAfterLogin', 'test.html');
+        location.replace('index.html');
       }
-    });
-    document.getElementById("loadingBox").style.display    = "none";
-    document.getElementById("catTabs").style.display       = "flex";
-    document.getElementById("motoCount").textContent       = moto.length + " đề";
-    document.getElementById("otoCount").textContent        = oto.length + " đề";
-    document.getElementById("motoGrid").innerHTML          = moto.length ? moto.map(s=>renderCard(s,"moto")).join("") : "";
-    document.getElementById("otoGrid").innerHTML           = oto.length  ? oto.map(s=>renderCard(s,"oto")).join("")  : "";
-    document.getElementById("motoEmpty").style.display     = moto.length ? "none" : "block";
-    document.getElementById("otoEmpty").style.display      = oto.length  ? "none" : "block";
-  } catch(e) {
-    console.error("loadSets lỗi:", e.code, e.message);
-    let msg = `Lỗi tải đề thi: ${e.message}`;
-    if(e.code === 'permission-denied') {
-      msg = '❌ Không có quyền đọc đề thi.\nKiểm tra Firestore Rules cho questionSets.\nRules cần: allow read: if request.auth != null';
+    })();
+  </script>
+
+  <style>
+    body { visibility: hidden; }
+  </style>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Chọn đề thi – Hệ thống thi Luật Giao thông</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f4f8;
+      --card: #fff;
+      --blue: #1d3557;
+      --accent: #264a8a;
+      --green: #2a9d8f;
+      --red: #e63946;
+      --yellow: #f4a261;
+      --muted: #636e72;
+      --border: #dfe6e9;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --text: #2d3436;
     }
-    document.getElementById("loadingBox").innerHTML = `<p>❌ ${esc(msg)}</p>`;
-  }
-}
-</script>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #2d3436; min-height: 100vh; }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, #1d3557, #264a8a, #2a9d8f);
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title { display: flex; flex-direction: column; }
+    .header-title .vi { font-size: 16px; font-weight: 800; }
+    .header-title .en { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
+    .clock-box {
+      background: rgba(255,255,255,.12);
+      padding: 8px 14px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .header-btns { display: flex; gap: 8px; }
+    .btn-header {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+    .btn-back { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
+    .btn-back:hover { background: rgba(255,255,255,.28); }
+    .btn-logout { background: var(--red); color: white; }
+    .btn-logout:hover { opacity: .9; }
+
+    /* ===== PAGES ===== */
+    .pg { display: none; max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
+    .pg.active { display: block; }
+
+    /* ===== SELECTION PAGE ===== */
+    .student-info-bar {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      border: 1px solid #6ee7b7;
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .si-greet { flex: 1; }
+    .si-greet h2 { color: #065f46; font-size: 17px; margin-bottom: 6px; }
+    .si-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .si-chip { background: rgba(255,255,255,0.6); padding: 5px 12px; border-radius: 8px; font-size: 13px; color: #065f46; font-weight: 600; }
+    .cat-tabs { display: flex; background: white; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; }
+    .cat-tab { flex: 1; padding: 18px 20px; text-align: center; cursor: pointer; font-size: 15px; font-weight: 600; color: #666; transition: all .25s; border-bottom: 3px solid transparent; }
+    .cat-tab:hover { background: #f8f9fa; color: var(--blue); }
+    .cat-tab.active { color: var(--blue); background: #f0f4ff; border-bottom-color: #0d6efd; }
+    .cat-tab .cat-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+    .cat-count { display: inline-block; background: #e9ecef; color: #555; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-top: 4px; }
+
+    .sets-section { display: none; }
+    .sets-section.active { display: block; }
+    .sets-section h2 { font-size: 18px; color: var(--blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    .set-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      border: 2px solid var(--border);
+      transition: all .25s;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .set-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--accent));
+    }
+    .set-card.oto::before { background: linear-gradient(90deg, var(--green), #1a7a6e); }
+    .set-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
+    .set-card h3 { font-size: 15px; color: var(--blue); margin-bottom: 8px; margin-top: 8px; }
+    .set-card p { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+    .set-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .meta-item { background: #f1f4f8; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--blue); }
+    .meta-item.liet { background: #fee2e2; color: var(--red); }
+    .meta-item.pass { background: #d1fae5; color: #065f46; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-moto { background: #dbeafe; color: #1e40af; }
+    .badge-oto { background: #d1fae5; color: #065f46; }
+    .no-sets { text-align: center; padding: 40px; color: var(--muted); }
+    .loading-box { text-align: center; padding: 60px; color: var(--muted); }
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ddd;
+      border-top-color: #0d6efd;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== START MODAL ===== */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-bg.show { display: flex; }
+    .modal-content {
+      background: white;
+      width: 520px;
+      max-width: 100%;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.3);
+      animation: mIn .3s;
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    @keyframes mIn {
+      from { opacity: 0; transform: scale(.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-content h3 { margin: 0 0 14px; color: var(--blue); font-size: 18px; }
+    .modal-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .mig-item { background: #f0f4ff; border-radius: 12px; padding: 14px; text-align: center; }
+    .mig-item b { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+    .mig-item span { font-size: 22px; font-weight: 800; color: var(--blue); }
+    .modal-rules { background: #fff3cd; border: 2px solid #ffca2c; padding: 16px; border-radius: 14px; font-size: 14px; }
+    .modal-rules ul { padding-left: 20px; margin: 8px 0 0; }
+    .modal-rules li { margin-bottom: 6px; line-height: 1.5; }
+    .modal-desc { background: #f8fafc; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin-bottom: 14px; font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .modal-groups { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .mg-chip { background: #e0e7ff; color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .mg-chip.liet-chip { background: #fee2e2; color: var(--red); }
+    .modal-btns { display: flex; gap: 14px; margin-top: 20px; }
+    .modal-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+    .mbtn-back { background: #6c757d; color: white; }
+    .mbtn-back:hover { opacity: .85; }
+    .mbtn-start { background: var(--green); color: white; }
+    .mbtn-start:hover { opacity: .9; }
+    .mbtn-start:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ===== EXAM PAGE ===== */
+    .exam-header {
+      background: linear-gradient(135deg, var(--blue), var(--accent));
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      margin-bottom: 0;
+    }
+    .exam-header-left h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .exam-header-left p { font-size: 12px; opacity: 0.85; }
+    .exam-timer-box {
+      background: rgba(255,255,255,.15);
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 14px;
+      padding: 10px 20px;
+      text-align: center;
+      min-width: 120px;
+    }
+    .timer-label { font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
+    .timer-value { font-size: 28px; font-weight: 800; font-family: 'Courier New', monospace; letter-spacing: 2px; }
+    .timer-value.warning { color: #ffd166; animation: pulse 1s infinite; }
+    .timer-value.danger { color: #ff6b6b; animation: pulse .5s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    .exam-layout { display: grid; grid-template-columns: 1fr 220px; gap: 0; }
+    .exam-question-area { background: white; padding: 24px; min-height: calc(100vh - 220px); }
+    .exam-sidebar {
+      background: #f8fafc;
+      border-left: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .q-progress { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .q-number { font-size: 22px; font-weight: 800; color: var(--blue); }
+    .q-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #2d3436;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border-left: 4px solid var(--blue);
+    }
+    .liet-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff3cd;
+      border: 1.5px solid #f4a261;
+      color: #c05621;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      animation: lietPulse 2s ease-in-out infinite;
+    }
+    @keyframes lietPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,162,97,0.4); } 70% { box-shadow: 0 0 0 6px rgba(244,162,97,0); } }
+
+    .q-image { max-width: 100%; max-height: 220px; border-radius: 10px; margin-bottom: 16px; display: block; }
+    .answers-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .answer-btn {
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.5;
+      transition: all .2s;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .answer-btn:hover { border-color: var(--blue); background: #f0f4ff; }
+    .answer-btn.selected { border-color: var(--blue); background: #e0e7ff; font-weight: 600; }
+    .answer-btn.correct { border-color: var(--green); background: #d1fae5; }
+    .answer-btn.wrong { border-color: var(--red); background: #fee2e2; text-decoration: line-through; opacity: 0.8; }
+    .answer-key { font-weight: 800; color: var(--accent); min-width: 20px; }
+    .exam-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+    .nav-btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; transition: all .2s; }
+    .nav-prev { background: #f1f4f8; color: var(--blue); }
+    .nav-prev:hover { background: #e0e7ff; }
+    .nav-next { background: var(--blue); color: white; }
+    .nav-next:hover { opacity: .9; }
+    .nav-submit { background: linear-gradient(135deg, var(--green), #1a7a6e); color: white; }
+    .nav-submit:hover { opacity: .9; }
+
+    .qmap-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .qmap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+    .qmap-btn {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qmap-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .qmap-btn.answered { background: var(--blue); color: white; border-color: var(--blue); }
+    .qmap-btn.current { border-color: var(--green); color: var(--green); background: #d1fae5; }
+    .qmap-btn.liet-btn { border-color: var(--yellow); }
+    .qmap-btn.liet-btn.answered { background: var(--yellow); border-color: var(--yellow); color: white; }
+    .exam-legend { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--muted); }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .sidebar-submit {
+      background: linear-gradient(135deg, var(--green), #1a7a6e);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .sidebar-submit:hover { opacity: .9; transform: translateY(-1px); }
+
+    /* ===== CONFIRM LOGOUT MODAL ===== */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+      padding: 20px;
+    }
+    .confirm-overlay.show { display: flex; }
+    .confirm-box {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+      animation: cIn 0.25s;
+    }
+    @keyframes cIn { from { opacity:0; transform: scale(.94); } to { opacity:1; transform: scale(1); } }
+    .confirm-box .c-icon { font-size: 48px; margin-bottom: 12px; }
+    .confirm-box h3 { font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+    .confirm-box p { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-btns button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .c-btn-cancel { background: #f1f4f8; color: var(--blue); }
+    .c-btn-cancel:hover { background: #e0e7ff; }
+    .c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
+    .c-btn-confirm:hover { opacity: 0.9; }
+
+    /* ===== RESULT ===== */
+    .result-q-item { cursor: default; }
+    .result-q-item.q-wrong { cursor: pointer; }
+    .result-q-item.q-wrong:hover { box-shadow: 0 2px 10px rgba(230,57,70,0.15); }
+    .rq-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .rq-expand-hint { font-size: 11px; color: var(--red); font-weight: 600; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 3px; }
+    .rq-dropdown { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #fca5a5; animation: dropIn 0.25s ease; }
+    .rq-dropdown.open { display: block; }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .rq-full-content { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px; font-weight: 600; }
+    .rq-answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .rqa-item { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); font-size: 12px; display: flex; gap: 6px; background: white; }
+    .rqa-item.rqa-correct { background: rgba(42,157,143,0.12); border-color: var(--green); color: #065f46; font-weight: 700; }
+    .rqa-item.rqa-chosen { background: rgba(230,57,70,0.10); border-color: var(--red); color: #9b1c1c; font-weight: 600; }
+    .rqa-label { font-weight: 800; flex-shrink: 0; }
+    .rqa-badge { margin-left: auto; font-size: 11px; flex-shrink: 0; }
+
+    .result-container { max-width: 700px; margin: 0 auto; }
+    .result-hero {
+      background: linear-gradient(135deg, var(--blue), var(--accent));
+      color: white;
+      padding: 36px 32px;
+      border-radius: var(--radius);
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-hero::before {
+      content: '';
+      position: absolute;
+      right: -30px;
+      top: -30px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .result-verdict { font-size: 52px; margin-bottom: 10px; }
+    .result-verdict-text { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .result-verdict-text.pass { color: #6ee7b7; }
+    .result-verdict-text.fail { color: #fca5a5; }
+    .result-score { font-size: 48px; font-weight: 900; margin-bottom: 4px; font-family: 'Courier New', monospace; }
+    .result-score-label { font-size: 14px; opacity: 0.8; }
+    .result-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .rd-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .rd-card .rd-num { font-size: 26px; font-weight: 800; color: var(--blue); }
+    .rd-card .rd-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; text-transform: uppercase; }
+    .result-breakdown { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+    .result-breakdown h3 { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 16px; }
+    .result-q-item { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
+    .result-q-item.q-correct { border-color: #6ee7b7; background: #f0fdf4; }
+    .result-q-item.q-wrong { border-color: #fca5a5; background: #fff1f2; }
+    .result-q-item.q-skip { border-color: #d1d5db; background: #f9fafb; }
+    .result-q-item.q-liet { border-left: 3px solid var(--yellow); }
+    .result-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .result-actions button {
+      flex: 1;
+      min-width: 150px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      transition: all .2s;
+      color: white;
+    }
+    .btn-retry { background: linear-gradient(135deg, var(--green), #1a7a6e); }
+    .btn-home { background: linear-gradient(135deg, var(--blue), var(--accent)); }
+    .btn-retry:hover, .btn-home:hover { opacity: .9; transform: translateY(-1px); }
+
+    /* ===== KICKOUT MODAL ===== */
+    .kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
+    .kickout-modal.show { display: flex; }
+    .kickout-box {
+      background: white;
+      padding: 32px 28px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,.3);
+      animation: kIn .4s;
+      border-top: 6px solid #dc3545;
+    }
+    @keyframes kIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+    .kickout-box .k-icon { font-size: 56px; margin-bottom: 14px; display: block; }
+    .kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
+    .kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 18px; }
+    .kickout-box .cd { font-size: 13px; color: #888; }
+    .kickout-box .cd b { color: #1d3557; font-size: 15px; }
+
+    /* ===== START OVERLAY ===== */
+    .start-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+    .start-overlay.show { display: flex; }
+    .start-box { background: white; padding: 34px 44px; border-radius: 18px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+    .start-box .spinner { width: 44px; height: 44px; border-width: 5px; border-top-color: var(--green); margin-bottom: 16px; }
+    .start-box p { font-size: 15px; color: var(--blue); font-weight: 600; }
+
+    /* ===== GUEST BANNER ===== */
+    .guest-banner {
+      background: linear-gradient(135deg, #fff8e1, #fff3cd);
+      border: 1px solid #ffc107;
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .gb-left { flex: 1; min-width: 260px; }
+    .gb-title { color: #856404; font-size: 17px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .gb-seq { display: inline-flex; align-items: center; gap: 5px; background: #856404; color: white; font-size: 12.5px; font-weight: 700; padding: 3px 11px; border-radius: 20px; letter-spacing: .3px; }
+    .seq-loading {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+    .perm-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      font-size: 12.5px;
+    }
+    .perm-table th { padding: 9px 12px; font-size: 12px; font-weight: 700; text-align: center; }
+    .perm-table th:first-child { text-align: left; background: #f8f9fa; color: #555; width: 55%; }
+    .perm-table th:nth-child(2) { background: #fff3cd; color: #856404; width: 22%; }
+    .perm-table th:nth-child(3) { background: #d1f0e4; color: #0f5132; width: 23%; }
+    .perm-table td { padding: 7px 12px; border-top: 1px solid #f0f0f0; color: #444; }
+    .perm-table td:first-child { font-weight: 500; }
+    .perm-table td:nth-child(2), .perm-table td:nth-child(3) { text-align: center; }
+    .p-yes { color: #198754; font-size: 15px; font-weight: 700; }
+    .p-no { color: #dc3545; font-size: 15px; font-weight: 700; }
+    .p-limit { color: #856404; font-size: 11px; font-weight: 700; line-height: 1.4; }
+    .contact-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px dashed #ffc107; }
+    .contact-item { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #664d03; font-weight: 600; }
+    .contact-note { margin-top: 10px; font-size: 12.5px; color: #856404; line-height: 1.5; }
+    .gb-right { display: flex; gap: 10px; flex-wrap: wrap; align-self: flex-start; }
+    .lcard {
+      background: white;
+      border-radius: 12px;
+      padding: 13px 16px;
+      text-align: center;
+      min-width: 86px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+      transition: all .2s;
+    }
+    .lcard .ll { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+    .lcard .lv { font-size: 28px; font-weight: 800; color: var(--blue); line-height: 1; }
+    .lcard .ls { font-size: 11px; color: #666; margin-top: 4px; }
+    .lcard.ok .lv { color: #198754; }
+    .lcard.danger .lv { color: #dc3545; }
+
+    /* ===== STUDENT BANNER ===== */
+    .student-banner {
+      background: linear-gradient(135deg, #d1e7dd, #c3e6cb);
+      border: 1px solid #a3cfbb;
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .sb-left { flex: 1; min-width: 240px; }
+    .sb-left h2 { color: #0f5132; font-size: 17px; margin-bottom: 6px; }
+    .sb-left p { color: #155724; font-size: 13.5px; line-height: 1.5; margin: 3px 0; }
+    .sv-info { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .sv-item { background: rgba(255,255,255,.6); padding: 7px 13px; border-radius: 8px; font-size: 13px; color: #155724; }
+    .sv-item b { color: #0f5132; }
+    .sv-perm-list {
+      background: rgba(255,255,255,.55);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #155724;
+      min-width: 200px;
+      align-self: flex-start;
+    }
+    .sv-perm-title { font-weight: 700; font-size: 12px; color: #0f5132; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+    .sv-perm-list ul { padding-left: 16px; }
+    .sv-perm-list li { margin-bottom: 5px; line-height: 1.45; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .guest-banner, .student-banner { flex-direction: column; }
+      .gb-right { justify-content: center; width: 100%; }
+      header { padding: 10px 14px; gap: 8px; }
+      .header-title .vi { font-size: 13px; }
+      .header-title .en { display: none; }
+      .clock-box { padding: 6px 10px; }
+      .clock-box .time { font-size: 13px; }
+      .clock-box .date-str { display: none; }
+      .btn-header { padding: 7px 11px; font-size: 12px; }
+      .pg { padding: 14px 12px 32px; }
+
+      .exam-layout { grid-template-columns: 1fr; }
+      .exam-sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+        flex-direction: row; padding: 10px 14px; gap: 10px;
+        border-left: none; border-top: 2px solid var(--border);
+        background: white; box-shadow: 0 -4px 16px rgba(0,0,0,.12);
+        overflow-x: auto;
+      }
+      .exam-sidebar > div:first-child { display: none; }
+      .exam-legend { display: none; }
+      .sidebar-submit { white-space: nowrap; min-width: 120px; }
+      .exam-question-area { padding: 14px; min-height: calc(100vh - 280px); padding-bottom: 80px; }
+      .answers-list { grid-template-columns: 1fr; gap: 8px; }
+      .answer-btn { padding: 10px 12px; font-size: 13px; }
+      .q-text { font-size: 14px; padding: 12px; }
+
+      .result-container { max-width: 100%; }
+      .result-hero { padding: 24px 16px; }
+      .result-verdict { font-size: 38px; }
+      .result-verdict-text { font-size: 22px; }
+      .result-score { font-size: 34px; }
+      .result-detail-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .rd-card { padding: 10px 6px; }
+      .rd-card .rd-num { font-size: 18px; }
+      .result-breakdown { padding: 14px; }
+      .rq-answers-grid { grid-template-columns: 1fr; }
+      .result-actions { flex-direction: column; gap: 10px; }
+
+      .modal-content { padding: 18px; }
+      .modal-info-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .mig-item span { font-size: 18px; }
+      .modal-btns { flex-direction: column; gap: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      .rq-answers-grid { grid-template-columns: 1fr; }
+      .result-detail-grid { grid-template-columns: 1fr 1fr; }
+      .modal-info-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .cat-tab { padding: 12px 8px; font-size: 13px; }
+      .cat-tab .cat-icon { font-size: 22px; }
+      .set-card h3 { font-size: 13px; }
+    }
+
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body { -webkit-overflow-scrolling: touch; }
+    button, .answer-btn, .btn-header, .sidebar-submit {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 44px;
+    }
+    .answer-btn { min-height: 50px; }
+    header { padding-top: env(safe-area-inset-top); }
+    .pg { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+
+    @media (max-width: 768px) {
+      .exam-sidebar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+      .exam-question-area { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    }
+
+    .modal { padding-bottom: env(safe-area-inset-bottom); }
+  </style>
+</head>
+
+<body onload="document.body.style.visibility='visible'">
+  <!-- HEADER -->
+  <header>
+    <div class="header-title">
+      <div class="vi" id="headerVi">CHỌN ĐỀ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+      <div class="en" id="headerEn">Road Traffic Law Theory Examination</div>
+    </div>
+
+    <div class="clock-box" id="liveClock">--:--:--</div>
+
+    <div class="header-btns" id="headerBtns">
+      <button class="btn-header btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
+      <button class="btn-header btn-logout" onclick="showConfirmLogout()">Đăng xuất</button>
+    </div>
+  </header>
+
+  <!-- PAGE: SELECTION -->
+  <div class="pg active" id="pgSelect">
+    <!-- BANNER KHÁCH -->
+    <div class="guest-banner" id="guestBanner" style="display:none;">
+      <div class="gb-left">
+        <div class="gb-title">
+          Xin chào, Khách viếng thăm
+          <span class="gb-seq">Khách số&nbsp;<span id="guestSeqDisplay"><span class="seq-loading"></span></span></span>
+        </div>
+
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Tính năng</th>
+              <th>Khách</th>
+              <th>Học viên</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Xem danh sách đề thi</td>
+              <td><span class="p-yes">✔</span></td>
+              <td><span class="p-yes">✔</span></td>
+            </tr>
+            <tr>
+              <td>Làm bài thi thử</td>
+              <td><span class="p-limit">3 lần / ngày</span></td>
+              <td><span class="p-yes">✔ Không giới hạn</span></td>
+            </tr>
+            <tr>
+              <td>Kết quả ghi nhận chính thức</td>
+              <td><span class="p-no">✘</span></td>
+              <td><span class="p-yes">✔</span></td>
+            </tr>
+            <tr>
+              <td>Xem lịch sử thi &amp; điểm số</td>
+              <td><span class="p-no">✘</span></td>
+              <td><span class="p-yes">✔</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="contact-row">
+          <span class="contact-item"><b>0973.306.802</b></span>
+        </div>
+        <p class="contact-note">Liên hệ Admin để <b>đăng ký tài khoản Học viên</b> và sử dụng đầy đủ tính năng!</p>
+      </div>
+
+      <div class="gb-right">
+        <div class="lcard" id="lcToday">
+          <div class="ll">Hôm nay</div>
+          <div class="lv" id="todayUsed">0</div>
+          <div class="ls">/ 3 lượt/ngày</div>
+        </div>
+        <div class="lcard" id="lcWeek">
+          <div class="ll">Tuần này</div>
+          <div class="lv" id="weekUsed">0</div>
+          <div class="ls">/ 3 lượt</div>
+        </div>
+        <div class="lcard ok" id="lcRemain">
+          <div class="ll">Còn lại</div>
+          <div class="lv" id="remainCount">–</div>
+          <div class="ls">lượt hôm nay</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANNER HỌC VIÊN -->
+    <div class="student-banner" id="studentBanner" style="display:none;">
+      <div class="sb-left">
+        <h2>Xin chào, <span id="svName">...</span>!</h2>
+        <p>Bạn đang đăng nhập với tư cách <b>Học viên</b> — không giới hạn số lần thi.</p>
+        <div class="sv-info">
+          <div class="sv-item">Mã HV: <b id="svCode">...</b></div>
+          <div class="sv-item">Đơn vị: <b id="svUnit">...</b></div>
+          <div class="sv-item" id="svObjectChip"><b id="svObject">...</b></div>
+          <div class="sv-item" id="svCourseChip" style="display:none">Khóa: <b id="svCourse">...</b></div>
+        </div>
+      </div>
+      <div class="sv-perm-list">
+        <div class="sv-perm-title">Quyền của Học viên</div>
+        <ul>
+          <li>Thi không giới hạn số lần</li>
+          <li>Kết quả ghi nhận chính thức</li>
+          <li>Xem toàn bộ lịch sử thi</li>
+          <li>Hỗ trợ ưu tiên từ Admin</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="loading-box" id="loadingBox">
+      <div class="spinner"></div>
+      <p>Đang tải danh sách đề thi…</p>
+    </div>
+
+    <div id="catTabs" class="cat-tabs" style="display:none;">
+      <div class="cat-tab active" data-cat="moto" onclick="switchCat('moto')">
+        <span class="cat-icon">🏍️</span>
+        Thi xe Mô tô
+        <span class="cat-count" id="motoCount">0 đề</span>
+      </div>
+      <div class="cat-tab" data-cat="oto" onclick="switchCat('oto')">
+        <span class="cat-icon">🚗</span>
+        Thi xe Ô tô
+        <span class="cat-count" id="otoCount">0 đề</span>
+      </div>
+    </div>
+
+    <div class="sets-section active" id="motoSection">
+      <h2>🏍️ Đề thi lý thuyết xe Mô tô (Hạng A1, A2)</h2>
+      <div class="set-grid" id="motoGrid"></div>
+      <div class="no-sets" id="motoEmpty" style="display:none;">Chưa có đề thi mô tô nào.</div>
+    </div>
+
+    <div class="sets-section" id="otoSection">
+      <h2>🚗 Đề thi lý thuyết xe Ô tô (Hạng B1, B2, C, D, E)</h2>
+      <div class="set-grid" id="otoGrid"></div>
+      <div class="no-sets" id="otoEmpty" style="display:none;">Chưa có đề thi ô tô nào.</div>
+    </div>
+  </div>
+
+  <!-- MODAL START EXAM -->
+  <div class="modal-bg" id="examModal">
+    <div class="modal-content">
+      <h3 id="mTitle"></h3>
+      <div class="modal-desc" id="mDesc"></div>
+      <div class="modal-info-grid">
+        <div class="mig-item"><b>Số câu</b><span id="mQuestions">0</span></div>
+        <div class="mig-item"><b>⏱ Thời gian</b><span id="mTime">0'</span></div>
+        <div class="mig-item"><b>Điều kiện đạt</b><span id="mPass">—</span></div>
+      </div>
+      <div class="modal-groups" id="mGroups"></div>
+      <div class="modal-rules">
+        <b>⚠ NỘI QUY THI</b>
+        <ul>
+          <li>Không thoát khỏi màn hình khi đang thi</li>
+          <li>Không tải lại trang trong quá trình thi</li>
+          <li>Hết thời gian, hệ thống tự động nộp bài</li>
+          <li>Kết quả thi được ghi nhận tự động</li>
+          <li id="mRuleLiet" style="display:none; color:#c05621; font-weight:600;"></li>
+        </ul>
+      </div>
+      <div class="modal-btns">
+        <button class="mbtn-back" onclick="closeModal()">⬅ Quay lại</button>
+        <button class="mbtn-start" id="mStartBtn" onclick="beginExam()">▶ Bắt đầu làm bài</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM LOGOUT -->
+  <div class="confirm-overlay" id="confirmLogoutModal">
+    <div class="confirm-box">
+      <div class="c-icon">🚪</div>
+      <h3>Xác nhận đăng xuất</h3>
+      <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?</p>
+      <div class="confirm-btns">
+        <button class="c-btn-cancel" onclick="closeConfirmLogout()">← Hủy bỏ</button>
+        <button class="c-btn-confirm" onclick="doLogout()">Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- START OVERLAY -->
+  <div class="start-overlay" id="startOverlay">
+    <div class="start-box">
+      <div class="spinner"></div>
+      <p id="startMsg">Đang chuẩn bị đề thi…</p>
+    </div>
+  </div>
+
+  <!-- PAGE: EXAM -->
+  <div class="pg" id="pgExam">
+    <div class="exam-header">
+      <div class="exam-header-left">
+        <h2 id="examSetName">Đề thi</h2>
+        <p id="examStudentInfo"></p>
+      </div>
+      <div class="exam-timer-box">
+        <div class="timer-label">Thời gian còn lại</div>
+        <div class="timer-value" id="timerDisplay">00:00</div>
+      </div>
+    </div>
+
+    <div class="exam-layout">
+      <div class="exam-question-area" id="examQuestionArea"></div>
+      <div class="exam-sidebar">
+        <div>
+          <div class="qmap-title">Bảng câu hỏi</div>
+          <div class="qmap" id="qmap"></div>
+        </div>
+        <div class="exam-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div>Đã trả lời</div>
+          <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);"></div>Chưa trả lời</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div>Câu liệt</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;"></div>Đang xem</div>
+        </div>
+        <button class="sidebar-submit" onclick="confirmSubmit()">Nộp bài</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: RESULT -->
+  <div class="pg" id="pgResult">
+    <div class="result-container">
+      <div class="result-hero">
+        <div class="result-verdict" id="resVerdict">🎉</div>
+        <div class="result-verdict-text" id="resVerdictText">ĐẠT</div>
+        <div class="result-score" id="resScore">—</div>
+        <div class="result-score-label" id="resScoreLabel">câu đúng / tổng số câu</div>
+      </div>
+      <div class="result-detail-grid" id="resDetailGrid"></div>
+      <div class="result-breakdown">
+        <h3>Chi tiết bài làm</h3>
+        <div id="resBreakdown"></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-retry" onclick="retryExam()">Thi lại</button>
+        <button class="btn-home" onclick="location.href='exam.html'">Về trang chủ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KICKOUT MODAL -->
+  <div class="kickout-modal" id="kickoutModal">
+    <div class="kickout-box">
+      <span class="k-icon" id="kickoutIcon"></span>
+      <h3 id="kickoutTitle"></h3>
+      <p id="kickoutMessage"></p>
+      <div class="cd">Tự động quay về sau <b id="kickoutCountdown">5</b> giây…</div>
+    </div>
+  </div>
+
+  <script>
+    // ================================================================
+    // HELPER
+    // ================================================================
+    function esc(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ================================================================
+    // FIREBASE INIT
+    // ================================================================
+    let db = null, auth = null;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp({
+          apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+          authDomain: "thi-luat-giao-thong.firebaseapp.com",
+          projectId: "thi-luat-giao-thong"
+        });
+      }
+      db = firebase.firestore();
+      auth = firebase.auth();
+    } catch (e) {
+      console.error("Firebase init:", e);
+    }
+
+    // ================================================================
+    // AUTH
+    // ================================================================
+    const userType = localStorage.getItem("userType");
+    const studentCode = localStorage.getItem("studentCode") || "";
+    const studentName = localStorage.getItem("studentName") || "";
+    const studentUnit = localStorage.getItem("studentUnit") || "";
+    const studentObj = localStorage.getItem("studentObject") || "";
+    const studentCrs = localStorage.getItem("studentCourse") || "";
+    const IS_GUEST = userType === "guest";
+    const IS_STUDENT = userType === "student";
+
+    let _authUser = null;
+    async function ensureAuth() {
+      if (_authUser) return _authUser;
+      if (!auth) throw new Error("Auth chưa khởi tạo");
+      if (auth.currentUser) {
+        _authUser = auth.currentUser;
+        return _authUser;
+      }
+      console.log("Đang sign in anonymous...");
+      const cred = await auth.signInAnonymously();
+      _authUser = cred.user;
+      console.log("Anonymous auth OK, UID:", _authUser.uid);
+      return _authUser;
+    }
+
+    // ================================================================
+    // CLOCK
+    // ================================================================
+    (function startClock() {
+      function tick() {
+        const n = new Date();
+        const pad = x => String(x).padStart(2, '0');
+        const thu = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][n.getDay()];
+        const el = document.getElementById('liveClock');
+        if (el) {
+          el.innerHTML =
+            `<b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>` +
+            `<span style="opacity:0.4;margin:0 6px;">|</span>` +
+            `<span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
+        }
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+    // ================================================================
+    // GUEST LIMIT
+    // ================================================================
+    const DAILY_LIMIT = 3;
+    let _guestExamedThisSession = false;
+
+    function getTodayVN() {
+      return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
+    }
+
+    function getWeekKeyVN() {
+      const d = new Date(Date.now() + 7 * 3600000);
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() - day + 1);
+      return "W" + d.toISOString().slice(0, 10);
+    }
+
+    function getGuestId() {
+      let gid = localStorage.getItem("guestId");
+      if (!gid) {
+        gid = "G" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 5).toUpperCase();
+        localStorage.setItem("guestId", gid);
+      }
+      return gid;
+    }
+
+    function getLogsLocal() {
+      try { return JSON.parse(localStorage.getItem("guestExamLogs") || "[]"); }
+      catch (_) { return []; }
+    }
+
+    function saveLogsLocal(logs) {
+      try { localStorage.setItem("guestExamLogs", JSON.stringify(logs)); }
+      catch (_) {}
+    }
+
+    async function getLogsRemote() {
+      if (!db) return [];
+      try {
+        await ensureAuth();
+        const doc = await db.collection("guestUsage").doc(getGuestId()).get();
+        if (doc.exists && Array.isArray(doc.data().logs)) return doc.data().logs;
+      } catch (_) {}
+      return [];
+    }
+
+    async function pushLogsRemote(logs) {
+      if (!db) return;
+      try {
+        await ensureAuth();
+        await db.collection("guestUsage").doc(getGuestId()).set(
+          {
+            guestId: getGuestId(),
+            logs,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          },
+          { merge: true }
+        );
+      } catch (_) {}
+    }
+
+    async function restoreLogsFromFirestore() {
+      const remote = await getLogsRemote();
+      if (!remote.length) return;
+      const local = getLogsLocal();
+      const merged = [...local];
+      remote.forEach(r => {
+        if (!merged.find(l => l.time === r.time)) merged.push(r);
+      });
+      merged.sort((a, b) => a.time - b.time);
+      saveLogsLocal(merged);
+    }
+
+    async function saveGuestLog() {
+      const logs = getLogsLocal();
+      const entry = { date: getTodayVN(), time: Date.now() };
+      logs.push(entry);
+      saveLogsLocal(logs);
+      _guestExamedThisSession = true;
+      await pushLogsRemote(logs);
+    }
+
+    function getTodayCount() {
+      return getLogsLocal().filter(l => l.date === getTodayVN()).length;
+    }
+
+    function canTakeExam() {
+      if (IS_STUDENT) return true;
+      if (_guestExamedThisSession) return false;
+      return getTodayCount() < DAILY_LIMIT;
+    }
+
+    function updateLimitDisplay() {
+      if (!IS_GUEST) return;
+      const td = getTodayCount();
+      const rm = _guestExamedThisSession ? 0 : Math.max(0, DAILY_LIMIT - td);
+
+      document.getElementById("todayUsed").textContent = td;
+      document.getElementById("remainCount").textContent = rm;
+      document.getElementById("lcToday").className = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
+      document.getElementById("lcRemain").className = "lcard " + (rm <= 0 ? "danger" : "ok");
+
+      const wkEl = document.getElementById("weekUsed");
+      const lcWeek = document.getElementById("lcWeek");
+      if (wkEl) wkEl.textContent = td;
+      if (lcWeek) lcWeek.className = "lcard " + (td >= DAILY_LIMIT ? "danger" : "ok");
+    }
+
+    async function assignGuestSequentialNumber() {
+      const el = document.getElementById("guestSeqDisplay");
+      const saved = localStorage.getItem("guestSeqNumber");
+      if (saved) {
+        el.textContent = saved;
+        return saved;
+      }
+
+      if (db) {
+        try {
+          await ensureAuth();
+          const counterRef = db.collection("systemConfig").doc("guestCounter");
+          const num = await db.runTransaction(async tx => {
+            const snap = await tx.get(counterRef);
+            const next = ((snap.exists && snap.data().total) ? snap.data().total : 0) + 1;
+            tx.set(counterRef, { total: next }, { merge: true });
+            return next;
+          });
+          const fmt = String(num).padStart(4, "0");
+          localStorage.setItem("guestSeqNumber", fmt);
+          el.textContent = fmt;
+          return fmt;
+        } catch (e) {
+          console.warn("guestCounter lỗi:", e.code || e.message);
+        }
+      }
+
+      const fb = "L" + String(Date.now()).slice(-4);
+      localStorage.setItem("guestSeqNumber", fb);
+      el.textContent = fb;
+      return fb;
+    }
+
+    // ================================================================
+    // UI SETUP
+    // ================================================================
+    async function setupUI() {
+      ensureAuth().catch(e => console.warn("Pre-auth:", e.code || e.message));
+
+      if (IS_GUEST) {
+        document.getElementById("guestBanner").style.display = "flex";
+        document.getElementById("studentBanner").style.display = "none";
+        await restoreLogsFromFirestore();
+        updateLimitDisplay();
+        await assignGuestSequentialNumber();
+      } else {
+        document.getElementById("guestBanner").style.display = "none";
+        document.getElementById("studentBanner").style.display = "flex";
+        document.getElementById("svName").textContent = studentName || studentCode;
+        document.getElementById("svCode").textContent = studentCode;
+        document.getElementById("svUnit").textContent = studentUnit || "—";
+        document.getElementById("svObject").textContent = studentObj || "—";
+        if (studentCrs) {
+          document.getElementById("svCourseChip").style.display = "inline-flex";
+          document.getElementById("svCourse").textContent = studentCrs;
+        }
+      }
+
+      document.getElementById("examStudentInfo").textContent =
+        IS_GUEST
+          ? "Khách thi thử"
+          : `${studentName} (${studentCode})${studentUnit ? " – " + studentUnit : ""}`;
+    }
+
+    // ================================================================
+    // LOGOUT
+    // ================================================================
+    function showConfirmLogout() {
+      document.getElementById("confirmLogoutModal").classList.add("show");
+    }
+
+    function closeConfirmLogout() {
+      document.getElementById("confirmLogoutModal").classList.remove("show");
+    }
+
+    async function doLogout() {
+      if (db && studentCode) {
+        db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(() => {});
+      }
+
+      try {
+        if (auth && auth.currentUser) await auth.signOut();
+      } catch (_) {}
+
+      const notifKeysToKeep = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+          notifKeysToKeep[k] = localStorage.getItem(k);
+        }
+      }
+
+      localStorage.clear();
+      Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+      location.href = "index.html";
+    }
+
+    // ================================================================
+    // SELECTION PAGE
+    // ================================================================
+    let allSets = [], selectedSet = null;
+
+    function switchCat(cat) {
+      document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.dataset.cat === cat));
+      document.getElementById("motoSection").classList.toggle("active", cat === "moto");
+      document.getElementById("otoSection").classList.toggle("active", cat === "oto");
+    }
+
+    function renderCard(s, type) {
+      const totalQ = s.totalQuestions || s.questionCount || (Array.isArray(s.questions) ? s.questions.length : 0) || "—";
+      const duration = s.duration || s.timeLimit || "—";
+      const pass = s.passScore || s.minCorrect || "—";
+      const liet = s.lietCount || s.criticalCount || s.numLiet || 0;
+
+      return `
+        <div class="set-card ${type}" onclick="openSet('${esc(s.id)}')">
+          <span class="badge ${type === 'oto' ? 'badge-oto' : 'badge-moto'}">${type === 'oto' ? 'Ô tô' : 'Mô tô'}</span>
+          <h3>${esc(s.name || s.title || 'Đề thi')}</h3>
+          <p>${esc(s.description || 'Đề thi lý thuyết giao thông đường bộ')}</p>
+          <div class="set-meta">
+            <span class="meta-item">${esc(totalQ)} câu</span>
+            <span class="meta-item">${esc(duration)} phút</span>
+            <span class="meta-item pass">Đạt: ${esc(pass)}</span>
+            ${liet ? `<span class="meta-item liet">Liệt: ${esc(liet)}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function openSet(id) {
+      selectedSet = allSets.find(s => s.id === id);
+      if (!selectedSet) return;
+
+      document.getElementById("mTitle").textContent = selectedSet.name || selectedSet.title || "Đề thi";
+      document.getElementById("mDesc").textContent = selectedSet.description || "Đề thi lý thuyết giao thông đường bộ";
+      document.getElementById("mQuestions").textContent =
+        selectedSet.totalQuestions || selectedSet.questionCount || (Array.isArray(selectedSet.questions) ? selectedSet.questions.length : 0) || 0;
+      document.getElementById("mTime").textContent = (selectedSet.duration || selectedSet.timeLimit || 0) + "'";
+      document.getElementById("mPass").textContent = selectedSet.passScore || selectedSet.minCorrect || "—";
+
+      const groupsEl = document.getElementById("mGroups");
+      groupsEl.innerHTML = "";
+
+      const groups = selectedSet.groups || selectedSet.categories || [];
+      if (Array.isArray(groups)) {
+        groups.forEach(g => {
+          const chip = document.createElement("span");
+          chip.className = "mg-chip";
+          chip.textContent = g;
+          groupsEl.appendChild(chip);
+        });
+      }
+
+      const lietRule = document.getElementById("mRuleLiet");
+      const lietCount = selectedSet.lietCount || selectedSet.criticalCount || selectedSet.numLiet || 0;
+      if (lietCount > 0) {
+        lietRule.style.display = "list-item";
+        lietRule.textContent = `Có ${lietCount} câu điểm liệt. Trả lời sai câu liệt có thể không đạt bài thi.`;
+      } else {
+        lietRule.style.display = "none";
+        lietRule.textContent = "";
+      }
+
+      if (IS_GUEST && !canTakeExam()) {
+        document.getElementById("mStartBtn").disabled = true;
+        document.getElementById("mStartBtn").textContent = "Hết lượt thi hôm nay";
+      } else {
+        document.getElementById("mStartBtn").disabled = false;
+        document.getElementById("mStartBtn").textContent = "▶ Bắt đầu làm bài";
+      }
+
+      document.getElementById("examModal").classList.add("show");
+    }
+
+    function closeModal() {
+      document.getElementById("examModal").classList.remove("show");
+    }
+
+    async function loadSets() {
+      if (!db) {
+        document.getElementById("loadingBox").innerHTML = "<p>❌ Không thể kết nối cơ sở dữ liệu.</p>";
+        return;
+      }
+
+      try {
+        await ensureAuth();
+      } catch (authErr) {
+        console.error("Auth lỗi:", authErr.code || authErr.message);
+        if (authErr.code === "auth/operation-not-allowed") {
+          document.getElementById("loadingBox").innerHTML =
+            "<p>⚠️ Lỗi cấu hình: Anonymous Auth chưa bật.<br>Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
+        } else {
+          document.getElementById("loadingBox").innerHTML =
+            "<p>❌ Không thể kết nối máy chủ. Kiểm tra mạng và thử lại.</p>";
+        }
+        return;
+      }
+
+      try {
+        const snap = await db.collection("questionSets").get();
+        const moto = [], oto = [];
+        allSets = [];
+
+        snap.forEach(doc => {
+          const s = { id: doc.id, ...doc.data() };
+          if (s.status === "active" || !s.status) {
+            const cat = (s.examType || s.category || "").toLowerCase();
+            const isOto = cat === "oto" || cat === "ô tô" || cat === "car";
+            (isOto ? oto : moto).push(s);
+            allSets.push(s);
+          }
+        });
+
+        document.getElementById("loadingBox").style.display = "none";
+        document.getElementById("catTabs").style.display = "flex";
+        document.getElementById("motoCount").textContent = moto.length + " đề";
+        document.getElementById("otoCount").textContent = oto.length + " đề";
+        document.getElementById("motoGrid").innerHTML = moto.length ? moto.map(s => renderCard(s, "moto")).join("") : "";
+        document.getElementById("otoGrid").innerHTML = oto.length ? oto.map(s => renderCard(s, "oto")).join("") : "";
+        document.getElementById("motoEmpty").style.display = moto.length ? "none" : "block";
+        document.getElementById("otoEmpty").style.display = oto.length ? "none" : "block";
+      } catch (e) {
+        console.error("loadSets lỗi:", e.code, e.message);
+        let msg = `Lỗi tải đề thi: ${e.message}`;
+        if (e.code === "permission-denied") {
+          msg = "❌ Không có quyền đọc đề thi.\nKiểm tra Firestore Rules cho questionSets.\nRules cần: allow read: if request.auth != null";
+        }
+        document.getElementById("loadingBox").innerHTML = `<p>${esc(msg)}</p>`;
+      }
+    }
+
+    // ================================================================
+    // PLACEHOLDER FUNCTIONS
+    // ================================================================
+    function beginExam() {
+      const overlay = document.getElementById("startOverlay");
+      overlay.classList.add("show");
+
+      setTimeout(async () => {
+        overlay.classList.remove("show");
+        closeModal();
+
+        if (IS_GUEST) {
+          if (!canTakeExam()) {
+            alert("Bạn đã hết lượt thi hôm nay.");
+            return;
+          }
+          await saveGuestLog();
+          updateLimitDisplay();
+        }
+
+        document.getElementById("pgSelect").classList.remove("active");
+        document.getElementById("pgExam").classList.add("active");
+        document.getElementById("examSetName").textContent = selectedSet?.name || selectedSet?.title || "Đề thi";
+        document.getElementById("examQuestionArea").innerHTML = `
+          <div class="q-progress">Đây là phần thi mẫu</div>
+          <div class="q-number">Bắt đầu bài thi</div>
+          <div class="q-text">Bạn đã chọn: <b>${esc(selectedSet?.name || selectedSet?.title || "Đề thi")}</b></div>
+        `;
+      }, 900);
+    }
+
+    function confirmSubmit() {
+      alert("Chức năng nộp bài chưa được nối đầy đủ trong đoạn code này.");
+    }
+
+    function retryExam() {
+      location.reload();
+    }
+
+    // ================================================================
+    // INIT
+    // ================================================================
+    document.addEventListener("DOMContentLoaded", async () => {
+      await setupUI();
+      await loadSets();
+      document.body.style.visibility = "visible";
+    });
+  </script>
 </body>
 </html>
