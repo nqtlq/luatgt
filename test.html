@@ -692,7 +692,7 @@ header { padding-top: env(safe-area-inset-top); }
 
 <script>
 // =====================================================
-// FIREBASE INIT — ĐÃ SỬA
+// FIREBASE INIT
 // =====================================================
 let db = null, auth = null;
 try {
@@ -708,7 +708,7 @@ try {
 } catch(e) { console.error("Firebase init:", e); }
 
 // =====================================================
-// ANONYMOUS AUTH — Bắt buộc để Firestore rules cho phép đọc
+// ANONYMOUS AUTH
 // =====================================================
 let _authReady = false;
 let _authUser = null;
@@ -841,26 +841,14 @@ function updateLimitDisplay() {
   }
 }
 
+// ✅ SỬA: Bỏ qua việc đọc guestCounter vì Rules chặn (chỉ cho đọc 'maintenance')
+// Thay vào đó dùng ID ngẫu nhiên để hiển thị cho khách
 async function assignGuestSequentialNumber() {
   const el = document.getElementById("guestSeqDisplay");
   const saved = localStorage.getItem("guestSeqNumber");
   if (saved) { el.textContent = saved; return saved; }
-  if (db) {
-    try {
-      await ensureAuth();
-      const counterRef = db.collection("systemConfig").doc("guestCounter");
-      const num = await db.runTransaction(async tx => {
-        const snap = await tx.get(counterRef);
-        const next = ((snap.exists && snap.data().total) ? snap.data().total : 0) + 1;
-        tx.set(counterRef, { total: next }, { merge: true });
-        return next;
-      });
-      const fmt = String(num).padStart(4,"0");
-      localStorage.setItem("guestSeqNumber", fmt);
-      el.textContent = fmt;
-      return fmt;
-    } catch(e) { console.warn('guestCounter lỗi:', e.code); }
-  }
+  
+  // Fallback: Tạo số ngẫu nhiên nếu không đọc được từ DB
   const fb = "L" + String(Date.now()).slice(-4);
   localStorage.setItem("guestSeqNumber", fb);
   el.textContent = fb;
@@ -868,7 +856,7 @@ async function assignGuestSequentialNumber() {
 }
 
 // =====================================================
-// SETUP UI — Nút quay lại đúng theo userType
+// SETUP UI
 // =====================================================
 const userType = localStorage.getItem("userType");
 const studentCode = localStorage.getItem("studentCode") || "";
@@ -881,7 +869,7 @@ const IS_GUEST = userType === "guest";
 const IS_STUDENT = userType === "student";
 
 async function setupUI() {
-  // ✅ THÊM: Pre-auth ngầm (không chặn UI)
+  // ✅ Pre-auth ngầm
   ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
   
   if (IS_GUEST) {
@@ -916,7 +904,6 @@ async function doLogout() {
   if (db && studentCode) {
     db.collection("presence").doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
   }
-  // ✅ THÊM: Sign out anonymous auth
   try { if (auth && auth.currentUser) await auth.signOut(); } catch(_) {}
   
   const notifKeysToKeep = {};
@@ -932,7 +919,7 @@ async function doLogout() {
 }
 
 // =====================================================
-// SELECTION PAGE — Load đề thi (cần auth trước)
+// SELECTION PAGE — Load đề thi
 // =====================================================
 let allSets = [], selectedSet = null;
 
@@ -948,28 +935,27 @@ async function loadSets() {
     return;
   }
   
-  // ✅ THÊM: Đảm bảo auth trước khi query
+  // ✅ ĐẢM BẢO AUTH TRƯỚC KHI QUERY
   try {
     await ensureAuth();
   } catch(authErr) {
     console.error('Auth lỗi:', authErr.code);
-    if(authErr.code === 'auth/operation-not-allowed') {
-      document.getElementById("loadingBox").innerHTML = 
-        "<p>⚠️ Lỗi cấu hình: Anonymous Auth chưa bật.<br>" +
-        "Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</p>";
-    } else {
-      document.getElementById("loadingBox").innerHTML = 
-        "<p>❌ Không thể kết nối máy chủ. Kiểm tra mạng và thử lại.</p>";
-    }
+    document.getElementById("loadingBox").innerHTML = 
+      "<p>❌ Lỗi xác thực. Vui lòng tải lại trang.</p>";
     return;
   }
   
   try {
-    const snap = await db.collection("questionSets").get();
+    // ✅ SỬA: Thêm filter 'status' == 'active' để khớp với Firestore Rules
+    const snap = await db.collection("questionSets")
+      .where("status", "==", "active") 
+      .get();
+      
     const moto = [], oto = [];
     allSets = [];
     snap.forEach(doc => {
       const s = { id: doc.id, ...doc.data() };
+      // Kiểm tra lại status trong code để chắc chắn
       if (s.status === "active" || !s.status) {
         const cat = (s.examType || s.category || "").toLowerCase();
         const isOto = cat === "oto" || cat === "ô tô" || cat === "car";
@@ -977,6 +963,7 @@ async function loadSets() {
         allSets.push(s);
       }
     });
+    
     document.getElementById("loadingBox").style.display = "none";
     document.getElementById("catTabs").style.display = "flex";
     document.getElementById("motoCount").textContent = moto.length + " đề";
@@ -989,9 +976,7 @@ async function loadSets() {
     console.error("loadSets lỗi:", e.code, e.message);
     let msg = `Lỗi tải đề thi: ${e.message}`;
     if(e.code === 'permission-denied') {
-      msg = '❌ Không có quyền đọc đề thi.\n' +
-            'Kiểm tra Firestore Rules cho questionSets.\n' +
-            'Rules cần: allow read: if request.auth != null';
+      msg = '❌ Không có quyền đọc đề thi.\nKiểm tra Firestore Rules.';
     }
     document.getElementById("loadingBox").innerHTML = `<p>❌ ${msg}</p>`;
   }
@@ -1089,6 +1074,7 @@ async function loadExamSet(set) {
   
   try {
     await ensureAuth();
+    // ✅ SỬA: Query questions với điều kiện phù hợp
     const snap = await db.collection("questions").where("setId", "==", set.id).orderBy("order").get();
     questions = [];
     snap.forEach(doc => questions.push({ id: doc.id, ...doc.data() }));
