@@ -2,242 +2,174 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-  <script>
+<script>
 (function() {
   var ut = localStorage.getItem('userType');
   var sc = localStorage.getItem('studentCode');
-  if (ut !== 'student' || !sc) {
-    document.write('');
-    location.replace('index.html');
-  }
+  if (ut !== 'student' || !sc) { location.replace('index.html'); }
 })();
 </script>
-<style>body { visibility: hidden; }</style>
+<style>body{visibility:hidden;}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lịch sử thi | Hệ thống thi Luật Giao thông</title>
+
+<!-- ✅ ĐÚNG URL — thêm dấu - -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #eef2f6;
-  --card: #fff;
-  --blue: #1d3557;
-  --accent: #264a8a;
-  --green: #2a9d8f;
-  --red: #e63946;
-  --yellow: #f4a261;
-  --muted: #636e72;
-  --border: #dfe6e9;
-  --shadow: 0 4px 20px rgba(0,0,0,0.08);
-  --radius: 16px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#eef2f6;--card:#fff;--blue:#1d3557;--accent:#264a8a;
+  --green:#2a9d8f;--red:#e63946;--yellow:#f4a261;
+  --muted:#636e72;--border:#dfe6e9;
+  --shadow:0 4px 20px rgba(0,0,0,0.08);--radius:16px;
 }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #2d3436; min-height: 100vh; }
-
-/* HEADER */
-header {
-  background: linear-gradient(135deg, #1d3557, #264a8a, #2a9d8f);
-  color: white; padding: 14px 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
-  flex-wrap: wrap; gap: 10px;
-  position: sticky; top: 0; z-index: 100;
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#2d3436;min-height:100vh;}
+header{
+  background:linear-gradient(135deg,#1d3557,#264a8a,#2a9d8f);
+  color:white;padding:14px 24px;display:flex;
+  justify-content:space-between;align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+  flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;
 }
-.header-title .vi { font-size: 16px; font-weight: 800; }
-.header-title .en { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-.clock-box { background: rgba(255,255,255,.12); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,.2); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
-.header-btns { display: flex; gap: 8px; }
-.btn-back { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
-.btn-back:hover { background: rgba(255,255,255,.28); }
+.header-title .vi{font-size:16px;font-weight:800;}
+.header-title .en{font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.clock-box{background:rgba(255,255,255,.12);padding:8px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.2);display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;}
+.header-btns{display:flex;gap:8px;}
+.btn-back{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);}
+.btn-back:hover{background:rgba(255,255,255,.28);}
+.container{max-width:960px;margin:0 auto;padding:24px 20px 48px;}
 
-/* CONTAINER */
-.container { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
+/* LOADING OVERLAY */
+#pageLoader{position:fixed;inset:0;background:linear-gradient(135deg,#1d3557,#264a8a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;color:white;gap:16px;}
+#pageLoader .spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
+#pageLoader p{font-size:14px;opacity:.85;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-/* STUDENT CARD */
-.student-card {
-  background: linear-gradient(135deg, #1d3557, #264a8a);
-  color: white; border-radius: var(--radius);
-  padding: 20px 24px; margin-bottom: 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 16px;
+.student-card{background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.sc-info .sc-name{font-size:20px;font-weight:800;margin-bottom:4px;}
+.sc-info .sc-sub{font-size:13px;opacity:.85;display:flex;gap:14px;flex-wrap:wrap;}
+.sc-stats{display:flex;gap:14px;}
+.sc-stat{background:rgba(255,255,255,.15);border-radius:12px;padding:12px 18px;text-align:center;min-width:80px;}
+.sc-stat .n{font-size:24px;font-weight:800;}
+.sc-stat .l{font-size:11px;opacity:.85;margin-top:2px;text-transform:uppercase;letter-spacing:.3px;}
+
+.filter-bar{background:var(--card);border-radius:var(--radius);padding:14px 18px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);border:1px solid var(--border);}
+.filter-bar select,.filter-bar input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:#2d3436;}
+.filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--accent);}
+.filter-bar label{font-size:13px;color:var(--muted);font-weight:600;}
+
+.history-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+.history-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.history-header h3{font-size:15px;font-weight:700;color:var(--blue);}
+.count-badge{background:var(--accent);color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
+
+.history-table{width:100%;border-collapse:collapse;font-size:13px;}
+.history-table th,.history-table td{padding:12px 14px;border-bottom:1px solid var(--border);}
+.history-table th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.history-table tbody tr{transition:background .15s;cursor:pointer;}
+.history-table tbody tr:hover{background:#f0f4ff;}
+.history-table tbody tr.active-row{background:#e0e7ff;}
+
+.verdict-pass{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(42,157,143,.12);color:var(--green);}
+.verdict-fail{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(230,57,70,.12);color:var(--red);}
+.score-bar-wrap{display:flex;align-items:center;gap:8px;}
+.score-bar{flex:1;height:6px;background:#e9ecef;border-radius:3px;overflow:hidden;min-width:60px;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .5s;}
+.btn-detail{padding:5px 12px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;background:var(--accent);color:white;transition:all .15s;}
+.btn-detail:hover{opacity:.85;}
+.btn-detail.active{background:var(--green);}
+
+.detail-panel{border-top:2px solid var(--accent);padding:0;background:#f8fafc;animation:expandIn .3s ease;}
+@keyframes expandIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.detail-header{background:linear-gradient(135deg,var(--accent),#0a58ca);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.detail-header h4{font-size:14px;font-weight:700;}
+.detail-header .detail-score{font-size:18px;font-weight:800;}
+.detail-summary{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:4px;opacity:.9;}
+.detail-questions{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.q-card{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:14px;transition:all .15s;}
+.q-card.q-correct{border-color:rgba(42,157,143,.4);border-left:3px solid var(--green);}
+.q-card.q-wrong{border-color:rgba(230,57,70,.4);border-left:3px solid var(--red);}
+.q-card.q-skip{border-color:var(--border);opacity:.85;}
+.q-card.q-liet{border-left:3px solid var(--yellow);}
+.q-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px;}
+.q-num{font-weight:700;font-size:13px;color:var(--blue);}
+.q-status{font-size:12px;font-weight:700;white-space:nowrap;}
+.q-liet-tag{display:inline-block;background:#fff3cd;border:1px solid var(--yellow);color:#c05621;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px;}
+.q-text{font-size:13px;line-height:1.6;color:#2d3436;margin-bottom:10px;}
+.q-img{max-width:100%;max-height:200px;border-radius:8px;margin-bottom:10px;display:block;}
+.q-answers{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.qa-item{padding:7px 10px;border-radius:7px;border:1px solid var(--border);font-size:12px;display:flex;gap:6px;align-items:flex-start;background:var(--card);}
+.qa-item.qa-right{background:rgba(42,157,143,.1);border-color:var(--green);color:#065f46;font-weight:600;}
+.qa-item.qa-chosen-wrong{background:rgba(230,57,70,.1);border-color:var(--red);color:#9b1c1c;font-weight:600;}
+.qa-label{font-weight:800;flex-shrink:0;}
+.qa-marker{margin-left:auto;flex-shrink:0;font-size:11px;}
+
+.empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty .e-icon{font-size:48px;margin-bottom:12px;}
+.empty p{font-size:14px;}
+.loading-spin{text-align:center;padding:40px;color:var(--muted);}
+.spinner{display:inline-block;width:36px;height:36px;border:3px solid #ddd;border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;}
+
+.kickout-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(5px);}
+.kickout-modal.show{display:flex;}
+.kickout-box{background:white;padding:30px;border-radius:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);border-top:6px solid var(--red);}
+.kickout-box .icon{font-size:56px;margin-bottom:15px;display:block;}
+.kickout-box h3{margin:0 0 12px;font-size:20px;color:var(--blue);}
+.kickout-box p{font-size:14px;color:#444;line-height:1.6;margin:0 0 20px;}
+.kickout-box .countdown{font-size:13px;color:#888;}
+.kickout-box .countdown b{color:var(--blue);font-size:15px;}
+
+@media(max-width:768px){
+  header{padding:10px 14px;gap:8px;flex-wrap:nowrap;}
+  .header-title .vi{font-size:12px;}
+  .header-title .en{display:none;}
+  .clock-box{display:none;}
+  .container{padding:14px 12px 32px;}
+  .student-card{flex-direction:column;align-items:flex-start;padding:16px;gap:12px;}
+  .sc-info .sc-name{font-size:16px;}
+  .sc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;}
+  .sc-stat{padding:8px 6px;min-width:unset;}
+  .sc-stat .n{font-size:18px;}
+  .sc-stat .l{font-size:10px;}
+  .filter-bar{flex-direction:column;align-items:stretch;padding:10px 12px;}
+  .filter-bar select,.filter-bar input{width:100%;}
+  .history-card{overflow-x:auto;}
+  .history-table{min-width:560px;font-size:12px;}
+  .history-table th,.history-table td{padding:8px;}
+  .detail-header{flex-direction:column;gap:8px;}
+  .q-answers{grid-template-columns:1fr;}
+  .q-card{padding:10px;}
 }
-.sc-info .sc-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-.sc-info .sc-sub { font-size: 13px; opacity: 0.85; display: flex; gap: 14px; flex-wrap: wrap; }
-.sc-stats { display: flex; gap: 14px; }
-.sc-stat { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 18px; text-align: center; min-width: 80px; }
-.sc-stat .n { font-size: 24px; font-weight: 800; }
-.sc-stat .l { font-size: 11px; opacity: 0.85; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
-
-/* FILTER BAR */
-.filter-bar {
-  background: var(--card); border-radius: var(--radius); padding: 14px 18px;
-  margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-  box-shadow: var(--shadow); border: 1px solid var(--border);
+@media(max-width:480px){
+  .sc-stats{grid-template-columns:1fr 1fr;}
+  .sc-stat .n{font-size:16px;}
+  .history-table{font-size:11px;min-width:480px;}
+  .history-table td:nth-child(6){display:none;}
+  .student-card{padding:12px;}
+  .container{padding:12px 10px 36px;}
+  .btn-detail{font-size:11px;padding:4px 8px;}
 }
-.filter-bar select, .filter-bar input {
-  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-size: 13px; background: var(--bg); color: #2d3436;
-}
-.filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--accent); }
-.filter-bar label { font-size: 13px; color: var(--muted); font-weight: 600; }
-
-/* HISTORY TABLE */
-.history-card {
-  background: var(--card); border-radius: var(--radius);
-  box-shadow: var(--shadow); border: 1px solid var(--border);
-  overflow: hidden;
-}
-.history-header {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-}
-.history-header h3 { font-size: 15px; font-weight: 700; color: var(--blue); }
-.count-badge { background: var(--accent); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
-
-.history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.history-table th, .history-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
-.history-table th { background: #f8fafc; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.history-table tbody tr { transition: background 0.15s; cursor: pointer; }
-.history-table tbody tr:hover { background: #f0f4ff; }
-.history-table tbody tr.active-row { background: #e0e7ff; }
-
-.verdict-pass { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; background: rgba(42,157,143,0.12); color: var(--green); }
-.verdict-fail { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; background: rgba(230,57,70,0.12); color: var(--red); }
-
-.score-bar-wrap { display: flex; align-items: center; gap: 8px; }
-.score-bar { flex: 1; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; min-width: 60px; }
-.score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-
-.btn-detail { padding: 5px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; background: var(--accent); color: white; transition: all 0.15s; }
-.btn-detail:hover { opacity: 0.85; }
-.btn-detail.active { background: var(--green); }
-
-/* DETAIL PANEL */
-.detail-panel {
-  border-top: 2px solid var(--accent);
-  padding: 0;
-  background: #f8fafc;
-  animation: expandIn 0.3s ease;
-}
-@keyframes expandIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-.detail-header {
-  background: linear-gradient(135deg, var(--accent), #0a58ca);
-  color: white; padding: 14px 20px;
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-}
-.detail-header h4 { font-size: 14px; font-weight: 700; }
-.detail-header .detail-score { font-size: 18px; font-weight: 800; }
-.detail-summary { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; margin-top: 4px; opacity: 0.9; }
-
-.detail-questions { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
-
-.q-card {
-  background: var(--card); border-radius: 10px;
-  border: 1px solid var(--border); padding: 14px;
-  transition: all 0.15s;
-}
-.q-card.q-correct { border-color: rgba(42,157,143,0.4); border-left: 3px solid var(--green); }
-.q-card.q-wrong   { border-color: rgba(230,57,70,0.4); border-left: 3px solid var(--red); }
-.q-card.q-skip    { border-color: var(--border); opacity: 0.85; }
-.q-card.q-liet    { border-left: 3px solid var(--yellow); }
-
-.q-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
-.q-num { font-weight: 700; font-size: 13px; color: var(--blue); }
-.q-status { font-size: 12px; font-weight: 700; white-space: nowrap; }
-.q-liet-tag { display: inline-block; background: #fff3cd; border: 1px solid var(--yellow); color: #c05621; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-left: 6px; }
-.q-text { font-size: 13px; line-height: 1.6; color: #2d3436; margin-bottom: 10px; }
-.q-img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 10px; display: block; }
-.q-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.qa-item {
-  padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border);
-  font-size: 12px; display: flex; gap: 6px; align-items: flex-start;
-  background: var(--card);
-}
-.qa-item.qa-right  { background: rgba(42,157,143,0.1); border-color: var(--green); color: #065f46; font-weight: 600; }
-.qa-item.qa-chosen-wrong { background: rgba(230,57,70,0.1); border-color: var(--red); color: #9b1c1c; font-weight: 600; }
-.qa-label { font-weight: 800; flex-shrink: 0; }
-.qa-marker { margin-left: auto; flex-shrink: 0; font-size: 11px; }
-
-/* EMPTY */
-.empty { text-align: center; padding: 50px 20px; color: var(--muted); }
-.empty .e-icon { font-size: 48px; margin-bottom: 12px; }
-.empty p { font-size: 14px; }
-
-/* LOADING */
-.loading-spin { text-align: center; padding: 40px; color: var(--muted); }
-.spinner { display: inline-block; width: 36px; height: 36px; border: 3px solid #ddd; border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* KICKOUT */
-.kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
-.kickout-modal.show { display: flex; }
-.kickout-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.3); border-top: 6px solid var(--red); }
-.kickout-box .icon { font-size: 56px; margin-bottom: 15px; display: block; }
-.kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: var(--blue); }
-.kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
-.kickout-box .countdown { font-size: 13px; color: #888; }
-.kickout-box .countdown b { color: var(--blue); font-size: 15px; }
-
-/* ═══ MOBILE RESPONSIVE ══════════════════════════════════════ */
-@media (max-width: 768px) {
-  header { padding: 10px 14px; gap: 8px; flex-wrap: nowrap; }
-  .header-title .vi { font-size: 12px; }
-  .header-title .en { display: none; }
-  .clock-box { display: none; }
-  .container { padding: 14px 12px 32px; }
-
-  .student-card {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-    gap: 12px;
-  }
-  .sc-info .sc-name { font-size: 16px; }
-  .sc-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    width: 100%;
-  }
-  .sc-stat { padding: 8px 6px; min-width: unset; }
-  .sc-stat .n { font-size: 18px; }
-  .sc-stat .l { font-size: 10px; }
-
-  .filter-bar { flex-direction: column; align-items: stretch; padding: 10px 12px; }
-  .filter-bar select, .filter-bar input { width: 100%; }
-
-  /* History table — scroll horizontal */
-  .history-card { overflow-x: auto; }
-  .history-table { min-width: 560px; font-size: 12px; }
-  .history-table th, .history-table td { padding: 8px 8px; }
-
-  /* Detail panel */
-  .detail-header { flex-direction: column; gap: 8px; }
-  .detail-header .detail-score { font-size: 15px; }
-  .q-answers { grid-template-columns: 1fr; }
-  .q-card { padding: 10px; }
-}
-
-@media (max-width: 480px) {
-  .sc-stats { grid-template-columns: 1fr 1fr; }
-  .sc-stat .n { font-size: 16px; }
-  .history-table { font-size: 11px; min-width: 480px; }
-  .history-table td:nth-child(6) { display: none; } /* ẩn cột Thời gian làm bài */
-  .student-card { padding: 12px; }
-  .container { padding: 12px 10px 36px; }
-  .btn-detail { font-size: 11px; padding: 4px 8px; }
-}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+body{-webkit-overflow-scrolling:touch;}
 </style>
 </head>
-<body>
 <body onload="document.body.style.visibility='visible'">
+
+<!-- LOADING OVERLAY -->
+<div id="pageLoader">
+  <div class="spin"></div>
+  <p id="loaderMsg">🔐 Đang xác thực...</p>
+</div>
+
 <header>
   <div class="header-title">
-    <div class="vi">📊 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+    <div class="vi">📋 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
     <div class="en">Exam History – Road Traffic Law System</div>
   </div>
-  <div class="clock-box" id="clockBox">🕐 --:--:--</div>
+  <div class="clock-box" id="clockBox">⏰ --:--:--</div>
   <div class="header-btns">
     <button class="btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
   </div>
@@ -253,38 +185,23 @@ header {
 </div>
 
 <div class="container">
-
-  <!-- Student Summary Card -->
   <div class="student-card">
     <div class="sc-info">
       <div class="sc-name" id="scName">Đang tải...</div>
       <div class="sc-sub">
-        <span>🎫 Mã HV: <b id="scCode">—</b></span>
+        <span>🪪 Mã HV: <b id="scCode">—</b></span>
         <span>🏢 <b id="scUnit">—</b></span>
         <span>🎯 <b id="scObject">—</b></span>
       </div>
     </div>
     <div class="sc-stats">
-      <div class="sc-stat">
-        <div class="n" id="scTotal">0</div>
-        <div class="l">Lượt thi</div>
-      </div>
-      <div class="sc-stat" style="background:rgba(42,157,143,0.3);">
-        <div class="n" id="scPass">0</div>
-        <div class="l">Đạt</div>
-      </div>
-      <div class="sc-stat" style="background:rgba(230,57,70,0.3);">
-        <div class="n" id="scFail">0</div>
-        <div class="l">Không đạt</div>
-      </div>
-      <div class="sc-stat">
-        <div class="n" id="scBest">—</div>
-        <div class="l">Điểm cao nhất</div>
-      </div>
+      <div class="sc-stat"><div class="n" id="scTotal">0</div><div class="l">Lượt thi</div></div>
+      <div class="sc-stat" style="background:rgba(42,157,143,.3);"><div class="n" id="scPass">0</div><div class="l">Đạt</div></div>
+      <div class="sc-stat" style="background:rgba(230,57,70,.3);"><div class="n" id="scFail">0</div><div class="l">Không đạt</div></div>
+      <div class="sc-stat"><div class="n" id="scBest">—</div><div class="l">Điểm cao nhất</div></div>
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="filter-bar">
     <label>🔍 Lọc kết quả:</label>
     <select id="filterResult" onchange="applyFilter()">
@@ -298,222 +215,235 @@ header {
     <span style="margin-left:auto;font-size:12px;color:var(--muted);" id="filterCount"></span>
   </div>
 
-  <!-- History Table -->
   <div class="history-card">
     <div class="history-header">
-      <h3>📜 Lịch sử bài thi</h3>
+      <h3>📋 Lịch sử bài thi</h3>
       <span class="count-badge" id="historyCount">0</span>
     </div>
     <div id="historyBody">
       <div class="loading-spin"><div class="spinner"></div><p style="margin-top:12px;">Đang tải dữ liệu...</p></div>
     </div>
   </div>
-
 </div>
 
 <script>
 // ================================================================
-// FIREBASE
+// FIREBASE INIT
 // ================================================================
+let db = null, auth = null, firebaseReady = false;
 try {
   if (!firebase.apps.length) {
     firebase.initializeApp({
-      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+      apiKey:     "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
       authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId: "thi-luat-giao-thong"
+      projectId:  "thi-luat-giao-thong"
     });
   }
+  db   = firebase.firestore();
+  auth = firebase.auth();
+  firebaseReady = true;
 } catch(e) { console.error('Firebase:', e); }
-const db = firebase.firestore();
 
 // ================================================================
-// AUTH
+// SESSION
 // ================================================================
 const userType    = localStorage.getItem('userType');
 const studentCode = localStorage.getItem('studentCode') || '';
 const studentName = localStorage.getItem('studentName') || '';
 const studentUnit = localStorage.getItem('studentUnit') || '';
 const studentObj  = localStorage.getItem('studentObject') || '';
+
 if (userType !== 'student' || !studentCode) location.href = 'index.html';
+
+// ================================================================
+// ANONYMOUS AUTH — Rules yêu cầu request.auth != null
+// ================================================================
+let _authUser = null;
+async function ensureAuth() {
+  if (!auth) throw new Error('Auth chưa sẵn sàng');
+  if (auth.currentUser) { _authUser = auth.currentUser; return _authUser; }
+  const cred = await auth.signInAnonymously();
+  _authUser = cred.user;
+  console.log('✅ Anonymous auth OK:', _authUser.uid);
+  return _authUser;
+}
 
 // ================================================================
 // CLOCK
 // ================================================================
-(function() {
-  function tick() {
-    const n = new Date();
-    const hh = String(n.getHours()).padStart(2,'0');
-    const mm = String(n.getMinutes()).padStart(2,'0');
-    const ss = String(n.getSeconds()).padStart(2,'0');
-    const dd = String(n.getDate()).padStart(2,'0');
-    const mo = String(n.getMonth()+1).padStart(2,'0');
-    const yy = n.getFullYear();
-    const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
-    const el = document.getElementById('clockBox');
-    if (el) el.innerHTML =
-      `🕐 <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${hh}:${mm}:${ss}</b>`+
-      `<span style="opacity:0.4;margin:0 6px;">|</span>`+
-      `<span style="font-size:11px;">${thu}, ${dd}/${mo}/${yy}</span>`;
+(function(){
+  function tick(){
+    const n=new Date(), pad=x=>String(x).padStart(2,'0');
+    const thu=['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
+    const el=document.getElementById('clockBox');
+    if(el) el.innerHTML=`⏰ <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b><span style="opacity:.4;margin:0 6px;">|</span><span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
   }
-  tick(); setInterval(tick, 1000);
+  tick(); setInterval(tick,1000);
 })();
 
 // ================================================================
 // HELPERS
 // ================================================================
-function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
-
-function fmtDT(val) {
-  if (!val) return '—';
-  const d = val?.toDate ? val.toDate() : (val instanceof Date ? val : new Date(val));
-  if (isNaN(d)) return '—';
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+function esc(t){ const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+function fmtDT(val){
+  if(!val) return '—';
+  const d=val?.toDate?val.toDate():(val instanceof Date?val:new Date(val));
+  if(isNaN(d)) return '—';
+  const pad=x=>String(x).padStart(2,'0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-function fmtTime(secs) {
-  if (!secs) return '—';
-  const m = Math.floor(secs / 60), s = secs % 60;
-  return `${m}:${String(s).padStart(2,'0')}`;
+function fmtTime(secs){
+  if(!secs) return '—';
+  return `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
 }
 
 // ================================================================
 // DATA
 // ================================================================
-let allResults = [];
-let filteredResults = [];
-let openDetailId = null;
+let allResults=[], filteredResults=[], openDetailId=null, resultsUnsub=null;
 
-let resultsUnsub = null;
+async function loadData(){
+  // Bước 1: Đảm bảo auth
+  try {
+    document.getElementById('loaderMsg').textContent = '🔐 Đang xác thực...';
+    await ensureAuth();
+  } catch(e) {
+    console.error('Auth lỗi:', e.code, e.message);
+    if(e.code === 'auth/operation-not-allowed') {
+      alert('❌ Anonymous Auth chưa bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable');
+    } else {
+      alert('⚠️ Không thể kết nối. Kiểm tra mạng và thử lại.');
+    }
+    location.href = 'index.html';
+    return;
+  }
 
-function loadData() {
-  // Thông tin học viên từ localStorage
+  // Bước 2: Hiển thị thông tin từ localStorage
   document.getElementById('scName').textContent   = studentName || studentCode;
   document.getElementById('scCode').textContent   = studentCode;
   document.getElementById('scUnit').textContent   = studentUnit || '—';
   document.getElementById('scObject').textContent = studentObj  || '—';
 
-  if (resultsUnsub) resultsUnsub();
+  // Bước 3: Ẩn loader
+  document.getElementById('pageLoader').style.display = 'none';
 
-  // KHÔNG dùng .orderBy() kèm .where() — cần Composite Index chưa tạo → query thất bại.
-  // Sắp xếp theo timestamp phía client. Dùng onSnapshot để cập nhật real-time.
+  // Bước 4: Load lịch sử thi realtime
+  if(resultsUnsub) resultsUnsub();
+
+  document.getElementById('historyBody').innerHTML =
+    '<div class="loading-spin"><div class="spinner"></div><p style="margin-top:12px;">Đang tải lịch sử thi...</p></div>';
+
   resultsUnsub = db.collection('examResults')
-    .where('studentCode', '==', studentCode)
+    .where('studentCode','==',studentCode)
     .limit(200)
     .onSnapshot(snap => {
       allResults = snap.docs.map(d => {
         const data = d.data();
-        const ts = data.timestamp?.toDate
-          ? data.timestamp.toDate()
-          : new Date(data.timestamp || Date.now());
-        return { id: d.id, ...data, timestamp: ts };
+        return {
+          id: d.id, ...data,
+          timestamp: data.timestamp?.toDate
+            ? data.timestamp.toDate()
+            : new Date(data.timestamp || Date.now())
+        };
       });
+      allResults.sort((a,b) => b.timestamp - a.timestamp);
 
-      // Sắp xếp mới nhất trước (client-side)
-      allResults.sort((a, b) => b.timestamp - a.timestamp);
-
-      // Điền bộ lọc đề thi (không reset lựa chọn đang có)
+      // Cập nhật bộ lọc đề thi
       const setFilter = document.getElementById('filterSet');
       const curVal    = setFilter.value;
-      const setNames  = [...new Set(allResults.map(r => r.setName || r.setCode).filter(Boolean))];
+      const setNames  = [...new Set(allResults.map(r=>r.setName||r.setCode).filter(Boolean))];
       setFilter.innerHTML = '<option value="">Tất cả đề thi</option>';
       setNames.forEach(n => {
         const opt = document.createElement('option');
         opt.value = n; opt.textContent = n;
-        if (n === curVal) opt.selected = true;
+        if(n === curVal) opt.selected = true;
         setFilter.appendChild(opt);
       });
 
-      // Thống kê tính từ kết quả thực tế của chính học viên này
-      const pass = allResults.filter(r => r.passed === true).length;
-      const best = allResults.reduce((m, r) => Math.max(m, Number(r.correctCount ?? r.score) || 0), 0);
+      // Thống kê
+      const pass = allResults.filter(r=>r.passed===true).length;
+      const best = allResults.reduce((m,r)=>Math.max(m,Number(r.correctCount??r.score)||0),0);
       document.getElementById('scTotal').textContent = allResults.length;
       document.getElementById('scPass').textContent  = pass;
       document.getElementById('scFail').textContent  = allResults.length - pass;
       document.getElementById('scBest').textContent  = allResults.length > 0 ? best : '—';
 
       applyFilter();
-    }, e => {
+    }, err => {
+      console.error('loadData lỗi:', err.code, err.message);
+      let msg = `Lỗi tải dữ liệu: ${err.message}`;
+      if(err.code === 'permission-denied') {
+        msg = '❌ Không có quyền đọc dữ liệu.\nKiểm tra Firestore Rules cho examResults.';
+      }
       document.getElementById('historyBody').innerHTML =
-        `<div class="empty"><div class="e-icon">⚠️</div><p>Lỗi tải dữ liệu: ${esc(e.message)}</p></div>`;
-      console.error('loadData error:', e);
+        `<div class="empty"><div class="e-icon">⚠️</div><p>${esc(msg)}</p></div>`;
     });
 }
 
-function applyFilter() {
+function applyFilter(){
   const rFilter = document.getElementById('filterResult').value;
   const sFilter = document.getElementById('filterSet').value;
-
   filteredResults = allResults.filter(r => {
-    if (rFilter === 'pass' && !r.passed) return false;
-    if (rFilter === 'fail' && r.passed) return false;
-    if (sFilter && (r.setName || r.setCode) !== sFilter) return false;
+    if(rFilter==='pass' && !r.passed) return false;
+    if(rFilter==='fail' && r.passed)  return false;
+    if(sFilter && (r.setName||r.setCode)!==sFilter) return false;
     return true;
   });
-
-  document.getElementById('filterCount').textContent = `${filteredResults.length} / ${allResults.length} bài thi`;
-  document.getElementById('historyCount').textContent = filteredResults.length;
+  document.getElementById('filterCount').textContent   = `${filteredResults.length} / ${allResults.length} bài thi`;
+  document.getElementById('historyCount').textContent  = filteredResults.length;
   renderHistory();
 }
 
 // ================================================================
 // RENDER HISTORY TABLE
 // ================================================================
-function renderHistory() {
+function renderHistory(){
   const container = document.getElementById('historyBody');
-  if (!filteredResults.length) {
-    container.innerHTML = `<div class="empty"><div class="e-icon">📭</div><p>Không có bài thi nào phù hợp</p></div>`;
+  if(!filteredResults.length){
+    container.innerHTML = `<div class="empty"><div class="e-icon">📋</div><p>Không có bài thi nào phù hợp</p></div>`;
     return;
   }
-
-  let html = `<table class="history-table">
-    <thead>
-      <tr>
-        <th style="width:40px">Lần</th>
-        <th style="width:140px">Thời gian thi</th>
-        <th style="text-align:left">Tên đề thi</th>
-        <th style="width:100px">Điểm số</th>
-        <th style="width:100px">Kết quả</th>
-        <th style="width:80px">Thời gian</th>
-        <th style="width:70px">Chi tiết</th>
-      </tr>
-    </thead>
+  container.innerHTML = `<table class="history-table">
+    <thead><tr>
+      <th style="width:40px">Lần</th>
+      <th style="width:140px">Thời gian thi</th>
+      <th style="text-align:left">Tên đề thi</th>
+      <th style="width:100px">Điểm số</th>
+      <th style="width:100px">Kết quả</th>
+      <th style="width:80px">Thời gian</th>
+      <th style="width:70px">Chi tiết</th>
+    </tr></thead>
     <tbody id="historyTbody"></tbody>
   </table>`;
 
-  container.innerHTML = html;
   const tbody = document.getElementById('historyTbody');
-  const labels = ['A','B','C','D','E'];
+  filteredResults.forEach((r,i) => {
+    const pass    = r.passed===true;
+    const correct = r.correctCount??r.score??0;
+    const total   = r.totalQuestions??0;
+    const pct     = total>0?Math.round(correct/total*100):0;
+    const barColor= pass?'#2a9d8f':'#e63946';
+    const isOpen  = openDetailId===r.id;
 
-  filteredResults.forEach((r, i) => {
-    const pass  = r.passed === true;
-    const correct = r.correctCount ?? r.score ?? 0;
-    const total   = r.totalQuestions ?? 0;
-    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
-    const barColor = pass ? '#2a9d8f' : '#e63946';
-    const isOpen = openDetailId === r.id;
-
-    // Main row
     const tr = document.createElement('tr');
     tr.id = `row-${r.id}`;
     tr.className = isOpen ? 'active-row' : '';
     tr.innerHTML = `
-      <td style="text-align:center;color:var(--muted);font-weight:600;">${i + 1}</td>
+      <td style="text-align:center;color:var(--muted);font-weight:600;">${i+1}</td>
       <td style="font-size:12px;">${fmtDT(r.timestamp)}</td>
-      <td style="text-align:left;font-weight:600;padding-left:14px;">${esc(r.setName || r.setCode || '—')}</td>
+      <td style="text-align:left;font-weight:600;padding-left:14px;">${esc(r.setName||r.setCode||'—')}</td>
       <td>
         <div class="score-bar-wrap">
           <b style="color:${barColor};font-size:13px;">${correct}/${total}</b>
           <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%;background:${barColor};"></div></div>
         </div>
       </td>
-      <td><span class="${pass ? 'verdict-pass' : 'verdict-fail'}">${pass ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</span></td>
+      <td><span class="${pass?'verdict-pass':'verdict-fail'}">${pass?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}</span></td>
       <td style="text-align:center;font-size:12px;color:var(--muted);">${fmtTime(r.timeTaken)}</td>
-      <td><button class="btn-detail ${isOpen ? 'active' : ''}" id="btn-${r.id}" onclick="toggleDetail('${r.id}')">🔍 Xem</button></td>
-    `;
+      <td><button class="btn-detail ${isOpen?'active':''}" id="btn-${r.id}" onclick="toggleDetail('${r.id}')">🔍 Xem</button></td>`;
     tbody.appendChild(tr);
 
-    // Detail panel row (hidden by default unless open)
-    if (isOpen) {
+    if(isOpen){
       const detailTr = document.createElement('tr');
       detailTr.id = `detail-${r.id}`;
       detailTr.innerHTML = `<td colspan="7" style="padding:0;"><div class="detail-panel" id="panel-${r.id}"></div></td>`;
@@ -523,140 +453,133 @@ function renderHistory() {
   });
 }
 
-function toggleDetail(id) {
-  if (openDetailId === id) {
-    // Close
-    openDetailId = null;
-  } else {
-    openDetailId = id;
-  }
+function toggleDetail(id){
+  openDetailId = (openDetailId===id) ? null : id;
   renderHistory();
-  // Scroll to opened detail
-  if (openDetailId) {
-    setTimeout(() => {
-      const el = document.getElementById(`detail-${openDetailId}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+  if(openDetailId){
+    setTimeout(()=>{
+      const el=document.getElementById(`detail-${openDetailId}`);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    },100);
   }
 }
 
-function renderDetailPanel(r, container) {
-  const questions = r.questions || [];
-  const answers   = r.answers   || [];
-  const pass      = r.passed === true;
-  const correct   = r.correctCount ?? r.score ?? 0;
-  const total     = r.totalQuestions ?? 0;
+function renderDetailPanel(r, container){
+  const questions = r.questions||[];
+  const answers   = r.answers||[];
+  const pass      = r.passed===true;
+  const correct   = r.correctCount??r.score??0;
+  const total     = r.totalQuestions??0;
   const labels    = ['A','B','C','D','E'];
 
-  let html = `
-    <div class="detail-header">
-      <div>
-        <h4>📝 Chi tiết bài làm – ${esc(r.setName || r.setCode || '')}</h4>
-        <div class="detail-summary">
-          <span>🕐 ${fmtDT(r.timestamp)}</span>
-          <span>⏱ Thời gian làm bài: ${fmtTime(r.timeTaken)}</span>
-          ${r.lietFailed ? '<span style="color:#fca5a5;">⚡ Sai câu liệt</span>' : ''}
-          <span>📋 Lần thứ ${r.attemptNumber || '?'}</span>
-        </div>
+  let html = `<div class="detail-header">
+    <div>
+      <h4>📝 Chi tiết bài làm – ${esc(r.setName||r.setCode||'')}</h4>
+      <div class="detail-summary">
+        <span>⏰ ${fmtDT(r.timestamp)}</span>
+        <span>⏱ Thời gian: ${fmtTime(r.timeTaken)}</span>
+        ${r.lietFailed?'<span style="color:#fca5a5;">⚡ Sai câu liệt</span>':''}
+        <span>📋 Lần thứ ${r.attemptNumber||'?'}</span>
       </div>
-      <div style="text-align:right;">
-        <div class="detail-score">${correct}/${total}</div>
-        <div style="font-size:13px;opacity:0.9;margin-top:4px;">${pass ? '✅ ĐẠT' : '❌ KHÔNG ĐẠT'}</div>
-      </div>
-    </div>`;
+    </div>
+    <div style="text-align:right;">
+      <div class="detail-score">${correct}/${total}</div>
+      <div style="font-size:13px;opacity:.9;margin-top:4px;">${pass?'✅ ĐẠT':'❌ KHÔNG ĐẠT'}</div>
+    </div>
+  </div>`;
 
-  if (!questions.length) {
-    html += `<div style="text-align:center;padding:30px;color:var(--muted);">Không có dữ liệu chi tiết bài làm cho lần thi này</div>`;
-    container.innerHTML = html;
-    return;
+  if(!questions.length){
+    html += `<div style="text-align:center;padding:30px;color:var(--muted);">Không có dữ liệu chi tiết</div>`;
+    container.innerHTML = html; return;
   }
 
   html += `<div class="detail-questions">`;
-
-  questions.forEach((q, i) => {
-    const ua = (answers[i] !== undefined && answers[i] !== null) ? answers[i] : (q.userAnswer ?? null);
-    const isCorrect = ua === q.correctAnswer;
-    const isSkipped = ua === null || ua === undefined;
-    const isLiet    = q.isLiet === true;
-    const cardClass = `q-card ${isSkipped ? 'q-skip' : (isCorrect ? 'q-correct' : 'q-wrong')} ${isLiet ? 'q-liet' : ''}`;
-    const statusColor = isSkipped ? 'var(--muted)' : (isCorrect ? 'var(--green)' : 'var(--red)');
-    const statusText  = isSkipped ? '⬜ Chưa trả lời' : (isCorrect ? '✅ Đúng' : '❌ Sai');
-
-    const answersHtml = (q.answers || []).map((a, j) => {
-      const num = j + 1;
-      const isRight  = num === q.correctAnswer;
-      const isChosen = num === ua;
-      let cls = 'qa-item';
-      if (isRight) cls += ' qa-right';
-      if (isChosen && !isRight) cls += ' qa-chosen-wrong';
-      const marker = isRight ? `<span class="qa-marker">✓ Đúng</span>` :
-                    (isChosen && !isRight ? `<span class="qa-marker" style="color:var(--red);">← Bạn chọn</span>` : '');
+  questions.forEach((q,i)=>{
+    const ua = (answers[i]!==undefined&&answers[i]!==null)?answers[i]:(q.userAnswer??null);
+    const isCorrect = ua===q.correctAnswer;
+    const isSkipped = ua===null||ua===undefined;
+    const isLiet    = q.isLiet===true;
+    const cardClass = `q-card ${isSkipped?'q-skip':(isCorrect?'q-correct':'q-wrong')} ${isLiet?'q-liet':''}`;
+    const statusColor = isSkipped?'var(--muted)':(isCorrect?'var(--green)':'var(--red)');
+    const statusText  = isSkipped?'⬜ Chưa trả lời':(isCorrect?'✅ Đúng':'❌ Sai');
+    const answersHtml = (q.answers||[]).map((a,j)=>{
+      const num=j+1, isRight=num===q.correctAnswer, isChosen=num===ua;
+      let cls='qa-item';
+      if(isRight) cls+=' qa-right';
+      if(isChosen&&!isRight) cls+=' qa-chosen-wrong';
+      const marker = isRight?`<span class="qa-marker">✓ Đúng</span>`:(isChosen&&!isRight?`<span class="qa-marker" style="color:var(--red);">← Bạn chọn</span>`:'');
       return `<div class="${cls}"><span class="qa-label">${labels[j]}.</span><span>${esc(a)}</span>${marker}</div>`;
     }).join('');
-
     html += `<div class="${cardClass}">
       <div class="q-top">
-        <div class="q-num">Câu ${i + 1}${isLiet ? `<span class="q-liet-tag">⚡ Liệt</span>` : ''}</div>
+        <div class="q-num">Câu ${i+1}${isLiet?`<span class="q-liet-tag">⚡ Liệt</span>`:''}</div>
         <div class="q-status" style="color:${statusColor};">${statusText}</div>
       </div>
-      <div class="q-text">${esc(q.content || '')}</div>
-      ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" class="q-img" onerror="this.style.display='none'">` : ''}
+      <div class="q-text">${esc(q.content||'')}</div>
+      ${q.imageUrl?`<img src="${esc(q.imageUrl)}" class="q-img" onerror="this.style.display='none'">`:''}
       <div class="q-answers">${answersHtml}</div>
     </div>`;
   });
-
   html += `</div>`;
   container.innerHTML = html;
 }
 
 // ================================================================
-// SECURITY
+// SECURITY — Giám sát khóa TK & bảo trì
 // ================================================================
 let isKicked = false;
-function kickOut(title, message, icon) {
-  if (isKicked) return; isKicked = true;
-  db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true }).catch(()=>{});
+function kickOut(title, message, icon){
+  if(isKicked) return; isKicked = true;
+  try{ db.collection('presence').doc(studentCode).set({isOnline:false},{merge:true}); }catch(_){}
   document.getElementById('kickoutIcon').textContent    = icon;
   document.getElementById('kickoutTitle').textContent   = title;
   document.getElementById('kickoutMessage').textContent = message;
   document.getElementById('kickoutModal').classList.add('show');
-  let s = 5;
-  const cd = document.getElementById('kickoutCountdown');
-  setInterval(() => { s--; if(cd) cd.textContent = s; if(s<=0) { localStorage.clear(); location.href='index.html'; } }, 1000);
+  let s=5;
+  const cd=document.getElementById('kickoutCountdown');
+  setInterval(()=>{ s--; if(cd)cd.textContent=s; if(s<=0){localStorage.clear();location.href='index.html';} },1000);
 }
 
-db.collection('students').doc(studentCode).onSnapshot(doc => {
-  if (doc.exists && doc.data().status === 'locked')
-    kickOut('Tài khoản bị khóa', 'Tài khoản bị Quản trị viên vô hiệu hóa.', '🔒');
-});
-db.collection('systemConfig').doc('maintenance').onSnapshot(doc => {
-  if (doc.exists && doc.data().enabled === true)
-    kickOut('Hệ thống bảo trì', 'Hệ thống đang được nâng cấp.', '🔧');
-});
+// Lắng nghe sau khi auth sẵn sàng
+async function startRealtimeListeners(){
+  try{
+    await ensureAuth();
+    db.collection('students').doc(studentCode).onSnapshot(doc=>{
+      if(doc.exists&&doc.data().status==='locked')
+        kickOut('🔒 Tài khoản bị khóa','Tài khoản bị Quản trị viên vô hiệu hóa.','🔒');
+    },e=>console.warn('Student watch:',e.code));
 
-// Heartbeat – cập nhật presence để Admin thấy online real-time
-const pRef = db.collection('presence').doc(studentCode);
-let _hbInited2 = false;
-const hb = () => {
-  if (isKicked) return;
-  const payload = {
-    isOnline: true,
-    studentCode: studentCode,
-    currentSection: 'Xem lịch sử thi',
-    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if (!_hbInited2) { payload.startAt = firebase.firestore.FieldValue.serverTimestamp(); _hbInited2 = true; }
-  pRef.set(payload, { merge: true }).catch(()=>{});
-};
-hb(); setInterval(hb, 20000);
-window.addEventListener('beforeunload', () => {
-  if (!isKicked) pRef.set({ isOnline: false, currentSection: 'Đã thoát' }, { merge: true });
-});
+    db.collection('systemConfig').doc('maintenance').onSnapshot(doc=>{
+      if(doc.exists&&doc.data().enabled===true)
+        kickOut('🔧 Hệ thống bảo trì','Hệ thống đang được nâng cấp.','🔧');
+    },e=>console.warn('Maint watch:',e.code));
+
+    // Heartbeat presence
+    const pRef = db.collection('presence').doc(studentCode);
+    let _hbInited = false;
+    const hb = ()=>{
+      if(isKicked) return;
+      const payload={
+        isOnline:true, studentCode, currentSection:'Xem lịch sử thi',
+        lastActive:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if(!_hbInited){ payload.startAt=firebase.firestore.FieldValue.serverTimestamp(); _hbInited=true; }
+      pRef.set(payload,{merge:true}).catch(()=>{});
+    };
+    hb(); setInterval(hb,20000);
+    window.addEventListener('beforeunload',()=>{
+      if(!isKicked) pRef.set({isOnline:false,currentSection:'Đã thoát'},{merge:true});
+    });
+  }catch(e){ console.warn('Listeners lỗi:',e.code); }
+}
 
 // ================================================================
 // INIT
 // ================================================================
-loadData();
+(async function init(){
+  await loadData();
+  await startRealtimeListeners();
+})();
 </script>
 </body>
 </html>
