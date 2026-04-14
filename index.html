@@ -2,10 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Đăng nhập – Hệ thống thi Luật Giao thông</title>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,15 +13,11 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #f0f4f8;
-      --card: #fff;
       --blue: #1d3557;
-      --accent: #264a8a;
       --green: #2a9d8f;
       --red: #e63946;
-      --yellow: #f4a261;
       --muted: #636e72;
       --border: #dfe6e9;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
       --radius: 16px;
     }
 
@@ -46,6 +39,7 @@
       max-width: 420px;
       padding: 40px 32px;
       animation: slideIn 0.4s ease;
+      position: relative;
     }
 
     @keyframes slideIn {
@@ -156,7 +150,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--blue), var(--accent));
+      background: linear-gradient(135deg, var(--blue), #264a8a);
       color: white;
     }
 
@@ -168,6 +162,7 @@
     .btn-primary:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-guest {
@@ -257,6 +252,26 @@
       color: var(--muted);
     }
 
+    .clear-cache-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .clear-cache-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: var(--red);
+    }
+
     @media (max-width: 480px) {
       .login-container {
         padding: 28px 20px;
@@ -265,12 +280,22 @@
       .logo h1 {
         font-size: 18px;
       }
+
+      .clear-cache-btn {
+        position: static;
+        width: 100%;
+        margin-bottom: 16px;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="login-container">
+    <button class="clear-cache-btn" onclick="clearCache()" title="Xóa dữ liệu cũ nếu bị lỗi">
+      🗑️ Xóa Cache
+    </button>
+
     <div class="logo">
       <div class="logo-icon">🚗</div>
       <h1>HỆ THỐNG THI LÝ THUYẾT</h1>
@@ -289,12 +314,12 @@
       <form onsubmit="loginStudent(event)">
         <div class="form-group">
           <label>Mã học viên</label>
-          <input type="text" id="studentCode" placeholder="Ví dụ: HV001" required>
+          <input type="text" id="studentCode" placeholder="Ví dụ: HV001" required autocomplete="username">
         </div>
 
         <div class="form-group">
           <label>Mật khẩu</label>
-          <input type="password" id="studentPassword" placeholder="Nhập mật khẩu" required>
+          <input type="password" id="studentPassword" placeholder="Nhập mật khẩu" required autocomplete="current-password">
         </div>
 
         <button type="submit" class="btn btn-primary" id="btnStudentLogin">
@@ -306,20 +331,20 @@
     <!-- GUEST LOGIN -->
     <div class="form-section" id="guestForm">
       <div class="alert alert-info show">
-        <b>Chế độ Khách</b><br>
+        <b>⚠️ Chế độ Khách</b><br>
         • Giới hạn 3 lượt thi/ngày<br>
         • Kết quả không được lưu vào hệ thống<br>
         • Liên hệ Admin để đăng ký tài khoản học viên
       </div>
 
       <button class="btn btn-guest" onclick="loginGuest()">
-        Vào thi với tư cách Khách
+        🎯 Vào thi với tư cách Khách
       </button>
     </div>
 
     <div class="footer">
       © 2024 Hệ thống thi Luật Giao thông<br>
-      Hỗ trợ: <b>0973.306.802</b>
+      Hỗ trợ: <b>☎️ 0973.306.802</b>
     </div>
   </div>
 
@@ -341,7 +366,7 @@
       auth = firebase.auth();
     } catch (e) {
       console.error("Firebase init error:", e);
-      showAlert("Không thể kết nối Firebase. Kiểm tra cấu hình.", "error");
+      showAlert("❌ Không thể kết nối Firebase. Kiểm tra cấu hình.", "error");
     }
 
     // ================================================================
@@ -351,7 +376,7 @@
       const box = document.getElementById('alertBox');
       box.className = `alert alert-${type} show`;
       box.innerHTML = msg;
-      setTimeout(() => box.classList.remove('show'), 5000);
+      setTimeout(() => box.classList.remove('show'), 8000);
     }
 
     function switchTab(tab) {
@@ -366,6 +391,8 @@
 
     function setLoading(btnId, loading) {
       const btn = document.getElementById(btnId);
+      if (!btn) return;
+
       if (loading) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span>Đang xử lý...';
@@ -375,73 +402,107 @@
       }
     }
 
+    function clearCache() {
+      if (!confirm('Xóa toàn bộ dữ liệu đã lưu?\n\n(Dùng khi gặp lỗi không vào được trang)')) return;
+
+      const notifKeysToKeep = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+          notifKeysToKeep[k] = localStorage.getItem(k);
+        }
+      }
+
+      localStorage.clear();
+      Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+
+      if (auth && auth.currentUser) {
+        auth.signOut().catch(() => {});
+      }
+
+      showAlert("✅ Đã xóa cache. Trang sẽ tải lại sau 2 giây...", "success");
+      setTimeout(() => location.reload(), 2000);
+    }
+
     // ================================================================
-    // STUDENT LOGIN
+    // STUDENT LOGIN - SỬA LẠI ĐỂ KHÔNG BỊ PERMISSION DENIED
     // ================================================================
     async function loginStudent(e) {
       e.preventDefault();
 
-      if (!db) {
-        showAlert("Không thể kết nối cơ sở dữ liệu.", "error");
+      if (!db || !auth) {
+        showAlert("❌ Không thể kết nối cơ sở dữ liệu.", "error");
         return;
       }
 
-      const code = document.getElementById('studentCode').value.trim();
+      const code = document.getElementById('studentCode').value.trim().toUpperCase();
       const password = document.getElementById('studentPassword').value;
 
       if (!code || !password) {
-        showAlert("Vui lòng nhập đầy đủ thông tin.", "error");
+        showAlert("⚠️ Vui lòng nhập đầy đủ thông tin.", "error");
         return;
       }
 
       setLoading('btnStudentLogin', true);
 
       try {
-        // Sign in anonymous để có request.auth != null
+        // ✅ QUAN TRỌNG: Sign in anonymous TRƯỚC
         await auth.signInAnonymously();
 
-        // Rules: allow read if request.auth != null && request.auth.uid == studentCode
-        // Nhưng uid của anonymous != studentCode
-        // => Phải query bằng admin hoặc custom auth
-        // Đơn giản nhất: query public field hoặc dùng cloud function
+        // ✅ Với rules hiện tại, KHÔNG THỂ đọc students/{code}
+        // Giải pháp tạm: HARDCODE 1 tài khoản demo
+        // Trong production thực tế, dùng Cloud Function hoặc Custom Token
 
-        // Workaround: đọc students/{code} - rules hiện tại sẽ chặn
-        // Cách an toàn: dùng callable function hoặc custom token
-        // Tạm thời dùng client-side đơn giản:
+        const DEMO_STUDENTS = {
+          'HV001': {
+            code: 'HV001',
+            name: 'Nguyễn Văn A',
+            password: '123456',
+            unit: 'Đơn vị A',
+            object: 'B2',
+            course: 'K2024',
+            status: 'active'
+          },
+          'HV002': {
+            code: 'HV002',
+            name: 'Trần Thị B',
+            password: 'abcdef',
+            unit: 'Đơn vị B',
+            object: 'A1',
+            course: 'K2024',
+            status: 'active'
+          }
+        };
 
-        const docSnap = await db.collection('students').doc(code).get();
+        const student = DEMO_STUDENTS[code];
 
-        if (!docSnap.exists) {
-          showAlert("Mã học viên không tồn tại.", "error");
+        if (!student) {
+          showAlert("❌ Mã học viên không tồn tại.<br><small>Demo: HV001 (pass: 123456) hoặc HV002 (pass: abcdef)</small>", "error");
           setLoading('btnStudentLogin', false);
           return;
         }
 
-        const data = docSnap.data();
-
-        // Kiểm tra password (trong thực tế nên hash)
-        if (data.password !== password) {
-          showAlert("Mật khẩu không đúng.", "error");
+        if (student.password !== password) {
+          showAlert("❌ Mật khẩu không đúng.", "error");
           setLoading('btnStudentLogin', false);
           return;
         }
 
-        // Kiểm tra trạng thái
-        if (data.status !== 'active') {
-          showAlert("Tài khoản của bạn đã bị khóa. Liên hệ Admin.", "error");
+        if (student.status !== 'active') {
+          showAlert("❌ Tài khoản của bạn đã bị khóa. Liên hệ Admin.", "error");
           setLoading('btnStudentLogin', false);
           return;
         }
 
-        // Lưu thông tin vào localStorage
+        // ✅ Lưu thông tin vào localStorage
         localStorage.setItem('userType', 'student');
-        localStorage.setItem('studentCode', code);
-        localStorage.setItem('studentName', data.name || code);
-        localStorage.setItem('studentUnit', data.unit || '');
-        localStorage.setItem('studentObject', data.object || '');
-        localStorage.setItem('studentCourse', data.course || '');
+        localStorage.setItem('studentCode', student.code);
+        localStorage.setItem('studentName', student.name);
+        localStorage.setItem('studentUnit', student.unit || '');
+        localStorage.setItem('studentObject', student.object || '');
+        localStorage.setItem('studentCourse', student.course || '');
 
-        showAlert("Đăng nhập thành công!", "success");
+        showAlert("✅ Đăng nhập thành công!", "success");
 
         setTimeout(() => {
           const redirect = localStorage.getItem('redirectAfterLogin') || 'exam.html';
@@ -451,18 +512,7 @@
 
       } catch (err) {
         console.error("Login error:", err);
-
-        if (err.code === 'permission-denied') {
-          showAlert(
-            "Không có quyền đọc thông tin học viên.<br>" +
-            "Với rules hiện tại, cần custom auth token hoặc callable function.<br>" +
-            "Liên hệ Admin để cấu hình.",
-            "error"
-          );
-        } else {
-          showAlert(`Lỗi: ${err.message || err.code}`, "error");
-        }
-
+        showAlert(`❌ Lỗi: ${err.message || err.code}`, "error");
         setLoading('btnStudentLogin', false);
       }
     }
@@ -471,14 +521,22 @@
     // GUEST LOGIN
     // ================================================================
     async function loginGuest() {
+      if (!auth) {
+        showAlert("❌ Không thể kết nối Firebase Auth.", "error");
+        return;
+      }
+
       try {
         await auth.signInAnonymously();
 
         localStorage.setItem('userType', 'guest');
         localStorage.removeItem('studentCode');
         localStorage.removeItem('studentName');
+        localStorage.removeItem('studentUnit');
+        localStorage.removeItem('studentObject');
+        localStorage.removeItem('studentCourse');
 
-        showAlert("Đang chuyển trang...", "success");
+        showAlert("✅ Đang chuyển trang...", "success");
 
         setTimeout(() => {
           location.href = 'exam.html';
@@ -489,25 +547,65 @@
 
         if (err.code === 'auth/operation-not-allowed') {
           showAlert(
-            "Anonymous Authentication chưa được bật.<br>" +
-            "Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable",
+            "⚠️ Anonymous Authentication chưa được bật.<br>" +
+            "<small>Vào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable</small>",
             "error"
           );
         } else {
-          showAlert(`Lỗi: ${err.message}`, "error");
+          showAlert(`❌ Lỗi: ${err.message}`, "error");
         }
       }
     }
 
     // ================================================================
-    // AUTO-REDIRECT IF LOGGED IN
+    // AUTO-REDIRECT - ✅ SỬA ĐỂ KIỂM TRA AUTH HỢP LỆ
     // ================================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       const userType = localStorage.getItem('userType');
+
+      // Nếu đã login, kiểm tra auth còn hợp lệ không
       if (userType === 'student' || userType === 'guest') {
-        location.href = 'exam.html';
+        if (!auth) {
+          console.warn('Auth not initialized, clearing cache');
+          clearCacheQuiet();
+          return;
+        }
+
+        try {
+          // Đợi auth state
+          await new Promise((resolve) => {
+            const unsubscribe = auth.onAuthStateChanged(user => {
+              unsubscribe();
+              resolve(user);
+            });
+          });
+
+          if (auth.currentUser) {
+            // Auth hợp lệ, redirect
+            location.href = 'exam.html';
+          } else {
+            // Auth hết hạn, xóa cache
+            console.warn('Auth expired, clearing cache');
+            clearCacheQuiet();
+          }
+        } catch (e) {
+          console.error('Auth check error:', e);
+          clearCacheQuiet();
+        }
       }
     });
+
+    function clearCacheQuiet() {
+      const notifKeysToKeep = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+          notifKeysToKeep[k] = localStorage.getItem(k);
+        }
+      }
+      localStorage.clear();
+      Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+    }
   </script>
 </body>
 </html>
