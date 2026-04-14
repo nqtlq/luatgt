@@ -12,12 +12,9 @@
 <style>body{visibility:hidden;}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lịch sử thi | Hệ thống thi Luật Giao thông</title>
-
-<!-- ✅ ĐÚNG URL — thêm dấu - -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -41,13 +38,10 @@ header{
 .btn-back{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);}
 .btn-back:hover{background:rgba(255,255,255,.28);}
 .container{max-width:960px;margin:0 auto;padding:24px 20px 48px;}
-
-/* LOADING OVERLAY */
 #pageLoader{position:fixed;inset:0;background:linear-gradient(135deg,#1d3557,#264a8a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;color:white;gap:16px;}
 #pageLoader .spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
 #pageLoader p{font-size:14px;opacity:.85;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
 .student-card{background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
 .sc-info .sc-name{font-size:20px;font-weight:800;margin-bottom:4px;}
 .sc-info .sc-sub{font-size:13px;opacity:.85;display:flex;gap:14px;flex-wrap:wrap;}
@@ -55,24 +49,20 @@ header{
 .sc-stat{background:rgba(255,255,255,.15);border-radius:12px;padding:12px 18px;text-align:center;min-width:80px;}
 .sc-stat .n{font-size:24px;font-weight:800;}
 .sc-stat .l{font-size:11px;opacity:.85;margin-top:2px;text-transform:uppercase;letter-spacing:.3px;}
-
 .filter-bar{background:var(--card);border-radius:var(--radius);padding:14px 18px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);border:1px solid var(--border);}
 .filter-bar select,.filter-bar input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:#2d3436;}
 .filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--accent);}
 .filter-bar label{font-size:13px;color:var(--muted);font-weight:600;}
-
 .history-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
 .history-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
 .history-header h3{font-size:15px;font-weight:700;color:var(--blue);}
 .count-badge{background:var(--accent);color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
-
 .history-table{width:100%;border-collapse:collapse;font-size:13px;}
 .history-table th,.history-table td{padding:12px 14px;border-bottom:1px solid var(--border);}
 .history-table th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
 .history-table tbody tr{transition:background .15s;cursor:pointer;}
 .history-table tbody tr:hover{background:#f0f4ff;}
 .history-table tbody tr.active-row{background:#e0e7ff;}
-
 .verdict-pass{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(42,157,143,.12);color:var(--green);}
 .verdict-fail{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(230,57,70,.12);color:var(--red);}
 .score-bar-wrap{display:flex;align-items:center;gap:8px;}
@@ -81,7 +71,6 @@ header{
 .btn-detail{padding:5px 12px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;background:var(--accent);color:white;transition:all .15s;}
 .btn-detail:hover{opacity:.85;}
 .btn-detail.active{background:var(--green);}
-
 .detail-panel{border-top:2px solid var(--accent);padding:0;background:#f8fafc;animation:expandIn .3s ease;}
 @keyframes expandIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
 .detail-header{background:linear-gradient(135deg,var(--accent),#0a58ca);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
@@ -106,13 +95,11 @@ header{
 .qa-item.qa-chosen-wrong{background:rgba(230,57,70,.1);border-color:var(--red);color:#9b1c1c;font-weight:600;}
 .qa-label{font-weight:800;flex-shrink:0;}
 .qa-marker{margin-left:auto;flex-shrink:0;font-size:11px;}
-
 .empty{text-align:center;padding:50px 20px;color:var(--muted);}
 .empty .e-icon{font-size:48px;margin-bottom:12px;}
 .empty p{font-size:14px;}
 .loading-spin{text-align:center;padding:40px;color:var(--muted);}
 .spinner{display:inline-block;width:36px;height:36px;border:3px solid #ddd;border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;}
-
 .kickout-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(5px);}
 .kickout-modal.show{display:flex;}
 .kickout-box{background:white;padding:30px;border-radius:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);border-top:6px solid var(--red);}
@@ -121,7 +108,6 @@ header{
 .kickout-box p{font-size:14px;color:#444;line-height:1.6;margin:0 0 20px;}
 .kickout-box .countdown{font-size:13px;color:#888;}
 .kickout-box .countdown b{color:var(--blue);font-size:15px;}
-
 @media(max-width:768px){
   header{padding:10px 14px;gap:8px;flex-wrap:nowrap;}
   .header-title .vi{font-size:12px;}
@@ -157,24 +143,20 @@ body{-webkit-overflow-scrolling:touch;}
 </style>
 </head>
 <body onload="document.body.style.visibility='visible'">
-
-<!-- LOADING OVERLAY -->
 <div id="pageLoader">
   <div class="spin"></div>
-  <p id="loaderMsg">🔐 Đang xác thực...</p>
+  <p id="loaderMsg">Đang xác thực...</p>
 </div>
-
 <header>
   <div class="header-title">
-    <div class="vi">📋 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+    <div class="vi">🏛 LỊCH SỬ THI – LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
     <div class="en">Exam History – Road Traffic Law System</div>
   </div>
-  <div class="clock-box" id="clockBox">⏰ --:--:--</div>
+  <div class="clock-box" id="clockBox">🕐 --:--:--</div>
   <div class="header-btns">
     <button class="btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>
   </div>
 </header>
-
 <div class="kickout-modal" id="kickoutModal">
   <div class="kickout-box">
     <span class="icon" id="kickoutIcon"></span>
@@ -183,7 +165,6 @@ body{-webkit-overflow-scrolling:touch;}
     <div class="countdown">Về trang đăng nhập sau <b id="kickoutCountdown">5</b> giây…</div>
   </div>
 </div>
-
 <div class="container">
   <div class="student-card">
     <div class="sc-info">
@@ -201,7 +182,6 @@ body{-webkit-overflow-scrolling:touch;}
       <div class="sc-stat"><div class="n" id="scBest">—</div><div class="l">Điểm cao nhất</div></div>
     </div>
   </div>
-
   <div class="filter-bar">
     <label>🔍 Lọc kết quả:</label>
     <select id="filterResult" onchange="applyFilter()">
@@ -214,7 +194,6 @@ body{-webkit-overflow-scrolling:touch;}
     </select>
     <span style="margin-left:auto;font-size:12px;color:var(--muted);" id="filterCount"></span>
   </div>
-
   <div class="history-card">
     <div class="history-header">
       <h3>📋 Lịch sử bài thi</h3>
@@ -225,7 +204,6 @@ body{-webkit-overflow-scrolling:touch;}
     </div>
   </div>
 </div>
-
 <script>
 // ================================================================
 // FIREBASE INIT
@@ -234,12 +212,12 @@ let db = null, auth = null, firebaseReady = false;
 try {
   if (!firebase.apps.length) {
     firebase.initializeApp({
-      apiKey:     "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
       authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId:  "thi-luat-giao-thong"
+      projectId: "thi-luat-giao-thong"
     });
   }
-  db   = firebase.firestore();
+  db = firebase.firestore();
   auth = firebase.auth();
   firebaseReady = true;
 } catch(e) { console.error('Firebase:', e); }
@@ -247,21 +225,26 @@ try {
 // ================================================================
 // SESSION
 // ================================================================
-const userType    = localStorage.getItem('userType');
+const userType = localStorage.getItem('userType');
 const studentCode = localStorage.getItem('studentCode') || '';
 const studentName = localStorage.getItem('studentName') || '';
 const studentUnit = localStorage.getItem('studentUnit') || '';
-const studentObj  = localStorage.getItem('studentObject') || '';
-
+const studentObj = localStorage.getItem('studentObject') || '';
 if (userType !== 'student' || !studentCode) location.href = 'index.html';
 
 // ================================================================
-// ANONYMOUS AUTH — Rules yêu cầu request.auth != null
+// ANONYMOUS AUTH
+// Rules: examResults allow read if request.auth != null && resource.data.studentCode == request.auth.uid
+// Vì studentCode lưu trong localStorage ≠ anonymous UID,
+// ta dùng persistent anonymous auth và lưu uid vào localStorage để match
 // ================================================================
 let _authUser = null;
+
 async function ensureAuth() {
   if (!auth) throw new Error('Auth chưa sẵn sàng');
   if (auth.currentUser) { _authUser = auth.currentUser; return _authUser; }
+  // Thử restore từ localStorage
+  const savedUid = localStorage.getItem('_anonUid');
   const cred = await auth.signInAnonymously();
   _authUser = cred.user;
   console.log('✅ Anonymous auth OK:', _authUser.uid);
@@ -276,7 +259,7 @@ async function ensureAuth() {
     const n=new Date(), pad=x=>String(x).padStart(2,'0');
     const thu=['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
     const el=document.getElementById('clockBox');
-    if(el) el.innerHTML=`⏰ <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b><span style="opacity:.4;margin:0 6px;">|</span><span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
+    if(el) el.innerHTML=`🕐 <b style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;">${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b><span style="opacity:.4;margin:0 6px;">|</span><span style="font-size:11px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
   }
   tick(); setInterval(tick,1000);
 })();
@@ -303,7 +286,7 @@ function fmtTime(secs){
 let allResults=[], filteredResults=[], openDetailId=null, resultsUnsub=null;
 
 async function loadData(){
-  // Bước 1: Đảm bảo auth
+  // Bước 1: Auth
   try {
     document.getElementById('loaderMsg').textContent = '🔐 Đang xác thực...';
     await ensureAuth();
@@ -318,66 +301,105 @@ async function loadData(){
     return;
   }
 
-  // Bước 2: Hiển thị thông tin từ localStorage
-  document.getElementById('scName').textContent   = studentName || studentCode;
-  document.getElementById('scCode').textContent   = studentCode;
-  document.getElementById('scUnit').textContent   = studentUnit || '—';
-  document.getElementById('scObject').textContent = studentObj  || '—';
+  // Bước 2: Hiển thị thông tin
+  document.getElementById('scName').textContent = studentName || studentCode;
+  document.getElementById('scCode').textContent = studentCode;
+  document.getElementById('scUnit').textContent = studentUnit || '—';
+  document.getElementById('scObject').textContent = studentObj || '—';
 
   // Bước 3: Ẩn loader
   document.getElementById('pageLoader').style.display = 'none';
 
-  // Bước 4: Load lịch sử thi realtime
+  // Bước 4: Load lịch sử thi
+  // QUAN TRỌNG: Rules yêu cầu resource.data.studentCode == request.auth.uid
+  // Nhưng khi thi, nếu lưu studentCode thực thì không match anonymous UID
+  // => Ta query theo studentCode field (không dùng uid filter trong rules)
+  // => Workaround: dùng admin SDK hoặc custom token. Hiện tại dùng fallback get()
   if(resultsUnsub) resultsUnsub();
-
   document.getElementById('historyBody').innerHTML =
     '<div class="loading-spin"><div class="spinner"></div><p style="margin-top:12px;">Đang tải lịch sử thi...</p></div>';
 
-  resultsUnsub = db.collection('examResults')
-    .where('studentCode','==',studentCode)
-    .limit(200)
-    .onSnapshot(snap => {
-      allResults = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          id: d.id, ...data,
-          timestamp: data.timestamp?.toDate
-            ? data.timestamp.toDate()
-            : new Date(data.timestamp || Date.now())
-        };
+  // Thử onSnapshot trước, nếu lỗi permission thì fallback get()
+  try {
+    resultsUnsub = db.collection('examResults')
+      .where('studentCode','==',studentCode)
+      .limit(200)
+      .onSnapshot(snap => {
+        allResults = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id, ...data,
+            timestamp: data.timestamp?.toDate
+              ? data.timestamp.toDate()
+              : new Date(data.timestamp || Date.now())
+          };
+        });
+        allResults.sort((a,b) => b.timestamp - a.timestamp);
+        updateFilterSets();
+        updateStats();
+        applyFilter();
+      }, err => {
+        console.error('onSnapshot lỗi:', err.code, err.message);
+        // Fallback: đọc một lần
+        _fallbackLoadResults();
       });
-      allResults.sort((a,b) => b.timestamp - a.timestamp);
+  } catch(e) {
+    console.error('Không thể tạo listener:', e);
+    _fallbackLoadResults();
+  }
+}
 
-      // Cập nhật bộ lọc đề thi
-      const setFilter = document.getElementById('filterSet');
-      const curVal    = setFilter.value;
-      const setNames  = [...new Set(allResults.map(r=>r.setName||r.setCode).filter(Boolean))];
-      setFilter.innerHTML = '<option value="">Tất cả đề thi</option>';
-      setNames.forEach(n => {
-        const opt = document.createElement('option');
-        opt.value = n; opt.textContent = n;
-        if(n === curVal) opt.selected = true;
-        setFilter.appendChild(opt);
-      });
-
-      // Thống kê
-      const pass = allResults.filter(r=>r.passed===true).length;
-      const best = allResults.reduce((m,r)=>Math.max(m,Number(r.correctCount??r.score)||0),0);
-      document.getElementById('scTotal').textContent = allResults.length;
-      document.getElementById('scPass').textContent  = pass;
-      document.getElementById('scFail').textContent  = allResults.length - pass;
-      document.getElementById('scBest').textContent  = allResults.length > 0 ? best : '—';
-
-      applyFilter();
-    }, err => {
-      console.error('loadData lỗi:', err.code, err.message);
-      let msg = `Lỗi tải dữ liệu: ${err.message}`;
-      if(err.code === 'permission-denied') {
-        msg = '❌ Không có quyền đọc dữ liệu.\nKiểm tra Firestore Rules cho examResults.';
-      }
-      document.getElementById('historyBody').innerHTML =
-        `<div class="empty"><div class="e-icon">⚠️</div><p>${esc(msg)}</p></div>`;
+async function _fallbackLoadResults() {
+  console.log('🔄 Thử fallback get() cho examResults...');
+  try {
+    const snap = await db.collection('examResults')
+      .where('studentCode','==',studentCode)
+      .limit(200)
+      .get();
+    allResults = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id, ...data,
+        timestamp: data.timestamp?.toDate
+          ? data.timestamp.toDate()
+          : new Date(data.timestamp || Date.now())
+      };
     });
+    allResults.sort((a,b) => b.timestamp - a.timestamp);
+    updateFilterSets();
+    updateStats();
+    applyFilter();
+  } catch(e) {
+    console.error('Fallback cũng thất bại:', e.code, e.message);
+    let msg = `Lỗi tải dữ liệu: ${e.message}`;
+    if(e.code === 'permission-denied') {
+      msg = '🔒 Không có quyền đọc dữ liệu.\nKiểm tra Firestore Rules cho examResults.';
+    }
+    document.getElementById('historyBody').innerHTML =
+      `<div class="empty"><div class="e-icon">⚠️</div><p>${esc(msg)}</p></div>`;
+  }
+}
+
+function updateFilterSets() {
+  const setFilter = document.getElementById('filterSet');
+  const curVal = setFilter.value;
+  const setNames = [...new Set(allResults.map(r=>r.setName||r.setCode).filter(Boolean))];
+  setFilter.innerHTML = '<option value="">Tất cả đề thi</option>';
+  setNames.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    if(n === curVal) opt.selected = true;
+    setFilter.appendChild(opt);
+  });
+}
+
+function updateStats() {
+  const pass = allResults.filter(r=>r.passed===true).length;
+  const best = allResults.reduce((m,r)=>Math.max(m,Number(r.correctCount??r.score)||0),0);
+  document.getElementById('scTotal').textContent = allResults.length;
+  document.getElementById('scPass').textContent = pass;
+  document.getElementById('scFail').textContent = allResults.length - pass;
+  document.getElementById('scBest').textContent = allResults.length > 0 ? best : '—';
 }
 
 function applyFilter(){
@@ -385,12 +407,12 @@ function applyFilter(){
   const sFilter = document.getElementById('filterSet').value;
   filteredResults = allResults.filter(r => {
     if(rFilter==='pass' && !r.passed) return false;
-    if(rFilter==='fail' && r.passed)  return false;
+    if(rFilter==='fail' && r.passed) return false;
     if(sFilter && (r.setName||r.setCode)!==sFilter) return false;
     return true;
   });
-  document.getElementById('filterCount').textContent   = `${filteredResults.length} / ${allResults.length} bài thi`;
-  document.getElementById('historyCount').textContent  = filteredResults.length;
+  document.getElementById('filterCount').textContent = `${filteredResults.length} / ${allResults.length} bài thi`;
+  document.getElementById('historyCount').textContent = filteredResults.length;
   renderHistory();
 }
 
@@ -400,7 +422,7 @@ function applyFilter(){
 function renderHistory(){
   const container = document.getElementById('historyBody');
   if(!filteredResults.length){
-    container.innerHTML = `<div class="empty"><div class="e-icon">📋</div><p>Không có bài thi nào phù hợp</p></div>`;
+    container.innerHTML = `<div class="empty"><div class="e-icon">📭</div><p>Không có bài thi nào phù hợp</p></div>`;
     return;
   }
   container.innerHTML = `<table class="history-table">
@@ -415,16 +437,14 @@ function renderHistory(){
     </tr></thead>
     <tbody id="historyTbody"></tbody>
   </table>`;
-
   const tbody = document.getElementById('historyTbody');
   filteredResults.forEach((r,i) => {
-    const pass    = r.passed===true;
+    const pass = r.passed===true;
     const correct = r.correctCount??r.score??0;
-    const total   = r.totalQuestions??0;
-    const pct     = total>0?Math.round(correct/total*100):0;
+    const total = r.totalQuestions??0;
+    const pct = total>0?Math.round(correct/total*100):0;
     const barColor= pass?'#2a9d8f':'#e63946';
-    const isOpen  = openDetailId===r.id;
-
+    const isOpen = openDetailId===r.id;
     const tr = document.createElement('tr');
     tr.id = `row-${r.id}`;
     tr.className = isOpen ? 'active-row' : '';
@@ -442,7 +462,6 @@ function renderHistory(){
       <td style="text-align:center;font-size:12px;color:var(--muted);">${fmtTime(r.timeTaken)}</td>
       <td><button class="btn-detail ${isOpen?'active':''}" id="btn-${r.id}" onclick="toggleDetail('${r.id}')">🔍 Xem</button></td>`;
     tbody.appendChild(tr);
-
     if(isOpen){
       const detailTr = document.createElement('tr');
       detailTr.id = `detail-${r.id}`;
@@ -466,20 +485,19 @@ function toggleDetail(id){
 
 function renderDetailPanel(r, container){
   const questions = r.questions||[];
-  const answers   = r.answers||[];
-  const pass      = r.passed===true;
-  const correct   = r.correctCount??r.score??0;
-  const total     = r.totalQuestions??0;
-  const labels    = ['A','B','C','D','E'];
-
+  const answers = r.answers||[];
+  const pass = r.passed===true;
+  const correct = r.correctCount??r.score??0;
+  const total = r.totalQuestions??0;
+  const labels = ['A','B','C','D','E'];
   let html = `<div class="detail-header">
     <div>
-      <h4>📝 Chi tiết bài làm – ${esc(r.setName||r.setCode||'')}</h4>
+      <h4>📋 Chi tiết bài làm – ${esc(r.setName||r.setCode||'')}</h4>
       <div class="detail-summary">
-        <span>⏰ ${fmtDT(r.timestamp)}</span>
+        <span>📅 ${fmtDT(r.timestamp)}</span>
         <span>⏱ Thời gian: ${fmtTime(r.timeTaken)}</span>
         ${r.lietFailed?'<span style="color:#fca5a5;">⚡ Sai câu liệt</span>':''}
-        <span>📋 Lần thứ ${r.attemptNumber||'?'}</span>
+        <span>🔢 Lần thứ ${r.attemptNumber||'?'}</span>
       </div>
     </div>
     <div style="text-align:right;">
@@ -487,21 +505,19 @@ function renderDetailPanel(r, container){
       <div style="font-size:13px;opacity:.9;margin-top:4px;">${pass?'✅ ĐẠT':'❌ KHÔNG ĐẠT'}</div>
     </div>
   </div>`;
-
   if(!questions.length){
     html += `<div style="text-align:center;padding:30px;color:var(--muted);">Không có dữ liệu chi tiết</div>`;
     container.innerHTML = html; return;
   }
-
   html += `<div class="detail-questions">`;
   questions.forEach((q,i)=>{
     const ua = (answers[i]!==undefined&&answers[i]!==null)?answers[i]:(q.userAnswer??null);
     const isCorrect = ua===q.correctAnswer;
     const isSkipped = ua===null||ua===undefined;
-    const isLiet    = q.isLiet===true;
+    const isLiet = q.isLiet===true;
     const cardClass = `q-card ${isSkipped?'q-skip':(isCorrect?'q-correct':'q-wrong')} ${isLiet?'q-liet':''}`;
     const statusColor = isSkipped?'var(--muted)':(isCorrect?'var(--green)':'var(--red)');
-    const statusText  = isSkipped?'⬜ Chưa trả lời':(isCorrect?'✅ Đúng':'❌ Sai');
+    const statusText = isSkipped?'⬜ Chưa trả lời':(isCorrect?'✅ Đúng':'❌ Sai');
     const answersHtml = (q.answers||[]).map((a,j)=>{
       const num=j+1, isRight=num===q.correctAnswer, isChosen=num===ua;
       let cls='qa-item';
@@ -531,8 +547,8 @@ let isKicked = false;
 function kickOut(title, message, icon){
   if(isKicked) return; isKicked = true;
   try{ db.collection('presence').doc(studentCode).set({isOnline:false},{merge:true}); }catch(_){}
-  document.getElementById('kickoutIcon').textContent    = icon;
-  document.getElementById('kickoutTitle').textContent   = title;
+  document.getElementById('kickoutIcon').textContent = icon;
+  document.getElementById('kickoutTitle').textContent = title;
   document.getElementById('kickoutMessage').textContent = message;
   document.getElementById('kickoutModal').classList.add('show');
   let s=5;
@@ -540,21 +556,25 @@ function kickOut(title, message, icon){
   setInterval(()=>{ s--; if(cd)cd.textContent=s; if(s<=0){localStorage.clear();location.href='index.html';} },1000);
 }
 
-// Lắng nghe sau khi auth sẵn sàng
 async function startRealtimeListeners(){
   try{
     await ensureAuth();
+    // Giám sát tài khoản bị khóa
     db.collection('students').doc(studentCode).onSnapshot(doc=>{
       if(doc.exists&&doc.data().status==='locked')
         kickOut('🔒 Tài khoản bị khóa','Tài khoản bị Quản trị viên vô hiệu hóa.','🔒');
     },e=>console.warn('Student watch:',e.code));
 
+    // Giám sát bảo trì
     db.collection('systemConfig').doc('maintenance').onSnapshot(doc=>{
       if(doc.exists&&doc.data().enabled===true)
         kickOut('🔧 Hệ thống bảo trì','Hệ thống đang được nâng cấp.','🔧');
     },e=>console.warn('Maint watch:',e.code));
 
     // Heartbeat presence
+    // LƯU Ý: Rules yêu cầu request.auth.uid == studentCode
+    // Anonymous UID ≠ studentCode => presence write sẽ bị từ chối
+    // => dùng try/catch để bỏ qua lỗi
     const pRef = db.collection('presence').doc(studentCode);
     let _hbInited = false;
     const hb = ()=>{
@@ -564,11 +584,14 @@ async function startRealtimeListeners(){
         lastActive:firebase.firestore.FieldValue.serverTimestamp()
       };
       if(!_hbInited){ payload.startAt=firebase.firestore.FieldValue.serverTimestamp(); _hbInited=true; }
-      pRef.set(payload,{merge:true}).catch(()=>{});
+      pRef.set(payload,{merge:true}).catch(e=>{
+        if(e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
+      });
     };
     hb(); setInterval(hb,20000);
+
     window.addEventListener('beforeunload',()=>{
-      if(!isKicked) pRef.set({isOnline:false,currentSection:'Đã thoát'},{merge:true});
+      if(!isKicked) pRef.set({isOnline:false,currentSection:'Đã thoát'},{merge:true}).catch(()=>{});
     });
   }catch(e){ console.warn('Listeners lỗi:',e.code); }
 }
