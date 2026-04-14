@@ -783,22 +783,21 @@ async function initPage() {
 // =====================================================================
 function loadExamResults() {
   if (examResultsUnsub) { examResultsUnsub(); examResultsUnsub = null; }
-
   console.log('📊 Đang tải lịch sử bài thi cho:', studentCode);
 
-  // Hiện trạng thái loading
-  document.getElementById('noDataMsg').textContent  = '⏳ Đang tải dữ liệu...';
+  document.getElementById('noDataMsg').textContent = '⏳ Đang tải dữ liệu...';
   document.getElementById('noDataMsg').style.display = 'block';
   document.getElementById('resultTableWrap').style.display = 'none';
-  document.getElementById('chartWrap').style.display      = 'none';
+  document.getElementById('chartWrap').style.display = 'none';
 
+  // Thử onSnapshot, nếu lỗi permission thì fallback
   try {
     examResultsUnsub = db.collection('examResults')
       .where('studentCode', '==', studentCode)
       .limit(100)
       .onSnapshot(
         snap => {
-          console.log('✅ examResults snapshot nhận được:', snap.size, 'bản ghi');
+          console.log('✅ examResults snapshot:', snap.size, 'bản ghi');
           renderExamResults(snap);
         },
         err => {
@@ -814,21 +813,19 @@ function loadExamResults() {
 
 function handleExamResultsError(err) {
   const noDataEl = document.getElementById('noDataMsg');
-
   if (err.code === 'permission-denied') {
     noDataEl.innerHTML = `
       <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
-        ❌ <b>Không có quyền đọc dữ liệu bài thi.</b><br>
+        <b>Không có quyền đọc dữ liệu bài thi.</b><br>
         Kiểm tra Firestore Rules cho collection <code>examResults</code>.<br>
         <small style="color:#666;">Mã lỗi: permission-denied</small>
       </div>`;
     noDataEl.style.display = 'block';
-    // Thử fallback: đọc một lần thay vì realtime
     _fallbackLoadExamResults();
   } else if (err.code === 'failed-precondition') {
     noDataEl.innerHTML = `
       <div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
-        ⚠️ <b>Cần tạo Index trong Firestore.</b><br>
+        <b>⚠️ Cần tạo Index trong Firestore.</b><br>
         Vào Firebase Console → Firestore → Indexes → Tạo index cho:<br>
         <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code>
       </div>`;
@@ -837,7 +834,7 @@ function handleExamResultsError(err) {
     noDataEl.innerHTML = `
       <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
         ⚠️ Lỗi tải dữ liệu: ${err.message || err.code}<br>
-        <button onclick="loadExamResults()" 
+        <button onclick="loadExamResults()"
           style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">
           🔄 Thử lại
         </button>
@@ -846,7 +843,6 @@ function handleExamResultsError(err) {
   }
 }
 
-// Fallback: đọc một lần (không realtime) nếu onSnapshot bị từ chối
 async function _fallbackLoadExamResults() {
   console.log('🔄 Thử fallback get() cho examResults...');
   try {
@@ -860,7 +856,6 @@ async function _fallbackLoadExamResults() {
     console.error('❌ Fallback cũng thất bại:', e.code, e.message);
   }
 }
-
 function renderExamResults(snap) {
   let pass = 0, fail = 0;
   const logs = [];
@@ -1012,13 +1007,17 @@ function _filterNotifs(all) {
   const studentObj = localStorage.getItem('studentObject') || '';
   const studentCrs = localStorage.getItem('studentCourse') || '';
   return all.filter(n => {
-    if (n.target==='all' || n.targetType==='all') return true;
-    if (n.targetType==='individual') {
-      const codes = (n.targetDetail||'').split(',').map(c=>c.trim().toUpperCase());
-      return codes.includes((studentCode||'').toUpperCase());
+    // target='all' luôn hiển thị
+    if (n.target === 'all' || n.targetType === 'all') return true;
+    // targetType='individual': check studentCode (không dùng UID)
+    if (n.targetType === 'individual') {
+      const codes = (n.targetDetail || '').split(',').map(c => c.trim().toUpperCase());
+      return codes.includes((studentCode || '').toUpperCase());
     }
-    if (n.targetType==='course') return (n.targetDetail||'') === studentCrs;
-    if (n.targetType==='object' || n.target===studentObj) return (n.target||'') === studentObj;
+    // targetType='course'
+    if (n.targetType === 'course') return (n.targetDetail || '') === studentCrs;
+    // targetType='object'
+    if (n.targetType === 'object' || n.target === studentObj) return (n.target || '') === studentObj;
     return false;
   });
 }
@@ -1108,14 +1107,14 @@ function startPresence() {
   const heartbeat = () => {
     if (isKicked) return;
     const payload = {
-      isOnline:       true,
-      studentCode:    studentCode,
-      studentName:    localStorage.getItem('studentName') || '',
-      userType:       'student',
+      isOnline: true,
+      studentCode: studentCode,
+      studentName: localStorage.getItem('studentName') || '',
+      userType: 'student',
       currentSection: 'Trang chủ cá nhân',
-      tabHidden:      document.hidden,
-      lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
-      _clientTime:    Date.now(),
+      tabHidden: document.hidden,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime: Date.now(),
     };
     if (!_heartbeatStartAt) {
       _heartbeatStartAt = true;
@@ -1129,7 +1128,6 @@ function startPresence() {
   heartbeat();
   setInterval(heartbeat, 20000);
 
-  // Phát hiện chuyển tab
   document.addEventListener('visibilitychange', () => {
     if (isKicked) return;
     if (document.hidden) {
@@ -1155,7 +1153,6 @@ function startPresence() {
     presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
   }, err => console.warn('Signal watch lỗi:', err.code));
 
-  // Đánh dấu offline khi đóng tab
   window.addEventListener('beforeunload', () => {
     if (_signalUnsub) _signalUnsub();
     if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true }).catch(()=>{});
