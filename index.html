@@ -102,7 +102,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <div class="date" id="maintDate">Đang cập nhật...</div>
   </div>
   <h1>Hệ thống đang bảo trì</h1>
-  <p>Chúng tôi đang tiến hành nâng cấp hệ thống để mang lại trải nghiệm tốt hơn.<br>Vui lòng quay lại sau.</p>
+  <p>Chúng tôi đang tiến hành nâng cấp hệ thống.<br>Vui lòng quay lại sau.</p>
   <button class="maint-back-btn" onclick="hideMaintenancePage()">← Quay lại trang đăng nhập</button>
 </div>
 
@@ -112,12 +112,12 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <div style="font-size:50px;margin-bottom:10px;">🔐</div>
     <h3 style="color:#1d3557;font-size:19px;margin-bottom:12px;">Cảnh báo bảo mật</h3>
     <p style="font-size:14.5px;color:#444;line-height:1.6;margin-bottom:24px;padding:0 10px;">
-      Bạn đang sử dụng mật khẩu mặc định của hệ thống.<br>
-      <b>Để bảo mật tài khoản, vui lòng đổi mật khẩu mới!</b>
+      Bạn đang sử dụng mật khẩu mặc định.<br>
+      <b>Vui lòng đổi mật khẩu để bảo mật tài khoản!</b>
     </p>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="skipChangePw()">Bỏ qua</button>
-      <button class="btn-change-prompt" onclick="acceptChangePw()">🔑 Đổi mật khẩu mới</button>
+      <button class="btn-change-prompt" onclick="acceptChangePw()">🔑 Đổi mật khẩu ngay</button>
     </div>
   </div>
 </div>
@@ -137,7 +137,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
       <div class="pw-strength-text" id="pwStrengthText"></div>
     </div>
     <div class="pw-tips">
-      <b>💡 Gợi ý tạo mật khẩu an toàn:</b>
+      <b>💡 Gợi ý mật khẩu an toàn:</b>
       <ul>
         <li id="tipLen" class="unmet"><span>○</span> Ít nhất 8 ký tự</li>
         <li id="tipUpper" class="unmet"><span>○</span> Có chữ in hoa (A-Z)</li>
@@ -165,9 +165,11 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <div class="en">Road Traffic Law Examination System</div>
   </div>
   <h2>🔒 ĐĂNG NHẬP HỆ THỐNG</h2>
-  <div class="login-error" id="loginError"></div>
+  <div class="login-error"   id="loginError"></div>
   <div class="login-success" id="loginSuccess"></div>
-  <div class="login-loading" id="loginLoading"><span class="spinner"></span> Đang kiểm tra...</div>
+  <div class="login-loading" id="loginLoading">
+    <span class="spinner"></span> <span id="loadingMsg">Đang kiểm tra...</span>
+  </div>
   <div class="type-badge" id="typeBadge"></div>
   <div class="form-group">
     <span class="icon" id="inputIcon">👤</span>
@@ -212,24 +214,11 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 </div>
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-<!-- QR -->
 <script>
-const QRCode=(function(){
-  function render(canvas,text,size){
-    size=size||120;
-    var img=new Image();
-    img.crossOrigin="anonymous";
-    img.onload=function(){canvas.width=size;canvas.height=size;canvas.getContext('2d').drawImage(img,0,0,size,size);};
-    img.onerror=function(){canvas.width=size;canvas.height=size;var ctx=canvas.getContext('2d');ctx.fillStyle='#f8f9fa';ctx.fillRect(0,0,size,size);ctx.fillStyle='#666';ctx.font='11px Arial';ctx.textAlign='center';ctx.fillText('QR Code',size/2,size/2);};
-    img.src='https://api.qrserver.com/v1/create-qrcode/?size='+size+'x'+size+'&data='+encodeURIComponent(text);
-  }
-  return{render:render};
-})();
+const QRCode=(function(){function render(c,t,s){s=s||120;var i=new Image();i.crossOrigin="anonymous";i.onload=function(){c.width=s;c.height=s;c.getContext('2d').drawImage(i,0,0,s,s);};i.onerror=function(){c.width=s;c.height=s;var x=c.getContext('2d');x.fillStyle='#f8f9fa';x.fillRect(0,0,s,s);x.fillStyle='#666';x.font='11px Arial';x.textAlign='center';x.fillText('QR',s/2,s/2);};i.src='https://api.qrserver.com/v1/create-qrcode/?size='+s+'x'+s+'&data='+encodeURIComponent(t);}return{render:render};})();
 </script>
 
 <script>
@@ -247,9 +236,11 @@ try {
   }
   db   = firebase.firestore();
   auth = firebase.auth();
-  // KHÔNG set persistence ở đây — sẽ set lại sau khi xác thực xong
   firebaseReady = true;
-} catch(e) { console.error('Firebase init:', e); }
+  console.log('✅ Firebase khởi tạo thành công');
+} catch(e) {
+  console.error('❌ Firebase init lỗi:', e);
+}
 
 // ================================================================
 // HẰNG SỐ
@@ -259,339 +250,369 @@ const ADMIN_EMAILS = ['trunglq002@gmail.com'];
 const HASH_SALT    = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
 
 // ================================================================
-// HASH
+// HASH FUNCTIONS
 // ================================================================
 async function secureHash(plaintext) {
   if (!plaintext && plaintext !== 0) return '';
-  const enc  = new TextEncoder();
-  const data = enc.encode(HASH_SALT + String(plaintext) + HASH_SALT);
+  const data = new TextEncoder().encode(HASH_SALT + String(plaintext) + HASH_SALT);
   const buf  = await crypto.subtle.digest('SHA-256', data);
-  return 'h2_' + Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2,'0')).join('');
+  return 'h2_' + Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 function simpleHash_LEGACY(s) {
   let h = 0;
-  for (let i = 0; i < s.length; i++) { h = ((h<<5)-h) + s.charCodeAt(i); h|=0; }
+  for (let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
   return 'h_' + Math.abs(h).toString(36);
 }
 async function verifyPassword(input, stored) {
   if (!stored) return false;
   if (stored.startsWith('h2_')) return (await secureHash(input)) === stored;
-  if (stored.startsWith('h_'))  return simpleHash_LEGACY(input)  === stored;
+  if (stored.startsWith('h_'))  return simpleHash_LEGACY(input) === stored;
   return false;
 }
 
 // ================================================================
-// ANONYMOUS AUTH — giải quyết vấn đề rules yêu cầu request.auth
+// ANONYMOUS AUTH — bắt buộc vì rules yêu cầu request.auth != null
 // ================================================================
+let _anonSignInPromise = null; // Tránh gọi nhiều lần đồng thời
 
-/**
- * Đảm bảo có Firebase Auth (anonymous) trước khi đọc Firestore.
- * Rules yêu cầu request.auth != null để đọc students / systemConfig.
- * Hàm này sign-in anonymous nếu chưa có user, trả về user hiện tại.
- */
-async function ensureAnonymousAuth() {
+async function ensureAuth() {
   if (!auth) throw new Error('Auth chưa sẵn sàng');
-  
-  // Nếu đã có user (anonymous hoặc real) → dùng luôn
-  if (auth.currentUser) return auth.currentUser;
-  
+
+  // Đã có user → dùng luôn
+  if (auth.currentUser) {
+    console.log('✅ Auth hiện tại:', auth.currentUser.isAnonymous ? 'Anonymous' : auth.currentUser.email);
+    return auth.currentUser;
+  }
+
+  // Đang sign-in → chờ promise đó
+  if (_anonSignInPromise) return _anonSignInPromise;
+
   // Chưa có → sign in anonymous
-  const cred = await auth.signInAnonymously();
-  return cred.user;
+  console.log('⏳ Đang sign in anonymous...');
+  _anonSignInPromise = auth.signInAnonymously()
+    .then(cred => {
+      console.log('✅ Anonymous auth thành công, UID:', cred.user.uid);
+      _anonSignInPromise = null;
+      return cred.user;
+    })
+    .catch(e => {
+      _anonSignInPromise = null;
+      console.error('❌ Anonymous auth lỗi:', e.code, e.message);
+      throw e;
+    });
+
+  return _anonSignInPromise;
 }
 
-/**
- * Đọc document bảo trì — rules cho phép:
- * allow read: if request.auth != null && docId == 'maintenance'
- */
+// ================================================================
+// CACHE BẢO TRÌ
+// ================================================================
+let _maintCache = null, _maintCacheTime = 0;
+const MAINT_TTL = 60000; // 60 giây
+
 async function checkMaintenanceMode() {
   const now = Date.now();
-  // Dùng cache 60 giây
-  if (_maintCache !== null && (now - _maintCacheTime) < MAINT_TTL) {
-    return _maintCache;
-  }
+  if (_maintCache !== null && (now - _maintCacheTime) < MAINT_TTL) return _maintCache;
   if (!firebaseReady || !db) return false;
   try {
-    // Phải có auth trước khi đọc systemConfig
-    await ensureAnonymousAuth();
+    await ensureAuth(); // Cần auth để đọc systemConfig
     const d = await db.collection('systemConfig').doc('maintenance').get();
     _maintCache     = d.exists && !!d.data().enabled;
     _maintCacheTime = now;
     return _maintCache;
   } catch(e) {
-    console.warn('checkMaintenance error:', e.code, e.message);
-    return false;
+    console.warn('⚠️ checkMaintenance lỗi:', e.code, e.message);
+    return false; // Nếu không đọc được → coi như không bảo trì
   }
 }
-
-// Cache bảo trì
-let _maintCache = null, _maintCacheTime = 0;
-const MAINT_TTL = 60000;
 function clearMaintenanceCache() { _maintCache = null; _maintCacheTime = 0; }
 
 // ================================================================
 // RATE LIMIT ADMIN
 // ================================================================
 const LOGIN_RATE = {
-  MAX: 5, WIN: 15*60*1000, KEY: 'adm_attempts',
-  check() {
-    const r = sessionStorage.getItem(this.KEY);
-    if (!r) return true;
-    const {count,since} = JSON.parse(r);
-    if (Date.now()-since > this.WIN) { sessionStorage.removeItem(this.KEY); return true; }
-    return count < this.MAX;
+  MAX:5, WIN:15*60*1000, KEY:'adm_att',
+  check(){
+    const r=sessionStorage.getItem(this.KEY);
+    if(!r)return true;
+    const {count,since}=JSON.parse(r);
+    if(Date.now()-since>this.WIN){sessionStorage.removeItem(this.KEY);return true;}
+    return count<this.MAX;
   },
-  record() {
-    const r = sessionStorage.getItem(this.KEY);
-    if (!r) sessionStorage.setItem(this.KEY, JSON.stringify({count:1,since:Date.now()}));
-    else { const o=JSON.parse(r); o.count++; sessionStorage.setItem(this.KEY,JSON.stringify(o)); }
+  record(){
+    const r=sessionStorage.getItem(this.KEY);
+    if(!r)sessionStorage.setItem(this.KEY,JSON.stringify({count:1,since:Date.now()}));
+    else{const o=JSON.parse(r);o.count++;sessionStorage.setItem(this.KEY,JSON.stringify(o));}
   },
-  remaining() {
-    const r = sessionStorage.getItem(this.KEY);
-    if (!r) return 0;
+  remaining(){
+    const r=sessionStorage.getItem(this.KEY);
+    if(!r)return 0;
     return Math.ceil((this.WIN-(Date.now()-JSON.parse(r).since))/60000);
   }
 };
 
 // ================================================================
-// NHẬN DẠNG LOẠI TÀI KHOẢN
+// NHẬN DẠNG LOẠI TÀI KHOẢN (real-time)
 // ================================================================
-function isEmail(s) { return s.includes('@'); }
+function isEmail(s){ return s.includes('@'); }
 
-function detectLoginType() {
-  const val   = document.getElementById('loginInput').value.trim();
-  const badge = document.getElementById('typeBadge');
-  const icon  = document.getElementById('inputIcon');
-  const btn   = document.getElementById('loginBtn');
-  if (!val) {
-    badge.className  = 'type-badge';
-    badge.innerHTML  = '';
-    icon.textContent = '👤';
-    btn.textContent  = 'Đăng nhập';
-    btn.style.background = '#1d3557';
-    return;
+function detectLoginType(){
+  const val  =document.getElementById('loginInput').value.trim();
+  const badge=document.getElementById('typeBadge');
+  const icon =document.getElementById('inputIcon');
+  const btn  =document.getElementById('loginBtn');
+  if(!val){
+    badge.className='type-badge'; badge.innerHTML='';
+    icon.textContent='👤'; btn.textContent='Đăng nhập';
+    btn.style.background='#1d3557'; return;
   }
-  if (isEmail(val)) {
-    badge.className  = 'type-badge admin';
-    badge.innerHTML  = '🛡️ Quản trị viên';
-    icon.textContent = '📧';
-    btn.textContent  = '🛡️ Đăng nhập Quản trị';
-    btn.style.background = 'linear-gradient(135deg,#1a1f36,#0d6efd)';
+  if(isEmail(val)){
+    badge.className='type-badge admin'; badge.innerHTML='🛡️ Quản trị viên';
+    icon.textContent='📧';
+    btn.textContent='🛡️ Đăng nhập Quản trị';
+    btn.style.background='linear-gradient(135deg,#1a1f36,#0d6efd)';
   } else {
-    badge.className  = 'type-badge student';
-    badge.innerHTML  = '🎓 Học viên';
-    icon.textContent = '🎓';
-    btn.textContent  = '🎓 Đăng nhập Học viên';
-    btn.style.background = '#1d3557';
+    badge.className='type-badge student'; badge.innerHTML='🎓 Học viên';
+    icon.textContent='🎓';
+    btn.textContent='🎓 Đăng nhập Học viên';
+    btn.style.background='#1d3557';
   }
 }
 
 // ================================================================
 // UI HELPERS
 // ================================================================
-function showError(m) {
-  const e = document.getElementById('loginError');
-  e.innerHTML = m; e.classList.add('show');
+function showError(m){
+  const e=document.getElementById('loginError');
+  e.innerHTML=m; e.classList.add('show');
   document.getElementById('loginSuccess').classList.remove('show');
   clearTimeout(window._et);
-  window._et = setTimeout(() => e.classList.remove('show'), 7000);
+  window._et=setTimeout(()=>e.classList.remove('show'),7000);
 }
-function hideError() { document.getElementById('loginError').classList.remove('show'); }
-function showSuccess(m) {
-  const e = document.getElementById('loginSuccess');
-  e.innerHTML = m; e.classList.add('show');
+function hideError(){document.getElementById('loginError').classList.remove('show');}
+function showSuccess(m){
+  const e=document.getElementById('loginSuccess');
+  e.innerHTML=m; e.classList.add('show');
   document.getElementById('loginError').classList.remove('show');
 }
-function setLoading(on, msg) {
-  const el  = document.getElementById('loginLoading');
-  const btn = document.getElementById('loginBtn');
-  el.classList.toggle('show', on);
-  btn.disabled = on;
-  document.getElementById('tryBtn').disabled = on;
-  if (on && msg) el.innerHTML = `<span class="spinner"></span> ${msg}`;
+function setLoading(on, msg){
+  document.getElementById('loginLoading').classList.toggle('show',on);
+  document.getElementById('loginBtn').disabled=on;
+  document.getElementById('tryBtn').disabled=on;
+  if(on && msg) document.getElementById('loadingMsg').textContent=msg;
 }
 
 // ================================================================
 // KHỞI TẠO TRANG
 // ================================================================
-window.onload = async function () {
-  // Đã đăng nhập HV
-  if (localStorage.getItem('userType')==='student' && localStorage.getItem('studentCode')) {
+window.onload = async function(){
+  console.log('=== Trang đăng nhập khởi động ===');
+
+  // Nếu đã đăng nhập HV → về exam
+  if(localStorage.getItem('userType')==='student' && localStorage.getItem('studentCode')){
+    console.log('→ Đã có session HV, chuyển exam.html');
     location.href='exam.html'; return;
   }
 
-  // Kiểm tra Firebase Auth state (admin đã đăng nhập)
-  if (auth) {
-    await new Promise(resolve => {
-      const unsub = auth.onAuthStateChanged(user => {
-        unsub();
-        if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
-          location.href = 'admin.html';
-        }
-        resolve();
-      });
+  // Kiểm tra Firebase Auth state (admin đã đăng nhập trước đó)
+  if(auth){
+    const user = await new Promise(resolve=>{
+      const unsub = auth.onAuthStateChanged(u=>{ unsub(); resolve(u); });
     });
+    if(user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)){
+      console.log('→ Admin đã đăng nhập, chuyển admin.html');
+      location.href='admin.html'; return;
+    }
   }
 
-  // Kiểm tra bảo trì (cần anonymous auth)
-  try {
-    if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
-  } catch(_) {}
+  // Sign in anonymous để chuẩn bị (không chờ — chạy ngầm)
+  // Giúp tăng tốc khi người dùng bấm đăng nhập
+  ensureAuth().catch(e=>{
+    console.warn('⚠️ Pre-auth anonymous thất bại:', e.code);
+  });
 
-  // QR
-  try { QRCode.render(document.getElementById('qrCanvas'), location.href, 110); } catch(_){}
+  // Kiểm tra bảo trì
+  try{
+    if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
+  }catch(_){}
+
+  // Render QR
+  try{ QRCode.render(document.getElementById('qrCanvas'), location.href, 110); }catch(_){}
+
+  console.log('✅ Trang sẵn sàng');
 };
 
 // ================================================================
-// ENTRY POINT — PHÂN LOẠI ĐĂNG NHẬP
+// ENTRY POINT
 // ================================================================
-async function login() {
+async function login(){
   hideError();
   const raw  = document.getElementById('loginInput').value.trim();
   const pass = document.getElementById('password').value;
-  if (!raw)  { showError('⚠️ Vui lòng nhập Mã học viên hoặc Email.'); return; }
-  if (!pass) { showError('⚠️ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
+  if(!raw) { showError('⚠️ Vui lòng nhập Mã học viên hoặc Email.'); return; }
+  if(!pass){ showError('⚠️ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
 
-  if (isEmail(raw)) {
+  if(isEmail(raw)){
     await doAdminLogin(raw, pass);
   } else {
     setLoading(true, 'Đang xác thực học viên...');
     try   { await doStudentLogin(raw, pass); }
-    catch (e) {
-      // Phân biệt lỗi permission vs lỗi mạng
-      if (e.code === 'permission-denied') {
-        showError('⚠️ Lỗi quyền truy cập. Vui lòng thử lại.');
+    catch(e){
+      console.error('❌ doStudentLogin lỗi:', e.code, e.message);
+      // Phân biệt từng loại lỗi để thông báo chính xác
+      if(e.code === 'permission-denied'){
+        showError('❌ Lỗi quyền truy cập dữ liệu. Thử lại hoặc liên hệ quản trị viên.');
+      } else if(e.code === 'unavailable' || e.code === 'deadline-exceeded'){
+        showError('⚠️ Máy chủ không phản hồi. Vui lòng thử lại sau ít giây.');
+      } else if(e.message && e.message.includes('network')){
+        showError('⚠️ Mất kết nối mạng. Kiểm tra internet và thử lại.');
       } else {
-        showError('⚠️ Lỗi kết nối mạng. Kiểm tra internet và thử lại.');
+        showError('⚠️ Đã xảy ra lỗi. Vui lòng thử lại.<br><small>'+e.message+'</small>');
       }
-      console.error('Student login error:', e.code, e.message);
     }
-    finally { setLoading(false); }
+    finally{ setLoading(false); }
   }
 }
 
 // ================================================================
 // ĐĂNG NHẬP HỌC VIÊN
-// Luồng: ensureAnonymousAuth → query Firestore → xác thực mật khẩu
-//        → signOut anonymous → vào exam (dùng localStorage làm session)
+// Luồng: ensureAuth (anonymous) → query Firestore → verify password
+//        → signOut anonymous → lưu localStorage → exam.html
 // ================================================================
-async function doStudentLogin(raw, pass) {
-  if (!firebaseReady || !db) {
-    showError('⚠️ Không thể kết nối máy chủ. Tải lại trang và thử lại.');
+async function doStudentLogin(raw, pass){
+  if(!firebaseReady || !db){
+    showError('⚠️ Firebase chưa sẵn sàng. Tải lại trang và thử lại.');
     return;
   }
 
-  // BƯỚC 1: Đảm bảo có auth (anonymous) để Firestore rules cho phép đọc
-  try {
-    await ensureAnonymousAuth();
-  } catch(e) {
-    console.error('Anonymous auth failed:', e);
-    showError('⚠️ Không thể xác thực với máy chủ. Kiểm tra kết nối mạng.');
+  // ── BƯỚC 1: Đảm bảo có Firebase Auth ──────────────────────────
+  // Rules yêu cầu request.auth != null để đọc collection students
+  try{
+    await ensureAuth();
+  } catch(authErr){
+    console.error('Auth lỗi:', authErr.code, authErr.message);
+    // Nếu anonymous auth không được bật → thông báo rõ ràng
+    if(authErr.code === 'auth/operation-not-allowed'){
+      showError('❌ Cấu hình hệ thống lỗi (Anonymous Auth chưa bật).<br>Liên hệ quản trị viên.');
+    } else {
+      showError('⚠️ Không thể kết nối máy chủ xác thực. Kiểm tra mạng và thử lại.');
+    }
     return;
   }
 
-  // BƯỚC 2: Tìm học viên trong Firestore
+  // ── BƯỚC 2: Tìm học viên trong Firestore ──────────────────────
   const searchStr = normalize(raw);
   let st = null, sid = null;
 
-  // 2a) Tìm theo field "code" (query chính xác, nhanh nhất)
-  try {
-    const byCode = await db.collection('students')
-      .where('code', '==', raw.trim()).limit(1).get();
-    if (!byCode.empty) {
-      const doc = byCode.docs[0];
-      st = { id: doc.id, ...doc.data() }; sid = doc.id;
+  // 2a) Tìm theo field "code" (nhanh nhất, có index)
+  try{
+    console.log('🔍 Tìm theo code:', raw.trim());
+    const snap = await db.collection('students')
+      .where('code','==', raw.trim()).limit(1).get();
+    if(!snap.empty){
+      const doc = snap.docs[0];
+      st  = { id: doc.id, ...doc.data() };
+      sid = doc.id;
+      console.log('✅ Tìm thấy theo code:', sid);
     }
-  } catch(e) {
-    if (e.code === 'permission-denied') throw e; // Ném lên để bắt ở trên
-    console.warn('Query by code failed:', e.message);
+  } catch(e){
+    console.warn('⚠️ Query theo code lỗi:', e.code, e.message);
+    if(e.code==='permission-denied') throw e; // Báo lên trên
   }
 
   // 2b) Tìm theo document ID
-  if (!st) {
-    try {
-      const byId = await db.collection('students').doc(raw.trim()).get();
-      if (byId.exists) { st = { id: byId.id, ...byId.data() }; sid = byId.id; }
-    } catch(e) {
-      if (e.code === 'permission-denied') throw e;
-      console.warn('Query by docId failed:', e.message);
-    }
-  }
-
-  // 2c) Tìm theo nameNorm (nếu có field này trong Firestore)
-  if (!st) {
-    try {
-      const byName = await db.collection('students')
-        .where('nameNorm', '==', searchStr).limit(1).get();
-      if (!byName.empty) {
-        const doc = byName.docs[0];
-        st = { id: doc.id, ...doc.data() }; sid = doc.id;
+  if(!st){
+    try{
+      console.log('🔍 Tìm theo doc ID:', raw.trim());
+      const doc = await db.collection('students').doc(raw.trim()).get();
+      if(doc.exists){
+        st  = { id: doc.id, ...doc.data() };
+        sid = doc.id;
+        console.log('✅ Tìm thấy theo doc ID:', sid);
       }
-    } catch(e) {
-      if (e.code === 'permission-denied') throw e;
-      console.warn('Query by nameNorm failed:', e.message);
+    } catch(e){
+      console.warn('⚠️ Query theo docId lỗi:', e.code, e.message);
+      if(e.code==='permission-denied') throw e;
     }
   }
 
-  // 2d) Fallback: scan giới hạn (nếu chưa có field nameNorm)
-  if (!st) {
-    try {
-      console.warn('Fallback: scanning students collection (chậm)...');
+  // 2c) Tìm theo nameNorm (nếu có field này)
+  if(!st){
+    try{
+      console.log('🔍 Tìm theo nameNorm:', searchStr);
+      const snap = await db.collection('students')
+        .where('nameNorm','==', searchStr).limit(1).get();
+      if(!snap.empty){
+        const doc = snap.docs[0];
+        st  = { id: doc.id, ...doc.data() };
+        sid = doc.id;
+        console.log('✅ Tìm thấy theo nameNorm:', sid);
+      }
+    } catch(e){
+      console.warn('⚠️ Query theo nameNorm lỗi:', e.code, e.message);
+      if(e.code==='permission-denied') throw e;
+    }
+  }
+
+  // 2d) Fallback: scan giới hạn 500 bản ghi (nếu chưa có nameNorm)
+  if(!st){
+    try{
+      console.warn('⚠️ Fallback: scan 500 bản ghi (chậm)...');
       const snap = await db.collection('students').limit(500).get();
-      for (const doc of snap.docs) {
+      for(const doc of snap.docs){
         const d = doc.data();
-        if (normalize(d.code || doc.id) === searchStr ||
-            normalize(d.name || '')     === searchStr) {
-          st = { id: doc.id, ...d }; sid = doc.id; break;
+        if(normalize(d.code || doc.id) === searchStr ||
+           normalize(d.name || '')     === searchStr){
+          st  = { id: doc.id, ...d };
+          sid = doc.id;
+          console.log('✅ Tìm thấy qua scan:', sid);
+          break;
         }
       }
-    } catch(e) {
-      if (e.code === 'permission-denied') throw e;
-      console.warn('Fallback scan failed:', e.message);
+    } catch(e){
+      console.warn('⚠️ Scan lỗi:', e.code, e.message);
+      if(e.code==='permission-denied') throw e;
     }
   }
 
-  // BƯỚC 3: Kiểm tra kết quả tìm kiếm
-  if (!st) {
-    // Sign out anonymous để không còn session thừa
-    try { if (auth.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
+  // ── BƯỚC 3: Không tìm thấy ────────────────────────────────────
+  if(!st){
+    await signOutAnonymous();
     showError('⚠️ Không tìm thấy học viên.<br>Vui lòng nhập đúng <b>Mã HV</b> hoặc <b>Họ và tên đầy đủ</b>.');
     return;
   }
 
-  if (st.status === 'locked') {
-    try { if (auth.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
+  // ── BƯỚC 4: Kiểm tra trạng thái tài khoản ────────────────────
+  if(st.status==='locked'){
+    await signOutAnonymous();
     showError('🔒 Tài khoản đã bị khóa. Vui lòng liên hệ Quản trị viên.');
     return;
   }
 
-  // BƯỚC 4: Xác thực mật khẩu (client-side, so sánh hash)
+  // ── BƯỚC 5: Xác thực mật khẩu (client-side) ──────────────────
   const storedHash = st.password || '';
-  let ok = storedHash
+  const ok = storedHash
     ? await verifyPassword(pass, storedHash)
-    : (pass === _DP); // Chưa có password → chấp nhận mật khẩu mặc định
+    : (pass === _DP);
 
-  if (!ok) {
-    try { if (auth.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
+  if(!ok){
+    await signOutAnonymous();
     showError('❌ Sai mật khẩu. Vui lòng thử lại.');
-    document.getElementById('password').value = '';
+    document.getElementById('password').value='';
     document.getElementById('password').focus();
     return;
   }
 
-  // BƯỚC 5: Kiểm tra bảo trì lần cuối (dùng cache)
-  if (await checkMaintenanceMode()) {
-    try { if (auth.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
-    showMaintenancePage();
-    return;
+  // ── BƯỚC 6: Kiểm tra bảo trì ─────────────────────────────────
+  if(await checkMaintenanceMode()){
+    await signOutAnonymous();
+    showMaintenancePage(); return;
   }
 
-  // BƯỚC 6: Đăng nhập thành công
-  // Sign out anonymous — session học viên dùng localStorage
-  try { if (auth.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
+  // ── BƯỚC 7: Đăng nhập thành công ─────────────────────────────
+  await signOutAnonymous(); // Dọn dẹp anonymous session
 
-  // Lưu thông tin vào localStorage
+  // Lưu session vào localStorage
   localStorage.setItem('userType',      'student');
   localStorage.setItem('studentCode',   st.code || sid);
   localStorage.setItem('studentName',   st.name || '');
@@ -599,62 +620,64 @@ async function doStudentLogin(raw, pass) {
   localStorage.setItem('studentObject', st.object || '');
   localStorage.setItem('studentCourse', st.course || '');
 
-  showSuccess('✅ Xin chào, <b>' + (st.name || st.code || sid) + '</b>!');
+  console.log('✅ Đăng nhập HV thành công:', st.name || sid);
+  showSuccess('✅ Xin chào, <b>'+(st.name||st.code||sid)+'</b>!');
 
-  // Kiểm tra có cần đổi mật khẩu không
+  // Kiểm tra đổi mật khẩu mặc định
   const isDefaultPass = !storedHash || pass === _DP;
-  if (!st.passwordChanged && isDefaultPass) {
-    // Lưu sid để dùng khi đổi mật khẩu
+  if(!st.passwordChanged && isDefaultPass){
     window._changePwSid = sid;
     document.getElementById('pwPromptModal').classList.add('show');
   } else {
-    setTimeout(() => { location.href = 'exam.html'; }, 700);
+    setTimeout(()=>{ location.href='exam.html'; }, 700);
   }
 }
 
+// Helper: sign out anonymous an toàn
+async function signOutAnonymous(){
+  try{
+    if(auth.currentUser?.isAnonymous) await auth.signOut();
+  } catch(_){}
+}
+
 // ================================================================
-// ĐĂNG NHẬP ADMIN — dùng Firebase Email/Password Auth
+// ĐĂNG NHẬP ADMIN
 // ================================================================
-async function doAdminLogin(email, pass) {
-  if (!LOGIN_RATE.check()) {
+async function doAdminLogin(email, pass){
+  if(!LOGIN_RATE.check()){
     showError(`⛔ Quá nhiều lần thử. Vui lòng chờ ${LOGIN_RATE.remaining()} phút.`);
     return;
   }
 
-  // Sign out anonymous nếu đang có (tránh conflict)
-  try {
-    if (auth.currentUser?.isAnonymous) await auth.signOut();
-  } catch(_){}
+  // Dọn dẹp anonymous session nếu có
+  await signOutAnonymous();
 
-  setLoading(true, 'Đang xác thực quản trị viên...');
-  try {
+  setLoading(true,'Đang xác thực quản trị viên...');
+  try{
     await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     const user = cred.user;
-
-    if (!ADMIN_EMAILS.includes(user.email)) {
+    if(!ADMIN_EMAILS.includes(user.email)){
       await auth.signOut();
       showError('❌ Email này không có quyền quản trị hệ thống!');
       return;
     }
-
-    localStorage.setItem('userType',  'admin');
-    localStorage.setItem('adminName', user.displayName || user.email.split('@')[0]);
+    localStorage.setItem('userType', 'admin');
+    localStorage.setItem('adminName', user.displayName||user.email.split('@')[0]);
     showSuccess('✅ Xác thực thành công! Đang chuyển trang...');
-    setTimeout(() => { location.href = 'admin.html'; }, 600);
-
-  } catch(e) {
+    setTimeout(()=>{ location.href='admin.html'; }, 600);
+  } catch(e){
     LOGIN_RATE.record();
-    const map = {
+    const map={
       'auth/user-not-found':         '❌ Email không tồn tại trong hệ thống!',
       'auth/wrong-password':         '❌ Mật khẩu không đúng!',
       'auth/invalid-credential':     '❌ Email hoặc mật khẩu không đúng!',
       'auth/too-many-requests':      '⚠️ Quá nhiều lần thử. Tài khoản tạm thời bị khóa.',
       'auth/invalid-email':          '⚠️ Định dạng email không hợp lệ!',
-      'auth/network-request-failed': '⚠️ Lỗi kết nối mạng. Kiểm tra internet và thử lại.',
+      'auth/network-request-failed': '⚠️ Lỗi kết nối mạng.',
     };
-    showError(map[e.code] || '❌ Lỗi đăng nhập: ' + e.message);
-  } finally {
+    showError(map[e.code]||'❌ Lỗi: '+e.message);
+  } finally{
     setLoading(false);
   }
 }
@@ -662,65 +685,63 @@ async function doAdminLogin(email, pass) {
 // ================================================================
 // THI THỬ
 // ================================================================
-async function tryExam() {
-  // Sign out anonymous nếu có
-  try { if (auth?.currentUser?.isAnonymous) await auth.signOut(); } catch(_){}
-  if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
-  localStorage.setItem('userType', 'guest');
-  location.href = 'test.html';
+async function tryExam(){
+  await signOutAnonymous();
+  if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
+  localStorage.setItem('userType','guest');
+  location.href='test.html';
 }
 
 // ================================================================
 // BẢO TRÌ
 // ================================================================
-let maintClockInterval = null;
-function updateMaintenanceClock() {
-  const n   = new Date();
-  const pad = x => String(x).padStart(2,'0');
-  const thu = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
-  const tEl = document.getElementById('maintTime');
-  const dEl = document.getElementById('maintDate');
-  if (tEl) tEl.textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
-  if (dEl) dEl.textContent=`${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}`;
+let maintClockInterval=null;
+function updateMaintenanceClock(){
+  const n=new Date(), pad=x=>String(x).padStart(2,'0');
+  const thu=['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'][n.getDay()];
+  const tEl=document.getElementById('maintTime');
+  const dEl=document.getElementById('maintDate');
+  if(tEl)tEl.textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  if(dEl)dEl.textContent=`${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}`;
 }
-function showMaintenancePage() {
+function showMaintenancePage(){
   document.getElementById('maintenancePage').classList.add('show');
   document.getElementById('mainLoginContent').style.display='none';
   updateMaintenanceClock();
-  if (maintClockInterval) clearInterval(maintClockInterval);
-  maintClockInterval = setInterval(updateMaintenanceClock, 1000);
+  if(maintClockInterval)clearInterval(maintClockInterval);
+  maintClockInterval=setInterval(updateMaintenanceClock,1000);
 }
-function hideMaintenancePage() {
+function hideMaintenancePage(){
   clearMaintenanceCache();
   document.getElementById('maintenancePage').classList.remove('show');
   document.getElementById('mainLoginContent').style.display='';
-  if (maintClockInterval) { clearInterval(maintClockInterval); maintClockInterval=null; }
+  if(maintClockInterval){clearInterval(maintClockInterval);maintClockInterval=null;}
 }
 
 // ================================================================
 // NORMALIZE
 // ================================================================
-function normalize(s) {
-  if (!s) return '';
+function normalize(s){
+  if(!s)return'';
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
 // ================================================================
 // MODAL ĐỔI MẬT KHẨU
 // ================================================================
-function skipChangePw() {
+function skipChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
   showSuccess('✅ Đang chuyển vào hệ thống...');
-  setTimeout(() => { location.href='exam.html'; }, 700);
+  setTimeout(()=>{location.href='exam.html';},700);
 }
-function acceptChangePw() {
+function acceptChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
-  openChangePwModal(window._changePwSid || localStorage.getItem('studentCode'));
+  openChangePwModal(window._changePwSid||localStorage.getItem('studentCode'));
 }
 
-let changePwSid = '';
-function openChangePwModal(id) {
-  changePwSid = id;
+let changePwSid='';
+function openChangePwModal(id){
+  changePwSid=id;
   ['cpOldPw','cpNewPw','cpConfirmPw'].forEach(x=>document.getElementById(x).value='');
   document.getElementById('cpShowPw').checked=false;
   toggleModalPasswords();
@@ -729,69 +750,55 @@ function openChangePwModal(id) {
   document.getElementById('pwStrengthFill').style.width='0';
   document.getElementById('pwStrengthText').textContent='';
   ['tipLen','tipUpper','tipLower','tipNum','tipSpec'].forEach(id=>{
-    const e=document.getElementById(id); e.className='unmet'; e.querySelector('span').textContent='○';
+    const e=document.getElementById(id);e.className='unmet';e.querySelector('span').textContent='○';
   });
   document.getElementById('changePwModal').classList.add('show');
   setTimeout(()=>document.getElementById('cpOldPw').focus(),200);
 }
-function closeChangePwModal() {
+function closeChangePwModal(){
   document.getElementById('changePwModal').classList.remove('show');
-  if (localStorage.getItem('userType')==='student') location.href='exam.html';
+  if(localStorage.getItem('userType')==='student') location.href='exam.html';
 }
 
-async function submitChangePassword() {
-  const o   = document.getElementById('cpOldPw').value;
-  const n   = document.getElementById('cpNewPw').value;
-  const c   = document.getElementById('cpConfirmPw').value;
-  const err = document.getElementById('changePwError');
-  const suc = document.getElementById('changePwSuccess');
-  const btn = document.getElementById('cpSubmitBtn');
+async function submitChangePassword(){
+  const o  =document.getElementById('cpOldPw').value;
+  const n  =document.getElementById('cpNewPw').value;
+  const c  =document.getElementById('cpConfirmPw').value;
+  const err=document.getElementById('changePwError');
+  const suc=document.getElementById('changePwSuccess');
+  const btn=document.getElementById('cpSubmitBtn');
   err.classList.remove('show'); suc.classList.remove('show');
-  if (!o||!n||!c) { err.textContent='⚠️ Nhập đầy đủ thông tin!'; err.classList.add('show'); return; }
-  if (n.length<6) { err.textContent='⚠️ Mật khẩu mới ít nhất 6 ký tự!'; err.classList.add('show'); return; }
-  if (n!==c)      { err.textContent='⚠️ Xác nhận không khớp!'; err.classList.add('show'); return; }
-  if (n===o)      { err.textContent='⚠️ Mật khẩu mới phải khác cũ!'; err.classList.add('show'); return; }
-
+  if(!o||!n||!c){err.textContent='⚠️ Nhập đầy đủ thông tin!';err.classList.add('show');return;}
+  if(n.length<6){err.textContent='⚠️ Mật khẩu mới ít nhất 6 ký tự!';err.classList.add('show');return;}
+  if(n!==c)    {err.textContent='⚠️ Xác nhận không khớp!';err.classList.add('show');return;}
+  if(n===o)    {err.textContent='⚠️ Mật khẩu mới phải khác cũ!';err.classList.add('show');return;}
   btn.disabled=true; btn.textContent='⏳ Đang xử lý...';
-  try {
-    // Cần anonymous auth để đọc rồi update
-    // Rules cho phép update nếu: request.auth.uid == studentCode
-    // → Cần sign in với UID là studentCode (không thể với anonymous)
-    // → Dùng anonymous để đọc dữ liệu, xác thực mật khẩu cũ
-    await ensureAnonymousAuth();
-
-    const d = await db.collection('students').doc(changePwSid).get();
-    if (!d.exists) { err.textContent='❌ Không tìm thấy dữ liệu!'; err.classList.add('show'); return; }
-
-    const storedHash = d.data().password || '';
-    const ok = storedHash
-      ? await verifyPassword(o, storedHash)
-      : (o === _DP);
-    if (!ok) { err.textContent='❌ Sai mật khẩu hiện tại!'; err.classList.add('show'); return; }
-
-    // Lưu mật khẩu mới
-    // Lưu ý: Rules chỉ cho phép update nếu request.auth.uid == studentCode
-    // Anonymous UID ≠ studentCode → sẽ bị từ chối bởi rules update học viên
-    // → Cần Admin SDK hoặc cập nhật rules cho phép anonymous update password
-    // Giải pháp tạm: dùng admin write thông qua Cloud Function, hoặc nới rules tạm
+  try{
+    // Cần anonymous auth để đọc
+    await ensureAuth();
+    const d=await db.collection('students').doc(changePwSid).get();
+    if(!d.exists){err.textContent='❌ Không tìm thấy dữ liệu!';err.classList.add('show');return;}
+    const storedHash=d.data().password||'';
+    const ok=storedHash ? await verifyPassword(o,storedHash) : (o===_DP);
+    if(!ok){err.textContent='❌ Sai mật khẩu hiện tại!';err.classList.add('show');return;}
     await db.collection('students').doc(changePwSid).update({
       password:          await secureHash(n),
       passwordChanged:   true,
       passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-
     suc.textContent='✅ Đổi mật khẩu thành công!';
     suc.classList.add('show');
-    setTimeout(()=>closeChangePwModal(), 1500);
-  } catch(e) {
-    if (e.code === 'permission-denied') {
+    await signOutAnonymous();
+    setTimeout(()=>closeChangePwModal(),1500);
+  } catch(e){
+    console.error('Change password error:', e);
+    if(e.code==='permission-denied'){
       err.textContent='❌ Không có quyền cập nhật. Liên hệ quản trị viên.';
     } else {
-      err.textContent='❌ Lỗi hệ thống. Thử lại sau.';
+      err.textContent='❌ Lỗi hệ thống: '+e.message;
     }
     err.classList.add('show');
-    console.error('Change password error:', e);
-  } finally {
+  } finally{
     btn.disabled=false; btn.textContent='Cập nhật';
   }
 }
@@ -799,7 +806,7 @@ async function submitChangePassword() {
 // ================================================================
 // PASSWORD STRENGTH
 // ================================================================
-function checkPasswordStrength() {
+function checkPasswordStrength(){
   const pw=document.getElementById('cpNewPw').value;
   const fill=document.getElementById('pwStrengthFill');
   const txt=document.getElementById('pwStrengthText');
@@ -835,8 +842,7 @@ function toggleModalPasswords(){
   ['cpOldPw','cpNewPw','cpConfirmPw'].forEach(id=>document.getElementById(id).type=t);
 }
 
-// Đóng modal khi click nền
-document.addEventListener('click', e=>{
+document.addEventListener('click',e=>{
   if(e.target.classList.contains('modal-overlay')){
     closeChangePwModal();
     document.getElementById('pwPromptModal').classList.remove('show');
