@@ -602,26 +602,62 @@ function showConfirmLogout() { document.getElementById('confirmLogoutModal').cla
 function closeConfirmLogout() { document.getElementById('confirmLogoutModal').classList.remove('show'); }
 
 async function doLogout() {
-  // Cập nhật presence offline
+  // 1. Thử sign out Firebase (có thể bỏ qua nếu lỗi)
   try {
-    await db.collection('presence').doc(studentCode)
-      .set({ isOnline: false }, { merge: true });
-  } catch(_){}
-  // Sign out anonymous auth
-  try { if (auth.currentUser) await auth.signOut(); } catch(_){}
-  // Giữ lại trạng thái thông báo
+    if (auth && auth.currentUser) await auth.signOut();
+  } catch (_) {}
+
+  // 2. Giữ lại các cấu hình không liên quan đến user (như thông báo đã đọc)
   const notifKeysToKeep = {};
-  for (let i=0;i<localStorage.length;i++) {
+  for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
       notifKeysToKeep[k] = localStorage.getItem(k);
     }
   }
+
+  // 3. Xóa sạch LocalStorage để phá vòng lặp Auth Guard
   localStorage.clear();
-  Object.entries(notifKeysToKeep).forEach(([k,v]) => localStorage.setItem(k,v));
-  location.href = 'index.html';
+  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
+  
+  // 4. Quay về trang chủ
+  location.replace('index.html');
+}
+function forceKickOut(reason) {
+  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập.");
+  localStorage.clear(); // XÓA SẠCH DỮ LIỆU CŨ
+  location.replace('index.html'); // ÉP QUAY VỀ
 }
 
+// Khối khởi tạo chính của trang
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Luôn hiện body lên để tránh trang trắng nếu JS lỗi
+    document.body.style.visibility = 'visible';
+
+    // Đảm bảo Auth
+    await ensureAuth();
+
+    // Giả sử đây là hàm load thông tin/load đề thi của bạn
+    await setupUI();
+    await loadSets();
+
+  } catch (err) {
+    console.error("Lỗi hệ thống:", err);
+
+    // ĐÂY LÀ CHÌA KHÓA PHÁ VÒNG LẶP:
+    if (err.code === 'permission-denied' || err.message.includes('Missing or insufficient permissions')) {
+      forceKickOut("Phiên đăng nhập không hợp lệ hoặc đã thay đổi quyền truy cập.");
+    } else {
+      // Nếu là lỗi khác, chỉ báo lỗi trên màn hình
+      const loadingBox = document.getElementById("loadingBox");
+      if (loadingBox) {
+        loadingBox.innerHTML = `<p>❌ Lỗi: ${err.message}</p>
+                                <button onclick="doLogout()">Quay về Đăng nhập</button>`;
+      }
+    }
+  }
+});
 // =====================================================================
 // KICK OUT
 // =====================================================================
