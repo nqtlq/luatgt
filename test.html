@@ -1113,11 +1113,11 @@
     const groupsEl = document.getElementById("mGroups");
     if (groupsEl) {
       groupsEl.innerHTML = "";
-      const groups = selectedSet.groups||[];
-      groups.forEach(g => {
+      const groups = selectedSet.groupDetails || [];
+      groups.forEach((g, i) => {
         const chip = document.createElement("span");
         chip.className = "mg-chip";
-        chip.textContent = typeof g==='object' ? (g.name||`Nhóm`) : g;
+        chip.textContent = (g.name || `Nhóm ${i+1}`) + (g.count ? ` (${g.count} câu)` : "");
         groupsEl.appendChild(chip);
       });
       if (selectedSet.hasLiet) {
@@ -1195,57 +1195,79 @@
   let examSubmitted = false;
 
   // Load questions from Firestore and build exam question array
+  // Cấu trúc Firestore thực tế:
+  //   questionSets: { code, name, examTime, totalQuestions, passScore,
+  //                   groupDetails:[{name,count}], groups:<number>,
+  //                   lietCount, lietPositions:[1-based pos], hasLiet }
+  //   questions:    { setCode, content, answers:[], correctAnswer(1-4),
+  //                   groupIndex(0-based, -1=liet), isLiet:bool, imageUrl, order }
   async function loadQuestionsForSet(set) {
     const setCode = set.code || set.id;
-    const snap = await db.collection("questions")
-      .where("setCode","==", setCode)
-      .get();
+
+    let snap;
+    try {
+      // Thử query có orderBy (cần index)
+      snap = await db.collection("questions")
+        .where("setCode", "==", setCode)
+        .orderBy("order", "asc")
+        .get();
+    } catch(e) {
+      // Fallback không orderBy nếu chưa có composite index
+      snap = await db.collection("questions")
+        .where("setCode", "==", setCode)
+        .get();
+    }
 
     if (snap.empty) throw new Error(`Chưa có câu hỏi trong bộ đề này (setCode: ${setCode})`);
 
-    const allQ = snap.docs.map(d => ({ docId:d.id, ...d.data() }));
+    const allQ = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
 
-    // Separate liet questions
-    const lietQ = allQ.filter(q => q.group === -99 || q.group === "-99" || q.isLiet);
-    const normalQ = allQ.filter(q => q.group !== -99 && q.group !== "-99" && !q.isLiet);
+    // Câu liệt: isLiet===true hoặc groupIndex===-1
+    const lietQ   = allQ.filter(q => q.isLiet === true || q.groupIndex === -1);
+    const normalQ = allQ.filter(q => q.isLiet !== true && q.groupIndex !== -1);
 
-    // Build group buckets
-    const groups = Array.isArray(set.groups) ? set.groups : [];
+    // groupDetails là mảng [{name, count}, ...], set.groups là số đếm
+    const groupDetails = Array.isArray(set.groupDetails) ? set.groupDetails : [];
     let selected = [];
 
-    if (groups.length > 0) {
-      groups.forEach((g, idx) => {
-        if (g.groupIndex === -99) return; // skip liet group config
+    if (groupDetails.length > 0) {
+      // Mỗi nhóm: chọn ngẫu nhiên đúng count câu từ bucket đó
+      groupDetails.forEach((g, idx) => {
         const count = g.count || g.questionCount || 0;
-        const bucket = normalQ.filter(q => q.group === idx || q.group === String(idx));
-        const picked = pickRandom(bucket, count);
-        selected = selected.concat(picked);
+        if (!count) return;
+        // Câu thuộc nhóm idx: groupIndex === idx
+        const bucket = normalQ.filter(q =>
+          q.groupIndex === idx ||
+          q.groupIndex === String(idx) ||
+          Number(q.groupIndex) === idx
+        );
+        selected = selected.concat(pickRandom(bucket, count));
       });
     } else {
-      // No group config: pick totalQuestions randomly from all normal questions
+      // Không có config nhóm: lấy ngẫu nhiên totalQuestions câu
       const total = set.totalQuestions || set.questionCount || normalQ.length;
       selected = pickRandom(normalQ, total);
     }
 
-    // Handle liet questions
-    const lietCount = set.lietCount || set.criticalCount || lietQ.length;
-    const pickedLiet = lietQ.slice(0, lietCount);
-
-    // Place liet at specified positions, or append to end
+    // Xử lý câu liệt
+    const lietCount = set.lietCount || 0;
+    const pickedLiet = lietQ.slice(0, lietCount || lietQ.length);
     const lietPositions = Array.isArray(set.lietPositions) ? set.lietPositions : [];
+
     let finalQ = [...selected];
 
     if (lietPositions.length > 0 && pickedLiet.length > 0) {
-      // Insert liet at 0-based positions
+      // Chèn câu liệt vào đúng vị trí (1-based → 0-based)
       pickedLiet.forEach((lq, i) => {
-        const pos = (lietPositions[i] || 1) - 1;
-        finalQ.splice(Math.min(pos, finalQ.length), 0, { ...lq, isLietQuestion: true });
+        const pos = Math.min((lietPositions[i] || 1) - 1, finalQ.length);
+        finalQ.splice(pos, 0, { ...lq, isLietQuestion: true });
       });
-    } else if (pickedLiet.length > 0) {
-      // Append at end
+    } else {
+      // Không có vị trí cụ thể: ghép vào cuối
       pickedLiet.forEach(lq => finalQ.push({ ...lq, isLietQuestion: true }));
     }
 
+    if (!finalQ.length) throw new Error("Không tạo được đề thi. Kiểm tra cấu hình nhóm và số câu.");
     return finalQ;
   }
 
@@ -1311,7 +1333,7 @@
 
     const answers = q.answers || [];
     const labels  = ["A","B","C","D","E"];
-    const isLiet  = q.isLietQuestion || q.group === -99;
+    const isLiet  = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
 
     let html = `
       <div class="q-progress">Câu ${idx+1} / ${questions.length}</div>
@@ -1366,7 +1388,7 @@
     const el = document.getElementById("qmap");
     if (!el) return;
     el.innerHTML = questions.map((q, i) => {
-      const isLiet = q.isLietQuestion || q.group === -99;
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
       return `<button class="qmap-btn ${isLiet?'liet-btn':''}" id="qb${i}" onclick="goTo(${i})">${i+1}</button>`;
     }).join("");
   }
@@ -1375,7 +1397,7 @@
     questions.forEach((q, i) => {
       const btn = document.getElementById("qb"+i);
       if (!btn) return;
-      const isLiet = q.isLietQuestion || q.group === -99;
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
       const answered = userAnswers[i] !== null;
       const isCurrent = i === currentIdx;
       let cls = "qmap-btn";
@@ -1429,7 +1451,7 @@
 
     questions.forEach((q, i) => {
       const chosen = userAnswers[i];
-      const isLiet = q.isLietQuestion || q.group === -99;
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
       if (chosen === null) { skip++; if(isLiet) lietFailed=true; }
       else if (chosen === q.correctAnswer) { correct++; }
       else { wrong++; if(isLiet) lietFailed=true; }
@@ -1528,7 +1550,7 @@
       bd.innerHTML = questions.map((q, i) => {
         const chosen = userAnswers[i];
         const correct2 = q.correctAnswer;
-        const isLiet = q.isLietQuestion || q.group === -99;
+        const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
         const isRight = chosen === correct2;
         const isSkip  = chosen === null;
         const cls = isLiet?"q-liet ":"";
