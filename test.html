@@ -1562,31 +1562,38 @@
         if(chosen) chosenAns = `${labels[chosen-1]}. ${ansList[chosen-1]||""}`;
         if(correct2) correctAns = `${labels[correct2-1]}. ${ansList[correct2-1]||""}`;
 
-        let detail = "";
-        if (!isRight) {
-          detail = `<div class="rq-dropdown open">
-            <div class="rq-full-content">${esc(q.content||q.question||"")}</div>
-            <div class="rq-answers-grid">
-              ${ansList.map((a,ai) => {
-                let cls2="rqa-item";
-                if (ai+1===correct2) cls2+=" rqa-correct";
-                else if (ai+1===chosen) cls2+=" rqa-chosen";
-                return `<div class="${cls2}"><span class="rqa-label">${labels[ai]}.</span><span>${esc(a)}</span>
-                  ${ai+1===correct2?'<span class="rqa-badge">✔ Đúng</span>':''}
-                  ${ai+1===chosen && ai+1!==correct2?'<span class="rqa-badge">✘ Bạn chọn</span>':''}</div>`;
-              }).join("")}
-            </div>
-          </div>`;
-        }
+        // Tất cả câu đều có dropdown hiện đáp án (đúng hoặc sai)
+        const borderColor = isRight ? '#6ee7b7' : isSkip ? '#d1d5db' : '#fca5a5';
+        const dropdownBorderColor = isRight ? '#6ee7b7' : '#fca5a5';
+        const detail = `<div class="rq-dropdown open" style="border-top:1px dashed ${dropdownBorderColor};">
+          <div class="rq-full-content">${esc(q.content||q.question||"")}</div>
+          ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" style="max-width:100%;max-height:180px;border-radius:8px;margin-bottom:8px;" loading="lazy">` : ""}
+          <div class="rq-answers-grid">
+            ${ansList.map((a,ai) => {
+              let cls2 = "rqa-item";
+              if (ai+1===correct2) cls2 += " rqa-correct";
+              else if (ai+1===chosen && !isRight) cls2 += " rqa-chosen";
+              return `<div class="${cls2}">
+                <span class="rqa-label">${labels[ai]}.</span>
+                <span>${esc(a)}</span>
+                ${ai+1===correct2 ? '<span class="rqa-badge" style="color:#065f46;">✔ Đáp án đúng</span>' : ''}
+                ${ai+1===chosen && ai+1!==correct2 ? '<span class="rqa-badge" style="color:#991b1b;">✘ Bạn chọn</span>' : ''}
+                ${ai+1===chosen && ai+1===correct2 ? '<span class="rqa-badge" style="color:#065f46;">✔ Bạn chọn đúng</span>' : ''}
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
 
         return `<div class="result-q-item ${cls}${statusCls}">
           <div class="rq-header">
-            <span><b>Câu ${i+1}${isLiet?' ⚠':''}:</b> ${esc((q.content||q.question||"").substring(0,60))}${(q.content||"").length>60?"…":""}</span>
-            <span>${isRight?"✅ Đúng":isSkip?"⬜ Bỏ qua":"❌ Sai"}</span>
+            <span><b>Câu ${i+1}${isLiet?' ⚠':''}:</b> ${esc((q.content||q.question||"").substring(0,70))}${(q.content||"").length>70?"…":""}</span>
+            <span style="white-space:nowrap;flex-shrink:0;">${isRight?"✅ Đúng":isSkip?"⬜ Bỏ qua":"❌ Sai"}</span>
           </div>
-          ${!isRight?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">
-            ${chosen?`Bạn chọn: <b>${chosenAns}</b> · `:""}Đáp án đúng: <b style="color:var(--green)">${correctAns}</b>
-          </div>`:""}
+          ${!isRight && !isSkip ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">
+            Bạn chọn: <b style="color:var(--red)">${chosenAns||"—"}</b>
+            &nbsp;·&nbsp; Đáp án đúng: <b style="color:var(--green)">${correctAns}</b>
+          </div>` : ""}
+          ${isSkip ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">Đáp án đúng: <b style="color:var(--green)">${correctAns}</b></div>` : ""}
           ${detail}
         </div>`;
       }).join("");
@@ -1712,12 +1719,30 @@
         }, { merge: true }).catch(()=>{});
         // Heartbeat khi đang ở trang chọn đề
         setInterval(() => {
-          if (_presenceStarted) return; // exam presence đã xử lý
+          if (_presenceStarted) return;
           if (_presenceRef) _presenceRef.set({
             isOnline:true, currentSection:'Trang chọn đề', tabHidden: document.hidden,
             lastActive: firebase.firestore.FieldValue.serverTimestamp(), _clientTime: Date.now()
           }, { merge:true }).catch(()=>{});
         }, 20000);
+
+        // Lắng nghe lệnh admin ngay từ trang chọn đề (không chờ vào bài thi)
+        if (_signalUnsub) _signalUnsub();
+        _signalUnsub = _presenceRef.onSnapshot(snap => {
+          if (!snap.exists) return;
+          const signal = snap.data()?.adminSignal;
+          if (!signal?.sentAt) return;
+          const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+          if (Date.now() - sentAt.getTime() > 5000) return;
+          if (signal.type === 'warning' || signal.type === 'broadcast') {
+            showAdminWarning(signal.message);
+          } else if (signal.type === 'force_end' && !examSubmitted) {
+            showAdminWarning('⚠ ' + signal.message);
+            setTimeout(() => { if (!examSubmitted) submitExam(true); }, 3000);
+          }
+          _presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
+        });
+
         window.addEventListener('beforeunload', () => {
           if (!_presenceStarted && _presenceRef)
             _presenceRef.set({ isOnline:false, currentSection:'Đã thoát' }, { merge:true });
