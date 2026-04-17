@@ -776,10 +776,6 @@ const LIVE_MONITOR_CSS = `
                 <span class="menu-icon">🔔</span>
                 <span class="menu-text">Thông báo</span>
             </button>
-            <button onclick="showPage('stats',this)">
-                <span class="menu-icon">📈</span>
-                <span class="menu-text">Thống kê</span>
-            </button>
             <button onclick="showPage('online_detail',this)">
                 <span class="menu-icon">📡</span>
                 <span class="menu-text">Giám sát online</span>
@@ -1702,16 +1698,16 @@ D. Đáp án D
    <!-- ========== RESULTS PAGE ========== -->
 <div class="page" id="results">
   <div class="page-header">
-    <h2>🏆 Kết quả thi</h2>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <!-- Badge realtime — sẽ được thêm bởi JS, nhưng đặt placeholder ở đây -->
-      <span id="resultsRealtimeBadge" style="display:none;"></span>
-      <!-- Thời gian cập nhật cuối -->
-      <span style="font-size:12px;color:var(--text-muted);">
-        Cập nhật: <b id="resultsLastUpdate">—</b>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h2 style="margin:0;">🏆 Kết quả thi &amp; Thống kê</h2>
+      <span id="resultsRealtimeBadge" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--success);background:var(--success-light);padding:3px 10px;border-radius:20px;border:1px solid rgba(25,135,84,0.3);">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:rtBlink 1.5s infinite;display:inline-block;"></span>
+        LIVE
       </span>
+      <span style="font-size:12px;color:var(--text-muted);">Cập nhật: <b id="resultsLastUpdate">—</b></span>
     </div>
     <div style="display:flex;gap:8px;">
+      <button class="btn btn-success btn-sm" onclick="if(allResults.length){destroyCharts();renderDashboardCharts();renderStatsCharts();}">🔄 Làm mới biểu đồ</button>
       <button class="btn btn-info" onclick="exportResults()">📥 Xuất Excel</button>
     </div>
   </div>
@@ -1786,7 +1782,7 @@ D. Đáp án D
         </div>
       </div>
       
-      <!-- Stats -->
+      <!-- Stats cards -->
       <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px;">
         <div class="stat-card">
           <div class="stat-info">
@@ -1812,6 +1808,57 @@ D. Đáp án D
             <div class="stat-label">Điểm TB</div>
           </div>
         </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-number" id="statPassRate">—</div>
+            <div class="stat-label">Tỷ lệ đạt</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-number" id="statActiveStudents">0</div>
+            <div class="stat-label">HV đã thi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Biểu đồ thống kê -->
+      <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card">
+          <h4>📊 Phân bố điểm (best score của từng HV)</h4>
+          <div class="chart-container"><canvas id="chartScoreDist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>👥 Phân bố theo đối tượng</h4>
+          <div class="chart-container"><canvas id="chartByObject"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Bảng xếp hạng -->
+      <div class="box" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin:0;">🏆 Bảng xếp hạng học viên</h3>
+          <span style="font-size:12px;color:var(--text-muted);">Cập nhật realtime theo dữ liệu thi</span>
+        </div>
+        <div class="miniStats" style="margin-bottom:12px;">
+          <div class="miniStatBox"><div class="label">Tổng lượt thi (toàn hệ thống)</div><div class="value" id="statTotalExams">0</div></div>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead><tr>
+              <th style="width:60px">Hạng</th>
+              <th style="width:120px">Mã HV</th>
+              <th style="width:auto">Họ tên</th>
+              <th style="width:200px">Đơn vị</th>
+              <th style="width:100px;cursor:pointer;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
+              <th style="width:100px;cursor:pointer;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
+              <th style="width:100px;cursor:pointer;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
+              <th style="width:100px">Đánh giá</th>
+            </tr></thead>
+            <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="leaderboardPagination" class="pagination" style="margin-top:12px;"></div>
       </div>
       
       <!-- Table -->
@@ -2107,38 +2154,6 @@ D. Đáp án D
       </div>
     </div>
 
-    <!-- ========== STATS PAGE ========== -->
-    <div id="stats" class="page">
-      <div class="miniStats">
-        <div class="miniStatBox"><div class="label">Tổng lượt thi</div><div class="value" id="statTotalExams">0</div></div>
-        <div class="miniStatBox"><div class="label">Tỷ lệ đạt</div><div class="value" id="statPassRate">0%</div></div>
-        <div class="miniStatBox"><div class="label">Điểm TB</div><div class="value" id="statAvgScore">0</div></div>
-        <div class="miniStatBox"><div class="label">Học viên thi</div><div class="value" id="statActiveStudents">0</div></div>
-      </div>
-      <div class="chart-grid">
-        <div class="chart-card"><h4>📊 Phân bố điểm</h4><div class="chart-container"><canvas id="chartScoreDist"></canvas></div></div>
-        <div class="chart-card"><h4>👥 Phân bố đối tượng</h4><div class="chart-container"><canvas id="chartByObject"></canvas></div></div>
-      </div>
-      <div class="box">
-        <h3>🏆 Bảng xếp hạng</h3>
-        <div class="tableWrap">
-          <table>
-            <thead><tr>
-              <th style="width:60px">Hạng</th>
-              <th style="width:200px">Mã HV</th>
-              <th style="width:auto">Họ tên</th>
-              <th style="width:250px">Đơn vị</th>
-              <th style="width:200px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('exams')" title="Sắp xếp">Số lần <span id="sortIcon_exams">↕</span></th>
-              <th style="width:200px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('bestScore')" title="Sắp xếp">Điểm max <span id="sortIcon_bestScore">↓</span></th>
-              <th style="width:200px;cursor:pointer;white-space:nowrap;" onclick="sortLeaderboard('avgScore')" title="Sắp xếp">Điểm TB <span id="sortIcon_avgScore">↕</span></th>
-              <th style="width:200px">Đánh giá</th>
-            </tr></thead>
-            <tbody id="topStudentsBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr></tbody>
-          </table>
-        </div>
-        <div id="leaderboardPagination" class="pagination" style="margin-top:12px;"></div>
-      </div>
-    </div>
 
     <!-- ========== SYSTEM PAGE ========== -->
     <div id="system" class="page">
@@ -2648,7 +2663,10 @@ function toggleDarkMode() {
     updateThemeIcon(next);
     destroyCharts();
     renderDashboardCharts();
-    renderStatsCharts();
+    // Chỉ render stats charts khi đang ở trang kết quả thi
+    if (document.getElementById('results')?.classList.contains('active')) {
+        renderStatsCharts();
+    }
 }
 
 function updateClock() {
@@ -2716,24 +2734,20 @@ function showPage(id, btn) {
       break;
 
     case 'results':
-      // Khởi động realtime listener thay vì one-time fetch
       (async () => {
-        // Đảm bảo allStudents đã load để map tên
-        if (!allStudents.length) {
-          await loadStudentsFromDB();
-        }
-        await loadAllExamResults(); // Bây giờ là realtime
+        if (!allStudents.length) await loadStudentsFromDB();
+        await loadAllExamResults(); // Khởi động realtime listener nếu chưa có
+        loadStats();                // Cập nhật leaderboard + stat numbers
+        // Destroy chỉ stats charts (không phá dashboard charts)
+        ['scoreDist','byObject'].forEach(k => {
+          if (chartInstances[k]) { chartInstances[k].destroy(); delete chartInstances[k]; }
+        });
+        renderStatsCharts();
       })();
       break;
 
     case 'notifications':
       loadNotificationsFromDB();
-      break;
-
-    case 'stats':
-      loadStats();
-      destroyCharts();
-      renderStatsCharts();
       break;
 
     case 'system':
@@ -2928,12 +2942,15 @@ function startRealtimeAllExams() {
             const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
             safeSet('passRateD', rate);
             // Rebuild series for charts
-            allResults = snap.docs.map(d => {
-                const data = d.data();
-                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
-                const st = allStudents.find(s => s.code === data.studentCode);
-                return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
-            });
+            // Chỉ rebuild allResults khi KHÔNG có results-page listener đang hoạt động
+            if (!rtResultsUnsub) {
+                allResults = snap.docs.map(d => {
+                    const data = d.data();
+                    const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+                    const st = allStudents.find(s => s.code === data.studentCode);
+                    return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+                });
+            }
             buildDashboardSeriesFromResults();
         }, err => console.warn('RT All Exams error:', err));
 }
@@ -5822,22 +5839,53 @@ function filterOnlineDetail() {
 }
 
 function loadStats() {
-    const studentsWithExams = allStudents.filter(s => (s.exams || 0) > 0);
-    const totalExams = allStudents.reduce((a, s) => a + (s.exams || 0), 0);
-    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
-    const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
-    const avg = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + (s.avgScore || 0), 0) / studentsWithExams.length) : 0;
-    
-    document.getElementById('statTotalExams').textContent = totalExams;
-    document.getElementById('statPassRate').textContent = passRate + '%';
-    document.getElementById('statAvgScore').textContent = avg;
-    document.getElementById('statActiveStudents').textContent = studentsWithExams.length;
-    
-    // Lưu lại studentsWithExams để sort function dùng
+    // Dùng allResults (realtime) để tính chính xác, không phụ thuộc cached field trên student doc
+    const source = allResults.length ? allResults : [];
+    const totalExams = source.length;
+    const passed = source.filter(r => r.passed).length;
+    const passRate = totalExams ? Math.round(passed / totalExams * 100) : 0;
+    const avg = totalExams
+        ? Math.round(source.reduce((a, r) => a + (Number(r.score) || Number(r.correctCount) || 0), 0) / totalExams)
+        : 0;
+
+    // HV đã từng thi (unique studentCode)
+    const uniqueStudents = [...new Set(source.map(r => r.studentCode).filter(Boolean))];
+
+    // Update stat IDs trên trang results (đã gộp vào đây)
+    const safeSet = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    safeSet('statTotalExams',    totalExams);
+    safeSet('statPassRate',      passRate + '%');
+    safeSet('statAvgScore',      avg);
+    safeSet('statActiveStudents', uniqueStudents.length);
+
+    // Build leaderboard từ allResults (chính xác hơn cached fields)
+    const studentMap = {};
+    source.forEach(r => {
+        if (!r.studentCode) return;
+        const key = r.studentCode;
+        if (!studentMap[key]) {
+            const stu = allStudents.find(s => s.code === key);
+            studentMap[key] = {
+                code: key,
+                name: stu?.name || r.studentName || key,
+                unit: stu?.unit || '',
+                object: stu?.object || '',
+                exams: 0, bestScore: 0, totalScore: 0
+            };
+        }
+        const sc = Number(r.score) || Number(r.correctCount) || 0;
+        studentMap[key].exams++;
+        if (sc > studentMap[key].bestScore) studentMap[key].bestScore = sc;
+        studentMap[key].totalScore += sc;
+    });
+    const studentsWithExams = Object.values(studentMap).map(s => ({
+        ...s,
+        avgScore: s.exams ? Math.round(s.totalScore / s.exams) : 0
+    }));
+
     window._leaderboardData = studentsWithExams;
-    window._leaderboardSort = { col: 'bestScore', dir: -1 }; // mặc định: điểm max giảm dần
+    if (!window._leaderboardSort) window._leaderboardSort = { col: 'bestScore', dir: -1 };
     renderLeaderboard();
-    renderStatsCharts();
 }
 
 // ─── Leaderboard sort helpers ───
@@ -5922,17 +5970,22 @@ function renderLeaderboard() {
 function renderStatsCharts() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#9ea4ad' : '#6c757d';
-    
-    // Biểu đồ phân bố điểm — thang đo theo MAX 30 câu thực tế
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+    // Biểu đồ phân bố điểm — tính từ allResults (mỗi lượt thi)
     const ctx3 = document.getElementById('chartScoreDist');
     if (ctx3) {
-        // Phân nhóm theo số câu đúng: 0-5, 6-11, 12-17, 18-22, 23-27, 28-30
-        const bands  = [[0,5],[6,11],[12,17],[18,22],[23,27],[28,30]];
-        const labels = bands.map(([lo,hi]) => lo === hi ? `${lo}` : `${lo}–${hi}`);
-        const colors = ['#dc3545','#fd7e14','#ffc107','#0dcaf0','#20c997','#198754'];
+        const maxScore = Math.max(...allResults.map(r => r.totalQuestions || 30), 30);
+        const step = maxScore <= 15 ? 3 : maxScore <= 25 ? 5 : 6;
+        const bands = [];
+        for (let lo = 0; lo < maxScore; lo += step) {
+            bands.push([lo, Math.min(lo + step - 1, maxScore)]);
+        }
+        const labels = bands.map(([lo, hi]) => lo === hi ? `${lo}` : `${lo}–${hi}`);
+        const colors = ['#dc3545','#fd7e14','#ffc107','#0dcaf0','#20c997','#198754','#6366f1','#ec4899'];
         const counts = bands.map(() => 0);
-        allStudents.forEach(s => {
-            const sc = Math.min(30, Math.max(0, Number(s.bestScore) || 0));
+        allResults.forEach(r => {
+            const sc = Math.min(maxScore, Math.max(0, Number(r.score) || Number(r.correctCount) || 0));
             for (let i = 0; i < bands.length; i++) {
                 if (sc >= bands[i][0] && sc <= bands[i][1]) { counts[i]++; break; }
             }
@@ -5940,34 +5993,40 @@ function renderStatsCharts() {
         if (chartInstances.scoreDist) chartInstances.scoreDist.destroy();
         chartInstances.scoreDist = new Chart(ctx3, {
             type: 'bar',
-            data: { labels, datasets: [{ label: 'Số HV', data: counts, backgroundColor: colors, borderRadius: 6 }] },
+            data: { labels, datasets: [{ label: 'Số lượt thi', data: counts, backgroundColor: colors.slice(0, bands.length), borderRadius: 6 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { title: (items) => `Điểm ${items[0].label} / 30` } }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, title: { display: true, text: 'Số học viên', color: textColor } },
-                    x: { ticks: { color: textColor }, title: { display: true, text: 'Điểm (số câu đúng / 30)', color: textColor } }
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 },
+                         title: { display: true, text: 'Số lượt thi', color: textColor } },
+                    x: { grid: { display: false }, ticks: { color: textColor },
+                         title: { display: true, text: 'Số câu đúng', color: textColor } }
                 }
             }
         });
     }
 
-    // Biểu đồ phân bố đối tượng
+    // Biểu đồ phân bố đối tượng — theo lượt thi
     const ctx4 = document.getElementById('chartByObject');
     if (ctx4) {
         const objMap = {};
-        allStudents.forEach(s => { const k = s.object || 'Khác'; objMap[k] = (objMap[k] || 0) + 1; });
+        allResults.forEach(r => {
+            const stu = allStudents.find(s => s.code === r.studentCode);
+            const k = stu?.object || r.studentObject || 'Không rõ';
+            objMap[k] = (objMap[k] || 0) + 1;
+        });
         const labels4 = Object.keys(objMap);
         const data4   = Object.values(objMap);
         const colors4 = ['#0d6efd','#198754','#ffc107','#dc3545','#7c3aed','#0dcaf0','#fd7e14'];
         if (chartInstances.byObject) chartInstances.byObject.destroy();
         chartInstances.byObject = new Chart(ctx4, {
             type: 'doughnut',
-            data: { labels: labels4, datasets: [{ data: data4, backgroundColor: colors4.slice(0, labels4.length), borderWidth: 3, borderColor: isDark ? '#1a1d24' : '#fff' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 14 } } } }
+            data: { labels: labels4, datasets: [{ data: data4, backgroundColor: colors4.slice(0, labels4.length), borderWidth: 3, borderColor: isDark ? '#1a1d24' : '#fff', cutout: '55%' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 14 } } }
+            }
         });
     }
 }
@@ -6311,8 +6370,14 @@ function startRealtimeResults() {
       // Áp dụng bộ lọc hiện tại và render lại bảng
       applyResultFilters();
 
+      // Cập nhật leaderboard + charts thống kê realtime
+      loadStats();
+      const resultsPageActive = document.getElementById('results')?.classList.contains('active');
+      if (resultsPageActive) renderStatsCharts();
+
       // Cập nhật indicator realtime
       updateLastUpdateTime();
+      _updateResultsLastUpdate();
 
       // Hiện badge realtime
       _showResultsRealtimeBadge();
@@ -6334,6 +6399,10 @@ function stopRealtimeResults() {
     rtResultsUnsub();
     rtResultsUnsub = null;
   }
+  // Dọn dẹp charts khi rời trang để tránh memory leak
+  ['scoreDist','byObject'].forEach(k => {
+    if (chartInstances[k]) { chartInstances[k].destroy(); delete chartInstances[k]; }
+  });
 }
 
 /**
@@ -6368,30 +6437,8 @@ function _refreshResultSetFilter() {
  * Hiện badge "● LIVE" trên trang Results
  */
 function _showResultsRealtimeBadge() {
-  // Tìm hoặc tạo badge realtime trong page header của Results
-  let badge = document.getElementById('resultsRealtimeBadge');
-  if (!badge) {
-    const header = document.querySelector('#results .page-header');
-    if (header) {
-      badge = document.createElement('span');
-      badge.id = 'resultsRealtimeBadge';
-      badge.style.cssText = `
-        display:inline-flex;align-items:center;gap:4px;
-        font-size:11px;font-weight:700;
-        color:var(--success);
-        background:var(--success-light);
-        padding:3px 10px;border-radius:20px;
-        border:1px solid rgba(25,135,84,0.3);
-      `;
-      badge.innerHTML = `
-        <span style="width:7px;height:7px;border-radius:50%;
-          background:var(--success);animation:rtBlink 1.5s infinite;">
-        </span>
-        LIVE
-      `;
-      header.appendChild(badge);
-    }
-  }
+  const badge = document.getElementById('resultsRealtimeBadge');
+  if (badge) badge.style.display = 'inline-flex';
 }
 function _updateResultsLastUpdate() {
   const el = document.getElementById('resultsLastUpdate');
@@ -6533,10 +6580,7 @@ async function initializeSystem() {
         loadStudents();
         loadCourseFilter();
         loadQuestionSets();
-        loadStats();
-        
         renderDashboardCharts();
-        renderStatsCharts();
         await loadMaintenanceState();
         checkScheduledNotifications();
         
