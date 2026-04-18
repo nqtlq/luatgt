@@ -1103,7 +1103,90 @@ function kickOut(title, message, icon) {
 
 // Init
 initPage();
+// Thêm vào exam.html - phần startPresence() - cập nhật heartbeat session
+function startPresence() {
+  const heartbeat = () => {
+    if (isKicked) return;
+    const payload = {
+      isOnline: true,
+      studentCode: studentCode,
+      studentName: localStorage.getItem('studentName') || '',
+      userType: 'student',
+      currentSection: 'Trang chủ cá nhân',
+      tabHidden: document.hidden,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime: Date.now(),
+    };
+    if (!_heartbeatStartAt) {
+      _heartbeatStartAt = true;
+      payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    presenceRef.set(payload, { merge: true }).catch(e => {
+      if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
+    });
+    
+    // Cập nhật session lastActive
+    const sessionToken = localStorage.getItem('sessionToken_' + studentCode);
+    if (sessionToken) {
+      db.collection('sessions').doc(studentCode).update({
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(() => {});
+    }
+  };
+  heartbeat();
+  setInterval(heartbeat, 20000);
 
+  // Lắng nghe session conflict - bị đăng xuất từ thiết bị khác
+  const sessionUnsub = db.collection('sessions').doc(studentCode)
+    .onSnapshot(snap => {
+      if (!snap.exists || isKicked) return;
+      const data = snap.data();
+      const myToken = localStorage.getItem('sessionToken_' + studentCode);
+      if (data.token && myToken && data.token !== myToken) {
+        // Token khác => có người đăng nhập từ thiết bị khác
+        kickOut(
+          '🔒 Đăng xuất tự động',
+          'Tài khoản của bạn vừa được đăng nhập từ một thiết bị khác. Bạn đã bị đăng xuất.',
+          '📵'
+        );
+      }
+    }, err => console.warn('Session watch lỗi:', err.code));
+
+  // Phát hiện chuyển tab (giữ nguyên)
+  document.addEventListener('visibilitychange', () => {
+    if (isKicked) return;
+    if (document.hidden) {
+      _tabHiddenSince = Date.now();
+      presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
+    } else {
+      const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
+      _tabHiddenSince = null;
+      presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
+    }
+  });
+
+  // Lắng nghe tín hiệu Admin (giữ nguyên)
+  _signalUnsub = presenceRef.onSnapshot(snap => {
+    if (!snap.exists || isKicked) return;
+    const signal = snap.data()?.adminSignal;
+    if (!signal || !signal.sentAt) return;
+    const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+    if (Date.now() - sentAt.getTime() > 5000) return;
+    if (signal.type === 'warning' || signal.type === 'broadcast') {
+      showAdminWarning(signal.message);
+    }
+    if (signal.type === 'force_end') {
+      // Xử lý khi admin kết thúc bài thi
+      showAdminWarning(signal.message);
+    }
+    presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
+  }, err => console.warn('Signal watch lỗi:', err.code));
+
+  window.addEventListener('beforeunload', () => {
+    if (_signalUnsub) _signalUnsub();
+    if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true }).catch(()=>{});
+  });
+}
 // Lấy session token hiện tại của tab này
 const _mySessionToken = localStorage.getItem('sessionToken') || '';
 
