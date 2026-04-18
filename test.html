@@ -1323,7 +1323,80 @@
     renderQuestion(0);
     buildQmap();
   }
+  // Thêm vào test.html
 
+// ================================================================
+// CỐ ĐỊNH ĐỀ THI CHO KHÁCH - mỗi bộ đề có 1 đề cố định cho khách
+// ================================================================
+const GUEST_FIXED_SEED = 'GUEST_FIXED_2024'; // seed cố định
+
+function getFixedQuestionIndices(questions, count, setCode) {
+  // Tạo seed từ setCode + seed cố định để luôn ra cùng 1 bộ câu hỏi
+  const seed = hashSeed(GUEST_FIXED_SEED + setCode);
+  const shuffled = seededShuffle([...questions], seed);
+  return shuffled.slice(0, count);
+}
+
+function hashSeed(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededShuffle(array, seed) {
+  // Fisher-Yates với seed cố định
+  let m = array.length, t, i;
+  let s = seed;
+  function seededRandom() {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  }
+  while (m) {
+    i = Math.floor(seededRandom() * m--);
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+  return array;
+}
+
+// Cập nhật hàm loadQuestionsForExam để sử dụng đề cố định cho khách
+async function loadQuestionsForExam(set) {
+  const setCode = set.id || set.code;
+  const totalNeeded = set.totalQuestions || set.questionCount || 25;
+  
+  try {
+    const snap = await db.collection('questions')
+      .where('setCode', '==', setCode)
+      .get();
+    
+    let allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    if (IS_GUEST) {
+      // Khách: dùng đề cố định (luôn ra cùng 1 bộ câu hỏi)
+      return getFixedQuestionIndices(allQuestions, totalNeeded, setCode);
+    } else {
+      // Học viên: xáo trộn ngẫu nhiên mỗi lần
+      return randomShuffle(allQuestions).slice(0, totalNeeded);
+    }
+  } catch(e) {
+    console.error('Lỗi tải câu hỏi:', e);
+    throw e;
+  }
+}
+
+function randomShuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
   // ── Render câu hỏi ──────────────────────────────────────────────
   function renderQuestion(idx) {
     currentIdx = idx;
