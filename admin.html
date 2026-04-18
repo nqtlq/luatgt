@@ -778,7 +778,12 @@ const LIVE_MONITOR_CSS = `
                 <span class="menu-text">Giám sát online</span> 
                 <span id="sidebarOnlineBadge" style="display:none;margin-left:auto;background:var(--danger);color:white;font-size:10px;font-weight:700;padding:1px 6px;border
 radius:10px;">0</span> 
-            </button> 
+            </button>
+            <button onclick="showPage('exam_rooms',this)">
+                 <span class="menu-icon">🏛</span>
+                 <span class="menu-text">Phòng thi online</span>
+                 <span id="sidebarRoomBadge" style="display:none;margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;">0</span>
+            </button>
             <button onclick="showPage('system',this)"> 
                 <span class="menu-icon">⚙</span> 
                 <span class="menu-text">Hệ thống</span> 
@@ -1001,7 +1006,166 @@ style="width:200px">Điểm</th><th style="width:auto">Kết quả</th></tr></th
             <span id="onlineDetailTableBody" style="display:none;"></span> 
             <span id="onlineDetailPagination" style="display:none;"></span> 
         </div> 
-        <!-- KẾT THÚC ONLINE DETAIL --> 
+       <!-- THÊM VÀO PHẦN MAIN CỦA admin.html - sau trang online_detail -->
+
+<!-- ========== PHÒNG THI ONLINE ========== -->
+<div class="page" id="exam_rooms">
+  <div class="page-header">
+    <h2>🏛 Quản lý phòng thi online</h2>
+    <button class="btn btn-primary" onclick="openCreateRoomModal()">＋ Tạo phòng thi</button>
+  </div>
+
+  <!-- Thống kê phòng thi -->
+  <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px;">
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-number" id="roomTotalCount" style="color:var(--accent)">0</div>
+        <div class="stat-label">Tổng phòng thi</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-number" id="roomActiveCount" style="color:var(--success)">0</div>
+        <div class="stat-label">Đang mở</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-number" id="roomWaitingCount" style="color:var(--warning)">0</div>
+        <div class="stat-label">Chờ khai mạc</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-number" id="roomClosedCount" style="color:var(--text-muted)">0</div>
+        <div class="stat-label">Đã đóng</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danh sách phòng thi -->
+  <div class="card">
+    <div class="toolbar" style="margin-bottom:12px;">
+      <input type="text" id="roomSearch" placeholder="🔍 Tìm phòng thi..." oninput="filterRooms()" style="flex:1;min-width:200px;">
+      <select id="roomFilterStatus" onchange="filterRooms()">
+        <option value="">-- Tất cả trạng thái --</option>
+        <option value="waiting">Chờ khai mạc</option>
+        <option value="active">Đang mở</option>
+        <option value="closed">Đã đóng</option>
+      </select>
+    </div>
+    <div class="table-wrapper">
+      <table id="roomTable">
+        <thead>
+          <tr>
+            <th style="width:50px">STT</th>
+            <th style="width:180px">Tên phòng</th>
+            <th style="width:150px">Bộ đề thi</th>
+            <th style="width:150px">Đối tượng</th>
+            <th style="width:160px">Thời gian bắt đầu</th>
+            <th style="width:120px">Vào muộn</th>
+            <th style="width:100px">Tham gia</th>
+            <th style="width:100px">Trạng thái</th>
+            <th style="width:auto">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="roomTableBody">
+          <tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Đang tải...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="roomPagination" class="pagination" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- Kết quả phòng thi -->
+  <div class="box" style="margin-top:20px;" id="roomResultsSection" style="display:none;">
+    <h3 id="roomResultsTitle">📊 Kết quả phòng thi</h3>
+    <div id="roomResultsContent"></div>
+  </div>
+</div>
+
+<!-- MODAL TẠO PHÒNG THI -->
+<div class="modal show" id="createRoomModal" style="display:none;">
+  <div class="modal-content" style="max-width:680px;">
+    <div class="modal-header">
+      <h3>🏛 Tạo phòng thi online</h3>
+      <button class="close-btn" onclick="closeModal('createRoomModal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label style="font-weight:700;">📋 Tên phòng thi *</label>
+      <input type="text" id="roomName" placeholder="VD: Phòng thi Mô tô - Kỳ thi tháng 1/2025">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label style="font-weight:700;">📚 Bộ đề thi *</label>
+        <select id="roomSetCode">
+          <option value="">-- Chọn bộ đề thi --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="font-weight:700;">⏱ Thời gian làm bài (phút)</label>
+        <input type="number" id="roomDuration" min="1" max="180" value="19" placeholder="Mặc định theo bộ đề">
+        <small style="color:var(--text-muted)">Để trống = dùng thời gian của bộ đề</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label style="font-weight:700;">👥 Đối tượng tham gia *</label>
+      <select id="roomTargetType" onchange="toggleRoomTarget()">
+        <option value="all">Tất cả học viên</option>
+        <option value="object">Theo đối tượng</option>
+        <option value="course">Theo khóa học</option>
+        <option value="specific">Chọn học viên cụ thể</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="roomTargetDetailGroup" style="display:none;">
+      <label id="roomTargetDetailLabel" style="font-weight:700;">Chi tiết</label>
+      <div id="roomTargetDetail">
+        <!-- Sẽ được render tùy loại -->
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label style="font-weight:700;">📅 Thời gian bắt đầu mở phòng *</label>
+        <input type="datetime-local" id="roomStartTime">
+      </div>
+      <div class="form-group">
+        <label style="font-weight:700;">⏰ Cho vào muộn tối đa (phút)</label>
+        <input type="number" id="roomLateEntry" min="0" max="60" value="0" placeholder="0 = không cho vào muộn">
+        <small style="color:var(--text-muted)">Sau khi phòng mở, HV có thể vào trong khoảng này</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label style="font-weight:700;">📝 Ghi chú / Mô tả phòng thi</label>
+      <textarea id="roomNote" rows="3" placeholder="Ghi chú cho học viên..."></textarea>
+    </div>
+
+    <div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;">
+      ⚠ <b>Lưu ý:</b> Khi hết thời gian làm bài, phòng sẽ tự động đóng và tất cả bài làm sẽ được nộp tự động. Học viên không thể vào phòng sau khi phòng đóng.
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal('createRoomModal')" style="flex:1;">Hủy</button>
+      <button class="btn btn-primary" onclick="saveRoom()" style="flex:2;padding:12px;font-size:15px;font-weight:700;">🏛 Tạo phòng thi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL XEM CHI TIẾT PHÒNG THI -->
+<div class="modal" id="roomDetailModal">
+  <div class="modal-content" style="max-width:900px;">
+    <div class="modal-header">
+      <h3 id="roomDetailTitle">Chi tiết phòng thi</h3>
+      <button class="close-btn" onclick="closeModal('roomDetailModal')">✕</button>
+    </div>
+    <div id="roomDetailContent"></div>
+  </div>
+</div>
  
         <!-- ========== STUDENTS PAGE ========== --> 
         <div class="page" id="students"> 
@@ -2321,9 +2485,7 @@ items:center;">
       <button class="btn btn-success" id="importBtn" onclick="processExcelImport()">      Nhập</button> 
     </div> 
   </div> 
-</div> 
- 
-<!-- BẮT ĐẦU PASTE TỪ ĐÂY TRỞ XUỐNG --> 
+</div>  
  
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script> 
 // ========================================== 
@@ -2730,7 +2892,8 @@ function showPage(id, btn) {
         case 'online_detail': 
             renderOnlineDetailPage(); 
             startLiveExamMonitor(); 
-            break; 
+            break;
+        case 'exam_rooms': loadExamRooms(); break;
     } 
 } 
  
@@ -6791,6 +6954,470 @@ function formatSeconds(sec) {
     const s = sec % 60; 
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; 
 } 
+// ==========================================
+// QUẢN LÝ PHÒNG THI ONLINE
+// ==========================================
+let allRooms = [];
+let filteredRooms = [];
+let roomCurrentPage = 1;
+const roomPerPage = 10;
+let roomListeners = new Map(); // Lưu listeners cho từng phòng
+
+// Load danh sách phòng thi
+async function loadExamRooms() {
+  try {
+    const snap = await db.collection('examRooms').orderBy('createdAt', 'desc').get();
+    allRooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updateRoomStats();
+    filterRooms();
+    startRoomAutoClose(); // Tự động đóng phòng khi hết giờ
+  } catch(e) {
+    console.warn('Lỗi load phòng thi:', e.message);
+  }
+}
+
+function updateRoomStats() {
+  const now = new Date();
+  let active = 0, waiting = 0, closed = 0;
+  allRooms.forEach(r => {
+    const status = getRoomStatus(r, now);
+    if (status === 'active') active++;
+    else if (status === 'waiting') waiting++;
+    else closed++;
+  });
+  safeSet('roomTotalCount', allRooms.length);
+  safeSet('roomActiveCount', active);
+  safeSet('roomWaitingCount', waiting);
+  safeSet('roomClosedCount', closed);
+}
+
+function getRoomStatus(room, now = new Date()) {
+  if (room.status === 'closed') return 'closed';
+  const startTime = room.startTime?.toDate ? room.startTime.toDate() : new Date(room.startTime);
+  const duration = room.duration || 19; // phút
+  const lateEntry = room.lateEntry || 0; // phút
+  const endTime = new Date(startTime.getTime() + (duration + lateEntry) * 60000);
+  
+  if (now < startTime) return 'waiting';
+  if (now >= startTime && now <= endTime) return 'active';
+  return 'closed'; // Quá giờ
+}
+
+function filterRooms() {
+  const search = (document.getElementById('roomSearch')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('roomFilterStatus')?.value || '';
+  const now = new Date();
+  
+  filteredRooms = allRooms.filter(r => {
+    const status = getRoomStatus(r, now);
+    if (statusFilter && status !== statusFilter) return false;
+    if (search && !r.name?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  roomCurrentPage = 1;
+  renderRoomTable();
+}
+
+function renderRoomTable() {
+  const tb = document.getElementById('roomTableBody');
+  if (!tb) return;
+  const now = new Date();
+  const start = (roomCurrentPage - 1) * roomPerPage;
+  const page = filteredRooms.slice(start, start + roomPerPage);
+  
+  if (!page.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Chưa có phòng thi nào</td></tr>';
+    document.getElementById('roomPagination').innerHTML = '';
+    return;
+  }
+  
+  tb.innerHTML = page.map((r, i) => {
+    const status = getRoomStatus(r, now);
+    const startTime = r.startTime?.toDate ? r.startTime.toDate() : new Date(r.startTime);
+    const statusBadge = status === 'active' 
+      ? '<span class="status-badge status-active">● Đang mở</span>'
+      : status === 'waiting'
+        ? '<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">⏳ Chờ</span>'
+        : '<span class="status-badge status-locked">● Đã đóng</span>';
+    
+    const targetText = r.targetType === 'all' ? 'Tất cả' 
+      : r.targetType === 'object' ? r.targetDetail
+      : r.targetType === 'course' ? 'Khóa: ' + r.targetDetail
+      : 'Cụ thể (' + (r.specificStudents?.length || 0) + ' HV)';
+    
+    return `<tr>
+      <td>${start + i + 1}</td>
+      <td style="text-align:left;font-weight:600;">${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.setName || r.setCode || '—')}</td>
+      <td>${escapeHtml(targetText)}</td>
+      <td>${formatDateTime(r.startTime)}</td>
+      <td>${r.lateEntry > 0 ? r.lateEntry + ' phút' : 'Không'}</td>
+      <td><b style="color:var(--accent)">${r.registeredCount || 0}</b></td>
+      <td>${statusBadge}</td>
+      <td>
+        <button class="btn btn-info btn-sm" onclick="viewRoomDetail('${r.id}')">👁 Chi tiết</button>
+        ${status !== 'closed' ? `<button class="btn btn-danger btn-sm" onclick="closeRoom('${r.id}')">⏹ Đóng</button>` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="deleteRoom('${r.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredRooms.length / roomPerPage);
+  const p = document.getElementById('roomPagination');
+  if (totalPages <= 1) { p.innerHTML = `<span class="page-info">Tổng: ${filteredRooms.length}</span>`; return; }
+  let html = `<button onclick="roomCurrentPage=1;renderRoomTable()" ${roomCurrentPage===1?'disabled':''}>⟨⟨</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button onclick="roomCurrentPage=${i};renderRoomTable()" class="${i===roomCurrentPage?'active':''}">${i}</button>`;
+  }
+  html += `<button onclick="roomCurrentPage=${totalPages};renderRoomTable()" ${roomCurrentPage===totalPages?'disabled':''}>⟩⟩</button>`;
+  html += `<span class="page-info">Trang ${roomCurrentPage}/${totalPages} (${filteredRooms.length})</span>`;
+  p.innerHTML = html;
+}
+
+// Mở modal tạo phòng thi
+function openCreateRoomModal() {
+  // Reset form
+  ['roomName', 'roomNote'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('roomSetCode').value = '';
+  document.getElementById('roomTargetType').value = 'all';
+  document.getElementById('roomLateEntry').value = '0';
+  document.getElementById('roomDuration').value = '';
+  document.getElementById('roomTargetDetailGroup').style.display = 'none';
+  
+  // Set default start time = now + 1 hour
+  const defaultStart = new Date(Date.now() + 3600000);
+  const pad = x => String(x).padStart(2, '0');
+  document.getElementById('roomStartTime').value = 
+    `${defaultStart.getFullYear()}-${pad(defaultStart.getMonth()+1)}-${pad(defaultStart.getDate())}T${pad(defaultStart.getHours())}:${pad(defaultStart.getMinutes())}`;
+  
+  // Populate đề thi
+  const setSelect = document.getElementById('roomSetCode');
+  setSelect.innerHTML = '<option value="">-- Chọn bộ đề thi --</option>';
+  allQuestionSets.filter(s => s.status === 'active').forEach(s => {
+    setSelect.innerHTML += `<option value="${escapeHtml(s.code)}" data-time="${s.examTime||19}">${escapeHtml(s.name)} (${s.examTime||19} phút)</option>`;
+  });
+  
+  // Khi chọn đề, tự điền thời gian
+  setSelect.onchange = function() {
+    const opt = this.options[this.selectedIndex];
+    const time = opt.dataset.time;
+    if (time) document.getElementById('roomDuration').value = time;
+  };
+  
+  document.getElementById('createRoomModal').classList.add('show');
+}
+
+function toggleRoomTarget() {
+  const type = document.getElementById('roomTargetType').value;
+  const group = document.getElementById('roomTargetDetailGroup');
+  const detail = document.getElementById('roomTargetDetail');
+  const label = document.getElementById('roomTargetDetailLabel');
+  
+  if (type === 'all') {
+    group.style.display = 'none';
+    return;
+  }
+  
+  group.style.display = 'block';
+  
+  if (type === 'object') {
+    label.textContent = 'Đối tượng';
+    detail.innerHTML = `
+      <select id="roomObjectSelect" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+        <option value="Học viên">Học viên</option>
+        <option value="Sĩ quan">Sĩ quan</option>
+        <option value="Chuyên nghiệp">Chuyên nghiệp</option>
+        <option value="Khác">Khác</option>
+      </select>`;
+  } else if (type === 'course') {
+    label.textContent = 'Khóa học';
+    const courses = [...new Set(allStudents.map(s => s.course).filter(Boolean))];
+    detail.innerHTML = `<select id="roomCourseSelect" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+      <option value="">-- Chọn khóa --</option>
+      ${courses.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}
+    </select>`;
+  } else if (type === 'specific') {
+    label.textContent = 'Chọn học viên cụ thể';
+    detail.innerHTML = `
+      <div style="margin-bottom:8px;">
+        <input type="text" id="roomStudentSearch" placeholder="🔍 Tìm mã HV, họ tên..." oninput="filterRoomStudents()" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+      </div>
+      <div id="roomStudentList" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;">
+        ${allStudents.filter(s => s.status==='active').map(s => `
+          <label style="display:flex;align-items:center;gap:8px;padding:6px;cursor:pointer;border-bottom:1px solid var(--border-light);">
+            <input type="checkbox" class="room-student-cb" value="${escapeHtml(s.code)}">
+            <span><b>${escapeHtml(s.code)}</b> - ${escapeHtml(s.name)} (${escapeHtml(s.unit||'—')})</span>
+          </label>`).join('')}
+      </div>
+      <div id="roomSelectedCount" style="margin-top:6px;font-size:12px;color:var(--text-muted);">Đã chọn: 0 học viên</div>`;
+    
+    // Lắng nghe thay đổi checkbox
+    setTimeout(() => {
+      document.querySelectorAll('.room-student-cb').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const cnt = document.querySelectorAll('.room-student-cb:checked').length;
+          document.getElementById('roomSelectedCount').textContent = `Đã chọn: ${cnt} học viên`;
+        });
+      });
+    }, 100);
+  }
+}
+
+function filterRoomStudents() {
+  const q = document.getElementById('roomStudentSearch')?.value.toLowerCase().trim();
+  if (!q) {
+    document.querySelectorAll('#roomStudentList label').forEach(l => l.style.display = '');
+    return;
+  }
+  document.querySelectorAll('#roomStudentList label').forEach(l => {
+    const text = l.textContent.toLowerCase();
+    l.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+async function saveRoom() {
+  const name = document.getElementById('roomName').value.trim();
+  const setCode = document.getElementById('roomSetCode').value;
+  const startTimeVal = document.getElementById('roomStartTime').value;
+  const lateEntry = parseInt(document.getElementById('roomLateEntry').value) || 0;
+  const note = document.getElementById('roomNote').value.trim();
+  const targetType = document.getElementById('roomTargetType').value;
+  const durationOverride = parseInt(document.getElementById('roomDuration').value) || null;
+  
+  if (!name) return showToast('Nhập tên phòng thi!', 'error');
+  if (!setCode) return showToast('Chọn bộ đề thi!', 'error');
+  if (!startTimeVal) return showToast('Chọn thời gian bắt đầu!', 'error');
+  
+  const startTime = new Date(startTimeVal);
+  if (startTime < new Date()) return showToast('Thời gian bắt đầu phải lớn hơn hiện tại!', 'error');
+  
+  // Lấy thông tin đề thi
+  const examSet = allQuestionSets.find(s => s.code === setCode);
+  if (!examSet) return showToast('Không tìm thấy bộ đề!', 'error');
+  
+  const duration = durationOverride || examSet.examTime || 19;
+  
+  // Lấy thông tin đối tượng
+  let targetDetail = '';
+  let specificStudents = [];
+  
+  if (targetType === 'object') {
+    targetDetail = document.getElementById('roomObjectSelect')?.value || '';
+    if (!targetDetail) return showToast('Chọn đối tượng!', 'error');
+  } else if (targetType === 'course') {
+    targetDetail = document.getElementById('roomCourseSelect')?.value || '';
+    if (!targetDetail) return showToast('Chọn khóa học!', 'error');
+  } else if (targetType === 'specific') {
+    specificStudents = [...document.querySelectorAll('.room-student-cb:checked')].map(cb => cb.value);
+    if (!specificStudents.length) return showToast('Chọn ít nhất 1 học viên!', 'error');
+  }
+  
+  showLoading('Đang tạo phòng thi...');
+  try {
+    const roomData = {
+      name,
+      setCode,
+      setName: examSet.name,
+      duration,
+      lateEntry,
+      note,
+      targetType,
+      targetDetail,
+      specificStudents,
+      startTime: firebase.firestore.Timestamp.fromDate(startTime),
+      status: 'scheduled', // scheduled, active, closed
+      registeredCount: 0,
+      participants: [],
+      results: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: localStorage.getItem('adminName') || 'Admin'
+    };
+    
+    const docRef = await db.collection('examRooms').add(roomData);
+    showToast(`Tạo phòng thi thành công! ID: ${docRef.id}`, 'success');
+    closeModal('createRoomModal');
+    await loadExamRooms();
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function closeRoom(roomId) {
+  const ok = await showConfirm('Đóng phòng thi', 'Đóng phòng thi này? Tất cả bài đang làm sẽ được nộp tự động!', '⏹');
+  if (!ok) return;
+  showLoading('Đang đóng phòng...');
+  try {
+    await db.collection('examRooms').doc(roomId).update({
+      status: 'closed',
+      closedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      closedBy: 'admin'
+    });
+    // Gửi signal đến học viên đang thi trong phòng này
+    await db.collection('systemConfig').doc('roomSignal_' + roomId).set({
+      type: 'force_submit',
+      roomId,
+      sentAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Đã đóng phòng thi!', 'success');
+    await loadExamRooms();
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function deleteRoom(roomId) {
+  const ok = await showConfirm('Xóa phòng thi', 'Xóa phòng thi này cùng toàn bộ dữ liệu?', '🗑');
+  if (!ok) return;
+  showLoading('Đang xóa...');
+  try {
+    await db.collection('examRooms').doc(roomId).delete();
+    showToast('Đã xóa phòng thi!', 'success');
+    await loadExamRooms();
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function viewRoomDetail(roomId) {
+  const room = allRooms.find(r => r.id === roomId);
+  if (!room) return;
+  
+  const now = new Date();
+  const status = getRoomStatus(room, now);
+  const startTime = room.startTime?.toDate ? room.startTime.toDate() : new Date(room.startTime);
+  const endTime = new Date(startTime.getTime() + (room.duration + (room.lateEntry||0)) * 60000);
+  
+  document.getElementById('roomDetailTitle').textContent = `🏛 ${room.name}`;
+  
+  // Load kết quả phòng thi
+  let roomResults = [];
+  try {
+    const snap = await db.collection('examResults')
+      .where('roomId', '==', roomId)
+      .get();
+    roomResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    roomResults.sort((a, b) => {
+      const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+      const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+      return tb - ta;
+    });
+  } catch(e) {
+    console.warn('Lỗi load kết quả:', e);
+  }
+  
+  const passCount = roomResults.filter(r => r.passed).length;
+  const avgScore = roomResults.length > 0 
+    ? Math.round(roomResults.reduce((a, r) => a + (Number(r.score)||0), 0) / roomResults.length) 
+    : 0;
+  
+  document.getElementById('roomDetailContent').innerHTML = `
+    <!-- Thông tin phòng -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--accent)">${formatDateTime(room.startTime)}</div><div class="stat-label">Thời gian bắt đầu</div></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-number">${room.duration} phút</div><div class="stat-label">Thời gian làm bài</div></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--warning)">${room.lateEntry||0} phút</div><div class="stat-label">Cho vào muộn</div></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--success)">${roomResults.length}</div><div class="stat-label">Đã nộp bài</div></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--success)">${passCount}</div><div class="stat-label">Đạt</div></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-number" style="color:var(--danger)">${roomResults.length - passCount}</div><div class="stat-label">Không đạt</div></div></div>
+    </div>
+    
+    <!-- Bảng kết quả -->
+    <h4 style="margin-bottom:12px;">📊 Kết quả chi tiết (${roomResults.length} bài)</h4>
+    ${roomResults.length === 0 ? '<div style="text-align:center;padding:30px;color:var(--text-muted)">Chưa có kết quả nào</div>' : `
+    <div class="table-wrapper" style="max-height:400px;">
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th><th>Mã HV</th><th>Họ tên</th><th>Đúng</th><th>Tổng</th><th>Điểm</th><th>Kết quả</th><th>Nộp lúc</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${roomResults.map((r, i) => `<tr>
+            <td>${i+1}</td>
+            <td><b>${escapeHtml(r.studentCode||'')}</b></td>
+            <td style="text-align:left">${escapeHtml(r.studentName||'—')}</td>
+            <td>${r.correctCount||0}</td>
+            <td>${r.totalQuestions||0}</td>
+            <td><b>${r.score||0}</b></td>
+            <td><span class="status-badge ${r.passed?'status-active':'status-locked'}">${r.passed?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}</span></td>
+            <td style="font-size:11px">${formatDateTime(r.timestamp)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    `}
+    
+    <!-- Export kết quả -->
+    <div style="margin-top:16px;display:flex;gap:10px;">
+      <button class="btn btn-info" onclick="exportRoomResults('${roomId}')">📊 Xuất Excel kết quả</button>
+      ${status !== 'closed' ? `<button class="btn btn-danger" onclick="closeRoom('${roomId}');closeModal('roomDetailModal');">⏹ Đóng phòng thi</button>` : ''}
+    </div>
+  `;
+  
+  document.getElementById('roomDetailModal').classList.add('show');
+}
+
+function exportRoomResults(roomId) {
+  const room = allRooms.find(r => r.id === roomId);
+  if (!room) return;
+  // Xuất Excel - sẽ tải dữ liệu và xuất
+  showToast('Đang xuất kết quả phòng thi...', 'info');
+  db.collection('examResults').where('roomId', '==', roomId).get().then(snap => {
+    const results = snap.docs.map(d => d.data());
+    const data = [['STT','Mã HV','Họ tên','Đúng','Tổng','Điểm','Kết quả','Thời gian nộp']];
+    results.forEach((r, i) => {
+      data.push([i+1, r.studentCode||'', r.studentName||'', r.correctCount||0, r.totalQuestions||0, r.score||0, r.passed?'ĐẠT':'KHÔNG ĐẠT', formatDateTime(r.timestamp)]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'KetQua');
+    XLSX.writeFile(wb, `PhongThi_${room.name}_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
+    showToast('Đã xuất Excel!', 'success');
+  }).catch(e => showToast('Lỗi: ' + e.message, 'error'));
+}
+
+// Tự động đóng phòng khi hết giờ
+function startRoomAutoClose() {
+  if (window._roomAutoCloseTimer) clearInterval(window._roomAutoCloseTimer);
+  window._roomAutoCloseTimer = setInterval(async () => {
+    const now = new Date();
+    for (const room of allRooms) {
+      if (room.status === 'closed') continue;
+      const status = getRoomStatus(room, now);
+      if (status === 'closed') {
+        // Đóng phòng tự động
+        try {
+          await db.collection('examRooms').doc(room.id).update({
+            status: 'closed',
+            closedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            closedBy: 'auto'
+          });
+          room.status = 'closed';
+          showToast(`Phòng thi "${room.name}" đã tự động đóng!`, 'warning');
+        } catch(e) { console.warn('Lỗi auto close room:', e); }
+      }
+    }
+    updateRoomStats();
+    // Cập nhật badge sidebar
+    const activeRooms = allRooms.filter(r => getRoomStatus(r) === 'active').length;
+    const badge = document.getElementById('sidebarRoomBadge');
+    if (badge) {
+      if (activeRooms > 0) { badge.textContent = activeRooms; badge.style.display = 'inline-block'; }
+      else badge.style.display = 'none';
+    }
+  }, 30000); // Kiểm tra mỗi 30 giây
+}
+
+// Thêm exam_rooms vào showPage switch
+// Tìm case 'system': trong hàm showPage và thêm:
+// case 'exam_rooms': loadExamRooms(); break;
 </script> 
 </body> 
 </html> 
