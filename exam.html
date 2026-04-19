@@ -769,8 +769,41 @@ async function initPage() {
   loadNotifications();     // Tải thông báo 
   startRealtimeListeners(); // Giám sát khóa TK + bảo trì 
   startPresence();         // Ghi nhận online 
- 
-  console.log('     Trang exam sẵn sàng'); 
+   verifyAndWatchSession();
+  console.log('     Trang exam sẵn sàng');
+  // ================================================================
+// KIỂM TRA SESSION - 1 TÀI KHOẢN CHỈ ĐĂNG NHẬP 1 NƠI
+// ================================================================
+let _sessionToken = null;
+let _sessionCheckInterval = null;
+
+async function verifyAndWatchSession() {
+  const token = sessionStorage.getItem('sessionToken_' + studentCode);
+  if (!token) return; // Không có token, bỏ qua
+  
+  _sessionToken = token;
+  
+  // Kiểm tra session định kỳ
+  _sessionCheckInterval = setInterval(async () => {
+    if (isKicked) { clearInterval(_sessionCheckInterval); return; }
+    try {
+      const doc = await db.collection('sessions').doc(studentCode).get();
+      if (!doc.exists) return;
+      const serverToken = doc.data().token;
+      if (serverToken && serverToken !== _sessionToken) {
+        // Session token đã thay đổi = có người đăng nhập ở nơi khác
+        clearInterval(_sessionCheckInterval);
+        kickOut(
+          '🔒 Phiên đăng nhập kết thúc',
+          'Tài khoản của bạn vừa được đăng nhập từ thiết bị khác. Bạn sẽ bị đăng xuất.',
+          '🔒'
+        );
+      }
+    } catch(e) {
+      console.warn('Session check lỗi:', e.message);
+    }
+  }, 15000); // Kiểm tra mỗi 15 giây
+}
 } 
  
 // ===================================================================== 
@@ -1123,7 +1156,14 @@ function startPresence() {
   }; 
   heartbeat(); 
   setInterval(heartbeat, 20000); 
- 
+ // Cập nhật session heartbeat
+if (_sessionToken) {
+  try {
+    await db.collection('sessions').doc(studentCode).update({
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { /* bỏ qua */ }
+}
   // Phát hiện chuyển tab 
   document.addEventListener('visibilitychange', () => { 
     if (isKicked) return; 
