@@ -254,64 +254,6 @@ header { padding-top: env(safe-area-inset-top); }
 #container { padding-bottom: calc(24px + env(safe-area-inset-bottom)); } 
 .confirm-overlay, .modal-overlay { padding-bottom: env(safe-area-inset-bottom); } 
 .confirm-btns button, .header-actions button { touch-action: manipulation; } 
-/* ===== PHÒNG THI ONLINE ===== */
-.exam-room-item {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  background: white;
-  transition: all .2s;
-  position: relative;
-  overflow: hidden;
-}
-.exam-room-item::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-}
-.exam-room-item.status-waiting::before { background: var(--yellow); }
-.exam-room-item.status-open::before { background: var(--green); }
-.exam-room-item.status-closed::before { background: #6c757d; }
-.exam-room-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-.room-status-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 700;
-}
-.room-status-waiting { background: #fff3cd; color: #856404; }
-.room-status-open { background: #d1fae5; color: #065f46; }
-.room-status-closed { background: #f1f4f8; color: #6c757d; }
-.room-countdown {
-  font-family: 'Courier New', monospace;
-  font-weight: 800;
-  font-size: 14px;
-  color: var(--blue);
-}
-.room-countdown.urgent { color: var(--red); animation: blink 1s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
-.room-join-btn {
-  background: linear-gradient(135deg, var(--green), #1a7a6e);
-  color: white; border: none; border-radius: 10px;
-  padding: 10px 20px; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: all .2s;
-}
-.room-join-btn:hover { opacity: .9; transform: translateY(-1px); }
-.room-join-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-.room-result-btn {
-  background: linear-gradient(135deg, #457b9d, #1d3557);
-  color: white; border: none; border-radius: 10px;
-  padding: 8px 16px; font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: all .2s;
-}
-.room-result-btn:hover { opacity: .9; }
-.joined-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #d1fae5; color: #065f46;
-  padding: 4px 12px; border-radius: 20px;
-  font-size: 12px; font-weight: 700;
-}
 </style> 
 </head> 
 <body> 
@@ -499,43 +441,7 @@ header { padding-top: env(safe-area-inset-top); }
     </div> 
   </div> 
 </div> 
- <!-- PHÒNG THI ONLINE -->
-<div class="card" style="margin-top:20px;" id="examRoomsCard">
-  <div class="card-header" style="background:linear-gradient(135deg,#1d3557,#264a8a);">
-    <span>🏛️</span>
-    <h3 style="color:white;">Phòng thi Online</h3>
-    <span id="examRoomsBadge" style="background:rgba(255,255,255,0.25);color:white;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;display:none;margin-left:auto;">0</span>
-  </div>
-  <div class="card-body" id="examRoomsBody">
-    <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">
-      <div class="spinner" style="width:24px;height:24px;border-width:3px;margin:0 auto 10px;"></div>
-      Đang tải danh sách phòng thi...
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CHI TIẾT KẾT QUẢ PHÒNG THI -->
-<div class="modal-overlay" id="examRoomResultModal">
-  <div class="modal-box" style="max-width:640px;max-height:85vh;overflow-y:auto;">
-    <h3>📊 Kết quả phòng thi</h3>
-    <div id="examRoomResultContent"></div>
-    <div style="margin-top:16px;">
-      <button onclick="document.getElementById('examRoomResultModal').classList.remove('show')" style="background:#6c757d;padding:10px 20px;border-radius:8px;font-size:14px;">Đóng</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL THAM GIA PHÒNG THI -->
-<div class="modal-overlay" id="joinRoomModal">
-  <div class="modal-box" style="max-width:520px;">
-    <h3>🏛️ Tham gia phòng thi</h3>
-    <div id="joinRoomContent"></div>
-    <div class="confirm-btns" style="margin-top:16px;">
-      <button class="c-btn-cancel" onclick="document.getElementById('joinRoomModal').classList.remove('show')">← Hủy bỏ</button>
-      <button class="c-btn-confirm" id="joinRoomBtn" onclick="confirmJoinRoom()">✔ Đăng ký tham gia</button>
-    </div>
-  </div>
-</div>
+ 
 <script> 
 // ===================================================================== 
 // FIREBASE INIT — PHẢI có Auth để Firestore rules hoạt động 
@@ -771,475 +677,101 @@ function kickOut(title, message, icon) {
     if (s <= 0) { localStorage.clear(); location.href = 'index.html'; } 
   }, 1000); 
 } 
- // ================================================================
-// PHÒNG THI ONLINE
-// ================================================================
-let examRooms = [];
-let joinedRoomId = null;
-let currentJoiningRoom = null;
-let roomTimers = {};
-
-// Tải danh sách phòng thi
-function loadExamRooms() {
-  if (!db || !studentCode) return;
-  
-  db.collection('examRooms')
-    .where('status', 'in', ['waiting', 'open', 'closed'])
-    .orderBy('startTime', 'desc')
-    .limit(10)
-    .onSnapshot(snap => {
-      examRooms = [];
-      snap.forEach(d => examRooms.push({ id: d.id, ...d.data() }));
-      
-      // Lọc phòng dành cho học viên này
-      const myRooms = examRooms.filter(room => {
-        if (room.targetType === 'all') return true;
-        if (room.targetType === 'object') return room.targetValue === studentObj;
-        if (room.targetType === 'course') return room.targetValue === studentCrs;
-        if (room.targetType === 'specific') {
-          const codes = (room.targetCodes || []).map(c => c.toUpperCase());
-          return codes.includes(studentCode.toUpperCase());
-        }
-        return false;
-      });
-
-      renderExamRooms(myRooms);
-      
-      const badge = document.getElementById('examRoomsBadge');
-      const openCount = myRooms.filter(r => r.status === 'open' || r.status === 'waiting').length;
-      if (openCount > 0) {
-        badge.textContent = openCount;
-        badge.style.display = 'inline-block';
-      } else {
-        badge.style.display = 'none';
-      }
-    }, err => {
-      console.warn('Load exam rooms lỗi:', err.code);
-    });
-}
-
-function renderExamRooms(rooms) {
-  const body = document.getElementById('examRoomsBody');
-  if (!body) return;
-  
-  if (!rooms.length) {
-    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">📭 Hiện không có phòng thi nào được mở cho bạn.</div>';
-    return;
-  }
-
-  // Kiểm tra đã đăng ký phòng nào
-  const joinedRooms = JSON.parse(localStorage.getItem('joinedRooms_' + studentCode) || '[]');
-
-  body.innerHTML = rooms.map(room => {
-    const isJoined = joinedRooms.includes(room.id);
-    const startTime = room.startTime?.toDate ? room.startTime.toDate() : new Date(room.startTime);
-    const now = new Date();
-    const diffMs = startTime - now;
-    const isOpen = room.status === 'open';
-    const isWaiting = room.status === 'waiting';
-    const isClosed = room.status === 'closed';
-    
-    // Kiểm tra thời gian vào muộn
-    let canEnter = false;
-    let canEnterMsg = '';
-    if (isOpen && isJoined) {
-      canEnter = true;
-    }
-    if (isWaiting && isJoined && diffMs <= 0) {
-      canEnter = true;
-    }
-
-    const statusClass = isOpen ? 'status-open' : (isWaiting ? 'status-waiting' : 'status-closed');
-    const statusBadgeClass = isOpen ? 'room-status-open' : (isWaiting ? 'room-status-waiting' : 'room-status-closed');
-    const statusText = isOpen ? '🟢 Đang mở' : (isWaiting ? '🟡 Sắp mở' : '⚫ Đã đóng');
-
-    const timeStr = startTime.toLocaleString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-
-    // Cho phép vào muộn
-    let lateInfo = '';
-    if (room.allowLateMinutes > 0) {
-      lateInfo = `<span style="font-size:11px;color:var(--muted);">⏰ Cho vào muộn tối đa ${room.allowLateMinutes} phút</span>`;
-    }
-
-    return `
-    <div class="exam-room-item ${statusClass}" id="room_${room.id}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <div>
-          <div style="font-weight:700;font-size:15px;color:var(--blue);margin-bottom:4px;">🏛️ ${room.name || 'Phòng thi'}</div>
-          <span class="room-status-badge ${statusBadgeClass}">${statusText}</span>
-          ${isJoined ? '<span class="joined-badge" style="margin-left:6px;">✓ Đã đăng ký</span>' : ''}
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:12px;color:var(--muted);">⏱ Thời gian làm bài: <b>${room.duration || 0} phút</b></div>
-          <div style="font-size:12px;color:var(--muted);">📋 ${room.setName || room.setCode || 'Chưa xác định'}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px;">
-        <span>📅 Bắt đầu: <b>${timeStr}</b></span>
-        ${lateInfo}
-        <span id="countdown_${room.id}" class="room-countdown"></span>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
-        ${isClosed && isJoined ? `<button class="room-result-btn" onclick="viewRoomResult('${room.id}')">📊 Xem kết quả</button>` : ''}
-        ${!isClosed && !isJoined ? `<button class="room-join-btn" onclick="openJoinRoom('${room.id}')">📝 Đăng ký tham gia</button>` : ''}
-        ${!isClosed && isJoined && canEnter ? `<button class="room-join-btn" onclick="enterExamRoom('${room.id}')">▶ Vào thi ngay</button>` : ''}
-        ${!isClosed && isJoined && !canEnter && isWaiting ? `<button class="room-join-btn" style="background:#6c757d;" disabled>⏳ Chờ mở phòng</button>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  // Bắt đầu đếm ngược
-  rooms.forEach(room => startRoomCountdown(room));
-}
-
-function startRoomCountdown(room) {
-  if (roomTimers[room.id]) clearInterval(roomTimers[room.id]);
-  
-  roomTimers[room.id] = setInterval(() => {
-    const el = document.getElementById(`countdown_${room.id}`);
-    if (!el) { clearInterval(roomTimers[room.id]); return; }
-    
-    const startTime = room.startTime?.toDate ? room.startTime.toDate() : new Date(room.startTime);
-    const now = new Date();
-    const diffMs = startTime - now;
-    
-    if (room.status === 'waiting') {
-      if (diffMs <= 0) {
-        el.textContent = '🔔 Đã đến giờ!';
-        el.className = 'room-countdown urgent';
-      } else {
-        const h = Math.floor(diffMs / 3600000);
-        const m = Math.floor((diffMs % 3600000) / 60000);
-        const s = Math.floor((diffMs % 60000) / 1000);
-        el.textContent = `⏱ Còn: ${h > 0 ? h+'h ' : ''}${m}p ${s}s`;
-        el.className = diffMs < 300000 ? 'room-countdown urgent' : 'room-countdown';
-      }
-    } else if (room.status === 'open') {
-      const endTime = room.endTime?.toDate ? room.endTime.toDate() : null;
-      if (endTime) {
-        const remMs = endTime - now;
-        if (remMs <= 0) {
-          el.textContent = '⏰ Hết giờ!';
-          el.className = 'room-countdown urgent';
-          clearInterval(roomTimers[room.id]);
-        } else {
-          const m = Math.floor(remMs / 60000);
-          const s = Math.floor((remMs % 60000) / 1000);
-          el.textContent = `⏱ Còn lại: ${m}p ${s}s`;
-          el.className = remMs < 120000 ? 'room-countdown urgent' : 'room-countdown';
-        }
-      }
-    } else {
-      el.textContent = '';
-      clearInterval(roomTimers[room.id]);
-    }
-  }, 1000);
-}
-
-function openJoinRoom(roomId) {
-  const room = examRooms.find(r => r.id === roomId);
-  if (!room) return;
-  currentJoiningRoom = room;
-  
-  const startTime = room.startTime?.toDate ? room.startTime.toDate() : new Date(room.startTime);
-  const timeStr = startTime.toLocaleString('vi-VN', {
-    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-
-  document.getElementById('joinRoomContent').innerHTML = `
-    <div style="background:#f0f4ff;border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-weight:700;font-size:16px;color:var(--blue);margin-bottom:8px;">🏛️ ${room.name || 'Phòng thi'}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
-        <div>📋 <b>Đề thi:</b> ${room.setName || room.setCode || '—'}</div>
-        <div>⏱ <b>Thời gian:</b> ${room.duration || 0} phút</div>
-        <div>📅 <b>Bắt đầu:</b> ${timeStr}</div>
-        ${room.allowLateMinutes > 0 ? `<div>⏰ <b>Vào muộn tối đa:</b> ${room.allowLateMinutes} phút</div>` : ''}
-      </div>
-    </div>
-    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px;font-size:13px;line-height:1.6;">
-      <b>⚠️ Lưu ý:</b><br>
-      • Sau khi đăng ký, bạn cần vào thi đúng giờ<br>
-      • Hệ thống sẽ tự động nộp bài khi hết thời gian<br>
-      • Kết quả sẽ được lưu vào phòng thi này
-    </div>`;
-  
-  document.getElementById('joinRoomModal').classList.add('show');
-}
-
-async function confirmJoinRoom() {
-  if (!currentJoiningRoom) return;
-  const btn = document.getElementById('joinRoomBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Đang đăng ký...';
-  
-  try {
-    // Lưu vào Firestore
-    await db.collection('examRooms').doc(currentJoiningRoom.id)
-      .collection('participants').doc(studentCode).set({
-        studentCode,
-        studentName: localStorage.getItem('studentName') || '',
-        studentUnit: localStorage.getItem('studentUnit') || '',
-        registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'registered'
-      });
-    
-    // Lưu local
-    const joinedRooms = JSON.parse(localStorage.getItem('joinedRooms_' + studentCode) || '[]');
-    if (!joinedRooms.includes(currentJoiningRoom.id)) {
-      joinedRooms.push(currentJoiningRoom.id);
-      localStorage.setItem('joinedRooms_' + studentCode, JSON.stringify(joinedRooms));
-    }
-    
-    document.getElementById('joinRoomModal').classList.remove('show');
-    alert('✅ Đăng ký thành công! Hãy vào thi đúng giờ.');
-  } catch(e) {
-    alert('❌ Lỗi đăng ký: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '✔ Đăng ký tham gia';
-  }
-}
-
-function enterExamRoom(roomId) {
-  const room = examRooms.find(r => r.id === roomId);
-  if (!room) return;
-  
-  // Lưu thông tin phòng thi vào localStorage để trang exam dùng
-  localStorage.setItem('activeExamRoom', JSON.stringify({
-    roomId: room.id,
-    roomName: room.name,
-    setCode: room.setCode,
-    setName: room.setName,
-    duration: room.duration,
-    endTime: room.endTime?.toDate ? room.endTime.toDate().getTime() : null
-  }));
-  
-  location.href = 'exam_room.html';
-}
-
-async function viewRoomResult(roomId) {
-  try {
-    const snap = await db.collection('examRoomResults')
-      .where('roomId', '==', roomId)
-      .where('studentCode', '==', studentCode)
-      .limit(1).get();
-    
-    if (snap.empty) {
-      alert('Không tìm thấy kết quả bài thi của bạn.');
-      return;
-    }
-    
-    const result = snap.docs[0].data();
-    const room = examRooms.find(r => r.id === roomId);
-    const pass = result.passed;
-    
-    document.getElementById('examRoomResultContent').innerHTML = `
-      <div style="background:linear-gradient(135deg,${pass?'#2a9d8f,#1a7a6e':'#e63946,#c0392b'});color:white;padding:24px;border-radius:12px;text-align:center;margin-bottom:16px;">
-        <div style="font-size:48px;margin-bottom:8px;">${pass?'🏆':'😔'}</div>
-        <div style="font-size:24px;font-weight:800;">${pass?'ĐẠT':'KHÔNG ĐẠT'}</div>
-        <div style="font-size:36px;font-weight:900;margin:8px 0;">${result.correctCount || 0}/${result.totalQuestions || 0}</div>
-        <div style="opacity:0.85;font-size:14px;">câu đúng</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:12px;">
-        <div style="background:#f0f4ff;padding:12px;border-radius:10px;text-align:center;">
-          <div style="font-weight:700;font-size:20px;color:var(--blue);">${result.score || 0}</div>
-          <div style="color:var(--muted);font-size:11px;">Điểm số</div>
-        </div>
-        <div style="background:#f0f4ff;padding:12px;border-radius:10px;text-align:center;">
-          <div style="font-weight:700;font-size:20px;color:var(--blue);">${Math.round((result.timeUsed || 0) / 60)} phút</div>
-          <div style="color:var(--muted);font-size:11px;">Thời gian làm bài</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);text-align:center;">
-        📋 Phòng thi: <b>${room?.name || roomId}</b> | 
-        ⏰ Nộp bài: <b>${result.submittedAt?.toDate ? result.submittedAt.toDate().toLocaleString('vi-VN') : '—'}</b>
-      </div>`;
-    
-    document.getElementById('examRoomResultModal').classList.add('show');
-  } catch(e) {
-    alert('Lỗi tải kết quả: ' + e.message);
-  }
-}
+ 
 // ===================================================================== 
 // MAIN INIT — Chạy sau khi Anonymous Auth thành công 
 // ===================================================================== 
-// ================================================================
-// SESSION MANAGEMENT - Kiểm tra đăng nhập 1 nơi
-// ================================================================
-let _sessionCheckInterval = null;
-
-async function checkAndWatchSession() {
- const myToken = localStorage.getItem('sessionToken');
- if (!myToken || !studentCode) return;
+async function initPage() { 
+  const loaderMsg = document.getElementById('loaderMsg'); 
  
- // Lắng nghe realtime nếu session bị override
- try {
- const sessionRef = db.collection('sessions').doc(studentCode);
- const unsub = sessionRef.onSnapshot(snap => {
- if (!snap.exists) return;
- const data = snap.data();
- if (data.token && data.token !== myToken) {
- // Token khác → đăng nhập nơi khác
- if (!isKicked) {
- kickOut(
- '🚫 Phiên đăng nhập bị kết thúc',
- 'Tài khoản của bạn vừa được đăng nhập từ một thiết bị khác. Vì lý do bảo mật, phiên này đã bị đóng.',
- '🚫'
- );
- }
- }
- }, err => console.warn('Session watch lỗi:', err.code));
+  // ── BƯỚC 1: Anonymous Auth ──────────────────────────────────── 
+  try { 
+    loaderMsg.textContent = '          Đang xác thực...'; 
+    await ensureAuth(); 
+    console.log('     Auth sẵn sàng, UID:', auth.currentUser?.uid); 
+  } catch(e) { 
+    console.error('Auth thất bại:', e.code); 
+    if (e.code === 'auth/operation-not-allowed') { 
+      alert('    Anonymous Auth chưa được bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable'); 
+    } else { 
+      alert('     Lỗi kết nối: ' + e.message); 
+    } 
+    location.href = 'index.html'; 
+    return; 
+  } 
  
- // Lưu unsub để cleanup
- window._sessionUnsub = unsub;
- } catch(e) {
- console.warn('checkAndWatchSession lỗi:', e.code);
- }
-}
-
-// Cập nhật hàm initPage - thêm session check sau bước auth
-async function initPage() {
- const loaderMsg = document.getElementById('loaderMsg');
+  // ── BƯỚC 2: Kiểm tra bảo trì ────────────────────────────────── 
+  try { 
+    loaderMsg.textContent = '          Kiểm tra hệ thống...'; 
+    const maint = await db.collection('systemConfig').doc('maintenance').get(); 
+    if (maint.exists && maint.data().enabled) { 
+      kickOut('    Hệ thống bảo trì', 'Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.', '   '); 
+      return; 
+    } 
+  } catch(e) { 
+    console.warn('Bảo trì check lỗi:', e.code); // Không chặn 
+  } 
  
- // BƯỚC 1: Anonymous Auth
- try {
- loaderMsg.textContent = '🔐 Đang xác thực...';
- await ensureAuth();
- } catch(e) {
- console.error('Auth thất bại:', e.code);
- if (e.code === 'auth/operation-not-allowed') {
- alert('❌ Anonymous Auth chưa được bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable');
- } else {
- alert('⚠ Lỗi kết nối: ' + e.message);
- }
- location.href = 'index.html';
- return;
- }
+  // ── BƯỚC 3: Load học viên ───────────────────────────────────── 
+  loaderMsg.textContent = '      Đang tải thông tin...'; 
+  let studentData = null; 
+  try { 
+    // Tìm theo doc ID trước 
+    const docSnap = await db.collection('students').doc(studentCode).get(); 
+    if (docSnap.exists) { 
+      studentData = { id: docSnap.id, ...docSnap.data() }; 
+    } else { 
+      // Tìm theo field code 
+      const q = await db.collection('students') 
+        .where('code', '==', studentCode).limit(1).get(); 
+      if (!q.empty) studentData = { id: q.docs[0].id, ...q.docs[0].data() }; 
+    } 
+  } catch(e) { 
+    console.error('Load student lỗi:', e.code, e.message); 
+    alert('    Lỗi tải dữ liệu học viên: ' + e.message); 
+    location.href = 'index.html'; 
+    return; 
+  } 
  
- // BƯỚC 2: Kiểm tra session hợp lệ (đăng nhập 1 nơi)
- if (IS_STUDENT && studentCode) {
- loaderMsg.textContent = '🔐 Kiểm tra phiên đăng nhập...';
- const myToken = localStorage.getItem('sessionToken');
- if (myToken) {
- try {
- const sessionDoc = await db.collection('sessions').doc(studentCode).get();
- if (sessionDoc.exists) {
- const sessionData = sessionDoc.data();
- if (sessionData.token && sessionData.token !== myToken) {
- // Session bị override → kick ra
- document.getElementById('pageLoader').style.display = 'none';
- kickOut(
- '🚫 Phiên đăng nhập không hợp lệ',
- 'Tài khoản của bạn đã được đăng nhập từ thiết bị khác. Vui lòng đăng nhập lại.',
- '🚫'
- );
- return;
- }
- }
- } catch(e) {
- console.warn('Kiểm tra session lỗi:', e.code);
- }
- }
- // Bắt đầu theo dõi session realtime
- checkAndWatchSession();
- }
+  if (!studentData) { 
+    alert('    Không tìm thấy tài khoản!'); 
+    localStorage.clear(); location.href = 'index.html'; return; 
+  } 
+  if (studentData.status === 'locked') { 
+    kickOut('      Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '     '); return; 
+  } 
  
- // BƯỚC 3: Kiểm tra bảo trì
- try {
- loaderMsg.textContent = '🔍 Kiểm tra hệ thống...';
- const maint = await db.collection('systemConfig').doc('maintenance').get();
- if (maint.exists && maint.data().enabled) {
- kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
- return;
- }
- } catch(e) {
- console.warn('Bảo trì check lỗi:', e.code);
- }
+  // ── BƯỚC 4: Cập nhật UI ─────────────────────────────────────── 
+  localStorage.setItem('studentObject', studentData.object || ''); 
+  localStorage.setItem('studentCourse', studentData.course || ''); 
+  localStorage.setItem('studentName',   studentData.name   || ''); 
  
- // BƯỚC 4: Load học viên
- loaderMsg.textContent = '📋 Đang tải thông tin...';
- let studentData = null;
- try {
- const docSnap = await db.collection('students').doc(studentCode).get();
- if (docSnap.exists) {
- studentData = { id: docSnap.id, ...docSnap.data() };
- } else {
- const q = await db.collection('students').where('code', '==', studentCode).limit(1).get();
- if (!q.empty) studentData = { id: q.docs[0].id, ...q.docs[0].data() };
- }
- } catch(e) {
- console.error('Load student lỗi:', e.code, e.message);
- alert('⚠ Lỗi tải dữ liệu học viên: ' + e.message);
- location.href = 'index.html';
- return;
- }
- if (!studentData) {
- alert('❌ Không tìm thấy tài khoản!');
- localStorage.clear(); location.href = 'index.html'; return;
- }
- if (studentData.status === 'locked') {
- kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '🔒'); return;
- }
+  document.getElementById('studentName').textContent  = studentData.name || ''; 
+  document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode); 
+  document.getElementById('infoCode').textContent     = studentData.code || studentCode; 
+  document.getElementById('infoName').textContent     = studentData.name   || '—'; 
+  document.getElementById('infoUnit').textContent     = studentData.unit   || '—'; 
+  document.getElementById('infoDob').textContent      = fmtDate(studentData.dob); 
+  document.getElementById('infoObject').textContent   = studentData.object || '—'; 
+  document.getElementById('infoCourse').textContent   = studentData.course || '—'; 
  
- // BƯỚC 5: Cập nhật UI
- localStorage.setItem('studentObject', studentData.object || '');
- localStorage.setItem('studentCourse', studentData.course || '');
- localStorage.setItem('studentName', studentData.name || '');
- document.getElementById('studentName').textContent = studentData.name || '';
- document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
- document.getElementById('infoCode').textContent = studentData.code || studentCode;
- document.getElementById('infoName').textContent = studentData.name || '—';
- document.getElementById('infoUnit').textContent = studentData.unit || '—';
- document.getElementById('infoDob').textContent = fmtDate(studentData.dob);
- document.getElementById('infoObject').textContent = studentData.object || '—';
- document.getElementById('infoCourse').textContent = studentData.course || '—';
- const isActive = studentData.status !== 'locked';
- document.getElementById('infoStatus').innerHTML =
- `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">
- ${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}
- </span>`;
+  const isActive = studentData.status !== 'locked'; 
+  document.getElementById('infoStatus').innerHTML = 
+    `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}"> 
+      ${isActive ? '     Hoạt động' : '      Đã khóa'} 
+    </span>`; 
  
- // BƯỚC 6: Ẩn loader
- document.getElementById('pageLoader').style.display = 'none';
+  // ── BƯỚC 5: Ẩn loader ───────────────────────────────────────── 
+  document.getElementById('pageLoader').style.display = 'none'; 
  
- // BƯỚC 7: Load dữ liệu + listeners
- loadExamResults();
- loadNotifications();
- startRealtimeListeners();
- startPresence();
- console.log('✅ Trang exam sẵn sàng');
-}
-
-// Override doLogout để xóa session
-async function doLogout() {
- try {
- if (auth && auth.currentUser) await auth.signOut();
- } catch (_) {}
+  // ── BƯỚC 6: Load dữ liệu + listeners ───────────────────────── 
+  loadExamResults();       // Tải lịch sử bài thi 
+  loadNotifications();     // Tải thông báo 
+  startRealtimeListeners(); // Giám sát khóa TK + bảo trì 
+  startPresence();         // Ghi nhận online 
  
- // Xóa session trên Firestore
- if (studentCode) {
- try {
- await db.collection('sessions').doc(studentCode).delete();
- } catch(_) {}
- }
- 
- if (window._sessionUnsub) window._sessionUnsub();
- 
- const notifKeysToKeep = {};
- for (let i = 0; i < localStorage.length; i++) {
- const k = localStorage.key(i);
- if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
- notifKeysToKeep[k] = localStorage.getItem(k);
- }
- }
- localStorage.clear();
- Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
- location.replace('index.html');
-}
+  console.log('     Trang exam sẵn sàng'); 
+} 
  
 // ===================================================================== 
 // EXAM RESULTS + CHART — REAL-TIME với xử lý lỗi đầy đủ 
@@ -1617,7 +1149,54 @@ function startPresence() {
     } 
     presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{}); 
   }, err => console.warn('Signal watch lỗi:', err.code)); 
- 
+   // Trong hàm startPresence() của exam.html, thêm vào phần lắng nghe adminSignal:
+_signalUnsub = presenceRef.onSnapshot(snap => {
+  if (!snap.exists || isKicked) return;
+  const signal = snap.data()?.adminSignal;
+  if (!signal || !signal.sentAt) return;
+  const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
+  if (Date.now() - sentAt.getTime() > 10000) return;
+  
+  // ── XỬ LÝ TÍN HIỆU TỪ ADMIN / SESSION ──────────────────────
+  if (signal.type === 'warning' || signal.type === 'broadcast') {
+    showAdminWarning(signal.message);
+  } else if (signal.type === 'force_logout') {
+    // Bị đăng xuất do đăng nhập ở thiết bị khác
+    kickOut('⚡ Phiên đăng nhập kết thúc', 
+      'Tài khoản của bạn vừa được đăng nhập từ một thiết bị khác. Phiên này sẽ kết thúc.', 
+      '📱');
+    return;
+  } else if (signal.type === 'force_end') {
+    // Giám thị kết thúc bài thi
+    kickOut('⏹ Bài thi đã kết thúc', 
+      'Bài thi đã được kết thúc bởi giám thị.', 
+      '⏹');
+    return;
+  }
+  
+  // Xóa signal sau khi xử lý
+  presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(() => {});
+}, err => console.warn('Signal watch lỗi:', err.code));
+
+// Thêm heartbeat ghi sessionToken để verify
+const heartbeat = () => {
+  if (isKicked) return;
+  const sessionToken = localStorage.getItem('sessionToken_' + studentCode);
+  const payload = {
+    isOnline: true,
+    studentCode: studentCode,
+    studentName: localStorage.getItem('studentName') || '',
+    userType: 'student',
+    currentSection: 'Trang chủ cá nhân',
+    tabHidden: document.hidden,
+    sessionToken: sessionToken || '',
+    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+    _clientTime: Date.now(),
+  };
+  presenceRef.set(payload, { merge: true }).catch(e => {
+    if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
+  });
+};
   // Đánh dấu offline khi đóng tab 
   window.addEventListener('beforeunload', () => { 
     if (_signalUnsub) _signalUnsub(); 
