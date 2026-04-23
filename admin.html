@@ -1117,12 +1117,13 @@ const LIVE_MONITOR_CSS = `
             <thead>
               <tr>
                   <th style="width:50px">STT</th>
-                  <th style="width:200px">Mã đề</th>
-                  <th style="width:200px">TÊN ĐỀ THI</th>
-                  <th style="width:180px">Tổng số câu hỏi</th>
-                  <th style="width:150px">Số nhóm câu hỏi</th>
-                  <th style="width:180px">Thời gian</th>
-                  <th style="width:120px">Trạng thái</th>
+                  <th style="width:180px">Mã đề</th>
+                  <th style="width:180px">TÊN ĐỀ THI</th>
+                  <th style="width:120px">Số câu</th>
+                  <th style="width:80px">Nhóm</th>
+                  <th style="width:100px">Thời gian</th>
+                  <th style="width:100px">Trạng thái</th>
+                  <th style="width:100px">Đề khách</th>
                   <th style="width:auto">Thao tác</th>
               </tr>
             </thead>
@@ -2734,6 +2735,7 @@ async function loadStudentsFromDB() {
 }
 
 async function loadQuestionSetsFromDB() {
+    await loadGuestExamConfig();
     const snap = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
     allQuestionSets = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), code: doc.data().code || doc.id }));
     await refreshActualQuestionCounts();
@@ -3876,8 +3878,12 @@ function loadQuestionSets() {
         const badge = isLocked
             ? `<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','active')">● Khóa</span>`
             : `<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','locked')">● Hoạt động</span>`;
+        const isGuestSet = (s.id || s.code) === _currentGuestExamSetId;
+        const guestBadge = isGuestSet
+          ? `<span style="background:#2a9d8f;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;" onclick="setGuestExamSet('',event)" title="Bỏ đặt làm đề khách">✓ Đề khách</span>`
+          : `<button class="btn btn-sm" style="background:#e8f4fd;color:#1d3557;border:1px solid #bee3f8;font-size:11px;" onclick="setGuestExamSet('${escapeHtml(s.code)}',event)">📌 Đặt làm đề khách</button>`;
         return `
-            <tr>
+            <tr ${isGuestSet ? 'style="background:rgba(42,157,143,0.07);"' : ''}>
                 <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td style="text-align:left">${escapeHtml(s.name)}</td>
@@ -3885,6 +3891,7 @@ function loadQuestionSets() {
                 <td>${s.groups || 0}</td>
                 <td>${s.examTime || '-'} phút</td>
                 <td>${badge}</td>
+                <td>${guestBadge}</td>
                 <td>
                     <button class="btn btn-info btn-sm" onclick="showConfigPage('${escapeHtml(s.code)}')" title="Cài đặt">⚙</button>
                     <button class="btn btn-primary btn-sm" onclick="showViewQuestionsPage('${escapeHtml(s.code)}')" title="Xem câu hỏi">👁</button>
