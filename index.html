@@ -497,30 +497,42 @@ function regenerateQR() {
 // KHỞI TẠO TRANG - QUAN TRỌNG: KHÔNG TỰ ĐỘNG CHUYỂN HƯỚNG
 // ================================================================
 window.onload = async function(){
-  // ── KHÔNG tự động redirect nếu đã đăng nhập
-  // Người dùng phải đăng nhập lại mỗi lần vào trang này
-  // Chỉ clear session cũ
-  
-  // Xóa các thông tin session cũ để buộc đăng nhập lại
-  localStorage.removeItem('userType');
-  localStorage.removeItem('studentCode');
-  localStorage.removeItem('studentName');
-  localStorage.removeItem('studentUnit');
-  localStorage.removeItem('studentObject');
-  localStorage.removeItem('studentCourse');
-  localStorage.removeItem('adminName');
-  
-  // Sign out Firebase nếu đang đăng nhập
-  if (auth) {
+  // ── Kiểm tra nếu đã đăng nhập → redirect thẳng, không hỏi lại
+  const savedType = localStorage.getItem('userType');
+  const savedCode = localStorage.getItem('studentCode');
+
+  if (savedType === 'student' && savedCode) {
+    // Xác minh session token còn hợp lệ
     try {
-      const user = auth.currentUser;
-      if (user && !user.isAnonymous) {
-        // Admin đang đăng nhập → KHÔNG tự redirect, để họ đăng nhập lại
-        await auth.signOut();
+      await ensureAuth();
+      const sessDoc = await db.collection('sessions').doc(savedCode).get();
+      if (sessDoc.exists) {
+        const savedToken = localStorage.getItem('sessionToken_' + savedCode);
+        if (savedToken && sessDoc.data().token === savedToken) {
+          // Session hợp lệ → redirect về exam.html
+          location.replace('exam.html');
+          return;
+        }
       }
-    } catch(e) { console.warn('Signout error:', e); }
+    } catch(e) { console.warn('Session check:', e.message); }
+    // Session không hợp lệ → xóa và yêu cầu đăng nhập lại
+    localStorage.removeItem('userType');
+    localStorage.removeItem('studentCode');
+  } else if (savedType === 'admin') {
+    // Admin: Firebase Auth với SESSION persistence — kiểm tra user hiện tại
+    if (auth) {
+      await new Promise(resolve => {
+        const unsub = auth.onAuthStateChanged(user => {
+          unsub();
+          if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
+            location.replace('admin.html');
+          }
+          resolve();
+        });
+      });
+    }
   }
-  
+
   // Pre-auth anonymous
   ensureAuth().catch(e=>console.warn('Pre-auth:', e.code));
   
