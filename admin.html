@@ -1110,7 +1110,7 @@ const LIVE_MONITOR_CSS = `
           </button>
         </div>
       </div>
-      
+      <th>Demo</th>
       <div class="card">
         <div class="table-wrapper">
           <table>
@@ -1201,6 +1201,22 @@ const LIVE_MONITOR_CSS = `
               <div id="addSetLietFileStatus" style="font-size:12px;color:var(--success);margin-top:8px;display:none;padding:6px;background:var(--success-light);border-radius:4px;"></div>
             </div>
           </div>
+        </div>
+
+        <div style="background:rgba(255,193,7,0.06);border:2px solid #ffc107;border-radius:var(--radius);
+          padding:16px 20px;margin-bottom:20px;">
+          <div style="font-size:14px;font-weight:700;color:#856404;margin-bottom:10px;
+            display:flex;align-items:center;gap:8px;">🎯 Chế độ Thi thử Khách</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="checkbox" id="isGuestDemoCheck" style="width:17px;height:17px;">
+            <span style="font-size:14px;font-weight:600;color:#664d03;">
+              Đặt làm đề thi thử cho Khách <code style="font-size:11px;background:#fff3cd;padding:1px 6px;border-radius:4px;">guest.html</code>
+            </span>
+          </label>
+          <p style="font-size:12px;color:#856404;margin-top:8px;line-height:1.5;padding-left:27px;">
+            ⚠ Chỉ 1 đề có thể được chọn làm demo. Chọn đề này sẽ tự động bỏ chọn đề cũ.
+            Khách không cần đăng nhập, không giới hạn đề thi nhưng giới hạn 3 lần/ngày.
+          </p>
         </div>
 
         <!-- Summary -->
@@ -1716,6 +1732,26 @@ D. Đáp án D
             <div class="toolbar-filters" style="flex-wrap:wrap;gap:8px;align-items:center;">
               <input type="text" id="resultSearchStudent" placeholder="🔍 Tìm mã HV, họ tên..."
                      oninput="debounceResultFilter()" style="min-width:180px;">
+              <!-- ★ THÊM MỚI: Lọc theo học viên cụ thể -->
+              <select id="resultFilterByStudent" onchange="onStudentFilterChange()"
+                style="min-width:200px;padding:6px 10px;border:1px solid var(--border);
+                  border-radius:var(--radius-sm);font-size:13px;">
+                <option value="">👤 Tất cả học viên</option>
+              </select>
+              <button id="btnRtExamResults" onclick="toggleRtStudentResults()"
+                style="padding:6px 14px;border:2px solid #0dcaf0;border-radius:var(--radius-sm);
+                  background:white;color:#0c5460;font-size:12px;font-weight:700;cursor:pointer;
+                  display:flex;align-items:center;gap:5px;">
+                📡 Real-time: TẮT
+              </button>
+              <!-- Panel kết quả real-time của 1 học viên -->
+              <div id="rtStudentPanel" style="display:none;margin-top:10px;padding:12px 16px;
+                background:linear-gradient(135deg,#d1f0e4,#a7f3d0);border:1px solid #6ee7b7;
+                border-radius:10px;font-size:13px;color:#065f46;">
+                <b>📡 Đang lắng nghe real-time cho: <span id="rtStudentName">—</span></b>
+                <span style="float:right;cursor:pointer;opacity:.7;" onclick="stopRtStudentResults()">✕ Dừng</span>
+                <div id="rtStudentLatest" style="margin-top:6px;font-size:12px;">Chờ dữ liệu...</div>
+              </div>
               <select id="resultFilterSet" onchange="applyResultFilters()">
                 <option value="">-- Tất cả đề thi --</option>
               </select>
@@ -2168,6 +2204,38 @@ D. Đáp án D
             <p style="color:var(--danger);">Khôi phục hệ thống về trạng thái ban đầu. Tất cả dữ liệu sẽ bị xóa!</p>
             <button class="btn btn-danger btn-sm" onclick="confirmResetSystem()">♻ Reset hệ thống</button>
           </div>
+           <div class="system-card" style="grid-column: span 2;">
+            <h4 style="display:flex;align-items:center;justify-content:space-between;">
+              🔒 Phiên đăng nhập đang active
+              <span id="sessionLiveDot" style="display:inline-flex;align-items:center;gap:5px;
+                font-size:11px;font-weight:600;color:#198754;">
+                <span style="width:7px;height:7px;background:#198754;border-radius:50%;
+                  animation:pulse 1.5s infinite;"></span> LIVE
+              </span>
+            </h4>
+            <p style="margin-bottom:12px;">Danh sách tài khoản học viên đang đăng nhập. Admin có thể kick (đăng xuất ép) bất kỳ phiên nào.</p>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <button class="btn btn-info btn-sm" onclick="loadActiveSessions()">🔄 Làm mới</button>
+              <button class="btn btn-danger btn-sm" onclick="kickAllSessions()">💥 Kick tất cả</button>
+            </div>
+            <div id="sessionsTableWrap">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr style="background:var(--bg-table-head);">
+                    <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Mã HV</th>
+                    <th style="padding:9px 12px;text-align:left;">Thiết bị</th>
+                    <th style="padding:9px 12px;text-align:center;">Đăng nhập lúc</th>
+                    <th style="padding:9px 12px;text-align:center;">Hoạt động cuối</th>
+                    <th style="padding:9px 12px;text-align:center;">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="sessionsTableBody">
+                  <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Nhấn "Làm mới" để tải dữ liệu</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="system-card" style="grid-column: span 2;">
             <h4>🛠 Bảo trì hệ thống</h4>
             <p>Khi bật chế độ bảo trì, người dùng sẽ thấy trang thông báo "Hệ thống đang bảo trì, nâng cấp" thay vì trang đăng nhập. Tiêu đề trang Admin cũng sẽ hiển thị trạng thái bảo trì.</p>
@@ -2331,6 +2399,8 @@ let filteredNotifications = [];
 // Alias for backward compatibility
 Object.defineProperty(window,'allExamResults',{ get:()=>allResults, set:(v)=>{ allResults=v; } });
 let filteredResults = [];
+let rtStudentUnsub = null;
+let rtStudentActive = false;
 let resultCurrentPage = 1;
 let setCurrentPage = 1;
 const setPerPage = 5;
@@ -2752,7 +2822,34 @@ async function refreshActualQuestionCounts() {
         console.warn('Lỗi refreshActualQuestionCounts:', e.message);
     }
 }
-
+async function toggleGuestDemo(setCode, makeDemo) {
+  try {
+    // Nếu đặt làm demo → xóa demo flag của set cũ trước
+    if (makeDemo) {
+      const oldDemos = await db.collection('questionSets')
+        .where('isGuestDemo', '==', true).get();
+      const batch = db.batch();
+      oldDemos.forEach(d => batch.update(d.ref, { isGuestDemo: false }));
+      await batch.commit();
+    }
+    // Cập nhật set mới
+    const snap = await db.collection('questionSets')
+      .where('code', '==', setCode).limit(1).get();
+    if (snap.empty) {
+      // Thử tìm theo doc ID
+      await db.collection('questionSets').doc(setCode)
+        .update({ isGuestDemo: makeDemo });
+    } else {
+      await snap.docs[0].ref.update({ isGuestDemo: makeDemo });
+    }
+    showToast(makeDemo 
+      ? '✅ Đã đặt làm đề thi thử cho Khách!' 
+      : '✅ Đã bỏ đặt đề thi thử cho Khách.', 'success');
+  } catch(e) {
+    showToast('❌ Lỗi: ' + e.message, 'error');
+    console.error('toggleGuestDemo error:', e);
+  }
+}
 async function loadAllResultsFromDB(limit = 3000) {
     try {
         const snap = await db.collection('examResults').orderBy('timestamp', 'desc').limit(limit).get();
@@ -3878,12 +3975,22 @@ function loadQuestionSets() {
         const badge = isLocked
             ? `<span class="status-badge status-locked" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','active')">● Khóa</span>`
             : `<span class="status-badge status-active" style="cursor:pointer" onclick="toggleSetStatus('${escapeHtml(s.code)}','locked')">● Hoạt động</span>`;
-        const isGuestSet = (s.id || s.code) === _currentGuestExamSetId;
-        const guestBadge = isGuestSet
-          ? `<span style="background:#2a9d8f;color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;" onclick="setGuestExamSet('',event)" title="Bỏ đặt làm đề khách">✓ Đề khách</span>`
-          : `<button class="btn btn-sm" style="background:#e8f4fd;color:#1d3557;border:1px solid #bee3f8;font-size:11px;" onclick="setGuestExamSet('${escapeHtml(s.code)}',event)">📌 Đặt làm đề khách</button>`;
+
+        // ★ THÊM MỚI: Demo badge
+        const isDemo = s.isGuestDemo === true;
+        const demoBadge = isDemo
+            ? `<span title="Nhấn để bỏ đặt demo" onclick="toggleGuestDemo('${escapeHtml(s.code)}',false)"
+                style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#fff3cd;
+                  color:#856404;border:1.5px solid #ffc107;border-radius:20px;padding:3px 10px;
+                  font-size:11px;font-weight:700;">🎯 Demo</span>`
+            : `<button onclick="toggleGuestDemo('${escapeHtml(s.code)}',true)"
+                style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:3px 8px;
+                  font-size:11px;cursor:pointer;color:#6c757d;" title="Đặt làm đề thi thử Khách">
+                  + demo
+               </button>`;
+
         return `
-            <tr ${isGuestSet ? 'style="background:rgba(42,157,143,0.07);"' : ''}>
+            <tr>
                 <td>${start + i + 1}</td>
                 <td><b>${escapeHtml(s.code)}</b></td>
                 <td style="text-align:left">${escapeHtml(s.name)}</td>
@@ -3891,7 +3998,7 @@ function loadQuestionSets() {
                 <td>${s.groups || 0}</td>
                 <td>${s.examTime || '-'} phút</td>
                 <td>${badge}</td>
-                <td>${guestBadge}</td>
+                <td style="text-align:center">${demoBadge}</td>
                 <td>
                     <button class="btn btn-info btn-sm" onclick="showConfigPage('${escapeHtml(s.code)}')" title="Cài đặt">⚙</button>
                     <button class="btn btn-primary btn-sm" onclick="showViewQuestionsPage('${escapeHtml(s.code)}')" title="Xem câu hỏi">👁</button>
@@ -3928,12 +4035,126 @@ async function toggleSetStatus(code, newStatus) {
         loadQuestionSets(); loadDashboard();
     } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
 }
+async function toggleGuestDemo(setCode, makeDemo) {
+    try {
+        if (makeDemo) {
+            // Bỏ flag của đề cũ trước
+            const oldSnap = await db.collection('questionSets')
+                .where('isGuestDemo', '==', true).get();
+            if (!oldSnap.empty) {
+                const batch = db.batch();
+                oldSnap.forEach(d => batch.update(d.ref, { isGuestDemo: false }));
+                await batch.commit();
+                // Cập nhật local
+                allQuestionSets.forEach(s => { s.isGuestDemo = false; });
+            }
+        }
+        // Cập nhật set được chọn
+        await db.collection('questionSets').doc(setCode)
+            .update({ isGuestDemo: makeDemo, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        const s = allQuestionSets.find(x => x.code === setCode);
+        if (s) s.isGuestDemo = makeDemo;
+        showToast(makeDemo
+            ? '🎯 Đã đặt làm Đề thi thử cho Khách!'
+            : '✅ Đã bỏ đặt Demo.', 'success');
+        loadQuestionSets();
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+        console.error('toggleGuestDemo:', e);
+    }
+}
+let sessionListenerUnsub = null;
 
+function loadActiveSessions() {
+    const tb = document.getElementById('sessionsTableBody');
+    if (!tb) return;
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;"><div class="spinner" style="display:inline-block;width:20px;height:20px;border:3px solid #ddd;border-top-color:#0d6efd;border-radius:50%;animation:spin .7s linear infinite;"></div></td></tr>';
+
+    if (sessionListenerUnsub) { sessionListenerUnsub(); sessionListenerUnsub = null; }
+
+    sessionListenerUnsub = db.collection('sessions').onSnapshot(snap => {
+        const now = Date.now();
+        const sessions = [];
+        snap.forEach(d => {
+            const data = d.data();
+            const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
+            const loginAt   = data.loginAt?.toDate   ? data.loginAt.toDate()   : null;
+            const isActive  = (now - lastActive.getTime()) < 10 * 60 * 1000; // 10 phút
+            sessions.push({ code: d.id, ...data, lastActiveDate: lastActive, loginAtDate: loginAt, isActive });
+        });
+        sessions.sort((a, b) => b.lastActiveDate - a.lastActiveDate);
+        renderSessionsTable(sessions);
+    }, err => {
+        if (tb) tb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px;">Lỗi: ${escapeHtml(err.message)}</td></tr>`;
+        console.warn('Sessions listener error:', err);
+    });
+}
+
+function renderSessionsTable(sessions) {
+    const tb = document.getElementById('sessionsTableBody');
+    if (!tb) return;
+    const pad = x => String(x).padStart(2,'0');
+    const fmt = d => d ? `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` : '—';
+
+    if (!sessions.length) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có phiên nào đang active</td></tr>';
+        return;
+    }
+    tb.innerHTML = sessions.map(s => {
+        const stu = allStudents.find(x => x.code === s.code);
+        const name = stu ? `<b>${escapeHtml(stu.name)}</b><br><small style="color:var(--text-muted)">${escapeHtml(s.code)}</small>` : `<b>${escapeHtml(s.code)}</b>`;
+        const device = (s.deviceInfo || '').substring(0, 50) + ((s.deviceInfo||'').length > 50 ? '…' : '');
+        const activeDot = s.isActive
+            ? '<span style="color:#198754;font-weight:700;">● Active</span>'
+            : '<span style="color:#dc3545;font-weight:700;">● Hết hạn</span>';
+        return `<tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:9px 12px;">${name}<br>${activeDot}</td>
+            <td style="padding:9px 12px;font-size:11px;color:var(--text-muted);max-width:200px;word-break:break-all;">${escapeHtml(device)}</td>
+            <td style="padding:9px 12px;text-align:center;font-size:12px;">${fmt(s.loginAtDate)}</td>
+            <td style="padding:9px 12px;text-align:center;font-size:12px;">${fmt(s.lastActiveDate)}</td>
+            <td style="padding:9px 12px;text-align:center;">
+                <button class="btn btn-danger btn-sm" onclick="kickSession('${escapeHtml(s.code)}')"
+                    title="Đăng xuất ép tài khoản này">⚡ Kick</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+async function kickSession(studentCode) {
+    const stu = allStudents.find(s => s.code === studentCode);
+    const name = stu ? `${stu.name} (${studentCode})` : studentCode;
+    const ok = await showConfirm('Kick phiên đăng nhập', `Đăng xuất ép tài khoản "${name}"?\n\nHọ sẽ thấy thông báo bảo mật và bị đưa về trang đăng nhập.`, '⚡');
+    if (!ok) return;
+    try {
+        // Xóa session → client sẽ phát hiện token không khớp và tự kick
+        await db.collection('sessions').doc(studentCode).delete();
+        showToast(`✅ Đã kick phiên của ${name}`, 'success');
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+async function kickAllSessions() {
+    const ok = await showConfirm('Kick tất cả phiên', 'Đăng xuất ép TẤT CẢ học viên đang đăng nhập?\n\nHành động này không thể hoàn tác.', '💥');
+    if (!ok) return;
+    showLoading('Đang kick tất cả...');
+    try {
+        const snap = await db.collection('sessions').get();
+        const batch = db.batch();
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        showToast(`✅ Đã kick ${snap.size} phiên đăng nhập!`, 'success');
+    } catch(e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    } finally { hideLoading(); }
+}
 function showAddSetPage() {
     showPage('add_set_page');
     ['setName', 'setCode', 'setDescription'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('hasLietQuestion').checked = false;
     document.getElementById('lietNoteAdd').style.display = 'none';
+    const demoCheck = document.getElementById('isGuestDemoCheck');
+    if (demoCheck) demoCheck.checked = false;
     document.getElementById('summaryBox').style.display = 'none';
     document.getElementById('groupsContainer').innerHTML = '';
     document.getElementById('setExamType').value = currentExamType;
@@ -4021,6 +4242,17 @@ async function saveNewQuestionSet() {
     
     showLoading('Đang lưu...');
     try {
+        const isGuestDemo = document.getElementById('isGuestDemoCheck')?.checked || false;
+        if (isGuestDemo) {
+            // Bỏ flag demo của set cũ
+            const oldDemos = await db.collection('questionSets').where('isGuestDemo','==',true).get();
+            if (!oldDemos.empty) {
+                const batchDemo = db.batch();
+                oldDemos.forEach(d => batchDemo.update(d.ref, { isGuestDemo: false }));
+                await batchDemo.commit();
+                allQuestionSets.forEach(s => { s.isGuestDemo = false; });
+            }
+        }
         const setData = {
             code, name, description, examType, groups: groups.length, groupDetails: groups,
             totalQuestions: 0, examTime: 20, passScore: 0, passRequireLiet: true,
@@ -5060,7 +5292,94 @@ function renderResultsPagination() {
 }
 
 function changeResultPage(page) { resultCurrentPage = page; renderResultsTable(); }
+function onStudentFilterChange() {
+    const code = document.getElementById('resultFilterByStudent')?.value || '';
+    if (rtStudentActive && code) {
+        startRtStudentResults(code);
+    } else {
+        stopRtStudentResults();
+    }
+    applyResultFilters();
+}
 
+function toggleRtStudentResults() {
+    const code = document.getElementById('resultFilterByStudent')?.value || '';
+    if (!code) {
+        showToast('Chọn một học viên trước!', 'warning'); return;
+    }
+    if (rtStudentActive) {
+        stopRtStudentResults();
+    } else {
+        startRtStudentResults(code);
+    }
+}
+
+function startRtStudentResults(studentCode) {
+    if (rtStudentUnsub) { rtStudentUnsub(); rtStudentUnsub = null; }
+    rtStudentActive = true;
+
+    const btn = document.getElementById('btnRtExamResults');
+    if (btn) {
+        btn.textContent = '📡 Real-time: BẬT';
+        btn.style.background = '#0dcaf0';
+        btn.style.color = '#003d4d';
+    }
+    const panel = document.getElementById('rtStudentPanel');
+    const nameEl = document.getElementById('rtStudentName');
+    const latestEl = document.getElementById('rtStudentLatest');
+    const stu = allStudents.find(s => s.code === studentCode);
+    if (nameEl) nameEl.textContent = stu ? `${stu.name} (${studentCode})` : studentCode;
+    if (panel) panel.style.display = 'block';
+
+    rtStudentUnsub = db.collection('examResults')
+        .where('studentCode', '==', studentCode)
+        .orderBy('timestamp', 'desc')
+        .limit(10)
+        .onSnapshot(snap => {
+            // Cập nhật vào allExamResults
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const d = { id: change.doc.id, ...change.doc.data() };
+                    const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+                    d.timestamp = ts;
+                    d.studentName = stu?.name || d.studentName || '?';
+                    if (!allExamResults.find(r => r.id === d.id)) {
+                        allExamResults.unshift(d);
+                        allResults = allExamResults;
+                    }
+                }
+            });
+            applyResultFilters();
+
+            // Hiện kết quả mới nhất trong panel
+            const latest = snap.docs[0]?.data();
+            if (latestEl && latest) {
+                const ts = latest.timestamp?.toDate ? latest.timestamp.toDate() : new Date();
+                const pad = x => String(x).padStart(2,'0');
+                const tStr = `${pad(ts.getDate())}/${pad(ts.getMonth()+1)} ${pad(ts.getHours())}:${pad(ts.getMinutes())}:${pad(ts.getSeconds())}`;
+                latestEl.innerHTML = `Kết quả mới nhất: ${latest.correctCount||0}/${latest.totalQuestions||0}
+                     ·  ${latest.passed?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}
+                     ·  ${tStr}
+                     ·  Đề: ${latest.setName||latest.setCode||'—'}
+                     ·  Tổng: ${snap.size} lượt`;
+            } else if (latestEl) {
+                latestEl.textContent = 'Chưa có kết quả nào.';
+            }
+        }, err => {
+            console.warn('RT Student Results error:', err);
+            if (latestEl) latestEl.textContent = 'Lỗi kết nối: ' + err.message;
+        });
+    showToast(`📡 Đang lắng nghe kết quả real-time cho ${studentCode}`, 'info', 3000);
+}
+
+function stopRtStudentResults() {
+    if (rtStudentUnsub) { rtStudentUnsub(); rtStudentUnsub = null; }
+    rtStudentActive = false;
+    const btn = document.getElementById('btnRtExamResults');
+    if (btn) { btn.textContent = '📡 Real-time: TẮT'; btn.style.background = 'white'; btn.style.color = '#0c5460'; }
+    const panel = document.getElementById('rtStudentPanel');
+    if (panel) panel.style.display = 'none';
+}
 async function showExamDetail(resultId) {
     const result = allExamResults.find(r => r.id === resultId);
     if (!result) return;
@@ -6257,11 +6576,24 @@ async function loadAllExamResults() {
         allResults = results;
 
         // Điền bộ lọc đề thi
-        const setFilter = document.getElementById('resultFilterSet');
+         const setFilter = document.getElementById('resultFilterSet');
         if (setFilter) {
             const setNames = [...new Set(allResults.map(r => r.setName || r.setCode).filter(Boolean))];
             setFilter.innerHTML = '<option value="">-- Tất cả đề thi --</option>';
             setNames.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; setFilter.appendChild(o); });
+        }
+        // ★ THÊM MỚI: Populate dropdown học viên
+        const stuFilter = document.getElementById('resultFilterByStudent');
+        if (stuFilter) {
+            const students = [...new Map(allResults.map(r => [r.studentCode, r])).values()]
+                .sort((a,b) => (a.studentName||'').localeCompare(b.studentName||''));
+            stuFilter.innerHTML = '<option value="">👤 Tất cả học viên</option>';
+            students.forEach(r => {
+                const o = document.createElement('option');
+                o.value = r.studentCode || '';
+                o.textContent = `${r.studentName || '?'} (${r.studentCode || ''})`;
+                stuFilter.appendChild(o);
+            });
         }
         applyResultFilters();
         showToast(`Đã tải ${allResults.length} kết quả thi!`, 'success', 2000);
