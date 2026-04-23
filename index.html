@@ -385,6 +385,7 @@ async function createSession(studentCode) {
   try {
     await db.collection('sessions').doc(studentCode).set(sessionData);
     sessionStorage.setItem('sessionToken_' + studentCode, token);
+    localStorage.setItem('sessionToken_' + studentCode, token);
     return token;
   } catch(e) {
     console.warn('Không thể tạo session:', e.message);
@@ -497,43 +498,48 @@ function regenerateQR() {
 // KHỞI TẠO TRANG - QUAN TRỌNG: KHÔNG TỰ ĐỘNG CHUYỂN HƯỚNG
 // ================================================================
 window.onload = async function(){
-  // ── Kiểm tra nếu đã đăng nhập → redirect thẳng, không hỏi lại
-  const savedType = localStorage.getItem('userType');
-  const savedCode = localStorage.getItem('studentCode');
+  // ── Nếu đã đăng nhập → chuyển thẳng vào trang tương ứng
+  const existingType = localStorage.getItem('userType');
+  const existingCode = localStorage.getItem('studentCode');
 
-  if (savedType === 'student' && savedCode) {
-    // Xác minh session token còn hợp lệ
+  if (existingType === 'student' && existingCode) {
+    // Học viên đã đăng nhập → kiểm tra session còn hợp lệ không
     try {
       await ensureAuth();
-      const sessDoc = await db.collection('sessions').doc(savedCode).get();
-      if (sessDoc.exists) {
-        const savedToken = localStorage.getItem('sessionToken_' + savedCode);
-        if (savedToken && sessDoc.data().token === savedToken) {
-          // Session hợp lệ → redirect về exam.html
-          location.replace('exam.html');
-          return;
-        }
+      const sessionActive = await checkExistingSession(existingCode);
+      const myToken = localStorage.getItem('sessionToken_' + existingCode);
+      if (sessionActive || myToken) {
+        // Session còn hợp lệ → redirect
+        location.replace('exam.html');
+        return;
       }
-    } catch(e) { console.warn('Session check:', e.message); }
-    // Session không hợp lệ → xóa và yêu cầu đăng nhập lại
+    } catch(e) { /* Nếu lỗi → cho đăng nhập bình thường */ }
+    // Session hết hạn → xóa và cho đăng nhập lại
     localStorage.removeItem('userType');
     localStorage.removeItem('studentCode');
-  } else if (savedType === 'admin') {
-    // Admin: Firebase Auth với SESSION persistence — kiểm tra user hiện tại
+  }
+
+  if (existingType === 'admin') {
+    // Admin → kiểm tra Firebase auth còn sống không
     if (auth) {
       await new Promise(resolve => {
         const unsub = auth.onAuthStateChanged(user => {
           unsub();
           if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
             location.replace('admin.html');
+          } else {
+            localStorage.removeItem('userType');
+            localStorage.removeItem('adminName');
+            resolve();
           }
-          resolve();
         });
+        setTimeout(resolve, 3000); // Timeout fallback
       });
+      if (localStorage.getItem('userType') === 'admin') return; // Đang redirect
     }
   }
 
-  // Pre-auth anonymous
+  // Chưa đăng nhập → Pre-auth anonymous
   ensureAuth().catch(e=>console.warn('Pre-auth:', e.code));
   
   // Kiểm tra bảo trì
@@ -696,10 +702,9 @@ async function doAdminLogin(email, pass){
 // THI THỬ
 // ================================================================
 async function tryExam(){
-  try{ if(auth?.currentUser?.isAnonymous) await auth.signOut(); }catch(_){}
   if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
-  localStorage.setItem('userType','guest');
-  location.href='test.html';
+  // Khách → trang thi thử riêng (đề cố định, không lưu kết quả)
+  location.href='guest.html';
 }
 
 // ================================================================
