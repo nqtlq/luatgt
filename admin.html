@@ -1699,23 +1699,14 @@ D. Đáp án D
       </div>
     </div>
 
-   <!-- ========== RESULTS PAGE ========== -->
-<div class="page" id="results">
-  <div class="page-header">
-    <h2>🏆 Kết quả thi</h2>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <!-- Badge realtime — sẽ được thêm bởi JS, nhưng đặt placeholder ở đây -->
-      <span id="resultsRealtimeBadge" style="display:none;"></span>
-      <!-- Thời gian cập nhật cuối -->
-      <span style="font-size:12px;color:var(--text-muted);">
-        Cập nhật: <b id="resultsLastUpdate">—</b>
-      </span>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-info" onclick="exportResults()">📥 Xuất Excel</button>
-    </div>
-  </div>
+    <!-- ========== RESULTS PAGE ========== -->
+    <div class="page" id="results">
+      <div class="page-header">
+        <h2>📊 Kết quả thi</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-info" onclick="exportResults()">📊 Xuất Excel</button>
         </div>
+      </div>
       
       <!-- Bộ lọc -->
       <div class="card" style="margin-bottom:16px;">
@@ -2685,66 +2676,34 @@ function closeModal(id) {
 }
 
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const page = document.getElementById(id);
-  if (page) page.classList.add('active');
-
-  if (btn) {
-    document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  document.getElementById('sidebar')?.classList.remove('mobile-open');
-
-  // ── Dừng Results listener khi rời khỏi trang Results ──
-  if (id !== 'results' && rtResultsUnsub) {
-    stopRealtimeResults();
-  }
-
-  switch (id) {
-    case 'dashboard':
-      loadDashboard();
-      destroyCharts();
-      renderDashboardCharts();
-      break;
-
-    case 'students':
-      loadStudents();
-      break;
-
-    case 'question_sets':
-      loadQuestionSets();
-      break;
-
-    case 'results':
-      // Khởi động realtime listener thay vì one-time fetch
-      (async () => {
-        // Đảm bảo allStudents đã load để map tên
-        if (!allStudents.length) {
-          await loadStudentsFromDB();
-        }
-        await loadAllExamResults(); // Bây giờ là realtime
-      })();
-      break;
-
-    case 'notifications':
-      loadNotificationsFromDB();
-      break;
-
-    case 'stats':
-      loadStats();
-      destroyCharts();
-      renderStatsCharts();
-      break;
-
-    case 'system':
-      loadMaintenanceState();
-      break;
-
-    case 'online_detail':
-      renderOnlineDetailPage();
-      startLiveExamMonitor();
-      break;
-  }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById(id);
+    if (page) page.classList.add('active');
+    
+    if (btn) {
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    document.getElementById('sidebar')?.classList.remove('mobile-open');
+    
+    switch (id) {
+        case 'dashboard': loadDashboard(); destroyCharts(); renderDashboardCharts(); break;
+        case 'students': loadStudents(); break;
+        case 'question_sets': loadQuestionSets(); break;
+        case 'results':
+            // Tải toàn bộ kết quả khi vào tab (không lọc thời gian mặc định)
+            (async () => {
+                await loadAllExamResults();
+            })();
+            break;
+        case 'notifications': loadNotificationsFromDB(); break;
+        case 'stats': loadStats(); destroyCharts(); renderStatsCharts(); break;
+        case 'system': loadMaintenanceState(); break;
+        case 'online_detail':
+            renderOnlineDetailPage();
+            startLiveExamMonitor();
+            break;
+    }
 }
 
 function logout() {
@@ -6270,147 +6229,39 @@ async function editNotification(id) {
     document.getElementById('createNotificationModal').classList.add('show');
 }
 
-// ==========================================
-// KẾT QUẢ THI — REALTIME LISTENER
-// ==========================================
-
-let rtResultsUnsub = null; // Biến lưu unsubscribe function
-
-/**
- * Khởi động realtime listener cho trang Kết quả thi.
- * Thay thế hoàn toàn hàm loadAllExamResults() cũ (dùng .get())
- */
-function startRealtimeResults() {
-  // Nếu đã có listener đang chạy thì không khởi động lại
-  if (rtResultsUnsub) return;
-
-  showLoading('Đang kết nối realtime kết quả thi...');
-
-  rtResultsUnsub = db.collection('examResults')
-    .orderBy('timestamp', 'desc')
-    .limit(3000)
-    .onSnapshot(snap => {
-      // Map dữ liệu từ snapshot
-      allResults = snap.docs.map(d => {
-        const data = d.data();
-        const st = allStudents.find(s => s.code === data.studentCode);
-        const ts = data.timestamp?.toDate
-          ? data.timestamp.toDate()
-          : new Date(data.timestamp || Date.now());
-        return {
-          id: d.id,
-          ...data,
-          timestamp: ts,
-          studentName: st?.name || data.studentName || '?'
-        };
-      });
-
-      // Điền dropdown bộ lọc đề thi (chỉ lần đầu hoặc khi có đề mới)
-      _refreshResultSetFilter();
-
-      // Áp dụng bộ lọc hiện tại và render lại bảng
-      applyResultFilters();
-
-      // Cập nhật indicator realtime
-      updateLastUpdateTime();
-
-      // Hiện badge realtime
-      _showResultsRealtimeBadge();
-
-      hideLoading();
-    },
-    err => {
-      console.warn('RT Results error:', err.code, err.message);
-      hideLoading();
-      showToast('Lỗi kết nối realtime kết quả thi: ' + err.message, 'error');
-    });
-}
-
-/**
- * Dừng realtime listener (khi rời khỏi trang Results)
- */
-function stopRealtimeResults() {
-  if (rtResultsUnsub) {
-    rtResultsUnsub();
-    rtResultsUnsub = null;
-  }
-}
-
-/**
- * Cập nhật dropdown bộ lọc "Đề thi" khi có dữ liệu mới
- */
-function _refreshResultSetFilter() {
-  const setFilter = document.getElementById('resultFilterSet');
-  if (!setFilter) return;
-
-  // Lấy giá trị đang chọn để giữ nguyên sau khi refresh
-  const currentVal = setFilter.value;
-
-  const setNames = [...new Set(
-    allResults.map(r => r.setName || r.setCode).filter(Boolean)
-  )].sort();
-
-  setFilter.innerHTML = '<option value="">-- Tất cả đề thi --</option>';
-  setNames.forEach(n => {
-    const o = document.createElement('option');
-    o.value = n;
-    o.textContent = n;
-    setFilter.appendChild(o);
-  });
-
-  // Khôi phục giá trị đang chọn nếu vẫn còn tồn tại
-  if (currentVal && setNames.includes(currentVal)) {
-    setFilter.value = currentVal;
-  }
-}
-
-/**
- * Hiện badge "● LIVE" trên trang Results
- */
-function _showResultsRealtimeBadge() {
-  // Tìm hoặc tạo badge realtime trong page header của Results
-  let badge = document.getElementById('resultsRealtimeBadge');
-  if (!badge) {
-    const header = document.querySelector('#results .page-header');
-    if (header) {
-      badge = document.createElement('span');
-      badge.id = 'resultsRealtimeBadge';
-      badge.style.cssText = `
-        display:inline-flex;align-items:center;gap:4px;
-        font-size:11px;font-weight:700;
-        color:var(--success);
-        background:var(--success-light);
-        padding:3px 10px;border-radius:20px;
-        border:1px solid rgba(25,135,84,0.3);
-      `;
-      badge.innerHTML = `
-        <span style="width:7px;height:7px;border-radius:50%;
-          background:var(--success);animation:rtBlink 1.5s infinite;">
-        </span>
-        LIVE
-      `;
-      header.appendChild(badge);
-    }
-  }
-}
-function _updateResultsLastUpdate() {
-  const el = document.getElementById('resultsLastUpdate');
-  if (el) {
-    el.textContent = new Date().toLocaleTimeString('vi-VN', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
-  }
-}
+// Load all exam results for Results page
 async function loadAllExamResults() {
-  // Nếu listener chưa chạy thì khởi động
-  if (!rtResultsUnsub) {
-    startRealtimeResults();
-  } else {
-    // Listener đã chạy, chỉ cần render lại với dữ liệu hiện có
-    applyResultFilters();
-    hideLoading();
-    showToast(`Đang theo dõi realtime — ${allResults.length} kết quả`, 'info', 2000);
-  }
+    showLoading('Đang tải kết quả thi...');
+    try {
+        const snap = await db.collection('examResults')
+            .orderBy('timestamp', 'desc')
+            .limit(3000)
+            .get();
+
+        let results = snap.docs.map(d => {
+            const data = d.data();
+            const st = allStudents.find(s => s.code === data.studentCode);
+            const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now());
+            return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+        });
+
+        // Tải toàn bộ — bộ lọc thời gian do applyResultFilters() xử lý
+
+        allResults = results;
+
+        // Điền bộ lọc đề thi
+        const setFilter = document.getElementById('resultFilterSet');
+        if (setFilter) {
+            const setNames = [...new Set(allResults.map(r => r.setName || r.setCode).filter(Boolean))];
+            setFilter.innerHTML = '<option value="">-- Tất cả đề thi --</option>';
+            setNames.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; setFilter.appendChild(o); });
+        }
+        applyResultFilters();
+        showToast(`Đã tải ${allResults.length} kết quả thi!`, 'success', 2000);
+    } catch (e) {
+        showToast('Lỗi tải kết quả: ' + e.message, 'error');
+        console.error('loadAllExamResults error:', e);
+    } finally { hideLoading(); }
 }
 
 // Export exam results to Excel
