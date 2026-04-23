@@ -528,25 +528,49 @@ async function verifyStudentPassword(input, stored) {
 // ===================================================================== 
 // ADMIN WARNING MODAL 
 // ===================================================================== 
-function showAdminWarning(message) { 
-  let modal = document.getElementById('adminWarningModal'); 
-  if (!modal) { 
-    modal = document.createElement('div'); 
-    modal.id = 'adminWarningModal'; 
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;'; 
-    modal.innerHTML = ` 
-      <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:92%; 
-        text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);"> 
-        <div style="font-size:48px;margin-bottom:12px;">       </div> 
-        <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;font-weight:700;">Thông báo từ Giám thị</h3> 
-        <p id="adminWarningMsg" style="font-size:15px;color:#333;margin:0 0 20px;line-height:1.7;"></p> 
-        <button onclick="document.getElementById('adminWarningModal').style.display='none'" 
-          style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button> 
-      </div>`; 
-    document.body.appendChild(modal); 
-  } 
-  document.getElementById('adminWarningMsg').textContent = message; 
-  modal.style.display = 'flex'; 
+function showAdminWarning(message, critical) { 
+  // Hiển thị toast cảnh báo từ admin (exam.html - trang chủ)
+  const existingToast = document.getElementById('adminToastWarn');
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'adminToastWarn';
+  toast.style.cssText = [
+    'position:fixed;top:80px;right:20px;z-index:99999;',
+    'background:white;border-radius:16px;padding:20px 20px 16px;',
+    'max-width:380px;width:94%;',
+    'box-shadow:0 8px 32px rgba(0,0,0,0.28);',
+    'border-left:6px solid #dc3545;',
+    'animation:slideInRight .35s ease;'
+  ].join('');
+
+  const audioBeep = () => { try { const ac=new AudioContext(); const o=ac.createOscillator(); const g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.frequency.value=880; g.gain.setValueAtTime(0.5,ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.4); o.start(); o.stop(ac.currentTime+0.4); } catch(_){} };
+  audioBeep();
+
+  toast.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:28px;flex-shrink:0;animation:pulse 1s 3;">⚠️</div>
+      <div style="flex:1;">
+        <div style="font-weight:800;font-size:13px;color:#dc3545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">🎓 Thông báo từ Giám thị</div>
+        <div id="adminToastMsg" style="font-size:14px;color:#333;line-height:1.6;">${message.replace(/</g,'&lt;')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+      <button onclick="document.getElementById('adminToastWarn').remove()" 
+        style="background:#dc3545;color:white;border:none;padding:8px 22px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:700;">✓ Đã hiểu</button>
+    </div>
+  `;
+
+  // Thêm style slideInRight nếu chưa có
+  if (!document.getElementById('adminWarnStyle')) {
+    const s = document.createElement('style');
+    s.id = 'adminWarnStyle';
+    s.textContent = '@keyframes slideInRight{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}';
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(toast);
+  if (!critical) setTimeout(() => { if (toast.parentNode) toast.remove(); }, 15000);
 } 
  
 // ===================================================================== 
@@ -663,7 +687,8 @@ function kickOut(title, message, icon) {
   if (maintUnsub)      maintUnsub(); 
   if (notifUnsub)      notifUnsub(); 
   if (examResultsUnsub) examResultsUnsub(); 
-  if (_signalUnsub)    _signalUnsub(); 
+  if (_signalUnsub)    _signalUnsub();
+  if (_sessionUnsub)   _sessionUnsub(); 
   // Cập nhật offline 
   try { db.collection('presence').doc(studentCode).set({ isOnline: false }, { merge: true }); } catch(_){} 
   document.getElementById('kickoutIcon').textContent      = icon; 
@@ -769,6 +794,7 @@ async function initPage() {
   loadNotifications();     // Tải thông báo 
   startRealtimeListeners(); // Giám sát khóa TK + bảo trì 
   startPresence();         // Ghi nhận online 
+  startSessionMonitor();   // Giám sát phiên đơn (1 account = 1 thiết bị) 
  
   console.log('     Trang exam sẵn sàng'); 
 } 
@@ -1157,10 +1183,40 @@ function startPresence() {
   }); 
 } 
  
+// =====================================================================
+// SESSION MONITOR — Bảo vệ phiên đơn (kick nếu đăng nhập từ thiết bị khác)
+// =====================================================================
+function startSessionMonitor() {
+  if (!db || !studentCode) return;
+  const myToken = localStorage.getItem('sessionToken_' + studentCode);
+  if (!myToken) return;
+
+  _sessionUnsub = db.collection('sessions').doc(studentCode)
+    .onSnapshot(snap => {
+      if (isKicked || !snap.exists) return;
+      const serverToken = snap.data()?.token;
+      if (serverToken && serverToken !== myToken) {
+        // Token mới hơn → thiết bị này bị kick
+        const notifKeysToKeep = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+            notifKeysToKeep[k] = localStorage.getItem(k);
+          }
+        }
+        localStorage.clear();
+        Object.entries(notifKeysToKeep).forEach(([k,v]) => localStorage.setItem(k,v));
+        kickOut('🔐 Đăng nhập từ thiết bị khác',
+          'Tài khoản của bạn vừa được đăng nhập từ một thiết bị hoặc trình duyệt khác. Vì lý do bảo mật, phiên này đã bị kết thúc. Nếu không phải bạn, hãy đổi mật khẩu ngay.',
+          '🔐');
+      }
+    }, err => console.warn('Session monitor lỗi:', err.code));
+}
+
 // ===================================================================== 
 // KHỞI ĐỘNG 
 // ===================================================================== 
 initPage(); 
 </script> 
 </body> 
-</html> 
+</html>
