@@ -7,7 +7,10 @@
     // AUTH GUARD
     (function () {
       var ut = localStorage.getItem('userType');
-      if (ut !== 'student' && ut !== 'guest') {
+      if (ut === 'guest') {
+        // Khách → trang thi thử cố định riêng
+        location.replace('guest.html');
+      } else if (ut !== 'student') {
         localStorage.setItem('redirectAfterLogin', 'test.html');
         location.replace('index.html');
       }
@@ -1155,49 +1158,6 @@
       } else if(lb) lb.innerHTML = `<p>❌ Lỗi xác thực: ${esc(authErr.message||authErr.code)}</p>`;
       return;
     }
-
-    // ── KHÁCH: kiểm tra đề cố định từ systemConfig ──
-    if (IS_GUEST) {
-      try {
-        const cfgDoc = await db.collection('systemConfig').doc('guestExam').get();
-        if (cfgDoc.exists && cfgDoc.data().setId) {
-          const guestSetId = cfgDoc.data().setId;
-          const setDoc = await db.collection('questionSets').doc(guestSetId).get();
-          if (setDoc.exists && setDoc.data().status === 'active') {
-            const guestSet = { id: setDoc.id, ...setDoc.data() };
-            allSets = [guestSet];
-            if(lb) lb.style.display='none';
-            // Ẩn bộ chọn đề, hiển thị banner mô tả đề khách
-            document.getElementById('catTabs') && (document.getElementById('catTabs').style.display='none');
-            document.getElementById('motoSection') && (document.getElementById('motoSection').className = '');
-            document.getElementById('otoSection') && (document.getElementById('otoSection').className = '');
-            // Render thông tin đề cố định
-            const fixedBanner = document.createElement('div');
-            fixedBanner.id = 'fixedExamBanner';
-            fixedBanner.style.cssText = 'background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border-radius:16px;padding:28px 24px;margin:0 0 20px;text-align:center;';
-            fixedBanner.innerHTML = `
-              <div style="font-size:40px;margin-bottom:12px;">📝</div>
-              <h2 style="margin:0 0 8px;font-size:20px;">${esc(guestSet.name||'Đề thi thử')}</h2>
-              <p style="opacity:0.85;font-size:14px;margin:0 0 8px;">${esc(guestSet.description||'Đề thi lý thuyết giao thông đường bộ')}</p>
-              <div style="display:flex;justify-content:center;gap:20px;margin:16px 0;flex-wrap:wrap;">
-                <span style="background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;font-size:13px;">📋 ${guestSet.totalQuestions||0} câu</span>
-                <span style="background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;font-size:13px;">⏱ ${guestSet.examTime||0} phút</span>
-                <span style="background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;font-size:13px;">🎯 Đạt: ${guestSet.passScore||'—'} câu</span>
-              </div>
-              <button onclick="openSet('${guestSet.id}')" style="background:linear-gradient(135deg,#2a9d8f,#1a7a6e);color:white;border:none;padding:14px 36px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);">▶ Bắt đầu làm bài</button>
-            `;
-            // Chèn banner vào trang chọn
-            const pg = document.getElementById('pgSelect');
-            if (pg) {
-              const firstCard = pg.querySelector('.guest-banner') || pg.querySelector('.student-info-bar') || pg.firstChild;
-              pg.insertBefore(fixedBanner, firstCard ? firstCard.nextSibling : null);
-            }
-            return; // không cần load danh sách đề
-          }
-        }
-      } catch(cfgErr) { console.warn('guestExam config lỗi:', cfgErr.message); }
-    }
-
     try {
       const snap = await db.collection("questionSets").where("status","==","active").get();
       const moto=[], oto=[];
@@ -1725,48 +1685,55 @@
 
   // Admin warning modal
   function showAdminWarning(message) {
-    // Toast cảnh báo giám thị — xuất hiện ngay khi đang thi
-    const existing = document.getElementById('adminToastWarn');
-    if (existing) existing.remove();
-    const toast = document.createElement('div');
-    toast.id = 'adminToastWarn';
-
-    // Tiếng beep cảnh báo
-    try { const ac=new AudioContext(),o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.frequency.value=880; g.gain.setValueAtTime(0.5,ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.5); o.start(); o.stop(ac.currentTime+0.5); } catch(_){}
-
-    const isExamPage = document.getElementById('pgExam')?.classList.contains('active');
-    toast.style.cssText = [
-      'position:fixed;z-index:99999;',
-      isExamPage
-        ? 'top:50%;left:50%;transform:translate(-50%,-50%);'
-        : 'top:80px;right:20px;',
-      'background:white;border-radius:16px;padding:22px 22px 16px;',
-      'max-width:400px;width:94%;',
-      'box-shadow:0 8px 40px rgba(0,0,0,.35);',
-      'border-top:6px solid #dc3545;',
-      'animation:adminWarnIn .35s ease;'
-    ].join('');
-
-    if (!document.getElementById('adminWarnStyle')) {
-      const s=document.createElement('style'); s.id='adminWarnStyle';
-      s.textContent='@keyframes adminWarnIn{from{opacity:0;transform:'+(isExamPage?'translate(-50%,-60%)':'translateX(110%)')+'}to{opacity:1;transform:'+(isExamPage?'translate(-50%,-50%)':'translateX(0)')+'}}'
-      document.head.appendChild(s);
+    let modal = document.getElementById('adminWarningModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'adminWarningModal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;';
+      modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:92%;
+          text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="font-size:48px;margin-bottom:12px;">📢</div>
+        <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;font-weight:700;">Thông báo từ Giám thị</h3>
+        <p id="adminWarnMsg" style="font-size:15px;color:#333;margin:0 0 20px;line-height:1.7;"></p>
+        <button onclick="document.getElementById('adminWarningModal').style.display='none'"
+          style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button>
+      </div>`;
+      document.body.appendChild(modal);
     }
+    document.getElementById('adminWarnMsg').textContent = message;
+    modal.style.display = 'flex';
+  }
 
-    toast.innerHTML = `
-      <div style="display:flex;align-items:flex-start;gap:12px;">
-        <div style="font-size:32px;flex-shrink:0;">⚠️</div>
-        <div>
-          <div style="font-weight:800;font-size:12px;color:#dc3545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">📋 THÔNG BÁO TỪ GIÁM THỊ</div>
-          <div style="font-size:15px;color:#1d3557;line-height:1.65;font-weight:500;">${message.replace(/</g,'&lt;')}</div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-        <button onclick="document.getElementById('adminToastWarn').remove()"
-          style="background:#1d3557;color:white;border:none;padding:9px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700;">✓ Đã hiểu</button>
-      </div>
-    `;
-    document.body.appendChild(toast);
+  // ================================================================
+  // SESSION MONITOR — Phát hiện đăng nhập trùng khi thi
+  // ================================================================
+  function startTestSessionMonitor() {
+    if (!IS_STUDENT || !db || !studentCode) return;
+    const myToken = localStorage.getItem('sessionToken_' + studentCode);
+    if (!myToken) return;
+    db.collection('sessions').doc(studentCode).onSnapshot(snap => {
+      if (!snap.exists) return;
+      const serverToken = snap.data()?.token;
+      if (serverToken && serverToken !== myToken) {
+        // Kick: nếu đang thi thì nộp bài trước
+        if (examStartTime && !examSubmitted) {
+          showAdminWarning('🔒 Tài khoản của bạn đã đăng nhập từ thiết bị khác. Bài thi sẽ tự động nộp trong 5 giây.');
+          setTimeout(() => { if (!examSubmitted) submitExam(true); }, 5000);
+        } else {
+          const modal = document.getElementById('kickoutModal');
+          document.getElementById('kickoutIcon').textContent = '🔒';
+          document.getElementById('kickoutTitle').textContent = 'Phiên đăng nhập bị thay thế';
+          document.getElementById('kickoutMessage').textContent = 'Tài khoản của bạn vừa được đăng nhập từ một thiết bị khác. Phiên này đã bị kết thúc.';
+          if (modal) modal.classList.add('show');
+          let s = 5;
+          const cdEl = document.getElementById('kickoutCountdown');
+          setInterval(() => {
+            s--; if (cdEl) cdEl.textContent = s;
+            if (s <= 0) { localStorage.clear(); location.href = 'index.html'; }
+          }, 1000);
+        }
+      }
+    }, err => console.warn('Session monitor:', err.code));
   }
 
   // ================================================================
@@ -1776,35 +1743,6 @@
     try {
       await setupUI();
       await loadSets();
-      // Session monitor cho student (kick nếu đăng nhập từ thiết bị khác)
-      if (IS_STUDENT && db && studentCode) {
-        const myToken = localStorage.getItem('sessionToken_' + studentCode);
-        if (myToken) {
-          db.collection('sessions').doc(studentCode).onSnapshot(snap => {
-            if (!snap.exists) return;
-            const serverToken = snap.data()?.token;
-            if (serverToken && serverToken !== myToken) {
-              const keep = {};
-              for (let i=0; i<localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && (k.startsWith('deletedNotifIds_')||k.startsWith('readNotifIds_'))) keep[k]=localStorage.getItem(k);
-              }
-              localStorage.clear();
-              Object.entries(keep).forEach(([k,v]) => localStorage.setItem(k,v));
-              const k = document.getElementById('kickoutModal');
-              if (k) {
-                document.getElementById('kickoutIcon').textContent = '🔐';
-                document.getElementById('kickoutTitle').textContent = 'Đăng nhập từ thiết bị khác';
-                document.getElementById('kickoutMessage').textContent = 'Tài khoản vừa được đăng nhập từ thiết bị khác. Phiên này đã bị kết thúc.';
-                k.classList.add('show');
-              }
-              let s = 5;
-              const cdEl = document.getElementById('kickoutCountdown');
-              setInterval(() => { s--; if(cdEl) cdEl.textContent=s; if(s<=0) location.href='index.html'; }, 1000);
-            }
-          }, () => {});
-        }
-      }
       // Presence cho trang chọn đề (student)
       if (IS_STUDENT && db && studentCode) {
         _presenceRef = db.collection('presence').doc(studentCode);
@@ -1845,6 +1783,8 @@
             _presenceRef.set({ isOnline:false, currentSection:'Đã thoát' }, { merge:true });
         });
       }
+      // Start session monitor for students
+      if (IS_STUDENT) startTestSessionMonitor();
     } catch(e) {
       console.error("Init error:", e);
       const lb = document.getElementById("loadingBox");
