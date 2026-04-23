@@ -769,41 +769,8 @@ async function initPage() {
   loadNotifications();     // Tải thông báo 
   startRealtimeListeners(); // Giám sát khóa TK + bảo trì 
   startPresence();         // Ghi nhận online 
-   verifyAndWatchSession();
-  console.log('     Trang exam sẵn sàng');
-  // ================================================================
-// KIỂM TRA SESSION - 1 TÀI KHOẢN CHỈ ĐĂNG NHẬP 1 NƠI
-// ================================================================
-let _sessionToken = null;
-let _sessionCheckInterval = null;
-
-async function verifyAndWatchSession() {
-  const token = sessionStorage.getItem('sessionToken_' + studentCode);
-  if (!token) return; // Không có token, bỏ qua
-  
-  _sessionToken = token;
-  
-  // Kiểm tra session định kỳ
-  _sessionCheckInterval = setInterval(async () => {
-    if (isKicked) { clearInterval(_sessionCheckInterval); return; }
-    try {
-      const doc = await db.collection('sessions').doc(studentCode).get();
-      if (!doc.exists) return;
-      const serverToken = doc.data().token;
-      if (serverToken && serverToken !== _sessionToken) {
-        // Session token đã thay đổi = có người đăng nhập ở nơi khác
-        clearInterval(_sessionCheckInterval);
-        kickOut(
-          '🔒 Phiên đăng nhập kết thúc',
-          'Tài khoản của bạn vừa được đăng nhập từ thiết bị khác. Bạn sẽ bị đăng xuất.',
-          '🔒'
-        );
-      }
-    } catch(e) {
-      console.warn('Session check lỗi:', e.message);
-    }
-  }, 15000); // Kiểm tra mỗi 15 giây
-}
+ 
+  console.log('     Trang exam sẵn sàng'); 
 } 
  
 // ===================================================================== 
@@ -1156,14 +1123,7 @@ function startPresence() {
   }; 
   heartbeat(); 
   setInterval(heartbeat, 20000); 
- // Cập nhật session heartbeat
-if (_sessionToken) {
-  try {
-    await db.collection('sessions').doc(studentCode).update({
-      lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch(e) { /* bỏ qua */ }
-}
+ 
   // Phát hiện chuyển tab 
   document.addEventListener('visibilitychange', () => { 
     if (isKicked) return; 
@@ -1189,54 +1149,7 @@ if (_sessionToken) {
     } 
     presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{}); 
   }, err => console.warn('Signal watch lỗi:', err.code)); 
-   // Trong hàm startPresence() của exam.html, thêm vào phần lắng nghe adminSignal:
-_signalUnsub = presenceRef.onSnapshot(snap => {
-  if (!snap.exists || isKicked) return;
-  const signal = snap.data()?.adminSignal;
-  if (!signal || !signal.sentAt) return;
-  const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
-  if (Date.now() - sentAt.getTime() > 10000) return;
-  
-  // ── XỬ LÝ TÍN HIỆU TỪ ADMIN / SESSION ──────────────────────
-  if (signal.type === 'warning' || signal.type === 'broadcast') {
-    showAdminWarning(signal.message);
-  } else if (signal.type === 'force_logout') {
-    // Bị đăng xuất do đăng nhập ở thiết bị khác
-    kickOut('⚡ Phiên đăng nhập kết thúc', 
-      'Tài khoản của bạn vừa được đăng nhập từ một thiết bị khác. Phiên này sẽ kết thúc.', 
-      '📱');
-    return;
-  } else if (signal.type === 'force_end') {
-    // Giám thị kết thúc bài thi
-    kickOut('⏹ Bài thi đã kết thúc', 
-      'Bài thi đã được kết thúc bởi giám thị.', 
-      '⏹');
-    return;
-  }
-  
-  // Xóa signal sau khi xử lý
-  presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(() => {});
-}, err => console.warn('Signal watch lỗi:', err.code));
-
-// Thêm heartbeat ghi sessionToken để verify
-const heartbeat = () => {
-  if (isKicked) return;
-  const sessionToken = localStorage.getItem('sessionToken_' + studentCode);
-  const payload = {
-    isOnline: true,
-    studentCode: studentCode,
-    studentName: localStorage.getItem('studentName') || '',
-    userType: 'student',
-    currentSection: 'Trang chủ cá nhân',
-    tabHidden: document.hidden,
-    sessionToken: sessionToken || '',
-    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-    _clientTime: Date.now(),
-  };
-  presenceRef.set(payload, { merge: true }).catch(e => {
-    if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
-  });
-};
+ 
   // Đánh dấu offline khi đóng tab 
   window.addEventListener('beforeunload', () => { 
     if (_signalUnsub) _signalUnsub(); 
