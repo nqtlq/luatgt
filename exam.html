@@ -775,6 +775,7 @@ async function initPage() {
   localStorage.setItem('studentObject', studentData.object || ''); 
   localStorage.setItem('studentCourse', studentData.course || ''); 
   localStorage.setItem('studentName',   studentData.name   || ''); 
+  localStorage.setItem('studentUnit',   studentData.unit   || ''); // Fix: lếu đơn vị vào localStorage 
  
   document.getElementById('studentName').textContent  = studentData.name || ''; 
   document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode); 
