@@ -2772,6 +2772,17 @@ async function loadStudentsFromDB() {
     }));
 }
 
+async function loadGuestExamConfig() {
+    try {
+        const doc = await db.collection('systemConfig').doc('examConfig').get();
+        if (doc.exists) {
+            window._guestExamConfig = doc.data();
+        }
+    } catch (e) {
+        console.warn('loadGuestExamConfig (bỏ qua):', e.message);
+    }
+}
+
 async function loadQuestionSetsFromDB() {
     await loadGuestExamConfig();
     const snap = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
