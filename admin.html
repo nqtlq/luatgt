@@ -1110,7 +1110,6 @@ const LIVE_MONITOR_CSS = `
           </button>
         </div>
       </div>
-      <th>Demo</th>
       <div class="card">
         <div class="table-wrapper">
           <table>
@@ -2204,37 +2203,6 @@ D. Đáp án D
             <p style="color:var(--danger);">Khôi phục hệ thống về trạng thái ban đầu. Tất cả dữ liệu sẽ bị xóa!</p>
             <button class="btn btn-danger btn-sm" onclick="confirmResetSystem()">♻ Reset hệ thống</button>
           </div>
-           <div class="system-card" style="grid-column: span 2;">
-            <h4 style="display:flex;align-items:center;justify-content:space-between;">
-              🔒 Phiên đăng nhập đang active
-              <span id="sessionLiveDot" style="display:inline-flex;align-items:center;gap:5px;
-                font-size:11px;font-weight:600;color:#198754;">
-                <span style="width:7px;height:7px;background:#198754;border-radius:50%;
-                  animation:pulse 1.5s infinite;"></span> LIVE
-              </span>
-            </h4>
-            <p style="margin-bottom:12px;">Danh sách tài khoản học viên đang đăng nhập. Admin có thể kick (đăng xuất ép) bất kỳ phiên nào.</p>
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-              <button class="btn btn-info btn-sm" onclick="loadActiveSessions()">🔄 Làm mới</button>
-              <button class="btn btn-danger btn-sm" onclick="kickAllSessions()">💥 Kick tất cả</button>
-            </div>
-            <div id="sessionsTableWrap">
-              <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                  <tr style="background:var(--bg-table-head);">
-                    <th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Mã HV</th>
-                    <th style="padding:9px 12px;text-align:left;">Thiết bị</th>
-                    <th style="padding:9px 12px;text-align:center;">Đăng nhập lúc</th>
-                    <th style="padding:9px 12px;text-align:center;">Hoạt động cuối</th>
-                    <th style="padding:9px 12px;text-align:center;">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody id="sessionsTableBody">
-                  <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Nhấn "Làm mới" để tải dữ liệu</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
 
           <div class="system-card" style="grid-column: span 2;">
             <h4>🛠 Bảo trì hệ thống</h4>
@@ -2822,34 +2790,6 @@ async function refreshActualQuestionCounts() {
         console.warn('Lỗi refreshActualQuestionCounts:', e.message);
     }
 }
-async function toggleGuestDemo(setCode, makeDemo) {
-  try {
-    // Nếu đặt làm demo → xóa demo flag của set cũ trước
-    if (makeDemo) {
-      const oldDemos = await db.collection('questionSets')
-        .where('isGuestDemo', '==', true).get();
-      const batch = db.batch();
-      oldDemos.forEach(d => batch.update(d.ref, { isGuestDemo: false }));
-      await batch.commit();
-    }
-    // Cập nhật set mới
-    const snap = await db.collection('questionSets')
-      .where('code', '==', setCode).limit(1).get();
-    if (snap.empty) {
-      // Thử tìm theo doc ID
-      await db.collection('questionSets').doc(setCode)
-        .update({ isGuestDemo: makeDemo });
-    } else {
-      await snap.docs[0].ref.update({ isGuestDemo: makeDemo });
-    }
-    showToast(makeDemo 
-      ? '✅ Đã đặt làm đề thi thử cho Khách!' 
-      : '✅ Đã bỏ đặt đề thi thử cho Khách.', 'success');
-  } catch(e) {
-    showToast('❌ Lỗi: ' + e.message, 'error');
-    console.error('toggleGuestDemo error:', e);
-  }
-}
 async function loadAllResultsFromDB(limit = 3000) {
     try {
         const snap = await db.collection('examResults').orderBy('timestamp', 'desc').limit(limit).get();
@@ -2906,7 +2846,6 @@ async function loadActivitiesFromDB() {
 // ==========================================
 let rtExamUnsub = null;      // today's exams
 let rtAllExamUnsub = null;   // all-time stats
-let rtStudentUnsub = null;   // student counts
 let liveFeedItems = [];      // circular buffer for live feed
 
 function safeSet(id, val) {
@@ -4063,91 +4002,10 @@ async function toggleGuestDemo(setCode, makeDemo) {
         console.error('toggleGuestDemo:', e);
     }
 }
-let sessionListenerUnsub = null;
 
-function loadActiveSessions() {
-    const tb = document.getElementById('sessionsTableBody');
-    if (!tb) return;
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;"><div class="spinner" style="display:inline-block;width:20px;height:20px;border:3px solid #ddd;border-top-color:#0d6efd;border-radius:50%;animation:spin .7s linear infinite;"></div></td></tr>';
 
-    if (sessionListenerUnsub) { sessionListenerUnsub(); sessionListenerUnsub = null; }
 
-    sessionListenerUnsub = db.collection('sessions').onSnapshot(snap => {
-        const now = Date.now();
-        const sessions = [];
-        snap.forEach(d => {
-            const data = d.data();
-            const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
-            const loginAt   = data.loginAt?.toDate   ? data.loginAt.toDate()   : null;
-            const isActive  = (now - lastActive.getTime()) < 10 * 60 * 1000; // 10 phút
-            sessions.push({ code: d.id, ...data, lastActiveDate: lastActive, loginAtDate: loginAt, isActive });
-        });
-        sessions.sort((a, b) => b.lastActiveDate - a.lastActiveDate);
-        renderSessionsTable(sessions);
-    }, err => {
-        if (tb) tb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px;">Lỗi: ${escapeHtml(err.message)}</td></tr>`;
-        console.warn('Sessions listener error:', err);
-    });
-}
 
-function renderSessionsTable(sessions) {
-    const tb = document.getElementById('sessionsTableBody');
-    if (!tb) return;
-    const pad = x => String(x).padStart(2,'0');
-    const fmt = d => d ? `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` : '—';
-
-    if (!sessions.length) {
-        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có phiên nào đang active</td></tr>';
-        return;
-    }
-    tb.innerHTML = sessions.map(s => {
-        const stu = allStudents.find(x => x.code === s.code);
-        const name = stu ? `<b>${escapeHtml(stu.name)}</b><br><small style="color:var(--text-muted)">${escapeHtml(s.code)}</small>` : `<b>${escapeHtml(s.code)}</b>`;
-        const device = (s.deviceInfo || '').substring(0, 50) + ((s.deviceInfo||'').length > 50 ? '…' : '');
-        const activeDot = s.isActive
-            ? '<span style="color:#198754;font-weight:700;">● Active</span>'
-            : '<span style="color:#dc3545;font-weight:700;">● Hết hạn</span>';
-        return `<tr style="border-bottom:1px solid var(--border-light);">
-            <td style="padding:9px 12px;">${name}<br>${activeDot}</td>
-            <td style="padding:9px 12px;font-size:11px;color:var(--text-muted);max-width:200px;word-break:break-all;">${escapeHtml(device)}</td>
-            <td style="padding:9px 12px;text-align:center;font-size:12px;">${fmt(s.loginAtDate)}</td>
-            <td style="padding:9px 12px;text-align:center;font-size:12px;">${fmt(s.lastActiveDate)}</td>
-            <td style="padding:9px 12px;text-align:center;">
-                <button class="btn btn-danger btn-sm" onclick="kickSession('${escapeHtml(s.code)}')"
-                    title="Đăng xuất ép tài khoản này">⚡ Kick</button>
-            </td>
-        </tr>`;
-    }).join('');
-}
-
-async function kickSession(studentCode) {
-    const stu = allStudents.find(s => s.code === studentCode);
-    const name = stu ? `${stu.name} (${studentCode})` : studentCode;
-    const ok = await showConfirm('Kick phiên đăng nhập', `Đăng xuất ép tài khoản "${name}"?\n\nHọ sẽ thấy thông báo bảo mật và bị đưa về trang đăng nhập.`, '⚡');
-    if (!ok) return;
-    try {
-        // Xóa session → client sẽ phát hiện token không khớp và tự kick
-        await db.collection('sessions').doc(studentCode).delete();
-        showToast(`✅ Đã kick phiên của ${name}`, 'success');
-    } catch(e) {
-        showToast('Lỗi: ' + e.message, 'error');
-    }
-}
-
-async function kickAllSessions() {
-    const ok = await showConfirm('Kick tất cả phiên', 'Đăng xuất ép TẤT CẢ học viên đang đăng nhập?\n\nHành động này không thể hoàn tác.', '💥');
-    if (!ok) return;
-    showLoading('Đang kick tất cả...');
-    try {
-        const snap = await db.collection('sessions').get();
-        const batch = db.batch();
-        snap.forEach(d => batch.delete(d.ref));
-        await batch.commit();
-        showToast(`✅ Đã kick ${snap.size} phiên đăng nhập!`, 'success');
-    } catch(e) {
-        showToast('Lỗi: ' + e.message, 'error');
-    } finally { hideLoading(); }
-}
 function showAddSetPage() {
     showPage('add_set_page');
     ['setName', 'setCode', 'setDescription'].forEach(id => document.getElementById(id).value = '');
@@ -4257,6 +4115,7 @@ async function saveNewQuestionSet() {
             code, name, description, examType, groups: groups.length, groupDetails: groups,
             totalQuestions: 0, examTime: 20, passScore: 0, passRequireLiet: true,
             status: 'active', lietQuestion: hasLiet ? 1 : 0, lietCount: hasLiet ? 1 : 0,
+            isGuestDemo: isGuestDemo,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         await db.collection('questionSets').doc(code).set(setData);
