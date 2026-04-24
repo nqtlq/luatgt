@@ -1466,10 +1466,11 @@
     // Lưu kết quả lên Firestore (chỉ student)
     if (IS_STUDENT && db) {
       try {
+        // Fix 2: không dùng .limit(1) – đếm đúng tất cả lần thi trước
         const existSnap = await db.collection("examResults")
           .where("studentCode","==",studentCode)
           .where("setCode","==", set.code||set.id)
-          .orderBy("timestamp","desc").limit(1).get();
+          .get();
         const attemptNumber = existSnap.size + 1;
 
         const resultData = {
@@ -1486,6 +1487,17 @@
           timeTaken,
           attemptNumber,
           answers: userAnswers,
+          // Fix 3: lưu nội dung câu hỏi – admin detail view sẽ hiện đúng
+          questions: questions.map(q => ({
+            content:       q.content || q.question || '',
+            answers:       q.answers  || [],
+            correctAnswer: q.correctAnswer,
+            isLiet:        q.isLiet || q.isLietQuestion || q.groupIndex === -1 || false,
+            imageUrl:      q.imageUrl || null
+          })),
+          // Fix 5: lưu đối tượng + khóa học – admin có thể lọc theo
+          object: studentObj,
+          course: studentCrs,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
         await db.collection("examResults").add(resultData);
