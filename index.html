@@ -428,12 +428,15 @@ async function createSession(studentCode) {
   }
 }
 
-async function checkExistingSession(studentCode) {
+async function checkExistingSession(studentCode, myToken = null) {
   try {
     const doc = await db.collection('sessions').doc(studentCode).get();
     if (!doc.exists) return false;
     const data = doc.data();
     if (!data.token) return false;
+    // ✅ [Sửa lỗi 1] So sánh token local với token trên server
+    // Nếu token không khớp → thiết bị khác đã đăng nhập và ghi đè session
+    if (myToken && data.token !== myToken) return false;
     // Kiểm tra session có còn active không (5 phút không heartbeat = hết)
     const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
     const diff = Date.now() - lastActive.getTime();
@@ -543,16 +546,19 @@ window.onload = async function(){
       await ensureAuth();
       const myToken = localStorage.getItem('sessionToken_' + existingCode);
       if (!myToken) { throw new Error('no_token'); }
-      const sessionActive = await checkExistingSession(existingCode);
+      // ✅ [Fix 1] Truyền myToken để so sánh token local với token trên server
+      const sessionActive = await checkExistingSession(existingCode, myToken);
       if (sessionActive) {
-        // Server xác nhận session còn sống → redirect
+        // Server xác nhận session còn sống và token khớp → redirect
         location.replace('exam.html');
         return;
       }
     } catch(e) { /* Nếu lỗi → cho đăng nhập bình thường */ }
-    // Session hết hạn → xóa và cho đăng nhập lại
+    // Session hết hạn hoặc token không khớp → xóa và cho đăng nhập lại
     localStorage.removeItem('userType');
     localStorage.removeItem('studentCode');
+    // ✅ [Fix 3] Xóa luôn token cũ để tránh rác trong localStorage
+    localStorage.removeItem('sessionToken_' + existingCode);
   }
 
   if (existingType === 'admin') {
@@ -563,6 +569,8 @@ window.onload = async function(){
           unsub();
           if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
             location.replace('admin.html');
+            // ✅ [Fix 2] Gọi resolve() ngay khi redirect để không phải chờ timeout 3 giây
+            resolve();
           } else {
             localStorage.removeItem('userType');
             localStorage.removeItem('adminName');
