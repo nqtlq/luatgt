@@ -532,13 +532,17 @@ try {
 // BIẾN TOÀN CỤC 
 // ===================================================================== 
 const userType    = localStorage.getItem('userType'); 
-const studentCode = localStorage.getItem('studentCode'); 
- 
-// Kiểm tra session cơ bản trước khi vào trang 
-if (userType !== 'student' || !studentCode) { 
-  // Không còn student session → về login
-  localStorage.removeItem('userType'); 
-  location.href = 'index.html'; 
+const studentCode = localStorage.getItem('studentCode');
+// ✅ [Fix 1] Đồng bộ với index.html: kiểm tra sessionToken_ tồn tại
+const _guardToken = studentCode ? localStorage.getItem('sessionToken_' + studentCode) : null;
+
+// Kiểm tra session đầy đủ: userType + studentCode + sessionToken phải đồng thời có
+if (userType !== 'student' || !studentCode || !_guardToken) {
+  // Session không hợp lệ hoặc đã bị index.html dọn sạch → về login
+  localStorage.removeItem('userType');
+  localStorage.removeItem('studentCode');
+  if (studentCode) localStorage.removeItem('sessionToken_' + studentCode);
+  location.href = 'index.html';
 } 
  
 let chart = null, isKicked = false; 
@@ -695,10 +699,12 @@ async function doLogout() {
   // 5. Quay về trang chủ 
   location.replace('index.html'); 
 } 
-function forceKickOut(reason) { 
-  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập."); 
-  localStorage.clear(); // XÓA SẠCH DỮ LIỆU CŨ 
-  location.replace('index.html'); // ÉP QUAY VỀ 
+function forceKickOut(reason) {
+  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập.");
+  // ✅ [Fix E2] Xóa session trên Firestore (fire-and-forget) trước khi clear localStorage
+  try { if (db && studentCode) db.collection('sessions').doc(studentCode).delete(); } catch(_) {}
+  localStorage.clear();
+  location.replace('index.html');
 } 
  
 // Khối khởi tạo chính của trang 
