@@ -934,8 +934,6 @@
     }
     db   = firebase.firestore();
     auth = firebase.auth();
-    db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
-    db.enablePersistence({ synchronizeTabs: false }).catch(() => {});
   } catch (e) { console.error("Firebase init:", e); }
 
   // ================================================================
@@ -1795,58 +1793,42 @@
     document.body.style.visibility = "visible";
   });
   
-// =====================================================================
-// CANH BAO ADMIN — hiển thị cảnh báo gửi từ trang admin/phòng thi
-// =====================================================================
-(function initAdminWarnOnTest() {
-  const sc = localStorage.getItem('studentCode');
-  if (!sc || !db) return;
-  // Inject CSS inline nếu chưa có
-  if (!document.getElementById('adminWarnStyle')) {
-    const s = document.createElement('style');
-    s.id = 'adminWarnStyle';
-    s.textContent = `.aw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;
-      justify-content:center;z-index:99999;padding:20px;backdrop-filter:blur(4px);}
-      .aw-overlay.show{display:flex;}.aw-box{background:#fff;border-radius:18px;max-width:420px;width:100%;
-      overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4);}
-      .aw-hdr{background:linear-gradient(135deg,#dc3545,#a02535);padding:16px 20px;color:#fff;display:flex;align-items:center;gap:10px;}
-      .aw-hdr span{font-size:26px;}.aw-hdr h3{margin:0;font-size:16px;}
-      .aw-body{padding:18px;font-size:14px;color:#333;line-height:1.65;}
-      .aw-foot{padding:12px 18px;border-top:1px solid #e2e8f0;text-align:right;}
-      .aw-foot button{padding:9px 22px;background:#1d3557;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}`;
-    document.head.appendChild(s);
+// ─── CẢNH BÁO ADMIN (inject tự động) ────────────────────────
+(function() {
+  function waitForDB(cb, n) {
+    n = n || 0;
+    if (typeof db !== 'undefined' && db) { cb(); }
+    else if (n < 30) { setTimeout(() => waitForDB(cb, n+1), 500); }
   }
-  // Inject HTML
-  if (!document.getElementById('awOverlay')) {
-    document.body.insertAdjacentHTML('beforeend',
-      `<div class="aw-overlay" id="awOverlay">
-        <div class="aw-box">
-          <div class="aw-hdr"><span>🚨</span><h3>Cảnh báo từ hệ thống</h3></div>
-          <div class="aw-body" id="awMsg"></div>
-          <div class="aw-foot"><button onclick="document.getElementById('awOverlay').classList.remove('show')">Đã hiểu, đóng</button></div>
-        </div>
-      </div>`
-    );
-  }
-  try {
-    db.collection('adminWarnings')
-      .where('active', '==', true)
-      .orderBy('createdAt', 'desc')
-      .limit(5)
-      .onSnapshot(snap => {
-        if (snap.empty) return;
-        snap.docs.forEach(doc => {
-          const d = doc.data();
-          const targets = d.targets || ['all'];
+  waitForDB(function() {
+    const sc = localStorage.getItem('studentCode');
+    if (!sc) return;
+    if (!document.getElementById('_awStyle')) {
+      const s = document.createElement('style');
+      s.id = '_awStyle';
+      s.textContent = '._aw-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px;backdrop-filter:blur(4px)}._aw-ov.show{display:flex}._aw-bx{background:#fff;border-radius:16px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4)}._aw-hd{background:linear-gradient(135deg,#dc3545,#a02535);padding:16px 18px;color:#fff;display:flex;align-items:center;gap:10px}._aw-hd span{font-size:24px}._aw-hd h3{margin:0;font-size:15px}._aw-bd{padding:16px;font-size:14px;color:#333;line-height:1.6}._aw-ft{padding:10px 16px;border-top:1px solid #e2e8f0;text-align:right}._aw-ft button{padding:8px 20px;background:#1d3557;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}';
+      document.head.appendChild(s);
+    }
+    if (!document.getElementById('_awOverlay')) {
+      document.body.insertAdjacentHTML('beforeend',
+        '<div class="_aw-ov" id="_awOverlay"><div class="_aw-bx"><div class="_aw-hd"><span>🚨</span><h3>Cảnh báo từ hệ thống</h3></div><div class="_aw-bd" id="_awMsg"></div><div class="_aw-ft"><button onclick="document.getElementById('_awOverlay').classList.remove('show')">Đã hiểu, đóng</button></div></div></div>'
+      );
+    }
+    db.collection('adminWarnings').where('active','==',true)
+      .orderBy('createdAt','desc').limit(5)
+      .onSnapshot(function(snap) {
+        snap.docs.forEach(function(doc) {
+          var d = doc.data();
+          var targets = d.targets || ['all'];
           if (!targets.includes('all') && !targets.includes(sc)) return;
-          const key = 'aw_seen_test_' + doc.id;
+          var key = '_aw_' + doc.id;
           if (sessionStorage.getItem(key)) return;
           sessionStorage.setItem(key, '1');
-          document.getElementById('awMsg').textContent = d.message || 'Cảnh báo từ quản trị viên';
-          document.getElementById('awOverlay').classList.add('show');
+          document.getElementById('_awMsg').textContent = d.message || 'Cảnh báo từ quản trị viên';
+          document.getElementById('_awOverlay').classList.add('show');
         });
-      }, () => {});
-  } catch(e) {}
+      }, function() {});
+  });
 })();
 
 </script>
