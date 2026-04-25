@@ -428,15 +428,12 @@ async function createSession(studentCode) {
   }
 }
 
-async function checkExistingSession(studentCode, myToken = null) {
+async function checkExistingSession(studentCode) {
   try {
     const doc = await db.collection('sessions').doc(studentCode).get();
     if (!doc.exists) return false;
     const data = doc.data();
     if (!data.token) return false;
-    // ✅ [Sửa lỗi 1] So sánh token local với token trên server
-    // Nếu token không khớp → thiết bị khác đã đăng nhập và ghi đè session
-    if (myToken && data.token !== myToken) return false;
     // Kiểm tra session có còn active không (5 phút không heartbeat = hết)
     const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
     const diff = Date.now() - lastActive.getTime();
@@ -536,59 +533,22 @@ function regenerateQR() {
 // KHỞI TẠO TRANG - QUAN TRỌNG: KHÔNG TỰ ĐỘNG CHUYỂN HƯỚNG
 // ================================================================
 window.onload = async function(){
-  // ── Nếu đã đăng nhập → chuyển thẳng vào trang tương ứng
-  const existingType = localStorage.getItem('userType');
-  const existingCode = localStorage.getItem('studentCode');
+  // ── Trang đăng nhập: luôn xóa session cũ, không tự động redirect
+  // Người dùng phải đăng nhập lại để đảm bảo bảo mật
+  localStorage.removeItem('userType');
+  localStorage.removeItem('studentCode');
+  localStorage.removeItem('studentName');
+  localStorage.removeItem('studentUnit');
+  localStorage.removeItem('studentObject');
+  localStorage.removeItem('studentCourse');
+  localStorage.removeItem('adminName');
 
-  if (existingType === 'student' && existingCode) {
-    // Học viên đã đăng nhập → kiểm tra session còn hợp lệ không
-    try {
-      await ensureAuth();
-      const myToken = localStorage.getItem('sessionToken_' + existingCode);
-      if (!myToken) { throw new Error('no_token'); }
-      // ✅ [Fix 1] Truyền myToken để so sánh token local với token trên server
-      const sessionActive = await checkExistingSession(existingCode, myToken);
-      if (sessionActive) {
-        // Server xác nhận session còn sống và token khớp → redirect
-        location.replace('exam.html');
-        return;
-      }
-    } catch(e) { /* Nếu lỗi → cho đăng nhập bình thường */ }
-    // Session hết hạn hoặc token không khớp → xóa và cho đăng nhập lại
-    localStorage.removeItem('userType');
-    localStorage.removeItem('studentCode');
-    // ✅ [Fix 3] Xóa luôn token cũ để tránh rác trong localStorage
-    localStorage.removeItem('sessionToken_' + existingCode);
-  }
+  // Pre-auth anonymous (cần để đọc Firestore trước khi đăng nhập)
+  ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
 
-  if (existingType === 'admin') {
-    // Admin → kiểm tra Firebase auth còn sống không
-    if (auth) {
-      await new Promise(resolve => {
-        const unsub = auth.onAuthStateChanged(user => {
-          unsub();
-          if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
-            location.replace('admin.html');
-            // ✅ [Fix 2] Gọi resolve() ngay khi redirect để không phải chờ timeout 3 giây
-            resolve();
-          } else {
-            localStorage.removeItem('userType');
-            localStorage.removeItem('adminName');
-            resolve();
-          }
-        });
-        setTimeout(resolve, 3000); // Timeout fallback
-      });
-      if (localStorage.getItem('userType') === 'admin') return; // Đang redirect
-    }
-  }
-
-  // Chưa đăng nhập → Pre-auth anonymous
-  ensureAuth().catch(e=>console.warn('Pre-auth:', e.code));
-  
   // Kiểm tra bảo trì
-  try{ if(await checkMaintenanceMode()){ showMaintenancePage(); return; } }catch(_){}
-  
+  try { if (await checkMaintenanceMode()) { showMaintenancePage(); return; } } catch(_) {}
+
   // Render QR
   renderQR();
 };
@@ -704,13 +664,9 @@ async function doStudentLogin(raw, pass){
   const isDefaultPass = !storedHash || pass===_DP;
   if(!st.passwordChanged && isDefaultPass){
     window._changePwSid = sid;
-    localStorage.removeItem('redirectAfterLogin'); // xóa redirect khi cần đổi mật khẩu trước
     document.getElementById('pwPromptModal').classList.add('show');
   } else {
-    // ✅ [Fix I1] Dùng redirectAfterLogin (nếu có) thay vì hardcode exam.html
-    const redirectTo = localStorage.getItem('redirectAfterLogin') || 'exam.html';
-    localStorage.removeItem('redirectAfterLogin');
-    setTimeout(()=>{ location.href = redirectTo; }, 700);
+    setTimeout(()=>{ location.href='exam.html'; }, 700);
   }
 }
 
@@ -798,10 +754,7 @@ function normalize(s){
 function skipChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
   showSuccess('✅ Đang chuyển vào hệ thống...');
-  // ✅ [Fix I1] Dùng redirectAfterLogin nếu có
-  const redirectTo = localStorage.getItem('redirectAfterLogin') || 'exam.html';
-  localStorage.removeItem('redirectAfterLogin');
-  setTimeout(()=>{location.href=redirectTo;},700);
+  setTimeout(()=>{location.href='exam.html';},700);
 }
 function acceptChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
