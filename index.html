@@ -100,17 +100,16 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 /* Single session warning */
 .session-warning{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#856404;display:none;}
 .session-warning.show{display:block;}
-/* Tab-kicked overlay */
 .tab-kicked-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(6px);}
 .tab-kicked-overlay.show{display:flex;}
-.tab-kicked-box{background:white;padding:32px 28px;border-radius:18px;max-width:440px;width:94%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.4);animation:fadeIn .3s;}
-.tab-kicked-box .tki{font-size:58px;margin-bottom:10px;}
-.tab-kicked-box h3{font-size:19px;color:#1d3557;margin:0 0 12px;}
-.tab-kicked-box p{font-size:13.5px;color:#444;line-height:1.65;margin:0 0 8px;}
-.tab-kicked-box .warn-box{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;color:#856404;text-align:left;line-height:1.6;}
-.tab-kicked-box .warn-box strong{display:block;margin-bottom:4px;}
-.tab-kicked-box .tkb-btn{display:inline-block;margin-top:8px;padding:11px 28px;background:#1d3557;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;}
-.tab-kicked-box .tkg-btn{display:inline-block;margin-top:8px;padding:11px 28px;background:#2a9d8f;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;}
+.tab-kicked-box{background:white;padding:28px;border-radius:18px;max-width:440px;width:94%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.4);}
+.tab-kicked-box .tki{font-size:54px;margin-bottom:10px;}
+.tab-kicked-box h3{font-size:18px;color:#1d3557;margin:0 0 12px;}
+.tab-kicked-box p{font-size:13.5px;color:#444;line-height:1.6;margin:0 0 10px;}
+.tab-kicked-box .warn-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:13px;color:#856404;text-align:left;line-height:1.5;}
+.tab-kicked-box button{width:100%;padding:11px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;}
+.tkb-continue{background:#1d3557;color:white;}
+.tkb-dismiss{background:#6c757d;color:white;}
 @media(max-width:480px){
  .system-name .vi{font-size:14px;}
  .box{padding:22px;}
@@ -385,34 +384,30 @@ function generateSessionToken() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
 }
 
-// ── SINGLE-TAB: BroadcastChannel phát hiện đăng nhập trùng cùng browser ──
-const _TAB_CH_NAME = 'session_sync_v1';
+// ── Single-tab via BroadcastChannel ──────────────────────────────
 let _tabBC = null;
-function initTabChannel() {
+(function initTabChannel() {
   if (typeof BroadcastChannel === 'undefined') return;
   try {
-    _tabBC = new BroadcastChannel(_TAB_CH_NAME);
+    _tabBC = new BroadcastChannel('exam_session_v1');
     _tabBC.onmessage = function(ev) {
       const d = ev.data;
       if (!d || d.type !== 'NEW_LOGIN') return;
       const myCode = localStorage.getItem('studentCode');
-      // Nếu cùng tài khoản đang mở ở tab này → hiện cảnh báo
       if (myCode && d.code === myCode) {
         document.getElementById('tkiCode').textContent = myCode;
         document.getElementById('tabKickedOverlay').classList.add('show');
       }
     };
-  } catch(e) { console.warn('BroadcastChannel:', e); }
-}
+  } catch(e) {}
+})();
 function broadcastNewLogin(code) {
   if (!_tabBC) return;
   try { _tabBC.postMessage({ type: 'NEW_LOGIN', code, ts: Date.now() }); } catch(_) {}
 }
 function takeover_tab() {
   document.getElementById('tabKickedOverlay').classList.remove('show');
-  // Tab này "cướp" session — tab kia sẽ bị kick qua sessionMonitor
 }
-initTabChannel();
 
 async function createSession(studentCode) {
   const token = generateSessionToken();
@@ -546,10 +541,11 @@ window.onload = async function(){
     // Học viên đã đăng nhập → kiểm tra session còn hợp lệ không
     try {
       await ensureAuth();
-      const sessionActive = await checkExistingSession(existingCode);
       const myToken = localStorage.getItem('sessionToken_' + existingCode);
-      if (sessionActive || myToken) {
-        // Session còn hợp lệ → redirect
+      if (!myToken) { throw new Error('no_token'); }
+      const sessionActive = await checkExistingSession(existingCode);
+      if (sessionActive) {
+        // Server xác nhận session còn sống → redirect
         location.replace('exam.html');
         return;
       }
@@ -675,18 +671,18 @@ async function doStudentLogin(raw, pass){
   
   if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
   
-  // Kiểm tra session đang hoạt động (1 thiết bị / 1 tab)
+  // Kiểm tra session đang hoạt động (1 thiết bị)
   const hasActiveSession = await checkExistingSession(sid);
-  if(hasActiveSession){
+  if (hasActiveSession) {
     const sw = document.getElementById('sessionWarning');
-    sw.innerHTML = '⚠️ Tài khoản đang đăng nhập ở thiết bị/tab khác. Đăng nhập tại đây sẽ kết thúc phiên kia. <b>Nếu không phải bạn → đổi mật khẩu ngay!</b>';
+    sw.innerHTML = '⚠️ Tài khoản đang đăng nhập ở thiết bị khác. Đăng nhập tại đây sẽ kết thúc phiên đó. '
+      + '<b>Nếu không phải bạn → đổi mật khẩu ngay!</b>';
     sw.classList.add('show');
   }
   
-  // Tạo session mới (kick các tab/thiết bị cũ)
+  // Tạo session mới (kick thiết bị/tab cũ)
   await createSession(sid);
-  // Phát signal cho các tab cùng browser
-  broadcastNewLogin(st.code || sid);
+  broadcastNewLogin(st.code || sid);  // Thông báo cho các tab cùng browser
   
   // Lưu session
   localStorage.setItem('userType', 'student');
@@ -887,21 +883,16 @@ document.addEventListener('click',e=>{
   }
 });
 </script>
-<!-- TAB-KICKED OVERLAY -->
+<!-- TAB-KICKED OVERLAY (HTML only, no script tag) -->
 <div class="tab-kicked-overlay" id="tabKickedOverlay">
   <div class="tab-kicked-box">
     <div class="tki">🔒</div>
     <h3>Tài khoản đang mở ở tab khác</h3>
-    <p>Tài khoản <strong id="tkiCode"></strong> vừa đăng nhập tại một tab hoặc cửa sổ khác trong cùng trình duyệt.</p>
-    <div class="warn-box">
-      <strong>⚠️ Khuyến cáo bảo mật:</strong>
-      Nếu không phải bạn tự đăng nhập, hãy <b>đổi mật khẩu ngay</b> và liên hệ quản trị viên qua Zalo <b>0973.306.802</b> để được hỗ trợ.
-    </div>
-    <p style="font-size:12.5px;color:#888;">Bạn có thể tiếp tục dùng tab này (tab kia sẽ bị kết thúc phiên) hoặc đóng tab này.</p>
-    <button class="tkg-btn" onclick="takeover_tab()">✅ Tiếp tục dùng tab này</button>
-    <button class="tkb-btn" onclick="document.getElementById('tabKickedOverlay').classList.remove('show')" style="background:#6c757d;margin-top:8px;">Đóng thông báo này</button>
+    <p>Tài khoản <b id="tkiCode"></b> vừa đăng nhập tại tab/cửa sổ khác trong cùng trình duyệt.</p>
+    <div class="warn-box">⚠️ Nếu không phải bạn: hãy <b>đổi mật khẩu ngay</b> và liên hệ quản trị viên Zalo <b>0973.306.802</b>.</div>
+    <button class="tkb-continue" onclick="takeover_tab()">✅ Tiếp tục dùng tab này</button>
+    <button class="tkb-dismiss" onclick="document.getElementById('tabKickedOverlay').classList.remove('show')">Đóng thông báo</button>
   </div>
 </div>
-</script>
 </body>
 </html>
