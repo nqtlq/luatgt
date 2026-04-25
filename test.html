@@ -7,10 +7,17 @@
     // AUTH GUARD
     (function () {
       var ut = localStorage.getItem('userType');
+      var sc = localStorage.getItem('studentCode');
+      // ✅ [Fix T1] Kiểm tra sessionToken_ — đồng bộ với index.html (Fix 3)
+      var tk = sc ? localStorage.getItem('sessionToken_' + sc) : null;
       if (ut === 'guest') {
-        // Khách → trang thi thử cố định riêng
         location.replace('guest.html');
-      } else if (ut !== 'student') {
+      } else if (ut !== 'student' || !sc || !tk) {
+        // ✅ Dọn sạch dữ liệu cũ trước khi redirect (tránh rác localStorage)
+        localStorage.removeItem('userType');
+        localStorage.removeItem('studentCode');
+        if (sc) localStorage.removeItem('sessionToken_' + sc);
+        // ✅ [Fix T2] Lưu redirect để index.html đưa thẳng về test.html sau khi login
         localStorage.setItem('redirectAfterLogin', 'test.html');
         location.replace('index.html');
       }
