@@ -704,9 +704,13 @@ async function doStudentLogin(raw, pass){
   const isDefaultPass = !storedHash || pass===_DP;
   if(!st.passwordChanged && isDefaultPass){
     window._changePwSid = sid;
+    localStorage.removeItem('redirectAfterLogin'); // xóa redirect khi cần đổi mật khẩu trước
     document.getElementById('pwPromptModal').classList.add('show');
   } else {
-    setTimeout(()=>{ location.href='exam.html'; }, 700);
+    // ✅ [Fix I1] Dùng redirectAfterLogin (nếu có) thay vì hardcode exam.html
+    const redirectTo = localStorage.getItem('redirectAfterLogin') || 'exam.html';
+    localStorage.removeItem('redirectAfterLogin');
+    setTimeout(()=>{ location.href = redirectTo; }, 700);
   }
 }
 
@@ -794,7 +798,10 @@ function normalize(s){
 function skipChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
   showSuccess('✅ Đang chuyển vào hệ thống...');
-  setTimeout(()=>{location.href='exam.html';},700);
+  // ✅ [Fix I1] Dùng redirectAfterLogin nếu có
+  const redirectTo = localStorage.getItem('redirectAfterLogin') || 'exam.html';
+  localStorage.removeItem('redirectAfterLogin');
+  setTimeout(()=>{location.href=redirectTo;},700);
 }
 function acceptChangePw(){
   document.getElementById('pwPromptModal').classList.remove('show');
