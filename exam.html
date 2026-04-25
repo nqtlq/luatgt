@@ -531,19 +531,9 @@ try {
 // ===================================================================== 
 // BIẾN TOÀN CỤC 
 // ===================================================================== 
+// Auth guard được xử lý trong DOMContentLoaded ở cuối file
 const userType    = localStorage.getItem('userType'); 
-const studentCode = localStorage.getItem('studentCode');
-// ✅ [Fix 1] Đồng bộ với index.html: kiểm tra sessionToken_ tồn tại
-const _guardToken = studentCode ? localStorage.getItem('sessionToken_' + studentCode) : null;
-
-// Kiểm tra session đầy đủ: userType + studentCode + sessionToken phải đồng thời có
-if (userType !== 'student' || !studentCode || !_guardToken) {
-  // Session không hợp lệ hoặc đã bị index.html dọn sạch → về login
-  localStorage.removeItem('userType');
-  localStorage.removeItem('studentCode');
-  if (studentCode) localStorage.removeItem('sessionToken_' + studentCode);
-  location.href = 'index.html';
-} 
+const studentCode = localStorage.getItem('studentCode'); 
  
 let chart = null, isKicked = false; 
 let studentUnsub = null, maintUnsub = null, notifUnsub = null, examResultsUnsub = null; 
@@ -699,43 +689,13 @@ async function doLogout() {
   // 5. Quay về trang chủ 
   location.replace('index.html'); 
 } 
-function forceKickOut(reason) {
-  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập.");
-  // ✅ [Fix E2] Xóa session trên Firestore (fire-and-forget) trước khi clear localStorage
-  try { if (db && studentCode) db.collection('sessions').doc(studentCode).delete(); } catch(_) {}
-  localStorage.clear();
-  location.replace('index.html');
+function forceKickOut(reason) { 
+  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập."); 
+  localStorage.clear(); // XÓA SẠCH DỮ LIỆU CŨ 
+  location.replace('index.html'); // ÉP QUAY VỀ 
 } 
  
-// Khối khởi tạo chính của trang 
-document.addEventListener('DOMContentLoaded', async () => { 
-  try { 
-    // Luôn hiện body lên để tránh trang trắng nếu JS lỗi 
-    document.body.style.visibility = 'visible'; 
- 
-    // Đảm bảo Auth 
-    await ensureAuth(); 
- 
-    // Giả sử đây là hàm load thông tin/load đề thi của bạn 
-    await setupUI(); 
-    await loadSets(); 
- 
-  } catch (err) { 
-    console.error("Lỗi hệ thống:", err); 
- 
-    // ĐÂY LÀ CHÌA KHÓA PHÁ VÒNG LẶP: 
-    if (err.code === 'permission-denied' || err.message.includes('Missing or insufficient permissions')) { 
-      forceKickOut("Phiên đăng nhập không hợp lệ hoặc đã thay đổi quyền truy cập."); 
-    } else { 
-      // Nếu là lỗi khác, chỉ báo lỗi trên màn hình 
-      const loadingBox = document.getElementById("loadingBox"); 
-      if (loadingBox) { 
-        loadingBox.innerHTML = `<p>    Lỗi: ${err.message}</p> 
-                                <button onclick="doLogout()">Quay về Đăng nhập</button>`; 
-      } 
-    } 
-  } 
-}); 
+// (Khối DOMContentLoaded cũ đã bị xóa — initPage() được gọi trực tiếp bên dưới) 
 // ===================================================================== 
 // KICK OUT 
 // ===================================================================== 
@@ -1563,7 +1523,19 @@ function startAdminWarnListener() {
     }, () => {});
 }
 
-initPage(); 
+// =====================================================================
+// KHỞI ĐỘNG TRANG — Có auth guard, chạy sau khi DOM sẵn sàng
+// =====================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const _ut = localStorage.getItem('userType');
+  const _sc = localStorage.getItem('studentCode');
+  if (_ut !== 'student' || !_sc) {
+    localStorage.removeItem('userType');
+    location.replace('index.html');
+    return;
+  }
+  initPage();
+});
 </script> 
 
 <!-- PHONG THI ONLINE -->
