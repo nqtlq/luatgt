@@ -255,73 +255,73 @@ header { padding-top: env(safe-area-inset-top); }
 .confirm-overlay, .modal-overlay { padding-bottom: env(safe-area-inset-bottom); } 
 .confirm-btns button, .header-actions button { touch-action: manipulation; } 
 
-      /* ---- Phong thi online ---- */
-      .room-card { border: 2px solid var(--blue); }
-      .room-card .card-header { background: linear-gradient(135deg,#1d3557,#2a6496); }
-      .room-card .card-header h3 { color: white; font-size: 15px; }
-      .room-badge { display: inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; }
-      .room-badge.scheduled { background:#e8f4fd; color:#1d3557; }
-      .room-badge.open { background:#d1e7dd; color:#0a6640; animation: pulse-green 1.5s infinite; }
-      .room-badge.closed { background:#f8d7da; color:#842029; }
-      @keyframes pulse-green { 0%,100%{opacity:1} 50%{opacity:.6} }
-      .room-info-row { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
-      .room-chip { background:#f1f5f9; border-radius:8px; padding:5px 10px; font-size:12px; color:#555; display:inline-flex; align-items:center; gap:4px; }
-      .room-countdown { text-align:center; padding:14px; background:linear-gradient(135deg,#1d3557,#2a6496); border-radius:12px; color:white; margin:12px 0; }
-      .room-countdown .rcd-label { font-size:12px; opacity:.8; margin-bottom:4px; }
-      .room-countdown .rcd-time { font-size:28px; font-weight:800; letter-spacing:2px; font-variant-numeric: tabular-nums; }
-      .room-reg-btn { width:100%; padding:13px; border:none; border-radius:11px; font-size:15px; font-weight:700; cursor:pointer; transition:all .2s; margin-top:8px; min-height:50px; }
-      .room-reg-btn.not-reg { background:linear-gradient(135deg,#2a9d8f,#1d8a7a); color:white; }
-      .room-reg-btn.registered { background:#d1e7dd; color:#0a6640; border:2px solid #a3d6b4; }
-      .room-reg-btn.enter-waiting { background:linear-gradient(135deg,#1d3557,#0d6efd); color:white; }
-      .room-reg-btn:disabled { opacity:.5; cursor:not-allowed; }
-      .room-participants { font-size:12.5px; color:#555; text-align:center; margin-top:8px; }
-      .waiting-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85); display:none; z-index:9000; overflow-y:auto; padding:20px; box-sizing:border-box; }
-      .waiting-overlay.show { display:block; }
-      .waiting-box { max-width:700px; margin:0 auto; background:white; border-radius:20px; overflow:hidden; }
-      .waiting-header { background:linear-gradient(135deg,#1d3557,#2a6496); color:white; padding:20px 24px; }
-      .waiting-header h2 { margin:0 0 6px; font-size:18px; }
-      .waiting-header p { margin:0; font-size:13px; opacity:.85; }
-      .waiting-body { padding:20px; }
-      .waiting-cd { text-align:center; background:linear-gradient(135deg,#1d3557,#2a6496); border-radius:16px; padding:24px; margin-bottom:20px; color:white; }
-      .waiting-cd .wcd-title { font-size:13px; opacity:.8; margin-bottom:8px; }
-      .waiting-cd .wcd-time { font-size:42px; font-weight:900; letter-spacing:4px; font-variant-numeric:tabular-nums; line-height:1; }
-      .waiting-cd .wcd-sub { font-size:12px; opacity:.7; margin-top:8px; }
-      .waiting-info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-      .winfo-card { background:#f8fafc; border-radius:10px; padding:12px; text-align:center; border:1px solid #e2e8f0; }
-      .winfo-card .wic-num { font-size:22px; font-weight:800; color:#1d3557; }
-      .winfo-card .wic-lbl { font-size:11px; color:#888; margin-top:3px; }
-      .waiting-rules { background:#fff3cd; border:1px solid #ffc107; border-radius:10px; padding:14px; margin-bottom:16px; font-size:13px; color:#5a4000; line-height:1.65; }
-      .waiting-rules h4 { margin:0 0 8px; color:#856404; }
-      .waiting-users { margin-bottom:16px; }
-      .waiting-users h4 { font-size:13px; color:#555; margin:0 0 10px; font-weight:600; }
-      .wuser-list { display:flex; flex-wrap:wrap; gap:8px; max-height:130px; overflow-y:auto; }
-      .wuser-chip { background:#e8f4fd; border-radius:20px; padding:5px 12px; font-size:12px; color:#1d3557; display:inline-flex; align-items:center; gap:5px; }
-      .wuser-chip.me { background:linear-gradient(135deg,#1d3557,#2a6496); color:white; }
-      .waiting-footer { padding:16px 20px; border-top:1px solid #e2e8f0; display:flex; gap:10px; }
-      .waiting-footer button { flex:1; padding:13px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; }
-      .wf-leave { background:#6c757d; color:white; }
-      .wf-start { background:linear-gradient(135deg,#1d3557,#0d6efd); color:white; }
-      .wf-start:disabled { opacity:.4; cursor:not-allowed; }
-      .admin-warn-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:19999; padding:20px; backdrop-filter:blur(4px); }
-      .admin-warn-overlay.show { display:flex; }
-      .admin-warn-box { background:white; border-radius:18px; max-width:440px; width:100%; overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,.4); animation:fadeIn .3s; }
-      .admin-warn-box .awb-header { background:linear-gradient(135deg,#dc3545,#a02535); padding:18px 20px; color:white; display:flex; align-items:center; gap:10px; }
-      .admin-warn-box .awb-header span { font-size:28px; }
-      .admin-warn-box .awb-header h3 { margin:0; font-size:17px; }
-      .admin-warn-box .awb-body { padding:20px; font-size:14px; color:#333; line-height:1.65; }
-      .admin-warn-box .awb-footer { padding:14px 20px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; }
-      .admin-warn-box .awb-footer button { padding:10px 24px; background:#1d3557; color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
-      .exam-invite-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); display:none; align-items:center; justify-content:center; z-index:18000; padding:20px; backdrop-filter:blur(5px); }
-      .exam-invite-overlay.show { display:flex; }
-      .exam-invite-box { background:white; border-radius:18px; max-width:400px; width:100%; padding:28px 24px; text-align:center; box-shadow:0 16px 48px rgba(0,0,0,.4); animation:fadeIn .3s; }
-      .exam-invite-box .eii { font-size:54px; margin-bottom:10px; }
-      .exam-invite-box h3 { font-size:18px; color:#1d3557; margin:0 0 10px; }
-      .exam-invite-box p { font-size:13.5px; color:#444; line-height:1.6; margin:0 0 20px; }
-      .exam-invite-box .eib-btns { display:flex; gap:10px; }
-      .exam-invite-box .eib-btns button { flex:1; padding:13px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; }
-      .eib-accept { background:linear-gradient(135deg,#1d3557,#0d6efd); color:white; }
-      .eib-decline { background:#6c757d; color:white; }
-      @media(max-width:480px){ .waiting-info-grid{grid-template-columns:1fr 1fr;} .waiting-cd .wcd-time{font-size:32px;} }
+      /* ── Phòng thi online ── */
+      .room-card .card-header{background:linear-gradient(135deg,#1d3557,#2a6496);}
+      .room-card .card-header h3{color:#fff;}
+      .room-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+      .room-badge.scheduled{background:#e8f4fd;color:#1d3557;}
+      .room-badge.open{background:#d1e7dd;color:#0a6640;animation:pulse-green 1.5s infinite;}
+      .room-badge.closed{background:#f8d7da;color:#842029;}
+      @keyframes pulse-green{0%,100%{opacity:1}50%{opacity:.6}}
+      .room-info-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+      .room-chip{background:#f1f5f9;border-radius:8px;padding:4px 10px;font-size:12px;color:#555;}
+      .room-countdown{text-align:center;padding:12px 14px;background:linear-gradient(135deg,#1d3557,#2a6496);border-radius:12px;color:#fff;margin:12px 0;}
+      .rcd-label{font-size:12px;opacity:.8;margin-bottom:4px;}
+      .rcd-time{font-size:26px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;}
+      .room-reg-btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;min-height:50px;}
+      .room-reg-btn.not-reg{background:linear-gradient(135deg,#2a9d8f,#1d8a7a);color:#fff;}
+      .room-reg-btn.registered{background:#d1e7dd;color:#0a6640;border:2px solid #a3d6b4;}
+      .room-reg-btn.enter-waiting{background:linear-gradient(135deg,#1d3557,#0d6efd);color:#fff;}
+      .room-reg-btn:disabled{opacity:.5;cursor:not-allowed;}
+      .room-participants{font-size:12.5px;color:#555;text-align:center;margin-top:8px;}
+      /* ── Phòng chờ ── */
+      .waiting-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;z-index:9000;overflow-y:auto;padding:16px;box-sizing:border-box;}
+      .waiting-overlay.show{display:block;}
+      .waiting-box{max-width:680px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;}
+      .waiting-header{background:linear-gradient(135deg,#1d3557,#2a6496);color:#fff;padding:18px 22px;}
+      .waiting-header h2{margin:0 0 4px;font-size:17px;}
+      .waiting-header p{margin:0;font-size:13px;opacity:.85;}
+      .waiting-body{padding:18px;}
+      .waiting-cd{text-align:center;background:linear-gradient(135deg,#1d3557,#2a6496);border-radius:14px;padding:22px;margin-bottom:16px;color:#fff;}
+      .wcd-title{font-size:13px;opacity:.8;margin-bottom:6px;}
+      .wcd-time{font-size:42px;font-weight:900;letter-spacing:4px;font-variant-numeric:tabular-nums;line-height:1;}
+      .wcd-sub{font-size:12px;opacity:.7;margin-top:6px;}
+      .waiting-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+      .winfo-card{background:#f8fafc;border-radius:10px;padding:12px;text-align:center;border:1px solid #e2e8f0;}
+      .wic-num{font-size:22px;font-weight:800;color:#1d3557;}
+      .wic-lbl{font-size:11px;color:#888;margin-top:3px;}
+      .waiting-rules{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:#5a4000;line-height:1.6;}
+      .waiting-rules h4{margin:0 0 6px;color:#856404;}
+      .wuser-list{display:flex;flex-wrap:wrap;gap:8px;max-height:110px;overflow-y:auto;}
+      .wuser-chip{background:#e8f4fd;border-radius:20px;padding:4px 12px;font-size:12px;color:#1d3557;}
+      .wuser-chip.me{background:linear-gradient(135deg,#1d3557,#2a6496);color:#fff;}
+      .waiting-footer{padding:14px 18px;border-top:1px solid #e2e8f0;display:flex;gap:10px;}
+      .waiting-footer button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+      .wf-leave{background:#6c757d;color:#fff;}
+      .wf-start{background:linear-gradient(135deg,#1d3557,#0d6efd);color:#fff;}
+      .wf-start:disabled{opacity:.4;cursor:not-allowed;}
+      /* ── Admin cảnh báo ── */
+      .admin-warn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:19999;padding:16px;backdrop-filter:blur(4px);}
+      .admin-warn-overlay.show{display:flex;}
+      .admin-warn-box{background:#fff;border-radius:16px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4);}
+      .awb-header{background:linear-gradient(135deg,#dc3545,#a02535);padding:16px 18px;color:#fff;display:flex;align-items:center;gap:10px;}
+      .awb-header span{font-size:26px;}
+      .awb-header h3{margin:0;font-size:16px;}
+      .awb-body{padding:18px;font-size:14px;color:#333;line-height:1.6;}
+      .awb-footer{padding:12px 18px;border-top:1px solid #e2e8f0;text-align:right;}
+      .awb-footer button{padding:9px 22px;background:#1d3557;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+      /* ── Mời vào thi ── */
+      .exam-invite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:18000;padding:16px;backdrop-filter:blur(5px);}
+      .exam-invite-overlay.show{display:flex;}
+      .exam-invite-box{background:#fff;border-radius:16px;max-width:380px;width:100%;padding:26px 22px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.4);}
+      .eii{font-size:50px;margin-bottom:8px;}
+      .exam-invite-box h3{font-size:17px;color:#1d3557;margin:0 0 8px;}
+      .exam-invite-box p{font-size:13px;color:#444;line-height:1.6;margin:0 0 18px;}
+      .eib-btns{display:flex;gap:8px;}
+      .eib-btns button{flex:1;padding:12px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;}
+      .eib-accept{background:linear-gradient(135deg,#1d3557,#0d6efd);color:#fff;}
+      .eib-decline{background:#6c757d;color:#fff;}
+      @media(max-width:480px){.waiting-info-grid{grid-template-columns:1fr 1fr;}.wcd-time{font-size:32px;}}
 </style> 
 </head> 
 <body> 
@@ -510,92 +510,6 @@ header { padding-top: env(safe-area-inset-top); }
   </div> 
 </div> 
  
-<!-- PHONG THI ONLINE -->
-<div class="container" id="examRoomContainer" style="margin-top:0;display:none;">
-  <div class="grid">
-    <div class="card room-card" id="examRoomCard">
-      <div class="card-header" style="justify-content:space-between;">
-        <h3>🏫 Phòng thi Online</h3>
-        <span id="roomStatusBadge" class="room-badge scheduled">⏳ Đang chờ</span>
-      </div>
-      <div class="card-body">
-        <div style="font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px;" id="roomTitle">---</div>
-        <div class="room-info-row">
-          <span class="room-chip">📄 <span id="roomSetName">---</span></span>
-          <span class="room-chip">⏰ <span id="roomStartAt">---</span></span>
-          <span class="room-chip">⏱ Kết thúc: <span id="roomEndAt">---</span></span>
-        </div>
-        <div class="room-countdown" id="roomCdWrap">
-          <div class="rcd-label" id="roomCdLabel">Đếm ngược đến giờ thi</div>
-          <div class="rcd-time" id="roomCdTime">--:--:--</div>
-        </div>
-        <div class="room-participants" id="roomParticipants">
-          👥 Đăng ký: <b id="regCount">0</b> &nbsp;•&nbsp; 🚪 Phòng chờ: <b id="waitingCount">0</b>
-        </div>
-        <div style="font-size:12.5px;color:#888;background:#f8fafc;border-radius:8px;padding:8px 12px;margin:10px 0;text-align:center;">
-          ⚠️ Khuyến cáo: Vào phòng chờ tối thiểu <strong>5 phú</strong> trước khi phòng thi mở
-        </div>
-        <button class="room-reg-btn not-reg" id="roomRegBtn" onclick="toggleRoomRegistration()" style="display:none;"></button>
-        <button class="room-reg-btn enter-waiting" id="roomEnterWaitBtn" onclick="enterWaitingRoom()" style="display:none;">🚪 Vào phòng chờ thi</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PHONG CHO THI -->
-<div class="waiting-overlay" id="waitingOverlay">
-  <div class="waiting-box">
-    <div class="waiting-header">
-      <h2>🏫 Phòng chờ thi</h2>
-      <p id="waitingRoomTitle">---</p>
-    </div>
-    <div class="waiting-body">
-      <div class="waiting-cd">
-        <div class="wcd-title" id="wcdLabel">Thi bắt đầu sau</div>
-        <div class="wcd-time" id="wcdTime">00:00:00</div>
-        <div class="wcd-sub">Vui lòng chờ trong phòng — không tắt truyến</div>
-      </div>
-      <div class="waiting-info-grid">
-        <div class="winfo-card"><div class="wic-num" id="wiRegCount">0</div><div class="wic-lbl">Đăng ký</div></div>
-        <div class="winfo-card"><div class="wic-num" id="wiWaitCount">0</div><div class="wic-lbl">Trong phòng chờ</div></div>
-        <div class="winfo-card"><div class="wic-num" id="wiAbsCount">0</div><div class="wic-lbl">Chưa vào phòng</div></div>
-      </div>
-      <div class="waiting-rules"><h4>📋 Nội quy phòng thi &amp; chống gian lận</h4><div id="waitingRules"></div></div>
-      <div class="waiting-users">
-        <h4>👥 Người dùng trong phòng chờ (<span id="wuCount">0</span>)</h4>
-        <div class="wuser-list" id="wuserList"></div>
-      </div>
-    </div>
-    <div class="waiting-footer">
-      <button class="wf-leave" onclick="leaveWaitingRoom()">← Thoát phòng chờ</button>
-      <button class="wf-start" id="wfStartBtn" disabled onclick="startExamFromRoom()">📝 Bắt đầu làm bài</button>
-    </div>
-  </div>
-</div>
-
-<!-- CANH BAO ADMIN -->
-<div class="admin-warn-overlay" id="adminWarnOverlay">
-  <div class="admin-warn-box">
-    <div class="awb-header"><span>🚨</span><h3>Cảnh báo từ hệ thống</h3></div>
-    <div class="awb-body" id="adminWarnMsg">---</div>
-    <div class="awb-footer"><button onclick="dismissAdminWarn()">Nhận, đóng</button></div>
-  </div>
-</div>
-
-<!-- MOI VAO THI -->
-<div class="exam-invite-overlay" id="examInviteOverlay">
-  <div class="exam-invite-box">
-    <div class="eii">🔔</div>
-    <h3>Mời vào phòng thi!</h3>
-    <p id="inviteMsg">Phòng thi sẽp bắt đầu. Bạn đã đăng ký — h㹃y vào phòng chờ ngay!</p>
-    <div class="eib-btns">
-      <button class="eib-decline" onclick="document.getElementById('examInviteOverlay').classList.remove('show')">🔕 Đế sau</button>
-      <button class="eib-accept" onclick="acceptExamInvite()">🚪 Vào phòng chờ ngay</button>
-    </div>
-  </div>
-</div>
-
- 
 <script> 
 // ===================================================================== 
 // FIREBASE INIT — PHẢI có Auth để Firestore rules hoạt động 
@@ -609,10 +523,8 @@ try {
       projectId:  "thi-luat-giao-thong" 
     }); 
   } 
-  db   = firebase.firestore();
-  auth = firebase.auth();
-  db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
-  db.enablePersistence({ synchronizeTabs: false }).catch(() => {});
+  db   = firebase.firestore(); 
+  auth = firebase.auth(); 
   firebaseReady = true; 
 } catch(e) { console.error('Firebase init lỗi:', e); } 
  
@@ -849,377 +761,32 @@ function kickOut(title, message, icon) {
 function startSessionMonitor() {
   const myToken = localStorage.getItem('sessionToken_' + studentCode);
   if (!myToken || !db || !studentCode) return;
-  // Single-tab: BroadcastChannel
+  // Single-tab (cùng browser)
   if (typeof BroadcastChannel !== 'undefined') {
     try {
-      const _sbc = new BroadcastChannel('session_sync_v1');
+      const _sbc = new BroadcastChannel('exam_session_v1');
       _sbc.onmessage = ev => {
-        if (ev.data?.type === 'NEW_LOGIN' && ev.data?.code === studentCode && !isKicked) {
+        if (ev.data?.type === 'NEW_LOGIN' && ev.data?.code === studentCode && !isKicked)
           kickOut('🔒 Đăng nhập từ tab khác',
-            'Tài khoản vừa đăng nhập ở tab khác trong cùng trình duyết. '
-            + 'Phiên này bị kết thúc. Nếu không phải bạn — đổi mật khẩu ngay!', '🔒');
-        }
+            'Tài khoản vừa đăng nhập ở tab khác. Phiên này bị kết thúc. Nếu không phải bạn — đổi mật khẩu ngay!',
+            '🔒');
       };
     } catch(_) {}
   }
-  // Single-device: Firestore token
+  // Single-device (khác thiết bị/browser)
   db.collection('sessions').doc(studentCode).onSnapshot(snap => {
     if (!snap.exists || isKicked) return;
     const serverToken = snap.data()?.token;
-    if (serverToken && serverToken !== myToken) {
+    if (serverToken && serverToken !== myToken)
       kickOut('🔒 Phiên bị thay thế',
-        'Tài khoản đăng nhập từ thiết bị khác. '
-        + 'Nếu không phải bạn — đổi mật khẩu ngay!', '🔒');
-    }
+        'Tài khoản đăng nhập từ thiết bị khác. Nếu không phải bạn — đổi mật khẩu ngay!',
+        '🔒');
   }, err => console.warn('Session monitor lỗi:', err.code));
 } 
 
 // ===================================================================== 
 // MAIN INIT — Chạy sau khi Anonymous Auth thành công 
 // ===================================================================== 
-// =====================================================================
-// PHONG THI ONLINE — Real-time management
-// =====================================================================
-let _activeRoom = null;        // room data hiện tại
-let _roomUnsub = null;         // listener room
-let _roomRegUnsub = null;      // listener registrations
-let _roomWaitUnsub = null;     // listener waiting room
-let _roomCdInterval = null;    // countdown interval
-let _inviteTimeout = null;     // timeout nhắc vào phòng
-let _lastAdminWarnId = null;   // để không hiện lại cùng 1 cảnh báo
-
-// Khởi động listener phòng thi (chạy sau initPage)
-function startExamRoomListener() {
-  const now = new Date();
-  // Lắng nghe phòng thi scheduled/open trong vòng 24h tới
-  _roomUnsub = db.collection('examRooms')
-    .where('status', 'in', ['scheduled', 'open'])
-    .orderBy('startAt', 'asc')
-    .limit(1)
-    .onSnapshot(snap => {
-      if (snap.empty) {
-        _activeRoom = null;
-        document.getElementById('examRoomContainer').style.display = 'none';
-        return;
-      }
-      const doc = snap.docs[0];
-      _activeRoom = { id: doc.id, ...doc.data() };
-      // Kiểm tra học viên có đủ điều kiện không
-      if (!checkEligibility(_activeRoom)) {
-        document.getElementById('examRoomContainer').style.display = 'none';
-        return;
-      }
-      document.getElementById('examRoomContainer').style.display = '';
-      renderRoomCard(_activeRoom);
-      startRoomCountdown(_activeRoom);
-      startRoomRegistrationListener(_activeRoom.id);
-      scheduleExamInvite(_activeRoom);
-    }, err => console.warn('examRooms listener:', err.code));
-}
-
-function checkEligibility(room) {
-  if (!room.eligibility) return true;
-  const { type, values } = room.eligibility;
-  if (!type || type === 'all') return true;
-  const myCode    = localStorage.getItem('studentCode')  || '';
-  const myCourse  = localStorage.getItem('studentCourse') || '';
-  const myObject  = localStorage.getItem('studentObject') || '';
-  const myUnit    = localStorage.getItem('studentUnit')   || '';
-  if (type === 'specific') return values.includes(myCode);
-  if (type === 'course')   return values.includes(myCourse);
-  if (type === 'object')   return values.includes(myObject);
-  if (type === 'unit')     return values.includes(myUnit);
-  return true;
-}
-
-function renderRoomCard(room) {
-  const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
-  document.getElementById('roomTitle').textContent   = room.title || 'Phòng thi';
-  document.getElementById('roomSetName').textContent = room.setName || room.setCode || '---';
-  document.getElementById('roomStartAt').textContent = fmt(room.startAt);
-  document.getElementById('roomEndAt').textContent   = fmt(room.endAt);
-
-  const badge = document.getElementById('roomStatusBadge');
-  if (room.status === 'open') {
-    badge.className = 'room-badge open'; badge.textContent = '🟢 Đang diễn ra';
-  } else if (room.status === 'closed') {
-    badge.className = 'room-badge closed'; badge.textContent = '🔴 Đã kết thúc';
-  } else {
-    badge.className = 'room-badge scheduled'; badge.textContent = '⏳ Sắp diễn ra';
-  }
-  updateRoomButtons(room);
-}
-
-function updateRoomButtons(room) {
-  const regBtn  = document.getElementById('roomRegBtn');
-  const waitBtn = document.getElementById('roomEnterWaitBtn');
-  const myCode  = studentCode;
-  db.collection('examRooms').doc(room.id)
-    .collection('registrations').doc(myCode).get()
-    .then(d => {
-      const isReg = d.exists;
-      regBtn.style.display  = '';
-      const isOpen = room.status === 'open';
-      const isClosed = room.status === 'closed';
-      if (isClosed) {
-        regBtn.style.display = 'none'; waitBtn.style.display = 'none'; return;
-      }
-      // Registration button
-      if (isReg) {
-        regBtn.className = 'room-reg-btn registered';
-        regBtn.innerHTML = '✅ Đã đăng ký tham gia';
-      } else {
-        regBtn.className = 'room-reg-btn not-reg';
-        regBtn.innerHTML = '✅ Đăng ký tham gia';
-      }
-      // Enter waiting room button — chỉ hiện khi đã đăng ký
-      if (isReg) {
-        waitBtn.style.display = '';
-        if (isOpen) {
-          waitBtn.innerHTML = '🚪 Vào phòng thi ngay!';
-          waitBtn.style.background = 'linear-gradient(135deg,#dc3545,#a02535)';
-        } else {
-          waitBtn.innerHTML = '🚪 Vào phòng chờ thi';
-          waitBtn.style.background = '';
-        }
-      } else {
-        waitBtn.style.display = 'none';
-      }
-      // Late entry check
-      if (room.status === 'open' && room.lateEntryMinutes) {
-        const lateDeadline = new Date(room.startAt.toDate().getTime() + room.lateEntryMinutes * 60000);
-        if (new Date() > lateDeadline) {
-          regBtn.style.display = 'none'; waitBtn.style.display = 'none';
-        }
-      }
-    }).catch(() => {});
-}
-
-async function toggleRoomRegistration() {
-  if (!_activeRoom) return;
-  const myCode = studentCode;
-  const myName = localStorage.getItem('studentName') || myCode;
-  const regRef = db.collection('examRooms').doc(_activeRoom.id)
-    .collection('registrations').doc(myCode);
-  const btn = document.getElementById('roomRegBtn');
-  btn.disabled = true;
-  try {
-    const d = await regRef.get();
-    if (d.exists) {
-      await regRef.delete();
-    } else {
-      await regRef.set({
-        studentCode: myCode, studentName: myName,
-        registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
-        inWaitingRoom: false
-      });
-    }
-    updateRoomButtons(_activeRoom);
-  } catch(e) {
-    alert('Lỗi đăng ký: ' + e.message);
-  }
-  btn.disabled = false;
-}
-
-// ── Listener thống kê người đăng ký ──
-function startRoomRegistrationListener(roomId) {
-  if (_roomRegUnsub) _roomRegUnsub();
-  _roomRegUnsub = db.collection('examRooms').doc(roomId)
-    .collection('registrations')
-    .onSnapshot(snap => {
-      const total = snap.size;
-      const waiting = snap.docs.filter(d => d.data().inWaitingRoom).length;
-      document.getElementById('regCount').textContent = total;
-      document.getElementById('waitingCount').textContent = waiting;
-      // Cập nhật waiting room stats
-      document.getElementById('wiRegCount').textContent = total;
-      document.getElementById('wiWaitCount').textContent = waiting;
-      document.getElementById('wiAbsCount').textContent = Math.max(0, total - waiting);
-    }, () => {});
-}
-
-// ── Countdown ──
-function startRoomCountdown(room) {
-  if (_roomCdInterval) clearInterval(_roomCdInterval);
-  const el = document.getElementById('roomCdTime');
-  const lbl = document.getElementById('roomCdLabel');
-  function tick() {
-    const now = Date.now();
-    if (room.status === 'open') {
-      const diff = room.endAt.toDate().getTime() - now;
-      if (diff <= 0) { el.textContent = 'Đã kết thúc'; return; }
-      lbl.textContent = 'Thời gian còn lại';
-      el.textContent = fmtDuration(diff);
-    } else {
-      const diff = room.startAt.toDate().getTime() - now;
-      if (diff <= 0) { el.textContent = 'Đang mở...'; return; }
-      lbl.textContent = 'Đếm ngược đến giờ thi';
-      el.textContent = fmtDuration(diff);
-    }
-  }
-  tick();
-  _roomCdInterval = setInterval(tick, 1000);
-}
-function fmtDuration(ms) {
-  const s = Math.floor(ms / 1000);
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':');
-}
-
-// ── Nhắc vào phòng 5 phút trước giờ thi ──
-function scheduleExamInvite(room) {
-  if (_inviteTimeout) clearTimeout(_inviteTimeout);
-  if (room.status !== 'scheduled') return;
-  const myCode = studentCode;
-  db.collection('examRooms').doc(room.id)
-    .collection('registrations').doc(myCode).get()
-    .then(d => {
-      if (!d.exists) return; // Chưa đăng ký → không nhắc
-      const startMs = room.startAt.toDate().getTime();
-      const notifyAt = startMs - 5 * 60 * 1000; // 5 phút trước
-      const delay = notifyAt - Date.now();
-      if (delay > 0 && delay < 6 * 60 * 1000) { // Chỉ schedule nếu trong 6 phút
-        _inviteTimeout = setTimeout(() => {
-          document.getElementById('inviteMsg').textContent =
-            `"${room.title}" sẽ bắt đầu trong 5 phút. Bạn đã đăng ký — hãy vào phòng chờ ngay!`;
-          document.getElementById('examInviteOverlay').classList.add('show');
-        }, delay);
-      }
-    }).catch(() => {});
-}
-function acceptExamInvite() {
-  document.getElementById('examInviteOverlay').classList.remove('show');
-  enterWaitingRoom();
-}
-
-// ── Phòng chờ thi ──
-async function enterWaitingRoom() {
-  if (!_activeRoom) return;
-  const myCode = studentCode;
-  const myName = localStorage.getItem('studentName') || myCode;
-  try {
-    // Đánh dấu vào phòng chờ
-    await db.collection('examRooms').doc(_activeRoom.id)
-      .collection('registrations').doc(myCode)
-      .update({ inWaitingRoom: true, enteredAt: firebase.firestore.FieldValue.serverTimestamp() });
-    // Ghi vào sub-collection waitingRoom
-    await db.collection('examRooms').doc(_activeRoom.id)
-      .collection('waitingRoom').doc(myCode)
-      .set({ studentCode: myCode, studentName: myName, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    showWaitingRoom(_activeRoom);
-  } catch(e) { alert('Lỗi vào phòng chờ: ' + e.message); }
-}
-
-function showWaitingRoom(room) {
-  const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
-  document.getElementById('waitingRoomTitle').textContent = room.title || '';
-  document.getElementById('waitingRules').innerHTML = (room.rules || 
-    '• Không sử dụng tài liệu trong khi thi.
-• Không nhờ người khác làm hộ.
-• Nộp bài đúng thời gian quy định.
-• Vi phạm sẽ bị hủy kết quả.')
-    .split('
-').map(l => `<p style="margin:3px 0">${l}</p>`).join('');
-  
-  // Start waiting room countdown
-  const cdEl = document.getElementById('wcdTime');
-  const wlbl = document.getElementById('wcdLabel');
-  const startBtn = document.getElementById('wfStartBtn');
-  if (_roomCdInterval) clearInterval(_roomCdInterval);
-  function wTick() {
-    const now = Date.now();
-    if (room.status === 'open') {
-      const diff = room.endAt.toDate().getTime() - now;
-      wlbl.textContent = 'Thời gian còn lại để nộp bài';
-      cdEl.textContent = diff > 0 ? fmtDuration(diff) : 'Hết giờ';
-      startBtn.disabled = false;
-      startBtn.textContent = '📝 Bắt đầu làm bài';
-    } else {
-      const diff = room.startAt.toDate().getTime() - now;
-      wlbl.textContent = 'Thi bắt đầu sau';
-      cdEl.textContent = diff > 0 ? fmtDuration(diff) : 'Đang mở...';
-      startBtn.disabled = diff > 0;
-      if (diff <= 0) startBtn.textContent = '📝 Vào thi ngay!';
-    }
-  }
-  wTick();
-  _roomCdInterval = setInterval(wTick, 1000);
-
-  // Listener danh sách người trong phòng chờ
-  if (_roomWaitUnsub) _roomWaitUnsub();
-  _roomWaitUnsub = db.collection('examRooms').doc(room.id)
-    .collection('waitingRoom')
-    .orderBy('joinedAt','asc')
-    .onSnapshot(snap => {
-      const myCode = studentCode;
-      const ul = document.getElementById('wuserList');
-      document.getElementById('wuCount').textContent = snap.size;
-      ul.innerHTML = snap.docs.map(d => {
-        const me = d.id === myCode;
-        return `<span class="wuser-chip ${me ? 'me' : ''}">👤 ${d.data().studentName || d.id}${me ? ' (bạn)' : ''}</span>`;
-      }).join('');
-    }, () => {});
-
-  document.getElementById('waitingOverlay').classList.add('show');
-}
-
-async function leaveWaitingRoom() {
-  if (!_activeRoom) { document.getElementById('waitingOverlay').classList.remove('show'); return; }
-  const myCode = studentCode;
-  try {
-    await db.collection('examRooms').doc(_activeRoom.id)
-      .collection('registrations').doc(myCode)
-      .update({ inWaitingRoom: false });
-    await db.collection('examRooms').doc(_activeRoom.id)
-      .collection('waitingRoom').doc(myCode).delete();
-  } catch(e) {}
-  if (_roomWaitUnsub) { _roomWaitUnsub(); _roomWaitUnsub = null; }
-  if (_roomCdInterval) { clearInterval(_roomCdInterval); _roomCdInterval = null; }
-  document.getElementById('waitingOverlay').classList.remove('show');
-}
-
-function startExamFromRoom() {
-  if (!_activeRoom) return;
-  // Lưu roomId để test.html biết đây là kỳ thi chính thức
-  localStorage.setItem('examRoomId', _activeRoom.id);
-  localStorage.setItem('examRoomSetCode', _activeRoom.setCode || '');
-  location.href = 'test.html';
-}
-
-// =====================================================================
-// CANH BAO ADMIN — Realtime listener
-// =====================================================================
-let _adminWarnUnsub = null;
-function startAdminWarnListener() {
-  if (!studentCode) return;
-  // Lắng nghe cảnh báo được gửi riêng cho học viên này hoặc toàn bộ (target = 'all')
-  _adminWarnUnsub = db.collection('adminWarnings')
-    .where('active', '==', true)
-    .orderBy('createdAt', 'desc')
-    .limit(5)
-    .onSnapshot(snap => {
-      if (snap.empty) return;
-      snap.docs.forEach(doc => {
-        const d = doc.data();
-        // Chỉ hiện nếu target phù hợp và chưa hiện lần này
-        const targets = d.targets || ['all'];
-        const relevant = targets.includes('all') || targets.includes(studentCode);
-        if (!relevant) return;
-        const key = 'aw_seen_' + doc.id;
-        if (sessionStorage.getItem(key)) return; // Đã thấy trong session này
-        sessionStorage.setItem(key, '1');
-        showAdminWarning(d.message || '⚠️ Cảnh báo từ hệ thống');
-      });
-    }, () => {});
-}
-function showAdminWarning(msg) {
-  document.getElementById('adminWarnMsg').textContent = msg;
-  document.getElementById('adminWarnOverlay').classList.add('show');
-}
-function dismissAdminWarn() {
-  document.getElementById('adminWarnOverlay').classList.remove('show');
-}
-
 async function initPage() { 
   const loaderMsg = document.getElementById('loaderMsg'); 
  
@@ -1305,7 +872,7 @@ async function initPage() {
  
   // ── BƯỚC 6: Load dữ liệu + listeners ───────────────────────── 
   loadExamResults();         // Tải lịch sử bài thi
-  loadNotifState().then(() => loadNotifications()); // Tải trạng thái TB → rồi lắng nghe
+  loadNotifState().then(() => loadNotifications()); // Sync trạng thái TB trước
   startRealtimeListeners();  // Giám sát khóa TK + bảo trì
   startPresence();           // Ghi nhận online
   startSessionMonitor();     // Phát hiện đăng nhập trùng
@@ -1318,13 +885,7 @@ async function initPage() {
 // ===================================================================== 
 // EXAM RESULTS + CHART — REAL-TIME với xử lý lỗi đầy đủ 
 // ===================================================================== 
-// Debounced để tránh gọi liên tiếp khi snapshot fire nhiều lần
-let _loadResultDebounce = null;
-function loadExamResults() {
-  if (_loadResultDebounce) return;
-  _loadResultDebounce = setTimeout(() => { _loadResultDebounce = null; _loadExamResultsImpl(); }, 300);
-}
-function _loadExamResultsImpl() { 
+function loadExamResults() { 
   if (examResultsUnsub) { examResultsUnsub(); examResultsUnsub = null; } 
  
   console.log('        Đang tải lịch sử bài thi cho:', studentCode); 
@@ -1494,8 +1055,51 @@ function toggleNotifPanel() {
 } 
 function _getDeletedIds() { try { return new Set(JSON.parse(localStorage.getItem('deletedNotifIds_'+studentCode)||'[]')); } catch(_){ return new Set(); } } 
 function _saveDeletedIds(set) { localStorage.setItem('deletedNotifIds_'+studentCode, JSON.stringify([...set])); } 
-function _getReadIds() { try { return new Set(JSON.parse(localStorage.getItem('readNotifIds_'+studentCode)||'[]')); } catch(_){ return new Set(); } } 
-function _saveReadIds(set) { localStorage.setItem('readNotifIds_'+studentCode, JSON.stringify([...set])); } 
+// ── Notification State — Firestore-backed ─────────────────────────
+let _notifState = { readIds: new Set(), deletedIds: new Set() };
+
+async function loadNotifState() {
+  // Bước 1: load nhanh từ localStorage
+  try {
+    const lr = JSON.parse(localStorage.getItem('readNotifIds_'    + studentCode) || '[]');
+    const ld = JSON.parse(localStorage.getItem('deletedNotifIds_' + studentCode) || '[]');
+    _notifState.readIds    = new Set(lr);
+    _notifState.deletedIds = new Set(ld);
+  } catch(_) {}
+  // Bước 2: merge từ Firestore (nguồn thật giữa các thiết bị)
+  try {
+    const doc = await db.collection('sessions').doc(studentCode).get();
+    if (doc.exists) {
+      (doc.data().readNotifIds    || []).forEach(id => _notifState.readIds.add(id));
+      (doc.data().deletedNotifIds || []).forEach(id => _notifState.deletedIds.add(id));
+    }
+    localStorage.setItem('readNotifIds_'    + studentCode, JSON.stringify([..._notifState.readIds]));
+    localStorage.setItem('deletedNotifIds_' + studentCode, JSON.stringify([..._notifState.deletedIds]));
+  } catch(e) { console.warn('loadNotifState:', e.message); }
+}
+function _syncNotifState() {
+  if (!studentCode || !db) return;
+  const payload = {
+    readNotifIds:    [..._notifState.readIds],
+    deletedNotifIds: [..._notifState.deletedIds]
+  };
+  db.collection('sessions').doc(studentCode)
+    .update(payload)
+    .catch(() => db.collection('sessions').doc(studentCode)
+      .set(payload, { merge: true }).catch(() => {}));
+}
+function _getDeletedIds() { return _notifState.deletedIds; }
+function _saveDeletedIds(set) {
+  _notifState.deletedIds = set;
+  localStorage.setItem('deletedNotifIds_' + studentCode, JSON.stringify([...set]));
+  _syncNotifState();
+}
+function _getReadIds() { return _notifState.readIds; }
+function _saveReadIds(set) {
+  _notifState.readIds = set;
+  localStorage.setItem('readNotifIds_' + studentCode, JSON.stringify([...set]));
+  _syncNotifState();
+}
  
 function _renderNotifList() { 
   const deletedIds = _getDeletedIds(); 
@@ -1708,7 +1312,328 @@ function startPresence() {
 // ===================================================================== 
 // KHỞI ĐỘNG 
 // ===================================================================== 
+
+// =========================================================
+// PHONG THI ONLINE
+// =========================================================
+let _activeRoom = null, _roomUnsub = null, _roomRegUnsub = null;
+let _roomWaitUnsub = null, _roomCdInterval = null, _inviteTimeout = null;
+
+function startExamRoomListener() {
+  if (_roomUnsub) _roomUnsub();
+  _roomUnsub = db.collection('examRooms')
+    .where('status', 'in', ['scheduled', 'open'])
+    .orderBy('startAt', 'asc').limit(1)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        _activeRoom = null;
+        document.getElementById('examRoomContainer').style.display = 'none';
+        return;
+      }
+      const doc = snap.docs[0];
+      _activeRoom = { id: doc.id, ...doc.data() };
+      if (!_checkEligibility(_activeRoom)) {
+        document.getElementById('examRoomContainer').style.display = 'none';
+        return;
+      }
+      document.getElementById('examRoomContainer').style.display = '';
+      _renderRoomCard(_activeRoom);
+      _startRoomCountdown(_activeRoom);
+      _startRegListener(_activeRoom.id);
+      _scheduleInvite(_activeRoom);
+    }, () => {});
+}
+
+function _checkEligibility(room) {
+  if (!room.eligibility || room.eligibility.type === 'all') return true;
+  const { type, values } = room.eligibility;
+  const map = {
+    specific: localStorage.getItem('studentCode')   || '',
+    course:   localStorage.getItem('studentCourse') || '',
+    object:   localStorage.getItem('studentObject') || '',
+    unit:     localStorage.getItem('studentUnit')   || ''
+  };
+  return (values || []).includes(map[type] || '');
+}
+
+function _fmt(ts) {
+  return ts?.toDate ? ts.toDate().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
+}
+function _fmtMs(ms) {
+  const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':');
+}
+
+function _renderRoomCard(room) {
+  document.getElementById('roomTitle').textContent   = room.title || 'Phòng thi';
+  document.getElementById('roomSetName').textContent = room.setName || room.setCode || '---';
+  document.getElementById('roomStartAt').textContent = _fmt(room.startAt);
+  document.getElementById('roomEndAt').textContent   = _fmt(room.endAt);
+  const badge = document.getElementById('roomStatusBadge');
+  if (room.status === 'open')   { badge.className = 'room-badge open';      badge.textContent = '🟢 Đang diễn ra'; }
+  else if (room.status==='closed'){ badge.className='room-badge closed';    badge.textContent = '🔴 Đã kết thúc'; }
+  else                          { badge.className = 'room-badge scheduled'; badge.textContent = '⏳ Sắp diễn ra'; }
+  _updateRoomButtons(room);
+}
+
+function _updateRoomButtons(room) {
+  if (!studentCode) return;
+  const regBtn  = document.getElementById('roomRegBtn');
+  const waitBtn = document.getElementById('roomEnterWaitBtn');
+  if (room.status === 'closed') { regBtn.style.display = 'none'; waitBtn.style.display = 'none'; return; }
+  db.collection('examRooms').doc(room.id).collection('registrations').doc(studentCode).get()
+    .then(d => {
+      const isReg = d.exists;
+      regBtn.style.display = '';
+      regBtn.className = isReg ? 'room-reg-btn registered' : 'room-reg-btn not-reg';
+      regBtn.innerHTML  = isReg ? '✅ Đã đăng ký tham gia' : '✅ Đăng ký tham gia';
+      waitBtn.style.display = isReg ? '' : 'none';
+      if (isReg) {
+        waitBtn.innerHTML = room.status === 'open' ? '🚪 Vào thi ngay!' : '🚪 Vào phòng chờ thi';
+        waitBtn.style.background = room.status === 'open'
+          ? 'linear-gradient(135deg,#dc3545,#a02535)' : '';
+      }
+      // Khoá vào muộn
+      if (room.status === 'open' && room.lateEntryMinutes) {
+        const deadline = new Date(room.startAt.toDate().getTime() + room.lateEntryMinutes * 60000);
+        if (new Date() > deadline) { regBtn.style.display = 'none'; waitBtn.style.display = 'none'; }
+      }
+    }).catch(() => {});
+}
+
+async function toggleRoomRegistration() {
+  if (!_activeRoom || !studentCode) return;
+  const ref = db.collection('examRooms').doc(_activeRoom.id).collection('registrations').doc(studentCode);
+  const btn = document.getElementById('roomRegBtn');
+  btn.disabled = true;
+  try {
+    const d = await ref.get();
+    if (d.exists) { await ref.delete(); }
+    else { await ref.set({ studentCode, studentName: localStorage.getItem('studentName') || studentCode, registeredAt: firebase.firestore.FieldValue.serverTimestamp(), inWaitingRoom: false }); }
+    _updateRoomButtons(_activeRoom);
+  } catch(e) { alert('Lỗi: ' + e.message); }
+  btn.disabled = false;
+}
+
+function _startRegListener(roomId) {
+  if (_roomRegUnsub) _roomRegUnsub();
+  _roomRegUnsub = db.collection('examRooms').doc(roomId).collection('registrations')
+    .onSnapshot(snap => {
+      const total = snap.size, waiting = snap.docs.filter(d => d.data().inWaitingRoom).length;
+      document.getElementById('regCount').textContent     = total;
+      document.getElementById('waitingCount').textContent = waiting;
+      document.getElementById('wiRegCount').textContent   = total;
+      document.getElementById('wiWaitCount').textContent  = waiting;
+      document.getElementById('wiAbsCount').textContent   = Math.max(0, total - waiting);
+    }, () => {});
+}
+
+function _startRoomCountdown(room) {
+  if (_roomCdInterval) clearInterval(_roomCdInterval);
+  const cdEl = document.getElementById('roomCdTime');
+  const lbl  = document.getElementById('roomCdLabel');
+  function tick() {
+    const now = Date.now();
+    const diff = room.status === 'open'
+      ? room.endAt.toDate().getTime() - now
+      : room.startAt.toDate().getTime() - now;
+    lbl.textContent = room.status === 'open' ? 'Thời gian còn lại' : 'Đếm ngược đến giờ thi';
+    cdEl.textContent = diff > 0 ? _fmtMs(diff) : (room.status === 'open' ? 'Hết giờ' : 'Đang mở...');
+  }
+  tick();
+  _roomCdInterval = setInterval(tick, 1000);
+}
+
+function _scheduleInvite(room) {
+  if (_inviteTimeout) clearTimeout(_inviteTimeout);
+  if (room.status !== 'scheduled' || !studentCode) return;
+  db.collection('examRooms').doc(room.id).collection('registrations').doc(studentCode).get()
+    .then(d => {
+      if (!d.exists) return;
+      const delay = room.startAt.toDate().getTime() - 5 * 60000 - Date.now();
+      if (delay > 0 && delay < 6 * 60000) {
+        _inviteTimeout = setTimeout(() => {
+          document.getElementById('inviteMsg').textContent =
+            '"' + (room.title||'Phòng thi') + '" bắt đầu sau 5 phút. Hãy vào phòng chờ ngay!';
+          document.getElementById('examInviteOverlay').classList.add('show');
+        }, delay);
+      }
+    }).catch(() => {});
+}
+function acceptExamInvite() {
+  document.getElementById('examInviteOverlay').classList.remove('show');
+  enterWaitingRoom();
+}
+
+async function enterWaitingRoom() {
+  if (!_activeRoom || !studentCode) return;
+  try {
+    await db.collection('examRooms').doc(_activeRoom.id).collection('registrations').doc(studentCode)
+      .update({ inWaitingRoom: true, enteredAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('examRooms').doc(_activeRoom.id).collection('waitingRoom').doc(studentCode)
+      .set({ studentCode, studentName: localStorage.getItem('studentName') || studentCode, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    _showWaitingRoom(_activeRoom);
+  } catch(e) { alert('Lỗi vào phòng chờ: ' + e.message); }
+}
+
+function _showWaitingRoom(room) {
+  document.getElementById('waitingRoomTitle').textContent = room.title || '';
+  document.getElementById('waitingRules').innerHTML = (room.rules ||
+    '• Không sử dụng tài liệu trong khi thi.
+• Không nhờ người khác làm hộ.
+• Nộp bài đúng thời gian quy định.
+• Vi phạm sẽ bị hủy kết quả.')
+    .split('
+').map(l => `<p style="margin:2px 0">${l}</p>`).join('');
+  const cdEl = document.getElementById('wcdTime');
+  const lbl  = document.getElementById('wcdLabel');
+  const btn  = document.getElementById('wfStartBtn');
+  if (_roomCdInterval) clearInterval(_roomCdInterval);
+  function wTick() {
+    const now = Date.now();
+    if (room.status === 'open') {
+      const diff = room.endAt.toDate().getTime() - now;
+      lbl.textContent = 'Thời gian còn lại để nộp bài';
+      cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Hết giờ';
+      btn.disabled = false; btn.textContent = '📝 Bắt đầu làm bài';
+    } else {
+      const diff = room.startAt.toDate().getTime() - now;
+      lbl.textContent = 'Thi bắt đầu sau';
+      cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Đang mở...';
+      btn.disabled = diff > 0;
+      if (diff <= 0) btn.textContent = '📝 Vào thi ngay!';
+    }
+  }
+  wTick(); _roomCdInterval = setInterval(wTick, 1000);
+  if (_roomWaitUnsub) _roomWaitUnsub();
+  _roomWaitUnsub = db.collection('examRooms').doc(room.id).collection('waitingRoom')
+    .orderBy('joinedAt','asc').onSnapshot(snap => {
+      document.getElementById('wuCount').textContent = snap.size;
+      document.getElementById('wuserList').innerHTML = snap.docs.map(d =>
+        `<span class="wuser-chip ${d.id === studentCode ? 'me' : ''}">👤 ${d.data().studentName || d.id}${d.id === studentCode ? ' (bạn)' : ''}</span>`
+      ).join('');
+    }, () => {});
+  document.getElementById('waitingOverlay').classList.add('show');
+}
+
+async function leaveWaitingRoom() {
+  if (_activeRoom && studentCode) {
+    try {
+      await db.collection('examRooms').doc(_activeRoom.id).collection('registrations').doc(studentCode).update({ inWaitingRoom: false });
+      await db.collection('examRooms').doc(_activeRoom.id).collection('waitingRoom').doc(studentCode).delete();
+    } catch(e) {}
+  }
+  if (_roomWaitUnsub) { _roomWaitUnsub(); _roomWaitUnsub = null; }
+  if (_roomCdInterval) { clearInterval(_roomCdInterval); _roomCdInterval = null; }
+  document.getElementById('waitingOverlay').classList.remove('show');
+  if (_activeRoom) _startRoomCountdown(_activeRoom);
+}
+
+function startExamFromRoom() {
+  if (!_activeRoom) return;
+  localStorage.setItem('examRoomId', _activeRoom.id);
+  localStorage.setItem('examRoomSetCode', _activeRoom.setCode || '');
+  location.href = 'test.html';
+}
+
+// =========================================================
+// CANH BAO ADMIN
+// =========================================================
+function startAdminWarnListener() {
+  if (!studentCode || !db) return;
+  db.collection('adminWarnings').where('active','==',true)
+    .orderBy('createdAt','desc').limit(5)
+    .onSnapshot(snap => {
+      snap.docs.forEach(doc => {
+        const d = doc.data();
+        const targets = d.targets || ['all'];
+        if (!targets.includes('all') && !targets.includes(studentCode)) return;
+        const key = 'aw_' + doc.id;
+        if (sessionStorage.getItem(key)) return;
+        sessionStorage.setItem(key, '1');
+        document.getElementById('adminWarnMsg').textContent = d.message || 'Cảnh báo từ hệ thống';
+        document.getElementById('adminWarnOverlay').classList.add('show');
+      });
+    }, () => {});
+}
+
 initPage(); 
 </script> 
+
+<!-- PHONG THI ONLINE -->
+<div class="container" id="examRoomContainer" style="margin-top:0;display:none;">
+  <div class="grid">
+    <div class="card room-card">
+      <div class="card-header" style="justify-content:space-between;">
+        <h3>🏫 Phòng thi Online</h3>
+        <span id="roomStatusBadge" class="room-badge scheduled">⏳ Sắp diễn ra</span>
+      </div>
+      <div class="card-body">
+        <div style="font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px;" id="roomTitle">---</div>
+        <div class="room-info-row">
+          <span class="room-chip">📄 <span id="roomSetName">---</span></span>
+          <span class="room-chip">⏰ <span id="roomStartAt">---</span></span>
+          <span class="room-chip">⏱ Kết thúc: <span id="roomEndAt">---</span></span>
+        </div>
+        <div class="room-countdown">
+          <div class="rcd-label" id="roomCdLabel">Đếm ngược đến giờ thi</div>
+          <div class="rcd-time" id="roomCdTime">--:--:--</div>
+        </div>
+        <div class="room-participants">
+          👥 Đăng ký: <b id="regCount">0</b>  •  🚪 Phòng chờ: <b id="waitingCount">0</b>
+        </div>
+        <div style="font-size:12.5px;color:#888;background:#f8fafc;border-radius:8px;padding:8px 12px;margin:10px 0;text-align:center;">
+          ⚠️ Khuyến cáo: Vào phòng chờ tối thiểu <strong>5 phú</strong> trước khi phòng thi mở
+        </div>
+        <button class="room-reg-btn not-reg" id="roomRegBtn" onclick="toggleRoomRegistration()" style="display:none;"></button>
+        <button class="room-reg-btn enter-waiting" id="roomEnterWaitBtn" onclick="enterWaitingRoom()" style="display:none;">🚪 Vào phòng chờ thi</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="waiting-overlay" id="waitingOverlay">
+  <div class="waiting-box">
+    <div class="waiting-header"><h2>🏫 Phòng chờ thi</h2><p id="waitingRoomTitle">---</p></div>
+    <div class="waiting-body">
+      <div class="waiting-cd">
+        <div class="wcd-title" id="wcdLabel">Thi bắt đầu sau</div>
+        <div class="wcd-time" id="wcdTime">00:00:00</div>
+        <div class="wcd-sub">Vui lòng chờ trong phòng — không tắt trình duyết</div>
+      </div>
+      <div class="waiting-info-grid">
+        <div class="winfo-card"><div class="wic-num" id="wiRegCount">0</div><div class="wic-lbl">Đăng ký</div></div>
+        <div class="winfo-card"><div class="wic-num" id="wiWaitCount">0</div><div class="wic-lbl">Trong phòng chờ</div></div>
+        <div class="winfo-card"><div class="wic-num" id="wiAbsCount">0</div><div class="wic-lbl">Chưa vào phòng</div></div>
+      </div>
+      <div class="waiting-rules"><h4>📋 Nội quy &amp; Chống gian lận</h4><div id="waitingRules"></div></div>
+      <div style="margin-bottom:12px;">
+        <h4 style="font-size:13px;color:#555;margin:0 0 8px;font-weight:600;">👥 Trong phòng chờ (<span id="wuCount">0</span>)</h4>
+        <div class="wuser-list" id="wuserList"></div>
+      </div>
+    </div>
+    <div class="waiting-footer">
+      <button class="wf-leave" onclick="leaveWaitingRoom()">← Thoát phòng chờ</button>
+      <button class="wf-start" id="wfStartBtn" disabled onclick="startExamFromRoom()">📝 Bắt đầu làm bài</button>
+    </div>
+  </div>
+</div>
+<div class="admin-warn-overlay" id="adminWarnOverlay">
+  <div class="admin-warn-box">
+    <div class="awb-header"><span>🚨</span><h3>Cảnh báo từ hệ thống</h3></div>
+    <div class="awb-body" id="adminWarnMsg">---</div>
+    <div class="awb-footer"><button onclick="document.getElementById('adminWarnOverlay').classList.remove('show')">Đã hiểu, đóng</button></div>
+  </div>
+</div>
+<div class="exam-invite-overlay" id="examInviteOverlay">
+  <div class="exam-invite-box">
+    <div class="eii">🔔</div>
+    <h3>Mời vào phòng thi!</h3>
+    <p id="inviteMsg">Phòng thi sẽp bắt đầu. Bạn đã đăng ký — h㹃y vào phòng chờ ngay!</p>
+    <div class="eib-btns">
+      <button class="eib-decline" onclick="document.getElementById('examInviteOverlay').classList.remove('show')">🔕 Đế sau</button>
+      <button class="eib-accept" onclick="acceptExamInvite()">🚪 Vào phòng chờ ngay</button>
+    </div>
+  </div>
+</div>
 </body> 
 </html>
