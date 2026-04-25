@@ -2727,7 +2727,14 @@ function simpleHash_LEGACY(str) {
 }
 async function verifyAdminSession() {
     return new Promise((resolve, reject) => {
+        // ✅ [Fix A1] Timeout 5 giây phòng onAuthStateChanged không bao giờ kích hoạt
+        const timer = setTimeout(() => {
+            localStorage.removeItem('userType');
+            location.href = 'index.html';
+            reject('timeout');
+        }, 5000);
         const unsub = auth.onAuthStateChanged(async user => {
+            clearTimeout(timer);
             unsub();
             if (!user) {
                 // Chưa đăng nhập → về trang login
