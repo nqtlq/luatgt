@@ -603,32 +603,36 @@ let _authUser  = null;
  
 async function ensureAuth() {
   if (_authUser) return _authUser;
-  if (!auth) throw new Error('Auth chưa khởi tạo');
-  // Đợi Firebase phục hồi auth state (bất đồng bộ) trước khi sign in mới
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      // Sau 4 giây vẫn chưa có user → sign in anonymous mới
-      auth.signInAnonymously()
-        .then(c => { _authUser = c.user; _authReady = true; resolve(_authUser); })
-        .catch(reject);
-    }, 4000);
-    const unsub = auth.onAuthStateChanged(user => {
-      clearTimeout(timeout);
-      unsub();
-      if (user) {
-        _authUser = user; _authReady = true;
-        console.log('Auth phục hồi OK, UID:', user.uid, 'anonymous:', user.isAnonymous);
-        resolve(user);
-      } else {
-        // Chưa có session → sign in anonymous
-        auth.signInAnonymously()
-          .then(c => { _authUser = c.user; _authReady = true;
-                       console.log('Anonymous auth OK, UID:', c.user.uid);
-                       resolve(_authUser); })
-          .catch(reject);
-      }
+  if (!auth) throw new Error('Firebase Auth chưa khởi tạo');
+
+  // Bước 1: Kiểm tra currentUser ngay lập tức (nếu đã có từ session cũ)
+  if (auth.currentUser) {
+    _authUser = auth.currentUser;
+    _authReady = true;
+    console.log('Auth sẵn có, UID:', _authUser.uid);
+    return _authUser;
+  }
+
+  // Bước 2: Đợi onAuthStateChanged phục hồi (tối đa 3 giây)
+  const user = await new Promise((resolve) => {
+    const t = setTimeout(() => { unsub(); resolve(null); }, 3000);
+    const unsub = auth.onAuthStateChanged(u => {
+      clearTimeout(t); unsub(); resolve(u);
     });
   });
+
+  if (user) {
+    _authUser = user; _authReady = true;
+    console.log('Auth phục hồi từ session, UID:', user.uid);
+    return _authUser;
+  }
+
+  // Bước 3: Không có session → sign in anonymous
+  console.log('Không có session, đang sign in anonymous...');
+  const cred = await auth.signInAnonymously();
+  _authUser = cred.user; _authReady = true;
+  console.log('Anonymous auth OK, UID:', cred.user.uid);
+  return _authUser;
 } 
  
 // ===================================================================== 
@@ -949,23 +953,46 @@ function loadExamResults() {
   document.getElementById('chartWrap').style.display      = 'none'; 
  
   try { 
-    examResultsUnsub = db.collection('examResults') 
-      .where('studentCode', '==', studentCode) 
-      .limit(100) 
-      .onSnapshot( 
-        snap => { 
-          console.log('     examResults snapshot nhận được:', snap.size, 'bản ghi'); 
-          renderExamResults(snap); 
-        }, 
-        err => { 
-          console.error('    examResults lỗi:', err.code, err.message); 
-          handleExamResultsError(err); 
-        } 
-      ); 
-  } catch(e) { 
-    console.error('    Không thể tạo listener:', e); 
-    handleExamResultsError(e); 
-  } 
+    // Query realtime + orderBy timestamp (can composite index: studentCode ASC, timestamp DESC)
+  const _rsCode    = studentCode;
+  const _rsAltCode = localStorage.getItem('studentId') || studentCode;
+  try {
+    examResultsUnsub = db.collection('examResults')
+      .where('studentCode', '==', _rsCode)
+      .orderBy('timestamp', 'desc')
+      .limit(100)
+      .onSnapshot(
+        snap => {
+          console.log('examResults realtime:', snap.size, 'bản ghi');
+          if (snap.empty && _rsAltCode !== _rsCode) {
+            _fallbackQueryExamResults(_rsAltCode);
+          } else {
+            renderExamResults(snap);
+          }
+        },
+        err => {
+          console.error('examResults lỗi:', err.code);
+          handleExamResultsError(err);
+        }
+      );
+  } catch(e) {
+    console.error('Không thể tạo listener:', e);
+    handleExamResultsError(e);
+  }
+}
+
+// Fallback: query theo studentId nếu studentCode không có kết quả
+function _fallbackQueryExamResults(altCode) {
+  if (!altCode || altCode === studentCode) return;
+  console.log('Fallback query examResults theo:', altCode);
+  db.collection('examResults')
+    .where('studentCode', '==', altCode)
+    .orderBy('timestamp', 'desc')
+    .limit(100)
+    .onSnapshot(
+      snap => { if (!snap.empty) renderExamResults(snap); },
+      err => console.warn('Fallback lỗi:', err.code)
+    );
 } 
  
 function handleExamResultsError(err) { 
