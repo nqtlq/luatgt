@@ -949,13 +949,6 @@
   const IS_GUEST   = userType === "guest";
   const IS_STUDENT = userType === "student";
 
-  // ── AUTH GUARD: Chỉ student hoặc guest mới được vào test.html ──
-  if (!IS_STUDENT && !IS_GUEST) {
-    location.replace('index.html');
-    // Dừng toàn bộ script ngay lập tức
-    throw new Error('REDIRECT');
-  }
-
   let _authUser = null;
   async function ensureAuth() {
     if (_authUser) return _authUser;
@@ -1748,28 +1741,6 @@
   // ================================================================
   document.addEventListener("DOMContentLoaded", async () => {
     try {
-      // ── Nếu là student: xác minh session server-side ──
-      if (IS_STUDENT && studentCode) {
-        try {
-          const _tok = localStorage.getItem('sessionToken_' + studentCode);
-          if (!_tok) throw new Error('no_token');
-          await ensureAuth();
-          const _sdoc = await db.collection('sessions').doc(studentCode)
-            .get({ source: 'server' });
-          if (!_sdoc.exists) throw new Error('no_session');
-          const _sd    = _sdoc.data();
-          const _fresh = _sd.lastActive?.toDate
-            ? (Date.now() - _sd.lastActive.toDate().getTime()) < 5 * 60 * 1000
-            : false;
-          if (!_sd.token || _sd.token !== _tok || !_fresh) throw new Error('invalid');
-        } catch(e) {
-          localStorage.removeItem('userType');
-          localStorage.removeItem('studentCode');
-          localStorage.removeItem('sessionToken_' + studentCode);
-          location.replace('index.html');
-          return;
-        }
-      }
       await setupUI();
       await loadSets();
       // Presence cho trang chọn đề (student)
@@ -1821,45 +1792,6 @@
     }
     document.body.style.visibility = "visible";
   });
-  
-// ─── CẢNH BÁO ADMIN (inject tự động) ────────────────────────
-(function() {
-  function waitForDB(cb, n) {
-    n = n || 0;
-    if (typeof db !== 'undefined' && db) { cb(); }
-    else if (n < 30) { setTimeout(() => waitForDB(cb, n+1), 500); }
-  }
-  waitForDB(function() {
-    const sc = localStorage.getItem('studentCode');
-    if (!sc) return;
-    if (!document.getElementById('_awStyle')) {
-      const s = document.createElement('style');
-      s.id = '_awStyle';
-      s.textContent = '._aw-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px;backdrop-filter:blur(4px)}._aw-ov.show{display:flex}._aw-bx{background:#fff;border-radius:16px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4)}._aw-hd{background:linear-gradient(135deg,#dc3545,#a02535);padding:16px 18px;color:#fff;display:flex;align-items:center;gap:10px}._aw-hd span{font-size:24px}._aw-hd h3{margin:0;font-size:15px}._aw-bd{padding:16px;font-size:14px;color:#333;line-height:1.6}._aw-ft{padding:10px 16px;border-top:1px solid #e2e8f0;text-align:right}._aw-ft button{padding:8px 20px;background:#1d3557;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}';
-      document.head.appendChild(s);
-    }
-    if (!document.getElementById('_awOverlay')) {
-      document.body.insertAdjacentHTML('beforeend',
-        '<div class="_aw-ov" id="_awOverlay"><div class="_aw-bx"><div class="_aw-hd"><span>🚨</span><h3>Cảnh báo từ hệ thống</h3></div><div class="_aw-bd" id="_awMsg"></div><div class="_aw-ft"><button onclick="document.getElementById('_awOverlay').classList.remove('show')">Đã hiểu, đóng</button></div></div></div>'
-      );
-    }
-    db.collection('adminWarnings').where('active','==',true)
-      .orderBy('createdAt','desc').limit(5)
-      .onSnapshot(function(snap) {
-        snap.docs.forEach(function(doc) {
-          var d = doc.data();
-          var targets = d.targets || ['all'];
-          if (!targets.includes('all') && !targets.includes(sc)) return;
-          var key = '_aw_' + doc.id;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, '1');
-          document.getElementById('_awMsg').textContent = d.message || 'Cảnh báo từ quản trị viên';
-          document.getElementById('_awOverlay').classList.add('show');
-        });
-      }, function() {});
-  });
-})();
-
-</script>
+  </script>
 </body>
 </html>
