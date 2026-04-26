@@ -100,6 +100,16 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 /* Single session warning */
 .session-warning{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#856404;display:none;}
 .session-warning.show{display:block;}
+.tab-kicked-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(6px);}
+.tab-kicked-overlay.show{display:flex;}
+.tab-kicked-box{background:white;padding:28px;border-radius:18px;max-width:440px;width:94%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.4);}
+.tab-kicked-box .tki{font-size:54px;margin-bottom:10px;}
+.tab-kicked-box h3{font-size:18px;color:#1d3557;margin:0 0 12px;}
+.tab-kicked-box p{font-size:13.5px;color:#444;line-height:1.6;margin:0 0 10px;}
+.tab-kicked-box .warn-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:13px;color:#856404;text-align:left;line-height:1.5;}
+.tab-kicked-box button{width:100%;padding:11px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;}
+.tkb-continue{background:#1d3557;color:white;}
+.tkb-dismiss{background:#6c757d;color:white;}
 @media(max-width:480px){
  .system-name .vi{font-size:14px;}
  .box{padding:22px;}
@@ -329,13 +339,18 @@ async function verifyPassword(input, stored) {
 // ================================================================
 let _anonPromise = null;
 async function ensureAuth() {
-  if (!auth) throw new Error('Auth chưa sẵn sàng');
-  if (auth.currentUser) return auth.currentUser;
-  if (_anonPromise) return _anonPromise;
-  _anonPromise = auth.signInAnonymously()
-    .then(c => { _anonPromise = null; return c.user; })
-    .catch(e => { _anonPromise = null; throw e; });
-  return _anonPromise;
+  if (_authUser) return _authUser;
+  if (!auth) throw new Error('Auth chưa khởi tạo');
+  if (auth.currentUser) {
+    _authUser = auth.currentUser;
+    return _authUser;
+  }
+  const cred = await Promise.race([
+    auth.signInAnonymously(),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('auth/timeout')), 10000))
+  ]);
+  _authUser = cred.user;
+  return _authUser;
 }
 
 // ================================================================
@@ -374,10 +389,37 @@ function generateSessionToken() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
 }
 
+// ── Single-tab via BroadcastChannel ──────────────────────────────
+let _tabBC = null;
+(function initTabChannel() {
+  if (typeof BroadcastChannel === 'undefined') return;
+  try {
+    _tabBC = new BroadcastChannel('exam_session_v1');
+    _tabBC.onmessage = function(ev) {
+      const d = ev.data;
+      if (!d || d.type !== 'NEW_LOGIN') return;
+      const myCode = localStorage.getItem('studentCode');
+      if (myCode && d.code === myCode) {
+        document.getElementById('tkiCode').textContent = myCode;
+        document.getElementById('tabKickedOverlay').classList.add('show');
+      }
+    };
+  } catch(e) {}
+})();
+function broadcastNewLogin(code) {
+  if (!_tabBC) return;
+  try { _tabBC.postMessage({ type: 'NEW_LOGIN', code, ts: Date.now() }); } catch(_) {}
+}
+function takeover_tab() {
+  document.getElementById('tabKickedOverlay').classList.remove('show');
+}
+
 async function createSession(studentCode) {
   const token = generateSessionToken();
   const sessionData = {
     token,
+    // Lưu anonymous UID để Rules xác minh quyền đổi mật khẩu
+    uid: auth?.currentUser?.uid || '',
     deviceInfo: navigator.userAgent.substring(0, 100),
     loginAt: firebase.firestore.FieldValue.serverTimestamp(),
     lastActive: firebase.firestore.FieldValue.serverTimestamp()
@@ -395,14 +437,15 @@ async function createSession(studentCode) {
 
 async function checkExistingSession(studentCode) {
   try {
-    const doc = await db.collection('sessions').doc(studentCode).get();
+    // Luôn lấy từ server, không cache offline
+    const doc = await db.collection('sessions').doc(studentCode)
+      .get({ source: 'server' });
     if (!doc.exists) return false;
     const data = doc.data();
     if (!data.token) return false;
-    // Kiểm tra session có còn active không (5 phút không heartbeat = hết)
     const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
     const diff = Date.now() - lastActive.getTime();
-    if (diff > 5 * 60 * 1000) return false; // Quá 5 phút = session cũ
+    if (diff > 5 * 60 * 1000) return false; // >5 phút không heartbeat = coi như hết
     return true;
   } catch(e) {
     return false;
@@ -497,31 +540,14 @@ function regenerateQR() {
 // ================================================================
 // KHỞI TẠO TRANG - QUAN TRỌNG: KHÔNG TỰ ĐỘNG CHUYỂN HƯỚNG
 // ================================================================
-window.onload = async function(){
-  // ── Nếu đã đăng nhập → chuyển thẳng vào trang tương ứng
+window.onload = async function() {
   const existingType = localStorage.getItem('userType');
   const existingCode = localStorage.getItem('studentCode');
 
-  if (existingType === 'student' && existingCode) {
-    // Học viên đã đăng nhập → kiểm tra session còn hợp lệ không
+  // ── Admin: chỉ redirect nếu Firebase auth còn sống ──
+  if (existingType === 'admin') {
     try {
       await ensureAuth();
-      const sessionActive = await checkExistingSession(existingCode);
-      const myToken = localStorage.getItem('sessionToken_' + existingCode);
-      if (sessionActive || myToken) {
-        // Session còn hợp lệ → redirect
-        location.replace('exam.html');
-        return;
-      }
-    } catch(e) { /* Nếu lỗi → cho đăng nhập bình thường */ }
-    // Session hết hạn → xóa và cho đăng nhập lại
-    localStorage.removeItem('userType');
-    localStorage.removeItem('studentCode');
-  }
-
-  if (existingType === 'admin') {
-    // Admin → kiểm tra Firebase auth còn sống không
-    if (auth) {
       await new Promise(resolve => {
         const unsub = auth.onAuthStateChanged(user => {
           unsub();
@@ -533,19 +559,47 @@ window.onload = async function(){
             resolve();
           }
         });
-        setTimeout(resolve, 3000); // Timeout fallback
+        setTimeout(resolve, 3000);
       });
-      if (localStorage.getItem('userType') === 'admin') return; // Đang redirect
+      if (localStorage.getItem('userType') === 'admin') return;
+    } catch(e) {
+      localStorage.removeItem('userType');
     }
   }
 
-  // Chưa đăng nhập → Pre-auth anonymous
-  ensureAuth().catch(e=>console.warn('Pre-auth:', e.code));
-  
-  // Kiểm tra bảo trì
-  try{ if(await checkMaintenanceMode()){ showMaintenancePage(); return; } }catch(_){}
-  
-  // Render QR
+  // ── Học viên: kiểm tra nghiêm ngặt session Firestore ──
+  if (existingType === 'student' && existingCode) {
+    try {
+      await ensureAuth();
+      const myToken = localStorage.getItem('sessionToken_' + existingCode);
+      if (myToken) {
+        // Bắt buộc lấy từ server (source: 'server'), không dùng cache offline
+        const doc = await db.collection('sessions').doc(existingCode)
+          .get({ source: 'server' });
+        if (doc.exists) {
+          const data = doc.data();
+          const serverToken = data.token;
+          const lastActive  = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
+          const fresh = (Date.now() - lastActive.getTime()) < 5 * 60 * 1000;
+          // Chỉ redirect khi token khớp VÀ session còn tươi
+          if (serverToken && serverToken === myToken && fresh) {
+            location.replace('exam.html');
+            return;
+          }
+        }
+      }
+    } catch(e) { /* Lỗi mạng hoặc offline → cho đăng nhập lại */ }
+    // Xóa dữ liệu cũ
+    localStorage.removeItem('userType');
+    localStorage.removeItem('studentCode');
+    localStorage.removeItem('sessionToken_' + existingCode);
+  }
+
+  // ── Chưa đăng nhập → hiển thị form ──
+  ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
+  try {
+    if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
+  } catch(_) {}
   renderQR();
 };
 
@@ -637,13 +691,16 @@ async function doStudentLogin(raw, pass){
   
   // Kiểm tra session đang hoạt động (1 thiết bị)
   const hasActiveSession = await checkExistingSession(sid);
-  if(hasActiveSession){
-    document.getElementById('sessionWarning').classList.add('show');
-    // Vẫn cho đăng nhập nhưng sẽ kick session cũ
+  if (hasActiveSession) {
+    const sw = document.getElementById('sessionWarning');
+    sw.innerHTML = '⚠️ Tài khoản đang đăng nhập ở thiết bị khác. Đăng nhập tại đây sẽ kết thúc phiên đó. '
+      + '<b>Nếu không phải bạn → đổi mật khẩu ngay!</b>';
+    sw.classList.add('show');
   }
   
-  // Tạo session mới
+  // Tạo session mới (kick thiết bị/tab cũ)
   await createSession(sid);
+  broadcastNewLogin(st.code || sid);  // Thông báo cho các tab cùng browser
   
   // Lưu session
   localStorage.setItem('userType', 'student');
@@ -792,9 +849,18 @@ async function submitChangePassword(){
     const storedHash=d.data().password||'';
     const ok=storedHash ? await verifyPassword(o,storedHash) : (o===_DP);
     if(!ok){err.textContent='❌ Sai mật khẩu hiện tại!';err.classList.add('show');return;}
+    // Đảm bảo session có uid hiện tại trước khi update
+    // (Rules kiểm tra sessions/{studentCode}.uid == request.auth.uid)
+    const _curUid = auth?.currentUser?.uid || '';
+    if (_curUid) {
+      await db.collection('sessions').doc(changePwSid)
+        .set({ uid: _curUid }, { merge: true })
+        .catch(() => {});
+    }
     await db.collection('students').doc(changePwSid).update({
-      password:await secureHash(n), passwordChanged:true,
-      passwordUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      password: await secureHash(n),
+      passwordChanged: true,
+      passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     suc.textContent='✅ Đổi mật khẩu thành công!'; suc.classList.add('show');
     try{ if(auth.currentUser?.isAnonymous) await auth.signOut(); }catch(_){}
@@ -844,5 +910,16 @@ document.addEventListener('click',e=>{
   }
 });
 </script>
+<!-- TAB-KICKED OVERLAY (HTML only, no script tag) -->
+<div class="tab-kicked-overlay" id="tabKickedOverlay">
+  <div class="tab-kicked-box">
+    <div class="tki">🔒</div>
+    <h3>Tài khoản đang mở ở tab khác</h3>
+    <p>Tài khoản <b id="tkiCode"></b> vừa đăng nhập tại tab/cửa sổ khác trong cùng trình duyệt.</p>
+    <div class="warn-box">⚠️ Nếu không phải bạn: hãy <b>đổi mật khẩu ngay</b> và liên hệ quản trị viên Zalo <b>0973.306.802</b>.</div>
+    <button class="tkb-continue" onclick="takeover_tab()">✅ Tiếp tục dùng tab này</button>
+    <button class="tkb-dismiss" onclick="document.getElementById('tabKickedOverlay').classList.remove('show')">Đóng thông báo</button>
+  </div>
+</div>
 </body>
 </html>
