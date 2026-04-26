@@ -531,9 +531,15 @@ try {
 // ===================================================================== 
 // BIẾN TOÀN CỤC 
 // ===================================================================== 
-// Auth guard được xử lý trong DOMContentLoaded ở cuối file
 const userType    = localStorage.getItem('userType'); 
 const studentCode = localStorage.getItem('studentCode'); 
+ 
+// Kiểm tra session cơ bản trước khi vào trang 
+if (userType !== 'student' || !studentCode) { 
+  // Không còn student session → về login
+  localStorage.removeItem('userType'); 
+  location.href = 'index.html'; 
+} 
  
 let chart = null, isKicked = false; 
 let studentUnsub = null, maintUnsub = null, notifUnsub = null, examResultsUnsub = null; 
@@ -660,34 +666,38 @@ function timeAgo(val) {
 function showConfirmLogout() { document.getElementById('confirmLogoutModal').classList.add('show'); } 
 function closeConfirmLogout() { document.getElementById('confirmLogoutModal').classList.remove('show'); } 
  
-async function doLogout() { 
-  // 1. Xóa session khỏi Firestore (giải phóng slot) 
-  try { 
-    if (db && studentCode) await db.collection('sessions').doc(studentCode).delete(); 
-  } catch(_) {} 
-  localStorage.removeItem('sessionToken_' + studentCode); 
-  sessionStorage.removeItem('sessionToken_' + studentCode); 
- 
-  // 2. Thử sign out Firebase 
-  try { 
-    if (auth && auth.currentUser) await auth.signOut(); 
-  } catch (_) {} 
- 
-  // 3. Giữ lại thông báo đã đọc/xóa 
-  const notifKeysToKeep = {}; 
-  for (let i = 0; i < localStorage.length; i++) { 
-    const k = localStorage.key(i); 
-    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) { 
-      notifKeysToKeep[k] = localStorage.getItem(k); 
-    } 
-  } 
- 
-  // 4. Xóa sạch LocalStorage 
-  localStorage.clear(); 
-  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v)); 
-   
-  // 5. Quay về trang chủ 
-  location.replace('index.html'); 
+async function doLogout() {
+  // 1. Xóa session Firestore (server) — bắt buộc để index.html không redirect lại
+  try {
+    if (db && studentCode) {
+      await db.collection('sessions').doc(studentCode).delete();
+    }
+  } catch(_) {}
+
+  // 2. Xóa token local
+  localStorage.removeItem('sessionToken_' + studentCode);
+  sessionStorage.removeItem('sessionToken_' + studentCode);
+
+  // 3. Sign out Firebase
+  try {
+    if (auth && auth.currentUser) await auth.signOut();
+  } catch(_) {}
+
+  // 4. Giữ lại thông báo đã đọc/xóa (UX)
+  const keepKeys = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
+      keepKeys[k] = localStorage.getItem(k);
+    }
+  }
+
+  // 5. Xóa sạch localStorage (bao gồm userType, studentCode)
+  localStorage.clear();
+  Object.entries(keepKeys).forEach(([k, v]) => localStorage.setItem(k, v));
+
+  // 6. Về trang đăng nhập
+  location.replace('index.html');
 } 
 function forceKickOut(reason) { 
   alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập."); 
@@ -695,7 +705,35 @@ function forceKickOut(reason) {
   location.replace('index.html'); // ÉP QUAY VỀ 
 } 
  
-// (Khối DOMContentLoaded cũ đã bị xóa — initPage() được gọi trực tiếp bên dưới) 
+// Khối khởi tạo chính của trang 
+document.addEventListener('DOMContentLoaded', async () => { 
+  try { 
+    // Luôn hiện body lên để tránh trang trắng nếu JS lỗi 
+    document.body.style.visibility = 'visible'; 
+ 
+    // Đảm bảo Auth 
+    await ensureAuth(); 
+ 
+    // Giả sử đây là hàm load thông tin/load đề thi của bạn 
+    await setupUI(); 
+    await loadSets(); 
+ 
+  } catch (err) { 
+    console.error("Lỗi hệ thống:", err); 
+ 
+    // ĐÂY LÀ CHÌA KHÓA PHÁ VÒNG LẶP: 
+    if (err.code === 'permission-denied' || err.message.includes('Missing or insufficient permissions')) { 
+      forceKickOut("Phiên đăng nhập không hợp lệ hoặc đã thay đổi quyền truy cập."); 
+    } else { 
+      // Nếu là lỗi khác, chỉ báo lỗi trên màn hình 
+      const loadingBox = document.getElementById("loadingBox"); 
+      if (loadingBox) { 
+        loadingBox.innerHTML = `<p>    Lỗi: ${err.message}</p> 
+                                <button onclick="doLogout()">Quay về Đăng nhập</button>`; 
+      } 
+    } 
+  } 
+}); 
 // ===================================================================== 
 // KICK OUT 
 // ===================================================================== 
@@ -753,9 +791,18 @@ function startSessionMonitor() {
 // ===================================================================== 
 // MAIN INIT — Chạy sau khi Anonymous Auth thành công 
 // ===================================================================== 
-async function initPage() { 
-  const loaderMsg = document.getElementById('loaderMsg'); 
- 
+async function initPage() {
+  const loaderMsg = document.getElementById('loaderMsg');
+
+  // ── GUARD: Kiểm tra đăng nhập hợp lệ TRƯỚC KHI làm bất cứ điều gì ──
+  const _guardType = localStorage.getItem('userType');
+  const _guardCode = localStorage.getItem('studentCode');
+  if (_guardType !== 'student' || !_guardCode) {
+    // Chưa đăng nhập → về index ngay
+    location.replace('index.html');
+    return;
+  }
+
   // ── BƯỚC 1: Anonymous Auth ──────────────────────────────────── 
   try { 
     loaderMsg.textContent = '          Đang xác thực...'; 
@@ -784,6 +831,26 @@ async function initPage() {
     console.warn('Bảo trì check lỗi:', e.code); // Không chặn 
   } 
  
+  // ── BƯỚC 2b: Xác minh session server-side (không dùng cache) ──
+  try {
+    const _sToken = localStorage.getItem('sessionToken_' + _guardCode);
+    if (!_sToken) throw new Error('no_token');
+    const _sDoc = await db.collection('sessions').doc(_guardCode)
+      .get({ source: 'server' });
+    if (!_sDoc.exists) throw new Error('session_deleted');
+    const _sData  = _sDoc.data();
+    const _sLast  = _sData.lastActive?.toDate ? _sData.lastActive.toDate() : new Date(0);
+    const _sFresh = (Date.now() - _sLast.getTime()) < 5 * 60 * 1000;
+    if (!_sData.token || _sData.token !== _sToken || !_sFresh) throw new Error('session_invalid');
+  } catch(e) {
+    // Session không hợp lệ → xóa và về index
+    localStorage.removeItem('userType');
+    localStorage.removeItem('studentCode');
+    localStorage.removeItem('sessionToken_' + _guardCode);
+    location.replace('index.html');
+    return;
+  }
+
   // ── BƯỚC 3: Load học viên ───────────────────────────────────── 
   loaderMsg.textContent = '      Đang tải thông tin...'; 
   let studentData = null; 
@@ -1523,19 +1590,7 @@ function startAdminWarnListener() {
     }, () => {});
 }
 
-// =====================================================================
-// KHỞI ĐỘNG TRANG — Có auth guard, chạy sau khi DOM sẵn sàng
-// =====================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  const _ut = localStorage.getItem('userType');
-  const _sc = localStorage.getItem('studentCode');
-  if (_ut !== 'student' || !_sc) {
-    localStorage.removeItem('userType');
-    location.replace('index.html');
-    return;
-  }
-  initPage();
-});
+initPage(); 
 </script> 
 
 <!-- PHONG THI ONLINE -->
