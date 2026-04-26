@@ -21,8 +21,6 @@
   --shadow: 0 4px 20px rgba(0,0,0,0.08); --radius: 16px;
 }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* ===== LOADING OVERLAY ===== */
 #pageLoader {
   position: fixed; inset: 0; background: linear-gradient(135deg,#1d3557,#264a8a);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -34,8 +32,6 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 }
 #pageLoader p { font-size: 15px; opacity: 0.85; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ===== HEADER ===== */
 header {
   background: linear-gradient(135deg, #1d3557 0%, #264a8a 60%, #2a9d8f 100%);
   color: white; padding: 0;
@@ -68,8 +64,6 @@ header {
   font-size: 14px; display: flex; align-items: center; gap: 8px;
 }
 .welcome-bar b { font-size: 15px; }
-
-/* ===== NOTIFICATION BANNER ===== */
 .notif-banner {
   display: none;
   background: linear-gradient(135deg, #f4a261, #e76f51);
@@ -88,21 +82,13 @@ header {
 .notif-title { font-weight: 700; font-size: 13px; }
 .notif-text { font-size: 12px; opacity: 0.9; margin-top: 2px; line-height: 1.4; }
 .notif-time { font-size: 11px; opacity: 0.7; margin-top: 2px; }
-
-/* ===== CONTAINER ===== */
 #container { max-width: 1100px; margin: 28px auto; padding: 0 20px 40px; }
-
-/* ===== GRID LAYOUT ===== */
 .main-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
 @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
-
-/* ===== CARDS ===== */
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
 .card-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
 .card-header h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin: 0; }
 .card-body { padding: 20px; }
-
-/* ===== STUDENT INFO ===== */
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .info-item { display: flex; flex-direction: column; gap: 3px; }
 .info-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -111,8 +97,6 @@ header {
 .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .badge-active { background: #d1fae5; color: #065f46; }
 .badge-locked { background: #fee2e2; color: #991b1b; }
-
-/* ===== STAT BLOCKS ===== */
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
 .stat-box { border-radius: 14px; padding: 16px; text-align: center; color: white; position: relative; overflow: hidden; }
 .stat-box::before { content: ''; position: absolute; right: -10px; bottom: -10px; width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); }
@@ -121,11 +105,7 @@ header {
 .sb-blue { background: linear-gradient(135deg, #457b9d, #1d3557); }
 .sb-green { background: linear-gradient(135deg, #2a9d8f, #1a7a6e); }
 .sb-red { background: linear-gradient(135deg, #e63946, #b02a37); }
-
-/* ===== CHART ===== */
 .chart-wrap { height: 200px; margin: 16px 0; }
-
-/* ===== RESULT TABLE ===== */
 .result-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .result-table th, .result-table td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--border); }
 .result-table th { background: #f8fafc; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -133,8 +113,6 @@ header {
 .pass { color: var(--green); font-weight: 700; }
 .fail { color: var(--red); font-weight: 700; }
 .no-data { text-align: center; color: var(--muted); font-style: italic; padding: 30px; }
-
-/* ===== ACTION BUTTONS ===== */
 .action-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
 .action-btn {
   flex: 1; min-width: 160px; padding: 16px 20px; border: none; border-radius: 14px;
@@ -145,8 +123,6 @@ header {
 .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
 .btn-start { background: linear-gradient(135deg, #2a9d8f, #1a7a6e); }
 .btn-detail { background: linear-gradient(135deg, #457b9d, #1d3557); }
-
-/* ===== NOTIFICATIONS PANEL ===== */
 .notif-panel .card-header { background: linear-gradient(135deg, #f4a261, #e76f51); cursor: pointer; user-select: none; }
 .notif-panel .card-header h3 { color: white; }
 .notif-panel .card-header span { color: white; }
@@ -179,8 +155,6 @@ header {
 .notif-actions-bar { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 .notif-action-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
 .notif-action-link:hover { color: var(--red); }
-
-/* ===== MODALS ===== */
 .confirm-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
   display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px;
@@ -216,8 +190,6 @@ header {
 .modal-close:hover { color: var(--red); }
 .modal-box-body { padding: 20px 24px 24px; font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
 .modal-box-footer { padding: 0 24px 20px; font-size: 12px; color: var(--muted); }
-
-/* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 768px) {
   .main-grid { grid-template-columns: 1fr; }
   .header-top { padding: 10px 14px; gap: 8px; }
@@ -257,7 +229,6 @@ header { padding-top: env(safe-area-inset-top); }
 #container { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .confirm-overlay, .modal-overlay { padding-bottom: env(safe-area-inset-bottom); }
 .confirm-btns button, .header-actions button { touch-action: manipulation; }
-
 /* ── Phòng thi online ── */
 .room-card .card-header { background: linear-gradient(135deg,#1d3557,#2a6496); }
 .room-card .card-header h3 { color: #fff; }
@@ -277,7 +248,6 @@ header { padding-top: env(safe-area-inset-top); }
 .room-reg-btn.enter-waiting { background: linear-gradient(135deg,#1d3557,#0d6efd); color: #fff; }
 .room-reg-btn:disabled { opacity: .5; cursor: not-allowed; }
 .room-participants { font-size: 12.5px; color: #555; text-align: center; margin-top: 8px; }
-
 /* ── Phòng chờ ── */
 .waiting-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; z-index: 9000; overflow-y: auto; padding: 16px; box-sizing: border-box; }
 .waiting-overlay.show { display: block; }
@@ -304,8 +274,6 @@ header { padding-top: env(safe-area-inset-top); }
 .wf-leave { background: #6c757d; color: #fff; }
 .wf-start { background: linear-gradient(135deg,#1d3557,#0d6efd); color: #fff; }
 .wf-start:disabled { opacity: .4; cursor: not-allowed; }
-
-/* ── Admin cảnh báo ── */
 .admin-warn-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 19999; padding: 16px; backdrop-filter: blur(4px); }
 .admin-warn-overlay.show { display: flex; }
 .admin-warn-box { background: #fff; border-radius: 16px; max-width: 420px; width: 100%; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,.4); }
@@ -315,8 +283,6 @@ header { padding-top: env(safe-area-inset-top); }
 .awb-body { padding: 18px; font-size: 14px; color: #333; line-height: 1.6; }
 .awb-footer { padding: 12px 18px; border-top: 1px solid #e2e8f0; text-align: right; }
 .awb-footer button { padding: 9px 22px; background: #1d3557; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-
-/* ── Mời vào thi ── */
 .exam-invite-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; z-index: 18000; padding: 16px; backdrop-filter: blur(5px); }
 .exam-invite-overlay.show { display: flex; }
 .exam-invite-box { background: #fff; border-radius: 16px; max-width: 380px; width: 100%; padding: 26px 22px; text-align: center; box-shadow: 0 16px 48px rgba(0,0,0,.4); }
@@ -328,8 +294,6 @@ header { padding-top: env(safe-area-inset-top); }
 .eib-accept { background: linear-gradient(135deg,#1d3557,#0d6efd); color: #fff; }
 .eib-decline { background: #6c757d; color: #fff; }
 @media(max-width:480px) { .waiting-info-grid { grid-template-columns: 1fr 1fr; } .wcd-time { font-size: 32px; } }
-
-/* ── Phòng thi container ── */
 #examRoomContainer { max-width: 1100px; margin: 0 auto 24px; padding: 0 20px; }
 </style>
 </head>
@@ -350,7 +314,6 @@ header { padding-top: env(safe-area-inset-top); }
     </div>
     <div class="header-clock" id="headerClock">--:--:--</div>
     <div class="header-actions">
-      <!-- SỬA LỖI 1: font-weight viết đúng -->
       <button id="changePwBtn" onclick="openChangePwModal()"
         style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
         color:white;padding:8px 14px;border-radius:8px;font-size:13px;
@@ -400,7 +363,6 @@ header { padding-top: env(safe-area-inset-top); }
     <div style="background:linear-gradient(135deg,#1d3557,#264a8a);color:white;
       padding:18px 22px;display:flex;justify-content:space-between;align-items:center;">
       <h3 style="margin:0;font-size:17px;font-weight:800;">🔑 Đổi mật khẩu</h3>
-      <!-- SỬA LỖI 2: font-size viết đúng -->
       <button onclick="closeChangePwModal()"
         style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
         color:white;width:32px;height:32px;border-radius:50%;
@@ -460,7 +422,6 @@ header { padding-top: env(safe-area-inset-top); }
         <button onclick="closeChangePwModal()"
           style="flex:1;padding:11px;background:#f8f9fa;color:#555;border:1.5px solid #ddd;
           border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;">Hủy</button>
-        <!-- SỬA LỖI 1: font-weight viết đúng -->
         <button onclick="submitExamChangePw()" id="examCpSubmitBtn"
           style="flex:2;padding:11px;
           background:linear-gradient(135deg,#1d3557,#264a8a);
@@ -491,7 +452,6 @@ header { padding-top: env(safe-area-inset-top); }
   <div class="main-grid">
     <!-- LEFT -->
     <div>
-      <!-- Student Info Card -->
       <div class="card" style="margin-bottom:20px;">
         <div class="card-header">
           <span>👤</span>
@@ -560,7 +520,6 @@ header { padding-top: env(safe-area-inset-top); }
 
     <!-- RIGHT -->
     <div>
-      <!-- Stats -->
       <div class="stat-row">
         <div class="stat-box sb-blue">
           <span class="s-num" id="totalExam">0</span>
@@ -575,8 +534,6 @@ header { padding-top: env(safe-area-inset-top); }
           <span class="s-lbl">Không đạt</span>
         </div>
       </div>
-
-      <!-- Chart + Table Card -->
       <div class="card">
         <div class="card-header">
           <span>📊</span>
@@ -599,8 +556,6 @@ header { padding-top: env(safe-area-inset-top); }
           <div id="noDataMsg" class="no-data">📋 Chưa có dữ liệu kiểm tra</div>
         </div>
       </div>
-
-      <!-- Action Buttons -->
       <div class="action-row">
         <button class="action-btn btn-detail" onclick="location.href='exam_detail.html'">
           📈 Thống kê chi tiết
@@ -613,7 +568,7 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </div>
 
-<!-- SỬA LỖI 4 & 7: Phòng thi đặt TRƯỚC script, dùng đúng class -->
+<!-- PHÒNG THI ONLINE -->
 <div id="examRoomContainer" style="display:none;">
   <div style="max-width:1100px;margin:0 auto;padding:0 20px 24px;">
     <div class="card room-card">
@@ -635,7 +590,6 @@ header { padding-top: env(safe-area-inset-top); }
         <div class="room-participants">
           Đăng ký: <b id="regCount">0</b> • Phòng chờ: <b id="waitingCount">0</b>
         </div>
-        <!-- SỬA LỖI 5: "5 phú" → "5 phút" -->
         <div style="font-size:12.5px;color:#888;background:#f8fafc;border-radius:8px;
           padding:8px 12px;margin:10px 0;text-align:center;">
           ⚠️ Khuyến cáo: Vào phòng chờ tối thiểu <strong>5 phút</strong> trước khi phòng thi mở
@@ -662,7 +616,6 @@ header { padding-top: env(safe-area-inset-top); }
       <div class="waiting-cd">
         <div class="wcd-title" id="wcdLabel">Thi bắt đầu sau</div>
         <div class="wcd-time" id="wcdTime">00:00:00</div>
-        <!-- SỬA LỖI 5: "duyết" → "duyệt" -->
         <div class="wcd-sub">Vui lòng chờ trong phòng — không tắt trình duyệt</div>
       </div>
       <div class="waiting-info-grid">
@@ -702,10 +655,7 @@ header { padding-top: env(safe-area-inset-top); }
 <!-- ADMIN WARN OVERLAY -->
 <div class="admin-warn-overlay" id="adminWarnOverlay">
   <div class="admin-warn-box">
-    <div class="awb-header">
-      <span>⚠️</span>
-      <h3>Cảnh báo từ hệ thống</h3>
-    </div>
+    <div class="awb-header"><span>⚠️</span><h3>Cảnh báo từ hệ thống</h3></div>
     <div class="awb-body" id="adminWarnMsg">---</div>
     <div class="awb-footer">
       <button onclick="document.getElementById('adminWarnOverlay').classList.remove('show')">
@@ -720,10 +670,8 @@ header { padding-top: env(safe-area-inset-top); }
   <div class="exam-invite-box">
     <div class="eii">🔔</div>
     <h3>Mời vào phòng thi!</h3>
-    <!-- SỬA LỖI 5: "sẽp" → "sắp", encoding lỗi → "hãy" -->
     <p id="inviteMsg">Phòng thi sắp bắt đầu. Bạn đã đăng ký — hãy vào phòng chờ ngay!</p>
     <div class="eib-btns">
-      <!-- SỬA LỖI 5: "Đế sau" → "Để sau" -->
       <button class="eib-decline"
         onclick="document.getElementById('examInviteOverlay').classList.remove('show')">
         ⏰ Để sau
@@ -752,9 +700,9 @@ try {
 } catch(e) { console.error('Firebase init lỗi:', e); }
 
 // =====================================================================
-// BOOT SEQUENCE
+// BOOT SEQUENCE — kiểm tra auth ngay lập tức
 // =====================================================================
-const userType = localStorage.getItem('userType');
+const userType    = localStorage.getItem('userType');
 const studentCode = localStorage.getItem('studentCode');
 
 if (userType !== 'student' || !studentCode) {
@@ -765,9 +713,9 @@ if (userType !== 'student' || !studentCode) {
 
 let chart = null, isKicked = false;
 let studentUnsub = null, maintUnsub = null, notifUnsub = null, examResultsUnsub = null;
+// SỬA VẤN ĐỀ 1: Bỏ _signalUnsub (không dùng onSnapshot presence nữa)
 let _signalUnsub = null, _tabHiddenSince = null, _heartbeatStartAt = null;
 
-// SỬA LỖI 3: Chỉ khai báo 1 lần _notifState và các hàm liên quan
 let notifCache = [];
 const _shownBannerIds = new Set();
 let notifPanelOpen = true;
@@ -775,7 +723,6 @@ let notifPanelOpen = true;
 // =====================================================================
 // ANONYMOUS AUTH
 // =====================================================================
-let _authReady = false;
 let _authUser = null;
 
 async function ensureAuth() {
@@ -783,36 +730,26 @@ async function ensureAuth() {
   if (!auth) throw new Error('Firebase Auth chưa khởi tạo');
   if (auth.currentUser) {
     _authUser = auth.currentUser;
-    _authReady = true;
-    console.log('Auth sẵn có, UID:', _authUser.uid);
     return _authUser;
   }
   const user = await new Promise((resolve) => {
     const t = setTimeout(() => { unsub(); resolve(null); }, 3000);
-    const unsub = auth.onAuthStateChanged(u => {
-      clearTimeout(t); unsub(); resolve(u);
-    });
+    const unsub = auth.onAuthStateChanged(u => { clearTimeout(t); unsub(); resolve(u); });
   });
-  if (user) {
-    _authUser = user; _authReady = true;
-    console.log('Auth phục hồi từ session, UID:', user.uid);
-    return _authUser;
-  }
-  console.log('Không có session, đang sign in anonymous...');
+  if (user) { _authUser = user; return _authUser; }
   const cred = await auth.signInAnonymously();
-  _authUser = cred.user; _authReady = true;
-  console.log('Anonymous auth OK, UID:', cred.user.uid);
+  _authUser = cred.user;
   return _authUser;
 }
 
 // =====================================================================
-// HASH
+// HASH — dùng cho đổi mật khẩu
 // =====================================================================
 const HASH_SALT = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
 async function secureHash(plaintext) {
   if (!plaintext && plaintext !== 0) return '';
   const data = new TextEncoder().encode(HASH_SALT + String(plaintext) + HASH_SALT);
-  const buf = await crypto.subtle.digest('SHA-256', data);
+  const buf  = await crypto.subtle.digest('SHA-256', data);
   return 'h2_' + Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 function simpleHash_LEGACY(s) {
@@ -820,49 +757,18 @@ function simpleHash_LEGACY(s) {
   for (let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
   return 'h_' + Math.abs(h).toString(36);
 }
-async function verifyStudentPassword(input, stored) {
-  if (!stored) return false;
-  if (stored.startsWith('h2_')) return (await secureHash(input)) === stored;
-  if (stored.startsWith('h_')) return simpleHash_LEGACY(input) === stored;
-  return false;
-}
-
-// =====================================================================
-// ADMIN WARNING MODAL
-// =====================================================================
-function showAdminWarning(message) {
-  let modal = document.getElementById('adminWarningModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'adminWarningModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;';
-    modal.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:92%;
-        text-align:center;border-top:6px solid #dc3545;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-        <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
-        <h3 style="color:#1d3557;margin:0 0 12px;font-size:18px;font-weight:700;">Thông báo từ Giám thị</h3>
-        <p id="adminWarningMsg" style="font-size:15px;color:#333;margin:0 0 20px;line-height:1.7;"></p>
-        <button onclick="document.getElementById('adminWarningModal').style.display='none'"
-          style="background:#0d6efd;color:#fff;border:none;padding:10px 32px;
-          border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">Đã hiểu</button>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-  document.getElementById('adminWarningMsg').textContent = message;
-  modal.style.display = 'flex';
-}
 
 // =====================================================================
 // CLOCK
 // =====================================================================
 function updateClock() {
-  const n = new Date();
+  const n   = new Date();
   const pad = x => String(x).padStart(2,'0');
   const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
-  const el = document.getElementById('headerClock');
+  const el  = document.getElementById('headerClock');
   if (el) el.innerHTML =
     `<b style="font-family:'Courier New',monospace;font-size:16px;letter-spacing:1px;">
-    ${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>` +
+     ${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}</b>` +
     `<span style="opacity:0.4;margin:0 6px;">|</span>` +
     `<span style="font-size:12px;">${thu}, ${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()}</span>`;
 }
@@ -874,7 +780,7 @@ setInterval(updateClock, 1000);
 // =====================================================================
 function fmtDate(val) {
   if (!val) return '—';
-  if (val.includes('-')) { const [y,m,d]=val.split('-'); return `${d}/${m}/${y}`; }
+  if (String(val).includes('-')) { const [y,m,d]=val.split('-'); return `${d}/${m}/${y}`; }
   return val;
 }
 function fmtDateTime(val) {
@@ -886,10 +792,10 @@ function fmtDateTime(val) {
 }
 function timeAgo(val) {
   if (!val) return '';
-  const d = val?.toDate ? val.toDate() : new Date(val);
+  const d    = val?.toDate ? val.toDate() : new Date(val);
   const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return 'Vừa xong';
-  if (diff < 3600) return Math.floor(diff/60) + ' phút trước';
+  if (diff < 60)    return 'Vừa xong';
+  if (diff < 3600)  return Math.floor(diff/60)   + ' phút trước';
   if (diff < 86400) return Math.floor(diff/3600) + ' giờ trước';
   return fmtDateTime(d);
 }
@@ -897,34 +803,28 @@ function timeAgo(val) {
 // =====================================================================
 // LOGOUT
 // =====================================================================
-function showConfirmLogout() { document.getElementById('confirmLogoutModal').classList.add('show'); }
+function showConfirmLogout()  { document.getElementById('confirmLogoutModal').classList.add('show'); }
 function closeConfirmLogout() { document.getElementById('confirmLogoutModal').classList.remove('show'); }
 
 async function doLogout() {
+  // Xóa session khỏi Firestore
   try {
     const _sessId = localStorage.getItem('studentId') || studentCode;
     if (db && _sessId) await db.collection('sessions').doc(_sessId).delete();
   } catch(_) {}
   localStorage.removeItem('sessionToken_' + studentCode);
   sessionStorage.removeItem('sessionToken_' + studentCode);
-  try {
-    if (auth && auth.currentUser) await auth.signOut();
-  } catch (_) {}
-  const notifKeysToKeep = {};
-  for (let i = 0; i < localStorage.length; i++) {
+  // Sign out Firebase
+  try { if (auth?.currentUser) await auth.signOut(); } catch(_) {}
+  // Giữ lại trạng thái thông báo
+  const keep = {};
+  for (let i=0;i<localStorage.length;i++) {
     const k = localStorage.key(i);
-    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_'))) {
-      notifKeysToKeep[k] = localStorage.getItem(k);
-    }
+    if (k && (k.startsWith('deletedNotifIds_') || k.startsWith('readNotifIds_')))
+      keep[k] = localStorage.getItem(k);
   }
   localStorage.clear();
-  Object.entries(notifKeysToKeep).forEach(([k, v]) => localStorage.setItem(k, v));
-  location.replace('index.html');
-}
-
-function forceKickOut(reason) {
-  alert(reason + "\nHệ thống sẽ đưa bạn về trang Đăng nhập.");
-  localStorage.clear();
+  Object.entries(keep).forEach(([k,v]) => localStorage.setItem(k,v));
   location.replace('index.html');
 }
 
@@ -934,18 +834,16 @@ function forceKickOut(reason) {
 function kickOut(title, message, icon) {
   if (isKicked) return;
   isKicked = true;
-  if (studentUnsub) studentUnsub();
-  if (maintUnsub) maintUnsub();
-  if (notifUnsub) notifUnsub();
-  if (examResultsUnsub) examResultsUnsub();
-  if (_signalUnsub) _signalUnsub();
+  [studentUnsub, maintUnsub, notifUnsub, examResultsUnsub, _signalUnsub]
+    .forEach(fn => { try { fn && fn(); } catch(_){} });
+  // Ghi offline (write presence được phép)
   try {
     const _pId = localStorage.getItem('studentId') || studentCode;
     db.collection('presence').doc(_pId).set({ isOnline: false }, { merge: true });
   } catch(_){}
-  document.getElementById('kickoutIcon').textContent = icon;
-  document.getElementById('kickoutTitle').textContent = title;
-  document.getElementById('kickoutMessage').textContent = message;
+  document.getElementById('kickoutIcon').textContent     = icon;
+  document.getElementById('kickoutTitle').textContent    = title;
+  document.getElementById('kickoutMessage').textContent  = message;
   document.getElementById('kickoutModal').classList.add('show');
   let s = 5;
   const cdEl = document.getElementById('kickoutCountdown');
@@ -960,9 +858,10 @@ function kickOut(title, message, icon) {
 // =====================================================================
 function startSessionMonitor() {
   const studentId = localStorage.getItem('studentId') || studentCode;
-  const myToken = localStorage.getItem('sessionToken_' + studentId)
-    || localStorage.getItem('sessionToken_' + studentCode);
+  const myToken   = localStorage.getItem('sessionToken_' + studentId)
+                 || localStorage.getItem('sessionToken_' + studentCode);
   if (!myToken || !db || !studentId) return;
+  // BroadcastChannel — phát hiện tab mới trong cùng browser
   if (typeof BroadcastChannel !== 'undefined') {
     try {
       const _sbc = new BroadcastChannel('exam_session_v1');
@@ -971,11 +870,13 @@ function startSessionMonitor() {
           && (ev.data?.code === studentCode || ev.data?.code === studentId)
           && !isKicked)
           kickOut('🔒 Đăng nhập từ tab khác',
-            'Tài khoản vừa đăng nhập ở tab khác. Phiên này bị kết thúc. Nếu không phải bạn — đổi mật khẩu ngay!',
+            'Tài khoản vừa đăng nhập ở tab khác. Phiên này bị kết thúc.',
             '🔒');
       };
     } catch(_) {}
   }
+  // Firestore — phát hiện thiết bị khác
+  // sessions read: if request.auth != null ✅
   db.collection('sessions').doc(studentId).onSnapshot(snap => {
     if (!snap.exists || isKicked) return;
     const serverToken = snap.data()?.token;
@@ -996,59 +897,51 @@ async function initPage() {
   try {
     loaderMsg.textContent = '🔐 Đang xác thực...';
     await ensureAuth();
-    console.log('✅ Auth sẵn sàng, UID:', auth.currentUser?.uid);
+    console.log('✅ Auth OK, UID:', auth.currentUser?.uid);
   } catch(e) {
-    console.error('Auth thất bại:', e.code);
-    if (e.code === 'auth/operation-not-allowed') {
-      alert('⚠️ Anonymous Auth chưa được bật!\nVào Firebase Console → Authentication → Sign-in methods → Anonymous → Enable');
-    } else {
+    if (e.code === 'auth/operation-not-allowed')
+      alert('⚠️ Bật Anonymous Auth trong Firebase Console trước!');
+    else
       alert('❌ Lỗi kết nối: ' + e.message);
-    }
-    location.href = 'index.html';
-    return;
+    location.href = 'index.html'; return;
   }
 
   // BƯỚC 2: Kiểm tra bảo trì
+  // systemConfig read: if request.auth != null ✅
   try {
     loaderMsg.textContent = '🔍 Kiểm tra hệ thống...';
     const maint = await db.collection('systemConfig').doc('maintenance').get();
     if (maint.exists && maint.data().enabled) {
-      kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+      kickOut('🔧 Hệ thống bảo trì','Hệ thống đang nâng cấp. Bạn sẽ được đăng xuất.','🔧');
       return;
     }
-  } catch(e) {
-    console.warn('Bảo trì check lỗi:', e.code);
-  }
+  } catch(e) { console.warn('Bảo trì check lỗi:', e.code); }
 
   // BƯỚC 3: Load học viên
+  // students read: if request.auth != null ✅
   loaderMsg.textContent = '📋 Đang tải thông tin...';
   let studentData = null;
   const studentId = localStorage.getItem('studentId') || studentCode;
   try {
-    const docSnap = await db.collection('students').doc(studentId).get();
-    if (docSnap.exists) {
-      studentData = { id: docSnap.id, ...docSnap.data() };
+    const snap1 = await db.collection('students').doc(studentId).get();
+    if (snap1.exists) {
+      studentData = { id: snap1.id, ...snap1.data() };
     } else if (studentId !== studentCode) {
-      const docSnap2 = await db.collection('students').doc(studentCode).get();
-      if (docSnap2.exists) {
-        studentData = { id: docSnap2.id, ...docSnap2.data() };
-      }
+      const snap2 = await db.collection('students').doc(studentCode).get();
+      if (snap2.exists) studentData = { id: snap2.id, ...snap2.data() };
     }
     if (!studentData) {
-      const q = await db.collection('students')
-        .where('code', '==', studentCode).limit(1).get();
+      const q = await db.collection('students').where('code','==',studentCode).limit(1).get();
       if (!q.empty) studentData = { id: q.docs[0].id, ...q.docs[0].data() };
     }
     if (!studentData) {
-      const q2 = await db.collection('students')
-        .where('code', '==', studentId).limit(1).get();
+      const q2 = await db.collection('students').where('code','==',studentId).limit(1).get();
       if (!q2.empty) studentData = { id: q2.docs[0].id, ...q2.docs[0].data() };
     }
   } catch(e) {
     console.error('Load student lỗi:', e.code, e.message);
     alert('Lỗi tải dữ liệu học viên: ' + e.message);
-    location.href = 'index.html';
-    return;
+    location.href = 'index.html'; return;
   }
 
   if (!studentData) {
@@ -1056,39 +949,38 @@ async function initPage() {
     localStorage.clear(); location.href = 'index.html'; return;
   }
   if (studentData.status === 'locked') {
-    kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn đã bị vô hiệu hóa.', '🔒'); return;
+    kickOut('🔒 Tài khoản bị khóa!','Tài khoản của bạn đã bị vô hiệu hóa.','🔒'); return;
   }
 
   // BƯỚC 4: Cập nhật UI
   localStorage.setItem('studentObject', studentData.object || '');
   localStorage.setItem('studentCourse', studentData.course || '');
-  localStorage.setItem('studentName', studentData.name || '');
-  document.getElementById('studentName').textContent = studentData.name || '';
-  document.getElementById('studentCode2').textContent = 'Mã HV: ' + (studentData.code || studentCode);
-  document.getElementById('infoCode').textContent = studentData.code || studentCode;
-  document.getElementById('infoName').textContent = studentData.name || '—';
-  document.getElementById('infoUnit').textContent = studentData.unit || '—';
-  document.getElementById('infoDob').textContent = fmtDate(studentData.dob);
-  document.getElementById('infoObject').textContent = studentData.object || '—';
-  document.getElementById('infoCourse').textContent = studentData.course || '—';
+  localStorage.setItem('studentName',   studentData.name   || '');
+  document.getElementById('studentName').textContent    = studentData.name || '';
+  document.getElementById('studentCode2').textContent   = 'Mã HV: ' + (studentData.code || studentCode);
+  document.getElementById('infoCode').textContent       = studentData.code || studentCode;
+  document.getElementById('infoName').textContent       = studentData.name || '—';
+  document.getElementById('infoUnit').textContent       = studentData.unit || '—';
+  document.getElementById('infoDob').textContent        = fmtDate(studentData.dob);
+  document.getElementById('infoObject').textContent     = studentData.object || '—';
+  document.getElementById('infoCourse').textContent     = studentData.course || '—';
   const isActive = studentData.status !== 'locked';
   document.getElementById('infoStatus').innerHTML =
     `<span class="status-badge ${isActive ? 'badge-active' : 'badge-locked'}">
-    ${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}
-    </span>`;
+     ${isActive ? '✅ Hoạt động' : '🔒 Đã khóa'}</span>`;
 
   // BƯỚC 5: Ẩn loader
   document.getElementById('pageLoader').style.display = 'none';
 
-  // BƯỚC 6: Load dữ liệu + listeners
+  // BƯỚC 6: Khởi động tất cả listeners
   loadExamResults();
   loadNotifState().then(() => loadNotifications());
   startRealtimeListeners();
-  startPresence();
+  startPresence();           // Chỉ write — không onSnapshot
   startSessionMonitor();
   startExamRoomListener();
-  startAdminWarnListener();
-  console.log('✅ Trang exam sẵn sàng');
+  startAdminWarnListener();  // Dùng adminWarnings (học viên read được)
+  console.log('✅ Trang sẵn sàng');
 }
 
 // =====================================================================
@@ -1096,161 +988,125 @@ async function initPage() {
 // =====================================================================
 function loadExamResults() {
   if (examResultsUnsub) { examResultsUnsub(); examResultsUnsub = null; }
-  console.log('📊 Đang tải lịch sử bài thi cho:', studentCode);
-  document.getElementById('noDataMsg').textContent = '⏳ Đang tải dữ liệu...';
-  document.getElementById('noDataMsg').style.display = 'block';
-  document.getElementById('resultTableWrap').style.display = 'none';
-  document.getElementById('chartWrap').style.display = 'none';
+  const noDataEl  = document.getElementById('noDataMsg');
+  const tableWrap = document.getElementById('resultTableWrap');
+  const chartWrap = document.getElementById('chartWrap');
+  noDataEl.textContent    = '⏳ Đang tải dữ liệu...';
+  noDataEl.style.display  = 'block';
+  tableWrap.style.display = 'none';
+  chartWrap.style.display = 'none';
+
+  // examResults read: if request.auth != null ✅
+  const _rsCode    = studentCode;
+  const _rsAltCode = localStorage.getItem('studentId') || studentCode;
   try {
-    const _rsCode = studentCode;
-    const _rsAltCode = localStorage.getItem('studentId') || studentCode;
-    try {
-      examResultsUnsub = db.collection('examResults')
-        .where('studentCode', '==', _rsCode)
-        .orderBy('timestamp', 'desc')
-        .limit(100)
-        .onSnapshot(
-          snap => {
-            console.log('examResults realtime:', snap.size, 'bản ghi');
-            if (snap.empty && _rsAltCode !== _rsCode) {
-              _fallbackQueryExamResults(_rsAltCode);
-            } else {
-              renderExamResults(snap);
-            }
-          },
-          err => {
-            console.error('examResults lỗi:', err.code);
-            handleExamResultsError(err);
-          }
-        );
-    } catch(e) {
-      console.error('Không thể tạo listener:', e);
-      handleExamResultsError(e);
-    }
-  } catch(e) {
-    handleExamResultsError(e);
-  }
+    examResultsUnsub = db.collection('examResults')
+      .where('studentCode','==', _rsCode)
+      .orderBy('timestamp','desc')
+      .limit(100)
+      .onSnapshot(
+        snap => {
+          if (snap.empty && _rsAltCode !== _rsCode) _fallbackQueryExamResults(_rsAltCode);
+          else renderExamResults(snap);
+        },
+        err => {
+          console.error('examResults lỗi:', err.code);
+          handleExamResultsError(err);
+        }
+      );
+  } catch(e) { handleExamResultsError(e); }
 }
 
 function _fallbackQueryExamResults(altCode) {
   if (!altCode || altCode === studentCode) return;
-  console.log('Fallback query examResults theo:', altCode);
   db.collection('examResults')
-    .where('studentCode', '==', altCode)
-    .orderBy('timestamp', 'desc')
-    .limit(100)
+    .where('studentCode','==', altCode)
+    .orderBy('timestamp','desc').limit(100)
     .onSnapshot(
       snap => { if (!snap.empty) renderExamResults(snap); },
-      err => console.warn('Fallback lỗi:', err.code)
+      err  => console.warn('Fallback lỗi:', err.code)
     );
 }
 
 function handleExamResultsError(err) {
-  const noDataEl = document.getElementById('noDataMsg');
+  const el = document.getElementById('noDataMsg');
   if (err.code === 'permission-denied') {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;
-        border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
-        <b>Không có quyền đọc dữ liệu bài thi.</b><br>
-        Kiểm tra Firestore Rules cho collection <code>examResults</code>.<br>
-        <small style="color:#666;">Mã lỗi: permission-denied</small>
-      </div>`;
-    noDataEl.style.display = 'block';
+    el.innerHTML = `<div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
+      <b>Không có quyền đọc dữ liệu bài thi.</b><br>
+      Kiểm tra Firestore Rules cho collection <code>examResults</code>.</div>`;
+    el.style.display = 'block';
     _fallbackLoadExamResults();
   } else if (err.code === 'failed-precondition') {
-    noDataEl.innerHTML = `
-      <div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;
-        border:1px solid #ffc107;font-size:13px;line-height:1.6;">
-        <b>Cần tạo Index trong Firestore.</b><br>
-        Vào Firebase Console → Firestore → Indexes → Tạo index cho:<br>
-        <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code>
-      </div>`;
-    noDataEl.style.display = 'block';
+    el.innerHTML = `<div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
+      <b>Cần tạo Index trong Firestore.</b><br>
+      <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code></div>`;
+    el.style.display = 'block';
   } else {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;
-        border:1px solid #f5c2c7;font-size:13px;">
-        Lỗi tải dữ liệu: ${err.message || err.code}<br>
-        <button onclick="loadExamResults()"
-          style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;
-          border:none;border-radius:8px;cursor:pointer;font-size:13px;">
-          🔄 Thử lại
-        </button>
-      </div>`;
-    noDataEl.style.display = 'block';
+    el.innerHTML = `<div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
+      Lỗi: ${err.message || err.code}
+      <br><button onclick="loadExamResults()"
+        style="margin-top:8px;padding:7px 14px;background:#1d3557;color:white;border:none;border-radius:7px;cursor:pointer;">
+        🔄 Thử lại</button></div>`;
+    el.style.display = 'block';
   }
 }
 
 async function _fallbackLoadExamResults() {
-  console.log('⚡ Thử fallback get() cho examResults...');
   try {
     const snap = await db.collection('examResults')
-      .where('studentCode', '==', studentCode)
-      .limit(100)
-      .get();
-    console.log('✅ Fallback thành công:', snap.size, 'bản ghi');
+      .where('studentCode','==', studentCode).limit(100).get();
     renderExamResults(snap);
-  } catch(e) {
-    console.error('❌ Fallback cũng thất bại:', e.code, e.message);
-  }
+  } catch(e) { console.error('Fallback thất bại:', e.code); }
 }
 
 function renderExamResults(snap) {
   let pass = 0, fail = 0;
   const logs = [];
   snap.forEach(d => {
-    const data = d.data();
-    logs.push(data);
+    const data = d.data(); logs.push(data);
     if (data.passed) pass++; else fail++;
   });
-  logs.sort((a, b) => {
+  logs.sort((a,b) => {
     const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
     const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
     return tb - ta;
   });
   animNum(document.getElementById('totalExam'), logs.length);
-  animNum(document.getElementById('passExam'), pass);
-  animNum(document.getElementById('failExam'), fail);
+  animNum(document.getElementById('passExam'),  pass);
+  animNum(document.getElementById('failExam'),  fail);
   if (!logs.length) {
-    document.getElementById('noDataMsg').textContent = '📋 Chưa có dữ liệu kiểm tra';
-    document.getElementById('noDataMsg').style.display = 'block';
+    document.getElementById('noDataMsg').textContent    = '📋 Chưa có dữ liệu kiểm tra';
+    document.getElementById('noDataMsg').style.display  = 'block';
     document.getElementById('resultTableWrap').style.display = 'none';
-    document.getElementById('chartWrap').style.display = 'none';
+    document.getElementById('chartWrap').style.display       = 'none';
     return;
   }
   const tb = document.getElementById('resultTableBody');
-  tb.innerHTML = logs.slice(0, 5).map((d, i) => {
-    const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+  tb.innerHTML = logs.slice(0,5).map((d,i) => {
+    const ts      = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
     const correct = d.correctCount ?? d.score ?? 0;
-    const total = d.totalQuestions || 0;
+    const total   = d.totalQuestions || 0;
     return `<tr>
-      <td>${i + 1}</td>
+      <td>${i+1}</td>
       <td>${fmtDateTime(ts)}</td>
       <td>${d.setName || d.setCode || '—'}</td>
-      <td><b style="color:${d.passed ? 'var(--green)' : 'var(--red)'}">${correct}/${total}</b></td>
-      <td class="${d.passed ? 'pass' : 'fail'}">${d.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}</td>
+      <td><b style="color:${d.passed?'var(--green)':'var(--red)'}">${correct}/${total}</b></td>
+      <td class="${d.passed?'pass':'fail'}">${d.passed?'✓ ĐẠT':'✗ KHÔNG ĐẠT'}</td>
     </tr>`;
   }).join('');
   document.getElementById('resultTableWrap').style.display = 'block';
-  document.getElementById('noDataMsg').style.display = 'none';
-  document.getElementById('chartWrap').style.display = 'block';
+  document.getElementById('noDataMsg').style.display       = 'none';
+  document.getElementById('chartWrap').style.display       = 'block';
   const total2 = pass + fail;
-  const pPct = total2 ? Math.round(pass * 100 / total2) : 0;
+  const pPct   = total2 ? Math.round(pass*100/total2) : 0;
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('resultChart'), {
     type: 'doughnut',
     data: {
-      labels: [`Đạt (${pPct}%)`, `Không đạt (${100 - pPct}%)`],
-      datasets: [{
-        data: [pass || 0, fail || 0],
-        backgroundColor: ['#2a9d8f', '#e63946'],
-        borderWidth: 3, borderColor: '#fff', cutout: '60%'
-      }]
+      labels: [`Đạt (${pPct}%)`, `Không đạt (${100-pPct}%)`],
+      datasets: [{ data: [pass||0, fail||0], backgroundColor: ['#2a9d8f','#e63946'], borderWidth: 3, borderColor: '#fff', cutout: '60%' }]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
   });
 }
 
@@ -1265,7 +1121,7 @@ function animNum(el, val) {
 }
 
 // =====================================================================
-// NOTIFICATIONS - SỬA LỖI 3: Chỉ 1 khai báo cho mỗi hàm
+// NOTIFICATIONS
 // =====================================================================
 const TYPE_ICONS = { info:'ℹ️', exam:'📝', result:'📊', urgent:'🚨', reminder:'⏰' };
 
@@ -1273,78 +1129,77 @@ function toggleNotifPanel() {
   notifPanelOpen = !notifPanelOpen;
   const wrap = document.getElementById('notifListWrap');
   const icon = document.getElementById('notifToggleIcon');
-  if (notifPanelOpen) {
-    wrap.classList.remove('hidden'); icon.classList.remove('collapsed'); icon.textContent='▾';
-  } else {
-    wrap.classList.add('hidden'); icon.classList.add('collapsed'); icon.textContent='▸';
-  }
+  if (notifPanelOpen) { wrap.classList.remove('hidden'); icon.classList.remove('collapsed'); icon.textContent='▾'; }
+  else                { wrap.classList.add('hidden');    icon.classList.add('collapsed');    icon.textContent='▸'; }
 }
 
-// ── Notification State — Firestore-backed ─────────────────────────
+// ── Notification State (Firestore-backed) ─────────────────────────
 let _notifState = { readIds: new Set(), deletedIds: new Set() };
 
 async function loadNotifState() {
+  // Bước 1: localStorage nhanh
   try {
-    const lr = JSON.parse(localStorage.getItem('readNotifIds_' + studentCode) || '[]');
-    const ld = JSON.parse(localStorage.getItem('deletedNotifIds_' + studentCode) || '[]');
-    _notifState.readIds = new Set(lr);
+    const lr = JSON.parse(localStorage.getItem('readNotifIds_'+studentCode)    || '[]');
+    const ld = JSON.parse(localStorage.getItem('deletedNotifIds_'+studentCode) || '[]');
+    _notifState.readIds    = new Set(lr);
     _notifState.deletedIds = new Set(ld);
   } catch(_) {}
+  // Bước 2: merge từ Firestore (sessions read: if request.auth != null ✅)
   try {
     const doc = await db.collection('sessions').doc(studentCode).get();
     if (doc.exists) {
-      (doc.data().readNotifIds || []).forEach(id => _notifState.readIds.add(id));
+      (doc.data().readNotifIds    || []).forEach(id => _notifState.readIds.add(id));
       (doc.data().deletedNotifIds || []).forEach(id => _notifState.deletedIds.add(id));
     }
-    localStorage.setItem('readNotifIds_' + studentCode, JSON.stringify([..._notifState.readIds]));
-    localStorage.setItem('deletedNotifIds_' + studentCode, JSON.stringify([..._notifState.deletedIds]));
+    localStorage.setItem('readNotifIds_'+studentCode,    JSON.stringify([..._notifState.readIds]));
+    localStorage.setItem('deletedNotifIds_'+studentCode, JSON.stringify([..._notifState.deletedIds]));
   } catch(e) { console.warn('loadNotifState:', e.message); }
 }
 
 function _syncNotifState() {
   if (!studentCode || !db) return;
   const payload = {
-    readNotifIds: [..._notifState.readIds],
+    readNotifIds:    [..._notifState.readIds],
     deletedNotifIds: [..._notifState.deletedIds]
   };
+  // sessions update: if request.auth != null ✅
   db.collection('sessions').doc(studentCode)
     .update(payload)
     .catch(() => db.collection('sessions').doc(studentCode)
       .set(payload, { merge: true }).catch(() => {}));
 }
 
-// SỬA LỖI 3: Chỉ 1 khai báo duy nhất cho mỗi hàm
 function _getDeletedIds() { return _notifState.deletedIds; }
 function _saveDeletedIds(set) {
   _notifState.deletedIds = set;
-  localStorage.setItem('deletedNotifIds_' + studentCode, JSON.stringify([...set]));
+  localStorage.setItem('deletedNotifIds_'+studentCode, JSON.stringify([...set]));
   _syncNotifState();
 }
 function _getReadIds() { return _notifState.readIds; }
 function _saveReadIds(set) {
   _notifState.readIds = set;
-  localStorage.setItem('readNotifIds_' + studentCode, JSON.stringify([...set]));
+  localStorage.setItem('readNotifIds_'+studentCode, JSON.stringify([...set]));
   _syncNotifState();
 }
 
 function _renderNotifList() {
   const deletedIds = _getDeletedIds();
-  const readIds = _getReadIds();
-  const visible = notifCache.filter(n => !deletedIds.has(n.id));
-  const notifs = visible.map(n => ({ ...n, read: readIds.has(n.id) }));
-  const unread = notifs.filter(n => !n.read).length;
-  const unreadEl = document.getElementById('unreadCount');
+  const readIds    = _getReadIds();
+  const visible    = notifCache.filter(n => !deletedIds.has(n.id));
+  const notifs     = visible.map(n => ({ ...n, read: readIds.has(n.id) }));
+  const unread     = notifs.filter(n => !n.read).length;
+  const unreadEl   = document.getElementById('unreadCount');
   if (unread > 0) { unreadEl.textContent = unread; unreadEl.style.display = 'inline-block'; }
   else unreadEl.style.display = 'none';
   const actBar = document.getElementById('notifActionsBar');
   if (actBar) actBar.style.display = notifs.length > 0 ? 'flex' : 'none';
-  if (notifs.length === 0) {
+  if (!notifs.length) {
     document.getElementById('notifList').innerHTML = '<div class="notif-empty">🔔 Chưa có thông báo nào</div>';
     return;
   }
   document.getElementById('notifList').innerHTML = notifs.map(n => {
     const icon = TYPE_ICONS[n.type] || 'ℹ️';
-    const ts = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+    const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
     return `<div class="notif-list-item ${!n.read?'unread':''}" onclick="openNotifById('${n.id}')">
       ${!n.read ? '<span class="n-dot"></span>' : '<span style="width:8px;flex-shrink:0;"></span>'}
       <div class="n-body">
@@ -1365,8 +1220,8 @@ function _renderNotifList() {
 
 function deleteNotif(e, id) {
   e.stopPropagation();
-  const del = _getDeletedIds(); del.add(id); _saveDeletedIds(del);
-  const read = _getReadIds(); read.add(id); _saveReadIds(read);
+  const del  = _getDeletedIds(); del.add(id);  _saveDeletedIds(del);
+  const read = _getReadIds();    read.add(id); _saveReadIds(read);
   _renderNotifList();
 }
 function markAllRead(e) {
@@ -1399,6 +1254,7 @@ function _filterNotifs(all) {
 
 function loadNotifications() {
   if (notifUnsub) notifUnsub();
+  // notifications read: if request.auth != null ✅
   notifUnsub = db.collection('notifications')
     .where('status','==','sent').limit(50)
     .onSnapshot(snap => {
@@ -1418,8 +1274,8 @@ function loadNotifications() {
 }
 
 function showNotifBanner(notif) {
-  const icon = TYPE_ICONS[notif.type] || 'ℹ️';
-  const ts = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
+  const icon   = TYPE_ICONS[notif.type] || 'ℹ️';
+  const ts     = notif.createdAt?.toDate ? notif.createdAt.toDate() : new Date();
   const banner = document.getElementById('notifBanner');
   banner.innerHTML = `<div class="notif-item" onclick="openNotifById('${notif.id}')">
     <span class="notif-icon">${icon}</span>
@@ -1434,7 +1290,6 @@ function showNotifBanner(notif) {
   banner.classList.add('show');
   setTimeout(() => banner.classList.remove('show'), 8000);
 }
-
 function closeBanner() { document.getElementById('notifBanner').classList.remove('show'); }
 
 function openNotifById(id) {
@@ -1442,13 +1297,12 @@ function openNotifById(id) {
   if (!n) return;
   const read = _getReadIds(); read.add(id); _saveReadIds(read);
   const icon = TYPE_ICONS[n.type] || 'ℹ️';
-  const ts = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
-  document.getElementById('notifModalTitle').textContent = `${icon} ${n.title||'Thông báo'}`;
-  document.getElementById('notifModalBody').textContent = n.content || '';
+  const ts   = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+  document.getElementById('notifModalTitle').textContent  = `${icon} ${n.title||'Thông báo'}`;
+  document.getElementById('notifModalBody').textContent   = n.content || '';
   document.getElementById('notifModalFooter').textContent = `Gửi lúc: ${fmtDateTime(ts)}`;
   document.getElementById('notifModal').classList.add('show');
-  closeBanner();
-  _renderNotifList();
+  closeBanner(); _renderNotifList();
 }
 function closeNotifModal() { document.getElementById('notifModal').classList.remove('show'); }
 document.getElementById('notifModal').addEventListener('click', e => {
@@ -1456,80 +1310,88 @@ document.getElementById('notifModal').addEventListener('click', e => {
 });
 
 // =====================================================================
-// REALTIME LISTENERS
+// REALTIME LISTENERS — Giám sát khóa TK + bảo trì
 // =====================================================================
 function startRealtimeListeners() {
+  // students read: if request.auth != null ✅
   studentUnsub = db.collection('students').doc(studentCode)
     .onSnapshot(doc => {
       if (doc.exists && doc.data().status === 'locked')
-        kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
+        kickOut('🔒 Tài khoản bị khóa!','Tài khoản vừa bị Quản trị viên vô hiệu hóa.','🔒');
     }, err => console.warn('Student watch lỗi:', err.code));
+
+  // systemConfig read: if request.auth != null ✅
   maintUnsub = db.collection('systemConfig').doc('maintenance')
     .onSnapshot(doc => {
       if (doc.exists && doc.data().enabled === true)
-        kickOut('🔧 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🔧');
+        kickOut('🔧 Hệ thống bảo trì','Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.','🔧');
     }, err => console.warn('Maint watch lỗi:', err.code));
 }
 
 // =====================================================================
-// PRESENCE
+// PRESENCE — CHỈ WRITE (rules: write if request.auth != null ✅)
+// SỬA VẤN ĐỀ 1: Bỏ hoàn toàn onSnapshot presence (read chỉ cho admin)
+// adminSignal được chuyển sang startAdminWarnListener() qua adminWarnings
 // =====================================================================
 const _presStudentId = localStorage.getItem('studentId') || studentCode;
-const presenceRef = db.collection('presence').doc(_presStudentId);
+const presenceRef    = db.collection('presence').doc(_presStudentId);
 
 function startPresence() {
   const heartbeat = () => {
     if (isKicked) return;
     const payload = {
-      isOnline: true,
-      studentCode: studentCode,
-      studentName: localStorage.getItem('studentName') || '',
-      userType: 'student',
+      isOnline:       true,
+      studentCode:    studentCode,
+      studentName:    localStorage.getItem('studentName') || '',
+      userType:       'student',
       currentSection: 'Trang chủ cá nhân',
-      tabHidden: document.hidden,
-      lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-      _clientTime: Date.now(),
+      tabHidden:      document.hidden,
+      lastActive:     firebase.firestore.FieldValue.serverTimestamp(),
+      _clientTime:    Date.now(),
     };
     if (!_heartbeatStartAt) {
       _heartbeatStartAt = true;
       payload.startAt = firebase.firestore.FieldValue.serverTimestamp();
     }
-    presenceRef.set(payload, { merge: true }).catch(e => {
-      if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code);
-    });
+    // presence write: if request.auth != null ✅
+    presenceRef.set(payload, { merge: true })
+      .catch(e => { if (e.code !== 'permission-denied') console.warn('Heartbeat lỗi:', e.code); });
   };
   heartbeat();
   setInterval(heartbeat, 20000);
+
+  // Phát hiện chuyển tab — chỉ write
   document.addEventListener('visibilitychange', () => {
     if (isKicked) return;
-    if (document.hidden) {
-      _tabHiddenSince = Date.now();
-      presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
-    } else {
-      const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
+    const payload = {
+      tabHidden:  document.hidden,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!document.hidden && _tabHiddenSince) {
+      payload.tabReturnedAfterMs = Date.now() - _tabHiddenSince;
       _tabHiddenSince = null;
-      presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
+    } else if (document.hidden) {
+      _tabHiddenSince = Date.now();
     }
+    presenceRef.set(payload, { merge: true }).catch(() => {});
   });
-  _signalUnsub = presenceRef.onSnapshot(snap => {
-    if (!snap.exists || isKicked) return;
-    const signal = snap.data()?.adminSignal;
-    if (!signal || !signal.sentAt) return;
-    const sentAt = signal.sentAt?.toDate ? signal.sentAt.toDate() : new Date(signal.sentAt);
-    if (Date.now() - sentAt.getTime() > 5000) return;
-    if (signal.type === 'warning' || signal.type === 'broadcast') {
-      showAdminWarning(signal.message);
-    }
-    presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(()=>{});
-  }, err => console.warn('Signal watch lỗi:', err.code));
+
+  // Đánh dấu offline khi đóng tab — write ✅
   window.addEventListener('beforeunload', () => {
-    if (_signalUnsub) _signalUnsub();
-    if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true }).catch(()=>{});
+    if (!isKicked)
+      presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true })
+        .catch(() => {});
   });
+
+  // KHÔNG dùng presenceRef.onSnapshot() nữa vì học viên không có quyền read presence
+  // adminSignal được xử lý qua adminWarnings collection (học viên có quyền read)
 }
 
 // =====================================================================
 // PHÒNG THI ONLINE
+// examRooms read: if request.auth != null ✅
+// registrations create, update: if request.auth != null ✅
+// registrations delete: if auth.uid == sid — KHÔNG dùng delete, dùng update thay thế
 // =====================================================================
 let _activeRoom = null, _roomUnsub = null, _roomRegUnsub = null;
 let _roomWaitUnsub = null, _roomCdInterval = null, _inviteTimeout = null;
@@ -1537,8 +1399,8 @@ let _roomWaitUnsub = null, _roomCdInterval = null, _inviteTimeout = null;
 function startExamRoomListener() {
   if (_roomUnsub) _roomUnsub();
   _roomUnsub = db.collection('examRooms')
-    .where('status', 'in', ['scheduled', 'open'])
-    .orderBy('startAt', 'asc').limit(1)
+    .where('status','in',['scheduled','open'])
+    .orderBy('startAt','asc').limit(1)
     .onSnapshot(snap => {
       if (snap.empty) {
         _activeRoom = null;
@@ -1559,15 +1421,14 @@ function startExamRoomListener() {
     }, () => {});
 }
 
-// SỬA LỖI 6: Dùng đúng biến studentCode
 function _checkEligibility(room) {
   if (!room.eligibility || room.eligibility.type === 'all') return true;
   const { type, values } = room.eligibility;
   const map = {
-    specific: studentCode || '',
-    course:   localStorage.getItem('studentCourse') || '',
-    object:   localStorage.getItem('studentObject') || '',
-    unit:     localStorage.getItem('studentUnit') || ''
+    specific: studentCode                                  || '',
+    course:   localStorage.getItem('studentCourse')       || '',
+    object:   localStorage.getItem('studentObject')       || '',
+    unit:     localStorage.getItem('studentUnit')         || ''
   };
   return (values || []).includes(map[type] || '');
 }
@@ -1583,37 +1444,34 @@ function _fmtMs(ms) {
 }
 
 function _renderRoomCard(room) {
-  document.getElementById('roomTitle').textContent = room.title || 'Phòng thi';
-  document.getElementById('roomSetName').textContent = room.setName || room.setCode || '---';
-  document.getElementById('roomStartAt').textContent = _fmt(room.startAt);
-  document.getElementById('roomEndAt').textContent = _fmt(room.endAt);
+  document.getElementById('roomTitle').textContent    = room.title || 'Phòng thi';
+  document.getElementById('roomSetName').textContent  = room.setName || room.setCode || '---';
+  document.getElementById('roomStartAt').textContent  = _fmt(room.startAt);
+  document.getElementById('roomEndAt').textContent    = _fmt(room.endAt);
   const badge = document.getElementById('roomStatusBadge');
-  if (room.status === 'open') {
-    badge.className = 'room-badge open'; badge.textContent = '🟢 Đang diễn ra';
-  } else if (room.status === 'closed') {
-    badge.className = 'room-badge closed'; badge.textContent = '🔴 Đã kết thúc';
-  } else {
-    badge.className = 'room-badge scheduled'; badge.textContent = '📅 Sắp diễn ra';
-  }
+  if (room.status === 'open')   { badge.className = 'room-badge open';      badge.textContent = '🟢 Đang diễn ra'; }
+  else if (room.status==='closed'){ badge.className = 'room-badge closed';  badge.textContent = '🔴 Đã kết thúc'; }
+  else                          { badge.className = 'room-badge scheduled'; badge.textContent = '📅 Sắp diễn ra'; }
   _updateRoomButtons(room);
 }
 
+// SỬA VẤN ĐỀ 2: Dùng cancelled field thay vì kiểm tra exists đơn thuần
 function _updateRoomButtons(room) {
   if (!studentCode) return;
-  const regBtn = document.getElementById('roomRegBtn');
+  const regBtn  = document.getElementById('roomRegBtn');
   const waitBtn = document.getElementById('roomEnterWaitBtn');
-  if (room.status === 'closed') {
-    regBtn.style.display = 'none'; waitBtn.style.display = 'none'; return;
-  }
+  if (room.status === 'closed') { regBtn.style.display = 'none'; waitBtn.style.display = 'none'; return; }
+  // registrations read: if request.auth != null ✅
   db.collection('examRooms').doc(room.id).collection('registrations').doc(studentCode).get()
     .then(d => {
-      const isReg = d.exists;
-      regBtn.style.display = '';
-      regBtn.className = isReg ? 'room-reg-btn registered' : 'room-reg-btn not-reg';
-      regBtn.innerHTML = isReg ? '✅ Đã đăng ký tham gia' : '📝 Đăng ký tham gia';
+      // Đã đăng ký = doc tồn tại VÀ chưa bị cancelled
+      const isReg = d.exists && !d.data().cancelled;
+      regBtn.style.display  = '';
+      regBtn.className      = isReg ? 'room-reg-btn registered' : 'room-reg-btn not-reg';
+      regBtn.innerHTML      = isReg ? '✅ Đã đăng ký tham gia' : '📝 Đăng ký tham gia';
       waitBtn.style.display = isReg ? '' : 'none';
       if (isReg) {
-        waitBtn.innerHTML = room.status === 'open' ? '🚀 Vào thi ngay!' : '🚪 Vào phòng chờ thi';
+        waitBtn.innerHTML      = room.status === 'open' ? '🚀 Vào thi ngay!' : '🚪 Vào phòng chờ thi';
         waitBtn.style.background = room.status === 'open'
           ? 'linear-gradient(135deg,#dc3545,#a02535)' : '';
       }
@@ -1624,22 +1482,35 @@ function _updateRoomButtons(room) {
     }).catch(() => {});
 }
 
+// SỬA VẤN ĐỀ 2: Hủy đăng ký = update cancelled:true thay vì delete
+// Lý do: rules delete yêu cầu auth.uid == sid (anonymous uid ≠ studentCode)
+//        rules update chỉ cần request.auth != null ✅
 async function toggleRoomRegistration() {
   if (!_activeRoom || !studentCode) return;
-  const ref = db.collection('examRooms').doc(_activeRoom.id).collection('registrations').doc(studentCode);
+  const ref = db.collection('examRooms').doc(_activeRoom.id)
+    .collection('registrations').doc(studentCode);
   const btn = document.getElementById('roomRegBtn');
   btn.disabled = true;
   try {
     const d = await ref.get();
-    if (d.exists) {
-      await ref.delete();
-    } else {
-      await ref.set({
-        studentCode,
-        studentName: localStorage.getItem('studentName') || studentCode,
-        registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+    if (d.exists && !d.data().cancelled) {
+      // Hủy đăng ký: update cancelled=true thay vì delete
+      // registrations update: if request.auth != null ✅
+      await ref.update({
+        cancelled:   true,
+        cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
         inWaitingRoom: false
       });
+    } else {
+      // Đăng ký mới hoặc đăng ký lại
+      // registrations create/update: if request.auth != null ✅
+      await ref.set({
+        studentCode,
+        studentName:  localStorage.getItem('studentName') || studentCode,
+        registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+        inWaitingRoom: false,
+        cancelled:    false   // Rõ ràng đặt false khi đăng ký/đăng ký lại
+      }, { merge: true });
     }
     _updateRoomButtons(_activeRoom);
   } catch(e) { alert('Lỗi: ' + e.message); }
@@ -1648,28 +1519,31 @@ async function toggleRoomRegistration() {
 
 function _startRegListener(roomId) {
   if (_roomRegUnsub) _roomRegUnsub();
+  // registrations read: if request.auth != null ✅
   _roomRegUnsub = db.collection('examRooms').doc(roomId).collection('registrations')
     .onSnapshot(snap => {
-      const total = snap.size;
-      const waiting = snap.docs.filter(d => d.data().inWaitingRoom).length;
-      document.getElementById('regCount').textContent = total;
+      // SỬA: Chỉ đếm những người chưa cancelled
+      const activeDocs  = snap.docs.filter(d => !d.data().cancelled);
+      const total       = activeDocs.length;
+      const waiting     = activeDocs.filter(d => d.data().inWaitingRoom).length;
+      document.getElementById('regCount').textContent     = total;
       document.getElementById('waitingCount').textContent = waiting;
-      document.getElementById('wiRegCount').textContent = total;
-      document.getElementById('wiWaitCount').textContent = waiting;
-      document.getElementById('wiAbsCount').textContent = Math.max(0, total - waiting);
+      document.getElementById('wiRegCount').textContent   = total;
+      document.getElementById('wiWaitCount').textContent  = waiting;
+      document.getElementById('wiAbsCount').textContent   = Math.max(0, total - waiting);
     }, () => {});
 }
 
 function _startRoomCountdown(room) {
   if (_roomCdInterval) clearInterval(_roomCdInterval);
   const cdEl = document.getElementById('roomCdTime');
-  const lbl = document.getElementById('roomCdLabel');
+  const lbl  = document.getElementById('roomCdLabel');
   function tick() {
-    const now = Date.now();
+    const now  = Date.now();
     const diff = room.status === 'open'
-      ? room.endAt.toDate().getTime() - now
+      ? room.endAt.toDate().getTime()   - now
       : room.startAt.toDate().getTime() - now;
-    lbl.textContent = room.status === 'open' ? 'Thời gian còn lại' : 'Đếm ngược đến giờ thi';
+    lbl.textContent  = room.status === 'open' ? 'Thời gian còn lại' : 'Đếm ngược đến giờ thi';
     cdEl.textContent = diff > 0 ? _fmtMs(diff) : (room.status === 'open' ? 'Hết giờ' : 'Đang mở...');
   }
   tick();
@@ -1681,9 +1555,9 @@ function _scheduleInvite(room) {
   if (room.status !== 'scheduled' || !studentCode) return;
   db.collection('examRooms').doc(room.id).collection('registrations').doc(studentCode).get()
     .then(d => {
-      if (!d.exists) return;
-      const delay = room.startAt.toDate().getTime() - 5 * 60000 - Date.now();
-      if (delay > 0 && delay < 6 * 60000) {
+      if (!d.exists || d.data().cancelled) return;
+      const delay = room.startAt.toDate().getTime() - 5*60000 - Date.now();
+      if (delay > 0 && delay < 6*60000) {
         _inviteTimeout = setTimeout(() => {
           document.getElementById('inviteMsg').textContent =
             '"' + (room.title||'Phòng thi') + '" bắt đầu sau 5 phút. Hãy vào phòng chờ ngay!';
@@ -1701,19 +1575,22 @@ function acceptExamInvite() {
 async function enterWaitingRoom() {
   if (!_activeRoom || !studentCode) return;
   try {
-    await db.collection('examRooms').doc(_activeRoom.id).collection('registrations').doc(studentCode)
+    // registrations update: if request.auth != null ✅
+    await db.collection('examRooms').doc(_activeRoom.id)
+      .collection('registrations').doc(studentCode)
       .update({ inWaitingRoom: true, enteredAt: firebase.firestore.FieldValue.serverTimestamp() });
-    await db.collection('examRooms').doc(_activeRoom.id).collection('waitingRoom').doc(studentCode)
+    // waitingRoom write: if request.auth != null ✅
+    await db.collection('examRooms').doc(_activeRoom.id)
+      .collection('waitingRoom').doc(studentCode)
       .set({
         studentCode,
         studentName: localStorage.getItem('studentName') || studentCode,
-        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+        joinedAt:    firebase.firestore.FieldValue.serverTimestamp()
       });
     _showWaitingRoom(_activeRoom);
   } catch(e) { alert('Lỗi vào phòng chờ: ' + e.message); }
 }
 
-// SỬA LỖI 8: Dùng \n thay vì xuống dòng thực trong string
 function _showWaitingRoom(room) {
   document.getElementById('waitingRoomTitle').textContent = room.title || '';
   document.getElementById('waitingRules').innerHTML = (room.rules ||
@@ -1721,37 +1598,36 @@ function _showWaitingRoom(room) {
     '• Không nhờ người khác làm hộ.\n' +
     '• Nộp bài đúng thời gian quy định.\n' +
     '• Vi phạm sẽ bị hủy kết quả.')
-    .split('\n')
-    .map(l => `<p style="margin:2px 0">${l}</p>`)
-    .join('');
+    .split('\n').map(l => `<p style="margin:2px 0">${l}</p>`).join('');
   const cdEl = document.getElementById('wcdTime');
-  const lbl = document.getElementById('wcdLabel');
-  const btn = document.getElementById('wfStartBtn');
+  const lbl  = document.getElementById('wcdLabel');
+  const btn  = document.getElementById('wfStartBtn');
   if (_roomCdInterval) clearInterval(_roomCdInterval);
   function wTick() {
     const now = Date.now();
     if (room.status === 'open') {
       const diff = room.endAt.toDate().getTime() - now;
-      lbl.textContent = 'Thời gian còn lại để nộp bài';
+      lbl.textContent  = 'Thời gian còn lại để nộp bài';
       cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Hết giờ';
-      btn.disabled = false; btn.textContent = '🚀 Bắt đầu làm bài';
+      btn.disabled     = false; btn.textContent = '🚀 Bắt đầu làm bài';
     } else {
       const diff = room.startAt.toDate().getTime() - now;
-      lbl.textContent = 'Thi bắt đầu sau';
+      lbl.textContent  = 'Thi bắt đầu sau';
       cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Đang mở...';
-      btn.disabled = diff > 0;
+      btn.disabled     = diff > 0;
       if (diff <= 0) btn.textContent = '🚀 Vào thi ngay!';
     }
   }
   wTick();
   _roomCdInterval = setInterval(wTick, 1000);
   if (_roomWaitUnsub) _roomWaitUnsub();
+  // waitingRoom read: if request.auth != null ✅
   _roomWaitUnsub = db.collection('examRooms').doc(room.id).collection('waitingRoom')
     .orderBy('joinedAt','asc').onSnapshot(snap => {
-      document.getElementById('wuCount').textContent = snap.size;
-      document.getElementById('wuserList').innerHTML = snap.docs.map(d =>
-        `<span class="wuser-chip ${d.id === studentCode ? 'me' : ''}">
-        👤 ${d.data().studentName || d.id}${d.id === studentCode ? ' (bạn)' : ''}</span>`
+      document.getElementById('wuCount').textContent  = snap.size;
+      document.getElementById('wuserList').innerHTML  = snap.docs.map(d =>
+        `<span class="wuser-chip ${d.id===studentCode?'me':''}">
+         👤 ${d.data().studentName||d.id}${d.id===studentCode?' (bạn)':''}</span>`
       ).join('');
     }, () => {});
   document.getElementById('waitingOverlay').classList.add('show');
@@ -1760,11 +1636,14 @@ function _showWaitingRoom(room) {
 async function leaveWaitingRoom() {
   if (_activeRoom && studentCode) {
     try {
+      // registrations update: if request.auth != null ✅
       await db.collection('examRooms').doc(_activeRoom.id)
-        .collection('registrations').doc(studentCode).update({ inWaitingRoom: false });
+        .collection('registrations').doc(studentCode)
+        .update({ inWaitingRoom: false });
+      // waitingRoom write: if request.auth != null ✅
       await db.collection('examRooms').doc(_activeRoom.id)
         .collection('waitingRoom').doc(studentCode).delete();
-    } catch(e) {}
+    } catch(e) { console.warn('leaveWaitingRoom lỗi:', e.code); }
   }
   if (_roomWaitUnsub) { _roomWaitUnsub(); _roomWaitUnsub = null; }
   if (_roomCdInterval) { clearInterval(_roomCdInterval); _roomCdInterval = null; }
@@ -1774,21 +1653,24 @@ async function leaveWaitingRoom() {
 
 function startExamFromRoom() {
   if (!_activeRoom) return;
-  localStorage.setItem('examRoomId', _activeRoom.id);
+  localStorage.setItem('examRoomId',      _activeRoom.id);
   localStorage.setItem('examRoomSetCode', _activeRoom.setCode || '');
   location.href = 'test.html';
 }
 
 // =====================================================================
 // CẢNH BÁO ADMIN
+// SỬA VẤN ĐỀ 1: Dùng adminWarnings thay vì presence.onSnapshot
+// adminWarnings read: if request.auth != null ✅
 // =====================================================================
 function startAdminWarnListener() {
   if (!studentCode || !db) return;
-  db.collection('adminWarnings').where('active','==',true)
+  db.collection('adminWarnings')
+    .where('active','==',true)
     .orderBy('createdAt','desc').limit(5)
     .onSnapshot(snap => {
       snap.docs.forEach(doc => {
-        const d = doc.data();
+        const d       = doc.data();
         const targets = d.targets || ['all'];
         if (!targets.includes('all') && !targets.includes(studentCode)) return;
         const key = 'aw_' + doc.id;
@@ -1797,11 +1679,12 @@ function startAdminWarnListener() {
         document.getElementById('adminWarnMsg').textContent = d.message || 'Cảnh báo từ hệ thống';
         document.getElementById('adminWarnOverlay').classList.add('show');
       });
-    }, () => {});
+    }, err => console.warn('AdminWarn lỗi:', err.code));
 }
 
 // =====================================================================
 // ĐỔI MẬT KHẨU
+// students update: if request.auth != null && affectedKeys hasOnly(...) ✅
 // =====================================================================
 function openChangePwModal() {
   ['examCpOld','examCpNew','examCpConfirm'].forEach(id => {
@@ -1814,21 +1697,20 @@ function openChangePwModal() {
     const b = document.getElementById(id); if(b) b.style.background='#eee';
   });
   const txt = document.getElementById('examPwStrengthTxt'); if(txt) txt.textContent='';
-  const cm = document.getElementById('examCpConfirmMsg'); if(cm) cm.textContent='';
-  document.getElementById('examChangePwModal').style.display='flex';
+  const cm  = document.getElementById('examCpConfirmMsg');  if(cm)  cm.textContent='';
+  document.getElementById('examChangePwModal').style.display = 'flex';
 }
 function closeChangePwModal() {
-  document.getElementById('examChangePwModal').style.display='none';
+  document.getElementById('examChangePwModal').style.display = 'none';
 }
 function toggleExamPw(inputId, icon) {
-  const el = document.getElementById(inputId);
-  if (!el) return;
-  el.type = el.type === 'password' ? 'text' : 'password';
+  const el = document.getElementById(inputId); if (!el) return;
+  el.type         = el.type === 'password' ? 'text' : 'password';
   icon.textContent = el.type === 'password' ? '👁' : '🙈';
 }
 function checkExamPwStrength() {
-  const pw = document.getElementById('examCpNew').value;
-  const bars = ['examPwBar1','examPwBar2','examPwBar3','examPwBar4'];
+  const pw     = document.getElementById('examCpNew').value;
+  const bars   = ['examPwBar1','examPwBar2','examPwBar3','examPwBar4'];
   const colors = ['#dc3545','#fd7e14','#ffc107','#198754'];
   const labels = ['Rất yếu','Yếu','Trung bình','Mạnh'];
   let score = 0;
@@ -1836,66 +1718,63 @@ function checkExamPwStrength() {
   if (pw.length >= 8) score++;
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
   if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
-  bars.forEach((id, i) => {
-    const b = document.getElementById(id);
-    if (b) b.style.background = i < score ? colors[score-1] : '#eee';
-  });
+  bars.forEach((id,i) => { const b=document.getElementById(id); if(b) b.style.background=i<score?colors[score-1]:'#eee'; });
   const txt = document.getElementById('examPwStrengthTxt');
   if (txt) txt.textContent = pw.length ? labels[Math.max(0,score-1)] : '';
   checkExamConfirm();
 }
 function checkExamConfirm() {
-  const nw = document.getElementById('examCpNew').value;
-  const cf = document.getElementById('examCpConfirm').value;
+  const nw  = document.getElementById('examCpNew').value;
+  const cf  = document.getElementById('examCpConfirm').value;
   const msg = document.getElementById('examCpConfirmMsg');
   if (!msg || !cf) return;
-  if (nw === cf) { msg.textContent = '✅ Khớp'; msg.style.color = '#198754'; }
-  else { msg.textContent = '❌ Chưa khớp'; msg.style.color = '#dc3545'; }
+  if (nw === cf) { msg.textContent='✅ Khớp';     msg.style.color='#198754'; }
+  else           { msg.textContent='❌ Chưa khớp'; msg.style.color='#dc3545'; }
 }
+
 async function submitExamChangePw() {
-  const oldPw = document.getElementById('examCpOld').value;
-  const newPw = document.getElementById('examCpNew').value;
+  const oldPw     = document.getElementById('examCpOld').value;
+  const newPw     = document.getElementById('examCpNew').value;
   const confirmPw = document.getElementById('examCpConfirm').value;
-  const errEl = document.getElementById('examCpError');
-  const sucEl = document.getElementById('examCpSuccess');
-  const btn = document.getElementById('examCpSubmitBtn');
+  const errEl     = document.getElementById('examCpError');
+  const sucEl     = document.getElementById('examCpSuccess');
+  const btn       = document.getElementById('examCpSubmitBtn');
   const showErr = msg => { errEl.textContent=msg; errEl.style.display='block'; sucEl.style.display='none'; };
   const showSuc = msg => { sucEl.textContent=msg; sucEl.style.display='block'; errEl.style.display='none'; };
-  if (!oldPw) return showErr('Nhập mật khẩu hiện tại!');
-  if (newPw.length < 6) return showErr('Mật khẩu mới phải ít nhất 6 ký tự!');
-  if (newPw !== confirmPw) return showErr('Mật khẩu xác nhận không khớp!');
-  if (oldPw === newPw) return showErr('Mật khẩu mới phải khác mật khẩu cũ!');
+
+  if (!oldPw)               return showErr('Nhập mật khẩu hiện tại!');
+  if (newPw.length < 6)     return showErr('Mật khẩu mới phải ít nhất 6 ký tự!');
+  if (newPw !== confirmPw)  return showErr('Mật khẩu xác nhận không khớp!');
+  if (oldPw === newPw)      return showErr('Mật khẩu mới phải khác mật khẩu cũ!');
+
   btn.disabled = true; btn.textContent = '⏳ Đang cập nhật...';
   try {
     const studentId = localStorage.getItem('studentId') || studentCode;
+    // students read: if request.auth != null ✅
     const snap = await db.collection('students').doc(studentId).get();
     if (!snap.exists) return showErr('Không tìm thấy tài khoản!');
-    const data = snap.data();
+    const data       = snap.data();
     const storedHash = data.password || '';
-    const hashFn = async (plaintext) => {
-      const d = new TextEncoder().encode(HASH_SALT + String(plaintext) + HASH_SALT);
+    const hashFn = async (pt) => {
+      const d   = new TextEncoder().encode(HASH_SALT + String(pt) + HASH_SALT);
       const buf = await crypto.subtle.digest('SHA-256', d);
       return 'h2_' + Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
     };
     const legacyHash = s => {
-      let h=0;
-      for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
-      return 'h_'+Math.abs(h).toString(36);
+      let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return 'h_'+Math.abs(h).toString(36);
     };
     let valid = false;
-    if (!storedHash || oldPw === '123456') {
-      valid = !storedHash || (await hashFn(oldPw)) === storedHash || legacyHash(oldPw) === storedHash;
-    } else if (storedHash.startsWith('h2_')) {
-      valid = (await hashFn(oldPw)) === storedHash;
-    } else if (storedHash.startsWith('h_')) {
-      valid = legacyHash(oldPw) === storedHash;
-    }
+    if (!storedHash)                       valid = true;
+    else if (storedHash.startsWith('h2_')) valid = (await hashFn(oldPw)) === storedHash;
+    else if (storedHash.startsWith('h_'))  valid = legacyHash(oldPw) === storedHash;
     if (!valid) { showErr('❌ Mật khẩu hiện tại không đúng!'); return; }
+
     const newHash = await hashFn(newPw);
+    // students update: if request.auth != null && affectedKeys hasOnly([...]) ✅
     await db.collection('students').doc(studentId).update({
-      password: newHash,
-      passwordChanged: true,
-      passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      password:            newHash,
+      passwordChanged:     true,
+      passwordUpdatedAt:   firebase.firestore.FieldValue.serverTimestamp()
     });
     showSuc('✅ Đổi mật khẩu thành công!');
     setTimeout(() => closeChangePwModal(), 2000);
@@ -1920,11 +1799,10 @@ async function submitExamChangePw() {
     }
     initPage();
   }
-  if (document.readyState === 'loading') {
+  if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', _run, { once: true });
-  } else {
+  else
     _run();
-  }
 })();
 </script>
 </body>
