@@ -430,14 +430,15 @@ async function createSession(studentCode) {
 
 async function checkExistingSession(studentCode) {
   try {
-    const doc = await db.collection('sessions').doc(studentCode).get();
+    // Luôn lấy từ server, không cache offline
+    const doc = await db.collection('sessions').doc(studentCode)
+      .get({ source: 'server' });
     if (!doc.exists) return false;
     const data = doc.data();
     if (!data.token) return false;
-    // Kiểm tra session có còn active không (5 phút không heartbeat = hết)
     const lastActive = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
     const diff = Date.now() - lastActive.getTime();
-    if (diff > 5 * 60 * 1000) return false; // Quá 5 phút = session cũ
+    if (diff > 5 * 60 * 1000) return false; // >5 phút không heartbeat = coi như hết
     return true;
   } catch(e) {
     return false;
@@ -532,24 +533,66 @@ function regenerateQR() {
 // ================================================================
 // KHỞI TẠO TRANG - QUAN TRỌNG: KHÔNG TỰ ĐỘNG CHUYỂN HƯỚNG
 // ================================================================
-window.onload = async function(){
-  // ── Trang đăng nhập: luôn xóa session cũ, không tự động redirect
-  // Người dùng phải đăng nhập lại để đảm bảo bảo mật
-  localStorage.removeItem('userType');
-  localStorage.removeItem('studentCode');
-  localStorage.removeItem('studentName');
-  localStorage.removeItem('studentUnit');
-  localStorage.removeItem('studentObject');
-  localStorage.removeItem('studentCourse');
-  localStorage.removeItem('adminName');
+window.onload = async function() {
+  const existingType = localStorage.getItem('userType');
+  const existingCode = localStorage.getItem('studentCode');
 
-  // Pre-auth anonymous (cần để đọc Firestore trước khi đăng nhập)
+  // ── Admin: chỉ redirect nếu Firebase auth còn sống ──
+  if (existingType === 'admin') {
+    try {
+      await ensureAuth();
+      await new Promise(resolve => {
+        const unsub = auth.onAuthStateChanged(user => {
+          unsub();
+          if (user && !user.isAnonymous && ADMIN_EMAILS.includes(user.email)) {
+            location.replace('admin.html');
+          } else {
+            localStorage.removeItem('userType');
+            localStorage.removeItem('adminName');
+            resolve();
+          }
+        });
+        setTimeout(resolve, 3000);
+      });
+      if (localStorage.getItem('userType') === 'admin') return;
+    } catch(e) {
+      localStorage.removeItem('userType');
+    }
+  }
+
+  // ── Học viên: kiểm tra nghiêm ngặt session Firestore ──
+  if (existingType === 'student' && existingCode) {
+    try {
+      await ensureAuth();
+      const myToken = localStorage.getItem('sessionToken_' + existingCode);
+      if (myToken) {
+        // Bắt buộc lấy từ server (source: 'server'), không dùng cache offline
+        const doc = await db.collection('sessions').doc(existingCode)
+          .get({ source: 'server' });
+        if (doc.exists) {
+          const data = doc.data();
+          const serverToken = data.token;
+          const lastActive  = data.lastActive?.toDate ? data.lastActive.toDate() : new Date(0);
+          const fresh = (Date.now() - lastActive.getTime()) < 5 * 60 * 1000;
+          // Chỉ redirect khi token khớp VÀ session còn tươi
+          if (serverToken && serverToken === myToken && fresh) {
+            location.replace('exam.html');
+            return;
+          }
+        }
+      }
+    } catch(e) { /* Lỗi mạng hoặc offline → cho đăng nhập lại */ }
+    // Xóa dữ liệu cũ
+    localStorage.removeItem('userType');
+    localStorage.removeItem('studentCode');
+    localStorage.removeItem('sessionToken_' + existingCode);
+  }
+
+  // ── Chưa đăng nhập → hiển thị form ──
   ensureAuth().catch(e => console.warn('Pre-auth:', e.code));
-
-  // Kiểm tra bảo trì
-  try { if (await checkMaintenanceMode()) { showMaintenancePage(); return; } } catch(_) {}
-
-  // Render QR
+  try {
+    if (await checkMaintenanceMode()) { showMaintenancePage(); return; }
+  } catch(_) {}
   renderQR();
 };
 
