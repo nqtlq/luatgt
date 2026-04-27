@@ -5583,7 +5583,26 @@ function logout() {
 // 5. DATA FETCHING TỪ FIREBASE
 
 // ==========================================
+// ==========================================
+// GUEST EXAM CONFIG (FIX LỖI)
+// ==========================================
+async function loadGuestExamConfig() {
+    try {
+        const doc = await db.collection('systemConfig').doc('guestExam').get();
 
+        if (!doc.exists) return;
+
+        const data = doc.data();
+
+        // Lưu vào biến global để dùng nếu cần
+        window.guestExamConfig = data;
+
+        console.log('Guest config loaded:', data);
+
+    } catch (e) {
+        console.warn('loadGuestExamConfig lỗi:', e.message);
+    }
+}
 async function loadStudentsFromDB() {
 
     const snap = await db.collection('students').orderBy('createdAt', 'desc').get();
