@@ -743,22 +743,37 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </div>
 // =====================================================================
-// FIREBASE INIT
+// FIREBASE INIT - TỐI ƯU HÓA
 // =====================================================================
 let db = null, auth = null, firebaseReady = false;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+  authDomain: "thi-luat-giao-thong.firebaseapp.com",
+  projectId: "thi-luat-giao-thong",
+  storageBucket: "thi-luat-giao-thong.firebasestorage.app",
+  messagingSenderId: "173046681456",
+  appId: "1:173046681456:web:33da411c508ee243a149b5"
+};
+
 try {
-  if (firebase.apps.length === 0) {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-      authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId: "thi-luat-giao-thong"
-    });
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  } else {
+    firebase.app(); // Sử dụng app đã có
   }
+  
   db = firebase.firestore();
   auth = firebase.auth();
+  
+  // Thiết lập persistence (Ghi nhớ đăng nhập) để tránh bị logout khi F5
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  
   firebaseReady = true;
-} catch(e) { console.error('Firebase init lỗi:', e); }
-
+  console.log("✅ Firebase đã sẵn sàng");
+} catch(e) { 
+  console.error('❌ Firebase init lỗi:', e); 
+}
 // =====================================================================
 // AUTH GUARD — kiểm tra ngay lập tức
 // =====================================================================
