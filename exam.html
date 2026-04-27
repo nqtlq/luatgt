@@ -1076,7 +1076,7 @@ async function initPage() {
     course: localStorage.getItem('studentCourse') || '',
     status: 'active'
   });
-  
+
   // BƯỚC 2: Ẩn loader ngay lập tức — KHÔNG đợi auth
   const loader = document.getElementById('pageLoader');
   if (loader) loader.style.display = 'none';
@@ -1100,11 +1100,12 @@ async function initPage() {
       }
     })
     .catch(e => {
+      // ĐÃ SỬA LỖI XUỐNG DÒNG TẠI ĐÂY:
       console.warn('[Auth] Thất bại (trang vẫn chạy với cache):', e.code || e.message);
       // Vẫn sync từ Firestore — SDK có thể dùng anonymous token cũ
       _syncStudentFromFirestore(studentId);
     });
-  
+
   console.log('[Exam] Trang sẵn sàng');
 }
 
