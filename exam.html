@@ -1083,28 +1083,25 @@ function startSessionMonitor() {
 // MAIN INIT — Không bao giờ treo
 // =====================================================================
 async function initPage() {
-  console.log('[System] Khởi tạo trang...');
-  const studentId = localStorage.getItem('studentId') || studentCode;
-  
-  // 1. BUỘC ẨN LOADER NGAY LẬP TỨC
+  // 1. BUỘC ẨN MÀN HÌNH CHỜ NGAY LẬP TỨC
   const loader = document.getElementById('pageLoader');
   if (loader) {
     loader.style.opacity = '0';
-    setTimeout(() => loader.style.display = 'none', 300);
+    setTimeout(() => { loader.style.display = 'none'; }, 300);
   }
 
-  // 2. Render UI từ bộ nhớ đệm (Cache) để tránh màn hình trắng
+  console.log('--- KHỞI TẠO GIAO DIỆN ---');
+  const studentId = localStorage.getItem('studentId') || studentCode;
+  
+  // 2. Render UI nhanh từ bộ nhớ đệm
   _renderStudentUI({
     code: studentCode,
     name: localStorage.getItem('studentName') || '',
     unit: localStorage.getItem('studentUnit') || '',
-    dob: localStorage.getItem('studentDob') || '',
-    object: localStorage.getItem('studentObject') || '',
-    course: localStorage.getItem('studentCourse') || '',
     status: 'active'
   });
 
-  // 3. Kích hoạt các chức năng ngầm
+  // 3. Chạy các tiến trình ngầm (Bọc trong try-catch để tránh lỗi làm dừng cả trang)
   try {
     loadExamResults();
     if (typeof loadNotifState === 'function') loadNotifState().then(() => loadNotifications());
@@ -1112,20 +1109,12 @@ async function initPage() {
     startPresence();
     startSessionMonitor();
     startExamRoomListener();
-    if (typeof startAdminWarnListener === 'function') startAdminWarnListener();
   } catch (e) {
-    console.error("Lỗi khởi tạo component:", e);
+    console.warn("Một số thành phần tải chậm:", e);
   }
 
-  // 4. Xác thực Firebase ngầm
-  ensureAuth()
-    .then(u => {
-      if (u) _syncStudentFromFirestore(studentId);
-    })
-    .catch(e => {
-      console.warn('[Auth] Chạy ở chế độ giới hạn:', e.message);
-      _syncStudentFromFirestore(studentId);
-    });
+  // 4. Xác thực và đồng bộ dữ liệu sau cùng
+  ensureAuth().then(() => _syncStudentFromFirestore(studentId));
 }
 
 // ─── Render UI học viên ───────────────────────────────────────────────
@@ -2187,20 +2176,18 @@ async function saveProfileUpdates() {
   }
 }
 // =====================================================================
-// KHỞI ĐỘNG — CHỐNG TREO TUYỆT ĐỐI (CẬP NHẬT 27/04)
+// KHỞI ĐỘNG — CƠ CHẾ CHỐNG TREO 2 LỚP
 // =====================================================================
 (function bootExamPage() {
   let isBooted = false;
 
-  function _forceRun() {
+  function _execute() {
     if (isBooted) return;
     isBooted = true;
-    console.log("[Boot] Kích hoạt chế độ cưỡng bức hiển thị.");
-    initPage();
+    if (typeof initPage === 'function') initPage();
   }
 
   function _run() {
-    // Kiểm tra quyền truy cập cơ bản
     const _ut = localStorage.getItem('userType');
     const _sc = localStorage.getItem('studentCode');
     if (_ut !== 'student' || !_sc) {
@@ -2208,27 +2195,28 @@ async function saveProfileUpdates() {
       return;
     }
 
-    // Cơ chế an toàn: Sau 3.5 giây nếu Firebase chưa xong, vẫn cho vào trang
-    const safetyNet = setTimeout(_forceRun, 3500);
+    // LỚP 1: Nếu sau 3 giây Firebase không trả lời, vẫn cho hiện trang
+    const backupTimer = setTimeout(() => {
+      if (!isBooted) {
+        console.log("Firebase phản hồi quá chậm, kích hoạt chế độ an toàn...");
+        _execute();
+      }
+    }, 3000);
 
+    // LỚP 2: Đợi Firebase phản hồi bình thường
     firebase.auth().onAuthStateChanged((user) => {
-      if (isBooted) return; // Nếu đã chạy bằng forceRun thì bỏ qua
-      clearTimeout(safetyNet);
-      
+      clearTimeout(backupTimer);
       if (user) {
-        console.log("[Boot] Firebase Ready.");
-        isBooted = true;
-        initPage();
+        _execute();
       } else {
-        console.log("[Boot] Đang thử đăng nhập lại...");
+        // Thử login vô danh nếu mất phiên
         firebase.auth().signInAnonymously()
-          .then(() => { isBooted = true; initPage(); })
-          .catch(() => _forceRun());
+          .then(_execute)
+          .catch(_execute);
       }
     });
   }
 
-  // Khởi chạy khi trình duyệt sẵn sàng
   if (document.readyState === 'loading') {
     window.addEventListener('load', _run);
   } else {
