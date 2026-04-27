@@ -1064,8 +1064,10 @@ function startSessionMonitor() {
 // MAIN INIT — Không bao giờ treo
 // =====================================================================
 async function initPage() {
+  // 1. Lấy thông tin cơ bản
   const studentId = localStorage.getItem('studentId') || studentCode;
   
+  // 2. Hiển thị giao diện tạm thời từ cache để người dùng không thấy trống
   _renderStudentUI({
     code: studentCode,
     name: localStorage.getItem('studentName') || '',
@@ -1076,32 +1078,34 @@ async function initPage() {
     status: 'active'
   });
 
-  // Ẩn loader ngay lập tức
+  // 3. QUAN TRỌNG: Ẩn ngay màn hình Loading (Chống treo)
   const loader = document.getElementById('pageLoader');
   if (loader) loader.style.display = 'none';
   
+  // 4. Kích hoạt các trình lắng nghe dữ liệu
   loadExamResults();
-  loadNotifState().then(() => loadNotifications());
+  if (typeof loadNotifState === 'function') {
+      loadNotifState().then(() => { if (typeof loadNotifications === 'function') loadNotifications(); });
+  }
   startRealtimeListeners();
   startPresence();
   startSessionMonitor();
   startExamRoomListener();
-  startAdminWarnListener();
+  if (typeof startAdminWarnListener === 'function') startAdminWarnListener();
   
+  // 5. Xác thực ngầm (Background Auth)
   ensureAuth()
     .then(u => {
       if (u) {
-        console.log('[Auth] OK UID:', u.uid);
         _syncStudentFromFirestore(studentId);
       }
     })
     .catch(e => {
-      // ĐÃ SỬA LỖI XUỐNG DÒNG (TRƯỚC ĐÂY BỊ RỚT CHỮ 'cache):' XUỐNG DÒNG)
-      console.warn('[Auth] Thất bại (trang vẫn chạy với cache):', e.code || e.message);
+      console.warn('[Auth] Chạy chế độ offline/cache');
       _syncStudentFromFirestore(studentId);
     });
 
-  console.log('[Exam] Trang sẵn sàng');
+  console.log('[System] Đã nạp xong giao diện.');
 }
 
 // ─── Render UI học viên ───────────────────────────────────────────────
