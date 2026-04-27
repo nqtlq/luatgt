@@ -1064,10 +1064,17 @@ function startSessionMonitor() {
 // MAIN INIT — Không bao giờ treo
 // =====================================================================
 async function initPage() {
-  // 1. Lấy thông tin cơ bản
+  console.log('[System] Khởi tạo trang...');
   const studentId = localStorage.getItem('studentId') || studentCode;
   
-  // 2. Hiển thị giao diện tạm thời từ cache để người dùng không thấy trống
+  // 1. BUỘC ẨN LOADER NGAY LẬP TỨC
+  const loader = document.getElementById('pageLoader');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 300);
+  }
+
+  // 2. Render UI từ bộ nhớ đệm (Cache) để tránh màn hình trắng
   _renderStudentUI({
     code: studentCode,
     name: localStorage.getItem('studentName') || '',
@@ -1078,34 +1085,28 @@ async function initPage() {
     status: 'active'
   });
 
-  // 3. QUAN TRỌNG: Ẩn ngay màn hình Loading (Chống treo)
-  const loader = document.getElementById('pageLoader');
-  if (loader) loader.style.display = 'none';
-  
-  // 4. Kích hoạt các trình lắng nghe dữ liệu
-  loadExamResults();
-  if (typeof loadNotifState === 'function') {
-      loadNotifState().then(() => { if (typeof loadNotifications === 'function') loadNotifications(); });
+  // 3. Kích hoạt các chức năng ngầm
+  try {
+    loadExamResults();
+    if (typeof loadNotifState === 'function') loadNotifState().then(() => loadNotifications());
+    startRealtimeListeners();
+    startPresence();
+    startSessionMonitor();
+    startExamRoomListener();
+    if (typeof startAdminWarnListener === 'function') startAdminWarnListener();
+  } catch (e) {
+    console.error("Lỗi khởi tạo component:", e);
   }
-  startRealtimeListeners();
-  startPresence();
-  startSessionMonitor();
-  startExamRoomListener();
-  if (typeof startAdminWarnListener === 'function') startAdminWarnListener();
-  
-  // 5. Xác thực ngầm (Background Auth)
+
+  // 4. Xác thực Firebase ngầm
   ensureAuth()
     .then(u => {
-      if (u) {
-        _syncStudentFromFirestore(studentId);
-      }
+      if (u) _syncStudentFromFirestore(studentId);
     })
     .catch(e => {
-      console.warn('[Auth] Chạy chế độ offline/cache');
+      console.warn('[Auth] Chạy ở chế độ giới hạn:', e.message);
       _syncStudentFromFirestore(studentId);
     });
-
-  console.log('[System] Đã nạp xong giao diện.');
 }
 
 // ─── Render UI học viên ───────────────────────────────────────────────
@@ -2167,16 +2168,20 @@ async function saveProfileUpdates() {
   }
 }
 // =====================================================================
-// KHỞI ĐỘNG — CHỐNG TREO TUYỆT ĐỐI
+// KHỞI ĐỘNG — CHỐNG TREO TUYỆT ĐỐI (CẬP NHẬT 27/04)
 // =====================================================================
 (function bootExamPage() {
-  let booted = false;
+  let isBooted = false;
+
+  function _forceRun() {
+    if (isBooted) return;
+    isBooted = true;
+    console.log("[Boot] Kích hoạt chế độ cưỡng bức hiển thị.");
+    initPage();
+  }
 
   function _run() {
-    if (booted) return;
-    booted = true;
-
-    // Kiểm tra quyền truy cập nhanh
+    // Kiểm tra quyền truy cập cơ bản
     const _ut = localStorage.getItem('userType');
     const _sc = localStorage.getItem('studentCode');
     if (_ut !== 'student' || !_sc) {
@@ -2184,29 +2189,27 @@ async function saveProfileUpdates() {
       return;
     }
 
-    // Thiết lập timeout 3s: Nếu Firebase quá chậm, vẫn cho hiện trang
-    const forcedShow = setTimeout(() => {
-        const loader = document.getElementById('pageLoader');
-        if (loader && loader.style.display !== 'none') {
-            console.log("Firebase phản hồi chậm, ép buộc hiện giao diện...");
-            loader.style.display = 'none';
-            if (typeof initPage === 'function') initPage();
-        }
-    }, 3000);
+    // Cơ chế an toàn: Sau 3.5 giây nếu Firebase chưa xong, vẫn cho vào trang
+    const safetyNet = setTimeout(_forceRun, 3500);
 
-    // Chờ Firebase sẵn sàng
     firebase.auth().onAuthStateChanged((user) => {
-      clearTimeout(forcedShow);
+      if (isBooted) return; // Nếu đã chạy bằng forceRun thì bỏ qua
+      clearTimeout(safetyNet);
+      
       if (user) {
+        console.log("[Boot] Firebase Ready.");
+        isBooted = true;
         initPage();
       } else {
-        // Thử xác thực vô danh nếu chưa có user để tránh treo snapShot
-        firebase.auth().signInAnonymously().then(() => initPage()).catch(() => initPage());
+        console.log("[Boot] Đang thử đăng nhập lại...");
+        firebase.auth().signInAnonymously()
+          .then(() => { isBooted = true; initPage(); })
+          .catch(() => _forceRun());
       }
     });
   }
 
-  // Chạy khi DOM đã sẵn sàng
+  // Khởi chạy khi trình duyệt sẵn sàng
   if (document.readyState === 'loading') {
     window.addEventListener('load', _run);
   } else {
