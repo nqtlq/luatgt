@@ -1066,7 +1066,6 @@ function startSessionMonitor() {
 async function initPage() {
   const studentId = localStorage.getItem('studentId') || studentCode;
   
-  // BƯỚC 1: Render UI ngay từ cache (0ms)
   _renderStudentUI({
     code: studentCode,
     name: localStorage.getItem('studentName') || '',
@@ -1077,11 +1076,10 @@ async function initPage() {
     status: 'active'
   });
 
-  // BƯỚC 2: Ẩn loader ngay lập tức — KHÔNG đợi auth
+  // Ẩn loader ngay lập tức
   const loader = document.getElementById('pageLoader');
   if (loader) loader.style.display = 'none';
   
-  // BƯỚC 3: Khởi tất cả listeners (Firestore SDK tự queue request)
   loadExamResults();
   loadNotifState().then(() => loadNotifications());
   startRealtimeListeners();
@@ -1090,19 +1088,16 @@ async function initPage() {
   startExamRoomListener();
   startAdminWarnListener();
   
-  // BƯỚC 4: Auth + sync data chạy ngầm, không block UI
   ensureAuth()
     .then(u => {
       if (u) {
         console.log('[Auth] OK UID:', u.uid);
-        // Sync dữ liệu học viên sau khi auth ready
         _syncStudentFromFirestore(studentId);
       }
     })
     .catch(e => {
-      // ĐÃ SỬA LỖI XUỐNG DÒNG TẠI ĐÂY:
+      // ĐÃ SỬA LỖI XUỐNG DÒNG (TRƯỚC ĐÂY BỊ RỚT CHỮ 'cache):' XUỐNG DÒNG)
       console.warn('[Auth] Thất bại (trang vẫn chạy với cache):', e.code || e.message);
-      // Vẫn sync từ Firestore — SDK có thể dùng anonymous token cũ
       _syncStudentFromFirestore(studentId);
     });
 
@@ -1671,10 +1666,11 @@ function startPresence() {
 }
 
 // =====================================================================
-// PHONG THI ONLINE
+// PHONG THI ONLINE (MULTI-ROOM GRID)
 // =====================================================================
 let _activeRoom = null, _roomUnsub = null, _roomRegUnsub = null;
 let _roomWaitUnsub = null, _roomCdInterval = null, _inviteTimeout = null;
+let _eligibleRoomsList = []; // Mảng lưu các phòng thi hợp lệ
 
 function startExamRoomListener() {
   if (_roomUnsub) { try { _roomUnsub(); } catch(_) {} }
@@ -1682,25 +1678,68 @@ function startExamRoomListener() {
     .where('status', 'in', ['scheduled', 'open'])
     .orderBy('startAt', 'asc')
     .onSnapshot(snap => {
-      let targetRoom = null;
+      const grid = document.getElementById('roomListGrid');
+      const countSpan = document.getElementById('roomCount');
+      if (grid) grid.innerHTML = '';
+      
+      _eligibleRoomsList = [];
       for (const doc of snap.docs) {
         const room = { id: doc.id, ...doc.data() };
-        if (_checkEligibility(room)) { targetRoom = room; break; }
+        if (_checkEligibility(room)) { 
+            _eligibleRoomsList.push(room); 
+        }
       }
       
-      const container = document.getElementById('examRoomContainer');
-      if (!targetRoom) {
+      if (countSpan) countSpan.innerText = `${_eligibleRoomsList.length} phòng`;
+      
+      if (_eligibleRoomsList.length === 0) {
         _activeRoom = null;
-        if (container) container.style.display = 'none';
+        if (grid) grid.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1/-1;">Hiện không có phòng thi nào dành cho bạn.</p>';
         return;
       }
-      _activeRoom = targetRoom;
-      if (container) container.style.display = '';
-      _renderRoomCard(_activeRoom);
-      _startRoomCountdown(_activeRoom);
-      _startRegListener(_activeRoom.id);
-      _scheduleInvite(_activeRoom);
+
+      // Render các ô phòng thi
+      if (grid) {
+         _eligibleRoomsList.forEach(room => {
+            const startTime = room.startAt.toDate();
+            const card = document.createElement('div');
+            card.className = 'room-card';
+            card.innerHTML = `
+                <h4 style="color:var(--blue); margin-bottom:8px;">${room.title || 'Phòng thi'}</h4>
+                <p style="font-size:13px; margin:4px 0;">📄 Đề thi: ${room.setName || room.setCode || '---'}</p>
+                <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: ${startTime.toLocaleString('vi-VN')}</p>
+                <p style="font-size:13px; margin:4px 0;">👥 Trạng thái: <b style="color:${room.status === 'open' ? 'var(--green)' : '#f4a261'}">${room.status === 'open' ? 'Đang mở' : 'Sắp diễn ra'}</b></p>
+                <button class="action-btn btn-start" style="width:100%; min-height:40px; padding:10px; margin-top:12px;" onclick="focusAndEnterRoom('${room.id}')">Tham gia / Vào phòng chờ</button>
+            `;
+            grid.appendChild(card);
+            _scheduleInvite(room); // Nhắc nhở 3 phút trước giờ thi
+         });
+      }
     }, err => console.warn('examRoom listener lỗi:', err.code));
+}
+
+// Xử lý khi bấm nút "Tham gia": Tự động check đăng ký hoặc đăng ký luôn
+async function focusAndEnterRoom(roomId) {
+   const target = _eligibleRoomsList.find(r => r.id === roomId);
+   if (!target) return;
+   _activeRoom = target;
+
+   try {
+       const d = await db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).get();
+       if (d.exists) {
+           enterWaitingRoom(); // Đã đăng ký, vào thẳng
+       } else {
+           const cf = confirm(`Bạn chưa đăng ký tham gia phòng thi "${target.title}". Đăng ký ngay bây giờ?`);
+           if (cf) {
+               await db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).set({
+                   studentCode, studentName: localStorage.getItem('studentName') || studentCode, registeredAt: firebase.firestore.FieldValue.serverTimestamp(), inWaitingRoom: false
+               });
+               enterWaitingRoom();
+           }
+       }
+   } catch(e) {
+       alert("Lỗi kiểm tra đăng ký: " + e.message);
+   }
 }
 
 function _checkEligibility(room) {
@@ -2085,7 +2124,44 @@ async function submitExamChangePw() {
     if (btn) { btn.disabled = false; btn.textContent = '🔒 Cập nhật mật khẩu'; }
   }
 }
+// =====================================================================
+// CẬP NHẬT THÔNG TIN HỒ SƠ
+// =====================================================================
+async function openEditProfile() {
+  const studentId = localStorage.getItem('studentId') || studentCode;
+  const doc = await db.collection('students').doc(studentId).get();
+  if (!doc.exists) return;
+  const data = doc.data();
+  
+  document.getElementById('edit_name').value = data.name || '';
+  document.getElementById('edit_code').value = data.code || '';
+  document.getElementById('edit_phone').value = data.phone || '';
+  document.getElementById('edit_dob').value = data.dob || '';
+  
+  document.getElementById('editProfileModal').classList.add('show');
+}
 
+function closeEditProfileModal() {
+  document.getElementById('editProfileModal').classList.remove('show');
+}
+
+async function saveProfileUpdates() {
+  const studentId = localStorage.getItem('studentId') || studentCode;
+  const newPhone = document.getElementById('edit_phone').value;
+  const newDob = document.getElementById('edit_dob').value;
+  
+  try {
+    await db.collection('students').doc(studentId).update({
+        phone: newPhone,
+        dob: newDob,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("Cập nhật thông tin thành công!");
+    closeEditProfileModal();
+  } catch (error) {
+    alert("Lỗi: " + error.message);
+  }
+}
 // =====================================================================
 // KHỞI ĐỘNG HỆ THỐNG - CHỐNG TREO MÀN HÌNH XÁC THỰC
 // =====================================================================
