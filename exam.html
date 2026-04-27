@@ -371,6 +371,7 @@ header { padding-top: env(safe-area-inset-top); }
   pointer-events: none; /* Đảm bảo không chặn click khi đang ẩn */
 }
 </style>
+<link rel="icon" href="data:,">
 </head>
 <body>
 
@@ -743,6 +744,23 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </div>
 <script>
+// ĐOẠN MÃ CỨU HỘ: ÉP BUỘC HIỆN TRANG WEB SAU 2 GIÂY
+(function forceUnlock() {
+    const unlock = () => {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            console.log("--- Đã ép buộc ẩn màn hình chờ ---");
+            loader.style.display = 'none';
+            loader.remove();
+        }
+    };
+    
+    // Nếu trang nạp quá 2.5 giây mà vẫn đen, thì tự mở
+    setTimeout(unlock, 2500);
+    
+    // Nếu cửa sổ đã nạp xong, tự mở luôn
+    window.addEventListener('load', unlock);
+})();
 // =====================================================================
 // FIREBASE INIT - FIX TRIỆT ĐỂ
 // =====================================================================
@@ -794,20 +812,20 @@ let notifPanelOpen = true;
 let _authUser = null;
 let _authPromise = null; // Cache promise để tránh gọi nhiều lần đồng thời
 
-function ensureAuth() {
-  // Trả về promise đã cache nếu đang xử lý
-  if (_authPromise) return _authPromise;
-  
-  // Nếu đã có user hợp lệ, trả về ngay
-  if (_authUser) return Promise.resolve(_authUser);
-  
-  _authPromise = _doEnsureAuth().finally(() => {
-    // Reset promise cache sau khi xong (thành công hay thất bại)
-    // để cho phép retry sau này nếu cần
-    _authPromise = null;
+async function ensureAuth() {
+  return new Promise((resolve) => {
+    // Nếu sau 2 giây không xong thì coi như bỏ qua để chạy tiếp
+    const timer = setTimeout(() => resolve(null), 2000);
+
+    firebase.auth().onAuthStateChanged((user) => {
+      clearTimeout(timer);
+      resolve(user || null);
+    }, (error) => {
+      clearTimeout(timer);
+      console.warn("Lỗi xác thực ngầm:", error);
+      resolve(null); // Vẫn resolve để không làm sập Promise
+    });
   });
-  
-  return _authPromise;
 }
 
 async function _doEnsureAuth() {
