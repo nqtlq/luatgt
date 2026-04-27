@@ -2167,49 +2167,46 @@ async function saveProfileUpdates() {
   }
 }
 // =====================================================================
-// KHỞI ĐỘNG HỆ THỐNG - CHỐNG TREO MÀN HÌNH XÁC THỰC
+// KHỞI ĐỘNG — CHỐNG TREO TUYỆT ĐỐI
 // =====================================================================
 (function bootExamPage() {
-  let isBooted = false;
+  let booted = false;
 
   function _run() {
-    if (isBooted) return;
-    isBooted = true;
+    if (booted) return;
+    booted = true;
 
-    // 1. Kiểm tra Guard sơ bộ từ LocalStorage
+    // Kiểm tra quyền truy cập nhanh
     const _ut = localStorage.getItem('userType');
     const _sc = localStorage.getItem('studentCode');
-
     if (_ut !== 'student' || !_sc) {
-      console.warn("Chưa đăng nhập hoặc sai quyền, chuyển hướng...");
       location.replace('index.html');
       return;
     }
 
-    // 2. Lắng nghe trạng thái Firebase Auth (Tránh treo nếu Firebase chậm)
-    const authTimeout = setTimeout(() => {
-        if (!firebase.auth().currentUser) {
-            console.error("Firebase Auth timeout!");
-            // Nếu quá 5s không xác thực được, thử nạp lại hoặc thoát
-            // location.reload(); 
+    // Thiết lập timeout 3s: Nếu Firebase quá chậm, vẫn cho hiện trang
+    const forcedShow = setTimeout(() => {
+        const loader = document.getElementById('pageLoader');
+        if (loader && loader.style.display !== 'none') {
+            console.log("Firebase phản hồi chậm, ép buộc hiện giao diện...");
+            loader.style.display = 'none';
+            if (typeof initPage === 'function') initPage();
         }
-    }, 5000);
+    }, 3000);
 
+    // Chờ Firebase sẵn sàng
     firebase.auth().onAuthStateChanged((user) => {
-      clearTimeout(authTimeout);
+      clearTimeout(forcedShow);
       if (user) {
-        console.log("Xác thực thành công:", user.email);
-        // Chạy các hàm khởi tạo dữ liệu của bạn ở đây
-        if (typeof initDashboard === 'function') initDashboard();
-        if (typeof listenToSystemSignals === 'function') listenToSystemSignals();
+        initPage();
       } else {
-        console.warn("Firebase mất phiên đăng nhập");
-        location.replace('index.html');
+        // Thử xác thực vô danh nếu chưa có user để tránh treo snapShot
+        firebase.auth().signInAnonymously().then(() => initPage()).catch(() => initPage());
       }
     });
   }
 
-  // Chạy an toàn bất kể trạng thái nạp của trình duyệt
+  // Chạy khi DOM đã sẵn sàng
   if (document.readyState === 'loading') {
     window.addEventListener('load', _run);
   } else {
