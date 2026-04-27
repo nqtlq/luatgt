@@ -2086,23 +2086,51 @@ async function submitExamChangePw() {
 }
 
 // =====================================================================
-// KHỞI ĐỘNG — Dùng readyState, không dùng DOMContentLoaded
+// KHỞI ĐỘNG HỆ THỐNG - CHỐNG TREO MÀN HÌNH XÁC THỰC
 // =====================================================================
 (function bootExamPage() {
+  let isBooted = false;
+
   function _run() {
-    // Double-check auth guard
+    if (isBooted) return;
+    isBooted = true;
+
+    // 1. Kiểm tra Guard sơ bộ từ LocalStorage
     const _ut = localStorage.getItem('userType');
     const _sc = localStorage.getItem('studentCode');
+
     if (_ut !== 'student' || !_sc) {
-      localStorage.removeItem('userType');
+      console.warn("Chưa đăng nhập hoặc sai quyền, chuyển hướng...");
       location.replace('index.html');
       return;
     }
-    initPage();
+
+    // 2. Lắng nghe trạng thái Firebase Auth (Tránh treo nếu Firebase chậm)
+    const authTimeout = setTimeout(() => {
+        if (!firebase.auth().currentUser) {
+            console.error("Firebase Auth timeout!");
+            // Nếu quá 5s không xác thực được, thử nạp lại hoặc thoát
+            // location.reload(); 
+        }
+    }, 5000);
+
+    firebase.auth().onAuthStateChanged((user) => {
+      clearTimeout(authTimeout);
+      if (user) {
+        console.log("Xác thực thành công:", user.email);
+        // Chạy các hàm khởi tạo dữ liệu của bạn ở đây
+        if (typeof initDashboard === 'function') initDashboard();
+        if (typeof listenToSystemSignals === 'function') listenToSystemSignals();
+      } else {
+        console.warn("Firebase mất phiên đăng nhập");
+        location.replace('index.html');
+      }
+    });
   }
-  
+
+  // Chạy an toàn bất kể trạng thái nạp của trình duyệt
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _run, { once: true });
+    window.addEventListener('load', _run);
   } else {
     _run();
   }
