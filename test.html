@@ -3123,36 +3123,31 @@
       try {
 
         const resultData = {
+  studentCode, studentName, studentUnit,
+  setCode: set.code || set.id,
+  setName: set.name || set.title || "",
+  correctCount: correct,
+  wrongCount:   wrong,
+  skipCount:    skip,
+  totalQuestions: questions.length,
+  score: correct,
+  passed,
+  lietFailed,
+  timeTaken,
+  attemptNumber,
+  answers: userAnswers,
 
-          studentCode, studentName, studentUnit,
+  // ✨ THÊM MỚI: Lưu chi tiết câu hỏi để xem lại trong Lịch sử
+  questions: questions.map(q => ({
+    content:       q.content || q.question || "",
+    answers:       Array.isArray(q.answers) ? q.answers : [],
+    correctAnswer: q.correctAnswer ?? null,
+    isLiet:        q.isLietQuestion === true || q.isLiet === true || q.groupIndex === -1,
+    imageUrl:      q.imageUrl || ""
+  })),
 
-          setCode: set.code||set.id,
-
-          setName: set.name||set.title||"",
-
-          correctCount: correct,
-
-          wrongCount:   wrong,
-
-          skipCount:    skip,
-
-          totalQuestions: questions.length,
-
-          score: correct,
-
-          passed,
-
-          lietFailed,
-
-          timeTaken,
-
-          attemptNumber,
-
-          answers: userAnswers,
-
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-
-        };
+  timestamp: firebase.firestore.FieldValue.serverTimestamp()
+};
 
         const docRef = await db.collection("examResults").add(resultData);
 
