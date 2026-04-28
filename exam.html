@@ -24,9 +24,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 /* ===== LOADING OVERLAY ===== */
 #pageLoader {
   position: fixed; inset: 0; background: linear-gradient(135deg,#1d3557,#264a8a);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
   z-index: 99999; color: white; gap: 20px;
 }
+#pageLoader.visible { display: flex; }
 #pageLoader .spinner-lg {
   width: 52px; height: 52px; border: 5px solid rgba(255,255,255,0.3);
   border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
@@ -171,8 +172,9 @@ header {
 .confirm-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
   display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px;
+  pointer-events: none;
 }
-.confirm-overlay.show { display: flex; }
+.confirm-overlay.show { display: flex; pointer-events: all; }
 .confirm-box { background: white; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.25); animation: cIn 0.25s; }
 @keyframes cIn { from { opacity:0; transform: scale(.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
 .confirm-box .c-icon { font-size: 48px; margin-bottom: 12px; }
@@ -184,8 +186,8 @@ header {
 .c-btn-cancel:hover { background: #e0e7ff; }
 .c-btn-confirm { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
 .c-btn-confirm:hover { opacity: 0.9; }
-.kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
-.kickout-modal.show { display: flex; }
+.kickout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); pointer-events: none; }
+.kickout-modal.show { display: flex; pointer-events: all; }
 .kickout-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: kFadeIn 0.4s; border-top: 6px solid #dc3545; }
 @keyframes kFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
 .kickout-box .icon { font-size: 56px; margin-bottom: 15px; display: block; }
@@ -266,8 +268,8 @@ header { padding-top: env(safe-area-inset-top); }
 .room-reg-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none;}
 .room-participants{font-size:12.5px;color:#555;text-align:center;margin-top:8px;}
 /* ── Phòng chờ ── */
-.waiting-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;z-index:9000;overflow-y:auto;padding:16px;box-sizing:border-box;}
-.waiting-overlay.show{display:block;}
+.waiting-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;z-index:9000;overflow-y:auto;padding:16px;box-sizing:border-box;pointer-events:none;}
+.waiting-overlay.show{display:block;pointer-events:all;}
 .waiting-box{max-width:680px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;}
 .waiting-header{background:linear-gradient(135deg,#1d3557,#2a6496);color:#fff;padding:18px 22px;}
 .waiting-header h2{margin:0 0 4px;font-size:17px;}
@@ -292,8 +294,8 @@ header { padding-top: env(safe-area-inset-top); }
 .wf-start{background:linear-gradient(135deg,#1d3557,#0d6efd);color:#fff;}
 .wf-start:disabled{opacity:.4;cursor:not-allowed;}
 /* ── Admin cảnh báo ── */
-.admin-warn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:19999;padding:16px;backdrop-filter:blur(4px);}
-.admin-warn-overlay.show{display:flex;}
+.admin-warn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:19999;padding:16px;backdrop-filter:blur(4px);pointer-events:none;}
+.admin-warn-overlay.show{display:flex;pointer-events:all;}
 .admin-warn-box{background:#fff;border-radius:16px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4);}
 .awb-header{background:linear-gradient(135deg,#dc3545,#a02535);padding:16px 18px;color:#fff;display:flex;align-items:center;gap:10px;}
 .awb-header span{font-size:26px;}
@@ -302,8 +304,8 @@ header { padding-top: env(safe-area-inset-top); }
 .awb-footer{padding:12px 18px;border-top:1px solid #e2e8f0;text-align:right;}
 .awb-footer button{padding:9px 22px;background:#1d3557;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
 /* ── Mời vào thi ── */
-.exam-invite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:18000;padding:16px;backdrop-filter:blur(5px);}
-.exam-invite-overlay.show{display:flex;}
+.exam-invite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:18000;padding:16px;backdrop-filter:blur(5px);pointer-events:none;}
+.exam-invite-overlay.show{display:flex;pointer-events:all;}
 .exam-invite-box{background:#fff;border-radius:16px;max-width:380px;width:100%;padding:26px 22px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.4);}
 .eii{font-size:50px;margin-bottom:8px;}
 .exam-invite-box h3{font-size:17px;color:#1d3557;margin:0 0 8px;}
@@ -429,7 +431,7 @@ header { padding-top: env(safe-area-inset-top); }
 </div>
 
 <!-- ĐỔI MẬT KHẨU MODAL -->
-<div id="examChangePwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99990;align-items:center;justify-content:center;">
+<div id="examChangePwModal" style="display:none;pointer-events:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99990;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:18px;width:100%;max-width:440px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;margin:16px;">
     <div style="background:linear-gradient(135deg,#1d3557,#264a8a);color:white;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;">
       <h3 style="margin:0;font-size:17px;font-weight:800;">🔑 Đổi mật khẩu</h3>
@@ -741,21 +743,30 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </div>
 <script>
-// ĐOẠN MÃ CỨU HỘ: ÉP BUỘC HIỆN TRANG WEB SAU 2 GIÂY
+// ĐẢM BẢO TRANG LUÔN HIỂN THỊ — KHÔNG BAO GIỜ BỊ TREO
 (function forceUnlock() {
     const unlock = () => {
         const loader = document.getElementById('pageLoader');
         if (loader) {
-            console.log("--- Đã ép buộc ẩn màn hình chờ ---");
             loader.style.display = 'none';
-            loader.remove();
+            loader.classList.remove('visible');
+            loader.style.pointerEvents = 'none';
+            try { loader.remove(); } catch(_) {}
         }
+        // Đảm bảo body không bị khoá click
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
     };
-    
-    // Nếu trang nạp quá 2.5 giây mà vẫn đen, thì tự mở
-    setTimeout(unlock, 2500);
-    
-    // Nếu cửa sổ đã nạp xong, tự mở luôn
+    // Ẩn ngay khi DOM sẵn sàng
+    if (document.readyState !== 'loading') {
+        unlock();
+    } else {
+        document.addEventListener('DOMContentLoaded', unlock);
+    }
+    // Backup: ẩn sau 800ms dù bất cứ chuyện gì xảy ra
+    setTimeout(unlock, 800);
+    // Backup cuối: ẩn sau 3s
+    setTimeout(unlock, 3000);
     window.addEventListener('load', unlock);
 })();
 // =====================================================================
@@ -1091,9 +1102,16 @@ function startSessionMonitor() {
 // MAIN INIT — Không bao giờ treo
 // =====================================================================
 async function initPage() {
-  // 1. Ẩn loader ngay lập tức
+  // 1. Ẩn loader NGAY LẬP TỨC — không chờ bất cứ thứ gì
   const loader = document.getElementById('pageLoader');
-  if (loader) { loader.style.display = 'none'; loader.remove(); }
+  if (loader) {
+    loader.style.display = 'none';
+    loader.classList.remove('visible');
+    loader.style.pointerEvents = 'none';
+    try { loader.remove(); } catch(_) {}
+  }
+  // Đảm bảo body không bị khoá
+  document.body.style.pointerEvents = '';
 
   console.log("🚀 Đang nạp dữ liệu...");
 
@@ -1109,32 +1127,26 @@ async function initPage() {
     status: 'active'
   });
 
-  // 3. Chạy tất cả module Firebase song song (không await để không treo UI)
+  // 3. Khởi chạy tất cả module — KHÔNG await để không treo UI
   try {
-    // Kết quả thi — realtime chart
-    if (typeof loadExamResults === 'function') loadExamResults();
-
-    // Thông báo hệ thống — realtime
-    if (typeof loadNotifications === 'function') loadNotifications();
-    if (typeof loadNotifState    === 'function') loadNotifState();
-
-    // Phòng thi online — realtime
+    if (typeof loadExamResults     === 'function') loadExamResults();
+    if (typeof loadNotifications   === 'function') loadNotifications();
+    if (typeof loadNotifState      === 'function') loadNotifState();
     if (typeof startExamRoomListener === 'function') startExamRoomListener();
-
-    // Giám sát tài khoản bị khoá + bảo trì — realtime
     if (typeof startRealtimeListeners === 'function') startRealtimeListeners();
+    if (typeof startPresence       === 'function') startPresence();
 
-    // Giám sát phiên đăng nhập nhiều thiết bị
-    if (typeof startSessionMonitor === 'function') startSessionMonitor();
+    // Delay sessionMonitor 3s — tránh kích hoạt kickOut ngay lúc load trang
+    setTimeout(() => {
+      try {
+        if (typeof startSessionMonitor === 'function') startSessionMonitor();
+      } catch(e) { console.warn('sessionMonitor lỗi:', e); }
+    }, 3000);
 
-    // Presence (online/offline heartbeat)
-    if (typeof startPresence === 'function') startPresence();
-
-    // Đồng bộ đầy đủ thông tin học viên từ Firestore (chạy ngầm)
+    // Đồng bộ thông tin học viên từ Firestore (chạy ngầm)
     if (cachedId && typeof _syncStudentFromFirestore === 'function') {
       _syncStudentFromFirestore(cachedId);
     }
-
   } catch (err) {
     console.warn("Lỗi nạp module:", err);
   }
@@ -2109,12 +2121,12 @@ function openChangePwModal() {
   const txt = document.getElementById('examPwStrengthTxt'); if (txt) txt.textContent = '';
   const cm = document.getElementById('examCpConfirmMsg'); if (cm) cm.textContent = '';
   const modal = document.getElementById('examChangePwModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) { modal.style.display = 'flex'; modal.style.pointerEvents = 'all'; }
 }
 
 function closeChangePwModal() {
   const modal = document.getElementById('examChangePwModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) { modal.style.display = 'none'; modal.style.pointerEvents = 'none'; }
 }
 
 function toggleExamPw(inputId, icon) {
@@ -2230,11 +2242,13 @@ async function openEditProfile() {
   document.getElementById('edit_phone').value = data.phone || '';
   document.getElementById('edit_dob').value = data.dob || '';
   
-  document.getElementById('editProfileModal').classList.add('show');
+  const modal = document.getElementById('editProfileModal');
+  if (modal) { modal.classList.add('show'); modal.style.pointerEvents = 'all'; }
 }
 
 function closeEditProfileModal() {
-  document.getElementById('editProfileModal').classList.remove('show');
+  const modal = document.getElementById('editProfileModal');
+  if (modal) { modal.classList.remove('show'); modal.style.pointerEvents = 'none'; }
 }
 
 async function saveProfileUpdates() {
