@@ -821,19 +821,13 @@ let _authUser = null;
 let _authPromise = null; // Cache promise để tránh gọi nhiều lần đồng thời
 
 async function ensureAuth() {
-  return new Promise((resolve) => {
-    // Nếu sau 2 giây không xong thì coi như bỏ qua để chạy tiếp
-    const timer = setTimeout(() => resolve(null), 2000);
-
-    firebase.auth().onAuthStateChanged((user) => {
-      clearTimeout(timer);
-      resolve(user || null);
-    }, (error) => {
-      clearTimeout(timer);
-      console.warn("Lỗi xác thực ngầm:", error);
-      resolve(null); // Vẫn resolve để không làm sập Promise
-    });
-  });
+  // ✅ Delegate sang _doEnsureAuth để nhất quán và set _authUser
+  try {
+    return await _doEnsureAuth();
+  } catch(e) {
+    console.warn('[ensureAuth] Thất bại:', e.code || e.message);
+    return null;
+  }
 }
 
 async function _doEnsureAuth() {
