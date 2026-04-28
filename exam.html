@@ -1102,7 +1102,6 @@ function startSessionMonitor() {
 // MAIN INIT — Không bao giờ treo
 // =====================================================================
 async function initPage() {
-  // 1. Ẩn loader NGAY LẬP TỨC — không chờ bất cứ thứ gì
   const loader = document.getElementById('pageLoader');
   if (loader) {
     loader.style.display = 'none';
@@ -1110,14 +1109,13 @@ async function initPage() {
     loader.style.pointerEvents = 'none';
     try { loader.remove(); } catch(_) {}
   }
-  // Đảm bảo body không bị khoá
   document.body.style.pointerEvents = '';
 
   console.log("🚀 Đang nạp dữ liệu...");
 
-  // 2. Render UI tạm từ LocalStorage (hiển thị ngay, không chờ Firebase)
-  const cachedCode   = localStorage.getItem('studentCode') || '';
-  const cachedId     = localStorage.getItem('studentId')   || cachedCode;
+  // Render UI tạm từ LocalStorage ngay
+  const cachedCode = localStorage.getItem('studentCode') || '';
+  const cachedId   = localStorage.getItem('studentId')   || cachedCode;
   _renderStudentUI({
     code:   cachedCode,
     name:   localStorage.getItem('studentName')   || 'Thí sinh',
@@ -1127,23 +1125,28 @@ async function initPage() {
     status: 'active'
   });
 
-  // 3. Khởi chạy tất cả module — KHÔNG await để không treo UI
+  // ✅ FIX: Đảm bảo auth TRƯỚC KHI gọi bất kỳ Firestore query nào
   try {
-    if (typeof loadExamResults     === 'function') loadExamResults();
-    if (typeof loadNotifications   === 'function') loadNotifications();
-    if (typeof loadNotifState      === 'function') loadNotifState();
-    if (typeof startExamRoomListener === 'function') startExamRoomListener();
-    if (typeof startRealtimeListeners === 'function') startRealtimeListeners();
-    if (typeof startPresence       === 'function') startPresence();
+    await _doEnsureAuth();
+  } catch(e) {
+    console.warn('[initPage] Auth thất bại:', e.code || e.message);
+    // Vẫn tiếp tục — một số thao tác không cần auth strict
+  }
 
-    // Delay sessionMonitor 3s — tránh kích hoạt kickOut ngay lúc load trang
+  // Giờ mới gọi các module Firestore
+  try {
+    if (typeof loadExamResults       === 'function') loadExamResults();
+    if (typeof loadNotifications     === 'function') loadNotifications();
+    if (typeof loadNotifState        === 'function') loadNotifState();
+    if (typeof startExamRoomListener === 'function') startExamRoomListener();
+    if (typeof startRealtimeListeners=== 'function') startRealtimeListeners();
+    if (typeof startPresence         === 'function') startPresence();
+
     setTimeout(() => {
-      try {
-        if (typeof startSessionMonitor === 'function') startSessionMonitor();
-      } catch(e) { console.warn('sessionMonitor lỗi:', e); }
+      try { if (typeof startSessionMonitor === 'function') startSessionMonitor(); }
+      catch(e) { console.warn('sessionMonitor lỗi:', e); }
     }, 3000);
 
-    // Đồng bộ thông tin học viên từ Firestore (chạy ngầm)
     if (cachedId && typeof _syncStudentFromFirestore === 'function') {
       _syncStudentFromFirestore(cachedId);
     }
@@ -1151,7 +1154,6 @@ async function initPage() {
     console.warn("Lỗi nạp module:", err);
   }
 }
-
 // ─── Render UI học viên ───────────────────────────────────────────────
 function _renderStudentUI(data) {
   const s = v => v || '—';
