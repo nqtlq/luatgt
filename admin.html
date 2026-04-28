@@ -3940,54 +3940,34 @@ D. Đáp án D
 
     <!-- Modal tạo/sửa phòng -->
 
-    <div id="roomModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:white; width:100%; max-width:600px; border-radius:15px; display:flex; flex-direction:column; max-height:90vh; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+    <div id="roomModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h2 id="roomModalTitle">Thông tin phòng thi</h2>
         
-        <div style="padding:20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="roomModalTitle" style="margin:0; font-size:20px; color:#1d3557;">➕ Tạo phòng thi mới</h2>
-            <button onclick="closeRoomModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        <div class="form-group">
+            <label>Tên phòng:</label>
+            <input type="text" id="roomTitle"> </div>
+
+        <div class="form-group">
+            <label>Mô tả bài thi:</label>
+            <textarea id="roomDesc" style="width:100%; height:80px;"></textarea> 
         </div>
 
-        <div style="padding:20px; overflow-y:auto; flex:1;">
-            <div style="margin-bottom:15px;">
-                <label style="display:block; font-weight:bold; margin-bottom:5px;">Tên phòng thi:</label>
-                <input type="text" id="roomTitle" placeholder="VD: Thi sát hạch đợt 1" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-            </div>
+        <div class="form-group">
+            <label>Mã bộ đề:</label>
+            <input type="text" id="roomSetCode"> </div>
 
-            <div style="margin-bottom:15px;">
-                <label style="display:block; font-weight:bold; margin-bottom:5px; color:#2a9d8f;">📝 Mô tả (Học viên sẽ thấy nội dung này):</label>
-                <textarea id="roomDesc" placeholder="VD: Bài thi gồm 25 câu, thời gian 20 phút. Yêu cầu học viên tập trung..." 
-                          style="width:100%; height:100px; padding:10px; border:1px solid #2a9d8f; border-radius:8px; font-family:inherit; resize:none;"></textarea>
-            </div>
+        <div class="form-group">
+            <label>Tên bộ đề:</label>
+            <input type="text" id="roomSetName"> </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
-                <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Mã bộ đề (Hệ thống dùng):</label>
-                    <input type="text" id="roomSetCode" placeholder="VD: de_01" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                </div>
-                <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Tên bộ đề (Nội bộ):</label>
-                    <input type="text" id="roomSetName" placeholder="VD: Bộ đề 450 câu" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Bắt đầu:</label>
+            <input type="datetime-local" id="roomStart"> </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Thời gian bắt đầu:</label>
-                    <input type="datetime-local" id="roomStart" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                </div>
-                <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Thời lượng (phút):</label>
-                    <input type="number" id="roomDuration" value="20" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
-                </div>
-            </div>
-        </div>
-
-        <div style="padding:15px 20px; border-top:1px solid #eee; background:#f9f9f9; border-radius:0 0 15px 15px; display:flex; justify-content:flex-end; gap:10px;">
-            <button onclick="closeRoomModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #ccc; background:white; cursor:pointer;">Hủy</button>
-            <button onclick="saveRoom()" style="padding:10px 25px; border-radius:8px; border:none; background:#1d3557; color:white; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                💾 Lưu phòng thi
-            </button>
+        <div class="modal-footer">
+            <button onclick="closeRoomModal()">Đóng</button>
+            <button onclick="saveRoom()" style="background:#1d3557; color:white;">Lưu lại</button>
         </div>
     </div>
 </div>
@@ -5273,36 +5253,36 @@ async function _autoUpdateStatus(rooms) {
 
 }
 
-function showCreateRoomModal() {
+function showCreateRoomModal(roomId = null) {
+    _editingRoomId = roomId;
+    const modal = document.getElementById('roomModal');
+    if (!modal) return console.error("Không tìm thấy modal với id='roomModal'");
 
-  document.getElementById('editRoomId').value = '';
+    // Các phần tử input
+    const elTitle = document.getElementById('roomTitle');
+    const elDesc = document.getElementById('roomDesc'); // Đây thường là chỗ gây lỗi nếu thiếu HTML
+    const elSetCode = document.getElementById('roomSetCode');
+    const elSetName = document.getElementById('roomSetName');
+    const elStart = document.getElementById('roomStart');
 
-  document.getElementById('roomModalTitle').textContent = '🏫 Tạo phòng thi mới';
+    // Reset form và kiểm tra null để tránh lỗi "Cannot set properties of null"
+    if (elTitle) elTitle.value = '';
+    if (elDesc) elDesc.value = '';
+    if (elSetCode) elSetCode.value = '';
+    if (elSetName) elSetName.value = '';
+    if (elStart) elStart.value = '';
 
-  ['roomTitleInput','roomRulesInput','roomEligValues'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-
-  document.getElementById('roomStartInput').value = '';
-
-  document.getElementById('roomEndInput').value = '';
-
-  document.getElementById('roomLateInput').value = '0';
-
-  document.getElementById('roomEligType').value = 'all';
-
-  document.getElementById('eligValuesWrap').style.display = 'none';
-
-  document.getElementById('roomModalError').style.display = 'none';
-
-  const sel = document.getElementById('roomSetSelect');
-
-  sel.innerHTML = '<option value="">-- Chọn bộ đề --</option>'
-
-    + (allQuestionSets||[]).filter(s=>!s.isGuestDemo)
-
-      .map(s=>`<option value="${s.code||s.id}" data-name="${s.name||s.code||s.id}">${s.name||s.code||s.id}</option>`).join('');
-
-  document.getElementById('createRoomModal').style.display = 'flex';
-
+    if (roomId) {
+        const room = lmData.find(r => r.id === roomId);
+        if (room) {
+            if (elTitle) elTitle.value = room.title || '';
+            if (elDesc) elDesc.value = room.description || '';
+            if (elSetCode) elSetCode.value = room.setCode || '';
+            if (elSetName) elSetName.value = room.setName || '';
+            // ... xử lý ngày tháng
+        }
+    }
+    modal.style.display = 'flex';
 }
 
 function closeRoomModal() { document.getElementById('createRoomModal').style.display = 'none'; }
