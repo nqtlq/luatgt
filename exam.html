@@ -1778,16 +1778,29 @@ function startExamRoomListener() {
   const grid = document.getElementById('roomListGrid');
   if (grid) grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;padding:40px 0;">⏳ Đang tải dữ liệu từ máy chủ...</p>';
 
+  // Bỏ .orderBy('startAt', 'asc') để tránh lỗi Index Firebase
   _roomUnsub = db.collection('examRooms')
     .where('status', 'in', ['scheduled', 'open'])
-    .orderBy('startAt', 'asc')
     .onSnapshot(snap => {
       const countSpan = document.getElementById('roomCount');
       if (grid) grid.innerHTML = '';
       
-      _eligibleRoomsList = [];
+      // 1. Lấy toàn bộ danh sách phòng
+      let rawRooms = [];
       for (const doc of snap.docs) {
-        const room = { id: doc.id, ...doc.data() };
+        rawRooms.push({ id: doc.id, ...doc.data() });
+      }
+
+      // 2. Sắp xếp danh sách bằng JavaScript (thay cho orderBy của Firebase)
+      rawRooms.sort((a, b) => {
+        const timeA = a.startAt?.toDate ? a.startAt.toDate().getTime() : 0;
+        const timeB = b.startAt?.toDate ? b.startAt.toDate().getTime() : 0;
+        return timeA - timeB; // Sắp xếp tăng dần (Ascending)
+      });
+
+      // 3. Lọc các phòng hợp lệ với học viên
+      _eligibleRoomsList = [];
+      for (const room of rawRooms) {
         if (_checkEligibility(room)) { 
             _eligibleRoomsList.push(room); 
         }
@@ -1812,7 +1825,7 @@ function startExamRoomListener() {
       // Render các ô phòng thi
       if (grid) {
          _eligibleRoomsList.forEach(room => {
-            const startTime = room.startAt.toDate();
+            const startTime = room.startAt?.toDate ? room.startAt.toDate() : new Date();
             const card = document.createElement('div');
             card.className = 'room-card';
             card.innerHTML = `
@@ -1827,16 +1840,12 @@ function startExamRoomListener() {
          });
       }
     }, err => {
-      console.warn('examRoom listener lỗi:', err.code);
+      console.warn('examRoom listener lỗi:', err);
       if (grid) {
-          // Báo lỗi cụ thể ra giao diện để phát hiện nếu bị thiếu Index
-          let errMsg = err.message;
-          if (err.code === 'failed-precondition') errMsg = "Cần tạo Index trên Firebase cho truy vấn này.";
-          grid.innerHTML = `<p style="text-align:center;color:var(--red);grid-column:1/-1;padding:30px 0;">⚠️ Lỗi tải danh sách phòng: ${errMsg}</p>`;
+          grid.innerHTML = `<p style="text-align:center;color:var(--red);grid-column:1/-1;padding:30px 0;">⚠️ Lỗi tải danh sách phòng: ${err.message}</p>`;
       }
     });
 }
-
 // Hàm thủ công làm mới danh sách phòng
 function refreshExamRooms() {
     startExamRoomListener();
