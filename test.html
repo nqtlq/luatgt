@@ -3094,7 +3094,16 @@
 
     // Lưu kết quả lên Firestore (chỉ student)
 
+    let saveOk = false;
+
+    let saveError = null;
+
+    let savedDocId = null;
+
     if (IS_STUDENT && db) {
+
+      // BƯỚC 1: Đếm số lần thi trước
+      let attemptNumber = 1;
 
       try {
 
@@ -3104,9 +3113,14 @@
 
           .where("setCode","==", set.code||set.id)
 
-          .orderBy("timestamp","desc").limit(1).get();
+          .get();
 
-        const attemptNumber = existSnap.size + 1;
+        attemptNumber = existSnap.size + 1;
+
+      } catch(e) { console.warn("Không đếm được lần thi:", e.code); }
+
+      // BƯỚC 2: Lưu bản ghi kết quả
+      try {
 
         const resultData = {
 
@@ -3140,9 +3154,26 @@
 
         };
 
-        await db.collection("examResults").add(resultData);
+        const docRef = await db.collection("examResults").add(resultData);
 
-        // Cập nhật thống kê học viên
+        savedDocId = docRef.id;
+
+        saveOk = true;
+
+        console.log("✅ Đã lưu kết quả:", docRef.id);
+
+      } catch(e) {
+
+        saveOk = false;
+
+        saveError = e.code || e.message;
+
+        console.error("❌ Lỗi lưu examResults:", e.code, e.message);
+
+      }
+
+      // BƯỚC 3: Cập nhật thống kê học viên (tách try-catch riêng)
+      try {
 
         const stuRef = db.collection("students").doc(studentCode);
 
@@ -3154,7 +3185,7 @@
 
           const prevBest = stuData.bestScore || 0;
 
-          const prevExams = stuData.exams || 0;
+          const prevExams = stuData.exams || stuData.totalExams || 0;
 
           const prevAvg = stuData.avgScore || 0;
 
@@ -3164,11 +3195,25 @@
 
           const newAvg = Math.round((prevAvg * prevExams + correct) / newExams);
 
-          await stuRef.update({ exams: newExams, bestScore: newBest, avgScore: newAvg });
+          await stuRef.update({
+
+            exams: newExams, totalExams: newExams,
+
+            bestScore: newBest, avgScore: newAvg,
+
+            lastScore: correct, lastPassed: passed,
+
+            lastExamDate: firebase.firestore.FieldValue.serverTimestamp(),
+
+            lastSetCode: set.code||set.id,
+
+            lastSetName: set.name||set.title||""
+
+          });
 
         }
 
-      } catch(e) { console.warn("Lỗi lưu kết quả:", e.message); }
+      } catch(e) { console.warn("⚠️ Không cập nhật được students doc:", e.code); }
 
     }
 
@@ -3190,85 +3235,17 @@
 
     }
 
-    showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore });
+    showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore, saveOk, saveError, savedDocId });
 
   }
 
   // ── Result page ─────────────────────────────────────────────────
 
-  // ĐỔI DÒNG NÀY:
-// function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore }) {
-
-// THÀNH:
-function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore, saveOk, saveError, savedDocId }) {
+  function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore, saveOk, saveError, savedDocId }) {
 
     document.getElementById("pgExam").classList.remove("active");
+
     document.getElementById("pgResult").classList.add("active");
-
-    const qmapBtn = document.getElementById('qmapToggleBtn');
-    if (qmapBtn) qmapBtn.style.display = 'none';
-
-    const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "KẾT QUẢ BÀI THI";
-    const he = document.getElementById("headerEn"); if(he) he.textContent = "";
-
-    const hBtn = document.getElementById("headerBtns");
-    if(hBtn) hBtn.innerHTML=`<button class="btn-header btn-back" onclick="retryExam()">Thi lại</button>
-      <button class="btn-header" style="background:var(--green);color:white;" onclick="location.href='exam.html'">Trang chủ</button>`;
-
-    const safe = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-
-    safe("resVerdict",     passed?"🎉":"😔");
-    safe("resVerdictText", passed?"ĐẠT":"KHÔNG ĐẠT");
-    safe("resScore",       `${correct}/${questions.length}`);
-    safe("resScoreLabel",  `câu đúng trên tổng ${questions.length} câu · Cần ${passScore} câu để đạt`);
-
-    const vt = document.getElementById("resVerdictText");
-    if(vt) vt.className = "result-verdict-text "+(passed?"pass":"fail");
-
-    const mm = Math.floor(timeTaken/60), ss2 = timeTaken%60;
-
-    const grid = document.getElementById("resDetailGrid");
-    if(grid) grid.innerHTML = `
-      <div class="rd-card"><div class="rd-num" style="color:var(--green)">${correct}</div><div class="rd-lbl">Câu đúng</div></div>
-      <div class="rd-card"><div class="rd-num" style="color:var(--red)">${wrong}</div><div class="rd-lbl">Câu sai</div></div>
-      <div class="rd-card"><div class="rd-num" style="color:var(--muted)">${skip}</div><div class="rd-lbl">Bỏ qua</div></div>
-      <div class="rd-card"><div class="rd-num">${String(mm).padStart(2,'0')}:${String(ss2).padStart(2,'0')}</div><div class="rd-lbl">Thời gian</div></div>
-      ${lietFailed?`<div class="rd-card"><div class="rd-num" style="color:var(--yellow)">⚠</div><div class="rd-lbl">Sai câu liệt</div></div>`:""}`;
-
-    // ✅ FIX: Hiển thị trạng thái lưu kết quả
-    const saveEl = document.getElementById("resSaveStatus");
-    if (saveEl && IS_STUDENT) {
-      if (saveOk) {
-        saveEl.innerHTML = `<div style="
-          background:#d1fae5; border:1px solid #6ee7b7; border-radius:12px;
-          padding:12px 16px; font-size:13px; color:#065f46;
-          display:flex; align-items:center; gap:10px;">
-          <span style="font-size:18px;">✅</span>
-          <span>Kết quả đã lưu vào hệ thống thành công${savedDocId ? ` (ID: ${savedDocId})` : ''}.</span>
-        </div>`;
-      } else {
-        saveEl.innerHTML = `<div style="
-          background:#fee2e2; border:1px solid #fca5a5; border-radius:12px;
-          padding:12px 16px; font-size:13px; color:#991b1b;
-          display:flex; align-items:center; gap:10px;">
-          <span style="font-size:18px;">⚠️</span>
-          <div>
-            <b>Không lưu được kết quả!</b>
-            <div style="margin-top:3px;opacity:0.85;">Lý do: ${saveError || 'Lỗi không xác định'}. Vui lòng chụp màn hình làm bằng chứng.</div>
-          </div>
-        </div>`;
-      }
-    } else if (saveEl) {
-      saveEl.innerHTML = ''; // Ẩn nếu không phải student
-    }
-
-    const bd = document.getElementById("resBreakdown");
-    if(bd) {
-      // ... (giữ nguyên code render bd hiện tại) ...
-    }
-}
-  document.getElementById("pgExam").classList.remove("active");
-  document.getElementById("pgResult").classList.add("active");
 
     // Hide mobile qmap toggle
 
@@ -3316,6 +3293,34 @@ function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passS
 
       ${lietFailed?`<div class="rd-card"><div class="rd-num" style="color:var(--yellow)">⚠</div><div class="rd-lbl">Sai câu liệt</div></div>`:""}`;
 
+    // Banner trạng thái lưu kết quả
+
+    const saveEl = document.getElementById("resSaveStatus");
+
+    if (saveEl && IS_STUDENT) {
+
+      if (saveOk) {
+
+        saveEl.innerHTML = `<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:12px;padding:12px 16px;font-size:13px;color:#065f46;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:18px;">✅</span>
+          <span>Kết quả đã lưu vào hệ thống thành công${savedDocId ? ` (ID: <code>${savedDocId}</code>)` : ''}.</span>
+        </div>`;
+
+      } else {
+
+        saveEl.innerHTML = `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:12px;padding:12px 16px;font-size:13px;color:#991b1b;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:18px;">⚠️</span>
+          <div><b>Không lưu được kết quả!</b><div style="margin-top:3px;opacity:0.85;">Lý do: ${saveError || 'Lỗi không xác định'}. Vui lòng chụp màn hình làm bằng chứng.</div></div>
+        </div>`;
+
+      }
+
+    } else if (saveEl) {
+
+      saveEl.innerHTML = '';
+
+    }
+
     const bd = document.getElementById("resBreakdown");
 
     if(bd) {
@@ -3345,10 +3350,6 @@ function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passS
         if(chosen) chosenAns = `${labels[chosen-1]}. ${ansList[chosen-1]||""}`;
 
         if(correct2) correctAns = `${labels[correct2-1]}. ${ansList[correct2-1]||""}`;
-
-        // Tất cả câu đều có dropdown hiện đáp án (đúng hoặc sai)
-
-        const borderColor = isRight ? '#6ee7b7' : isSkip ? '#d1d5db' : '#fca5a5';
 
         const dropdownBorderColor = isRight ? '#6ee7b7' : '#fca5a5';
 
