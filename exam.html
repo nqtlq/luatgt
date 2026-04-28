@@ -1828,13 +1828,15 @@ function startExamRoomListener() {
             const startTime = room.startAt?.toDate ? room.startAt.toDate() : new Date();
             const card = document.createElement('div');
             card.className = 'room-card';
-            card.innerHTML = `
-                <h4 style="color:var(--blue); margin-bottom:8px;">${room.title || 'Phòng thi'}</h4>
-                <p style="font-size:13px; margin:4px 0;">📄 Đề thi: <strong style="color:var(--text);">${room.setName || room.setCode || '---'}</strong></p>
-                <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${startTime.toLocaleString('vi-VN')}</strong></p>
-                <p style="font-size:13px; margin:4px 0;">👥 Trạng thái: <b style="color:${room.status === 'open' ? 'var(--green)' : '#f4a261'}">${room.status === 'open' ? '🟢 Đang diễn ra' : '⏳ Sắp diễn ra'}</b></p>
-                <button class="action-btn btn-start" style="width:100%; min-height:40px; padding:10px; margin-top:12px;" onclick="focusAndEnterRoom('${room.id}')">Tham gia / Vào phòng chờ</button>
-            `;
+            // Trong hàm render danh sách phòng thi (startExamRoomListener)
+      card.innerHTML = `
+            <h4 style="color:var(--blue); margin-bottom:8px;">${room.title || 'Phòng thi'}</h4>
+            <p style="font-size:13px; color:#555; margin:8px 0; min-height:40px;">
+              📝 <i>${room.description || 'Không có mô tả cho phòng thi này.'}</i>
+            </p>
+            <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${startTime.toLocaleString('vi-VN')}</strong></p>
+            <button class="action-btn" onclick="focusAndEnterRoom('${room.id}')">Xem chi tiết & Đăng ký</button>
+        `;
             grid.appendChild(card);
             _scheduleInvite(room); // Nhắc nhở 3 phút trước giờ thi
          });
@@ -1866,30 +1868,126 @@ function hideRoomsPage() {
   if (page) page.style.display = 'none';
 }
 
-// Xử lý khi bấm nút "Tham gia": Tự động check đăng ký hoặc đăng ký luôn
-async function focusAndEnterRoom(roomId) {
-   const target = _eligibleRoomsList.find(r => r.id === roomId);
-   if (!target) return;
-   _activeRoom = target;
+let _currentRoomSub = null;
+let _currentPresenceSub = null;
+let _autoEnterTimer = null;
 
-   try {
-       const d = await db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).get();
-       if (d.exists) {
-           enterWaitingRoom(); // Đã đăng ký, vào thẳng
-       } else {
-           const cf = confirm(`Bạn chưa đăng ký tham gia phòng thi "${target.title}". Đăng ký ngay bây giờ?`);
-           if (cf) {
-               await db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).set({
-                   studentCode, studentName: localStorage.getItem('studentName') || studentCode, registeredAt: firebase.firestore.FieldValue.serverTimestamp(), inWaitingRoom: false
-               });
-               enterWaitingRoom();
-           }
-       }
-   } catch(e) {
-       alert("Lỗi kiểm tra đăng ký: " + e.message);
-   }
+async function focusAndEnterRoom(roomId) {
+    _activeRoomId = roomId;
+    const modal = document.getElementById('roomDetailModal');
+    modal.style.display = 'flex';
+
+    // 1. Hủy các listener cũ nếu có
+    if (_currentRoomSub) _currentRoomSub();
+    if (_currentPresenceSub) _currentPresenceSub();
+    if (_autoEnterTimer) clearTimeout(_autoEnterTimer);
+
+    // 2. Lắng nghe dữ liệu phòng thi
+    _currentRoomSub = db.collection('examRooms').doc(roomId).onSnapshot(doc => {
+        if (!doc.exists) return;
+        const room = { id: doc.id, ...doc.data() };
+        
+        // Cập nhật UI cơ bản (Mô tả, Tiêu đề)
+        document.getElementById('md_roomTitle').innerText = room.title;
+        document.getElementById('md_roomTime').innerText = "Giờ bắt đầu: " + room.startAt.toDate().toLocaleString('vi-VN');
+        document.getElementById('md_roomDesc').innerText = room.description || "Không có mô tả.";
+
+        const registeredUsers = room.registeredUsers || [];
+        const isRegistered = registeredUsers.includes(user.uid);
+
+        // 3. Lắng nghe số người đang Online trong phòng (từ collection presence)
+        _currentPresenceSub = db.collection('presence')
+            .where('currentRoomId', '==', roomId)
+            .onSnapshot(pSnap => {
+                const onlineCount = pSnap.size;
+                const regCount = registeredUsers.length;
+                
+                document.getElementById('stat_registered').innerText = regCount;
+                document.getElementById('stat_online').innerText = onlineCount;
+                document.getElementById('stat_waiting').innerText = Math.max(0, regCount - onlineCount);
+            });
+
+        // 4. Render Nút Đăng ký / Vào phòng chờ
+        renderActionButtons(room, isRegistered);
+
+        // 5. Kích hoạt đếm ngược tự động vào thi
+        startAutoEnterTimer(room);
+    });
+}
+function renderActionButtons(room, isRegistered) {
+    const container = document.getElementById('md_actions');
+    container.innerHTML = '';
+
+    if (!isRegistered) {
+        // Nút Đăng ký nếu chưa đăng ký
+        container.innerHTML += `
+            <button onclick="registerForRoom('${room.id}')" style="background:#2a9d8f; color:white; padding:12px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                📝 Đăng ký tham gia kiểm tra
+            </button>`;
+    } else {
+        // Thông báo đã đăng ký và nút vào phòng chờ
+        container.innerHTML += `
+            <div style="text-align:center; color:#2a9d8f; font-weight:bold; margin-bottom:5px;">✅ Bạn đã đăng ký tham gia</div>
+            <button onclick="enterWaitingRoom('${room.id}')" style="background:#1d3557; color:white; padding:12px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                🚪 Vào phòng chờ
+            </button>`;
+    }
 }
 
+// Hàm đăng ký
+async function registerForRoom(roomId) {
+    try {
+        await db.collection('examRooms').doc(roomId).update({
+            registeredUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
+        });
+        showToast("Đăng ký thành công!");
+    } catch (e) {
+        showToast("Lỗi đăng ký: " + e.message, "error");
+    }
+}
+
+// Logic Tự động vào bài thi
+function startAutoEnterTimer(room) {
+    const now = Date.now();
+    const startTime = room.startAt.toDate().getTime();
+    
+    // Nếu đã quá giờ thi và phòng đang mở -> Vào luôn
+    if (now >= startTime && room.status === 'open') {
+        goToExam(room.setCode);
+        return;
+    }
+
+    // Nếu chưa đến giờ, đặt lịch tự động chuyển trang
+    if (startTime > now) {
+        const diff = startTime - now;
+        _autoEnterTimer = setTimeout(() => {
+            // Kiểm tra lại trạng thái phòng trước khi vào
+            db.collection('examRooms').doc(room.id).get().then(doc => {
+                if (doc.data().status === 'open') {
+                    goToExam(room.setCode);
+                } else {
+                    showToast("Giám thị chưa mở đề, vui lòng đợi trong giây lát...", "warning");
+                }
+            });
+        }, diff);
+    }
+}
+
+function goToExam(setCode) {
+    showToast("🔔 Đến giờ thi! Đang tự động vào bài...", "success");
+    setTimeout(() => {
+        // Gọi hàm bắt đầu làm bài hiện có của bạn
+        startActualExam(setCode); 
+        closeRoomDetail();
+    }, 1500);
+}
+
+function closeRoomDetail() {
+    document.getElementById('roomDetailModal').style.display = 'none';
+    if (_currentRoomSub) _currentRoomSub();
+    if (_currentPresenceSub) _currentPresenceSub();
+    if (_autoEnterTimer) clearTimeout(_autoEnterTimer);
+}
 function _checkEligibility(room) {
   if (!room.eligibility || room.eligibility.type === 'all') return true;
   const { type, values } = room.eligibility;
@@ -2379,6 +2477,44 @@ async function saveProfileUpdates() {
     }
   });
 })();
+<div style="padding:25px 20px; background:linear-gradient(135deg,#1d3557,#264a8a); color:white; text-align:center;">
+        <h3 id="md_roomTitle" style="margin:0; font-size:20px; letter-spacing:0.5px;">Tên phòng thi</h3>
+        <div id="md_roomTime" style="margin-top:8px; font-size:13px; background:rgba(255,255,255,0.15); display:inline-block; padding:4px 12px; border-radius:20px;">
+            🕒 Giờ bắt đầu: --:--
+        </div>
+    </div>
+
+    <div style="padding:24px;">
+        <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:12px; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:8px; letter-spacing:1px;">Nội dung & Yêu cầu:</label>
+            <div id="md_roomDesc" style="background:#f0f4f8; padding:15px; border-radius:12px; font-size:14px; color:#333; line-height:1.6; border-left:4px solid #1d3557; font-style: italic;">
+                Đang tải nội dung mô tả từ giám thị...
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:25px;">
+            <div style="background:#f0fff4; border:1px solid #c6f6d5; padding:12px 5px; border-radius:15px; text-align:center;">
+                <div id="stat_registered" style="font-size:20px; font-weight:800; color:#2f855a;">0</div>
+                <div style="font-size:10px; color:#555; font-weight:600;">ĐÃ ĐĂNG KÝ</div>
+            </div>
+            <div style="background:#ebf8ff; border:1px solid #bee3f8; padding:12px 5px; border-radius:15px; text-align:center;">
+                <div id="stat_online" style="font-size:20px; font-weight:800; color:#2b6cb0;">0</div>
+                <div style="font-size:10px; color:#555; font-weight:600;">TRONG PHÒNG</div>
+            </div>
+            <div style="background:#fff5f5; border:1px solid #fed7d7; padding:12px 5px; border-radius:15px; text-align:center;">
+                <div id="stat_waiting" style="font-size:20px; font-weight:800; color:#c53030;">0</div>
+                <div style="font-size:10px; color:#555; font-weight:600;">VẮNG/CHƯA VÀO</div>
+            </div>
+        </div>
+
+        <div id="md_actions" style="display:flex; flex-direction:column; gap:12px;">
+            </div>
+    </div>
+
+    <button onclick="closeRoomDetail()" style="width:100%; padding:15px; border:none; background:#f8f9fa; color:#666; font-weight:600; cursor:pointer; border-top:1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f1f3f5'" onmouseout="this.style.background='#f8f9fa'">
+        Đóng cửa sổ
+    </button>
+</div>
 </script>
 </body>
 </html>
