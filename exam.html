@@ -505,6 +505,8 @@ header { padding-top: env(safe-area-inset-top); }
       </div>
       <div class="cpw-footer" style="display:flex; gap:10px;">
         <button class="btn-cancel" onclick="closeEditProfileModal()" style="flex:1; padding:12px; background:#eee; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Hủy bỏ</button>
+        <div id="editProfileError"  style="display:none; background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
+        <div id="editProfileSuccess" style="display:none; background:#d1fae5; border:1px solid #6ee7b7; color:#065f46; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
         <button class="btn-confirm" onclick="saveProfileUpdates()" style="flex:2; padding:12px; background:var(--green); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Lưu thay đổi</button>
       </div>
     </div>
@@ -2249,19 +2251,55 @@ function closeEditProfileModal() {
 
 async function saveProfileUpdates() {
   const studentId = localStorage.getItem('studentId') || studentCode;
-  const newPhone = document.getElementById('edit_phone').value;
-  const newDob = document.getElementById('edit_dob').value;
-  
+
+  const phoneEl = document.getElementById('edit_phone');
+  const dobEl   = document.getElementById('edit_dob');
+  const btn     = document.querySelector('#editProfileModal .btn-confirm') 
+                  || document.querySelector('[onclick="saveProfileUpdates()"]');
+
+  const newPhone = (phoneEl?.value || '').trim();
+  const newDob   = (dobEl?.value   || '').trim();
+
+  // Validate số điện thoại nếu có nhập
+  if (newPhone && !/^[0-9\s\+\-]{8,15}$/.test(newPhone)) {
+    alert('Số điện thoại không hợp lệ!');
+    return;
+  }
+
+  // Loading state
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu...'; }
+
   try {
     await db.collection('students').doc(studentId).update({
-        phone: newPhone,
-        dob: newDob,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      phone:     newPhone,
+      dob:       newDob,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    alert("Cập nhật thông tin thành công!");
-    closeEditProfileModal();
+
+    // Cập nhật localStorage để UI reflect ngay
+    // (không store phone/dob nên chỉ cần đóng modal)
+
+    // Hiện thông báo thành công trong modal thay vì alert
+    const errEl = document.getElementById('editProfileError');
+    const sucEl = document.getElementById('editProfileSuccess');
+    if (sucEl) { sucEl.textContent = '✅ Cập nhật thành công!'; sucEl.style.display = 'block'; }
+    if (errEl) { errEl.style.display = 'none'; }
+
+    setTimeout(() => closeEditProfileModal(), 1500);
+
   } catch (error) {
-    alert("Lỗi: " + error.message);
+    console.error('saveProfileUpdates lỗi:', error.code, error.message);
+
+    const errEl = document.getElementById('editProfileError');
+    const msg = error.code === 'permission-denied'
+      ? '❌ Không có quyền cập nhật. Kiểm tra lại Security Rules.'
+      : `❌ Lỗi: ${error.message || error.code}`;
+
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+    else alert(msg);
+
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Lưu thay đổi'; }
   }
 }
 // =====================================================================
