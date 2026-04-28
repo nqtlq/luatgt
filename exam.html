@@ -1134,6 +1134,9 @@ async function initPage() {
     if (typeof loadExamResults       === 'function') loadExamResults();
     if (typeof loadNotifications     === 'function') loadNotifications();
     if (typeof loadNotifState        === 'function') loadNotifState();
+    // ⚠️ NOTE: startExamRoomListener() chạy ngay để UI phản hồi nhanh.
+    // Nếu localStorage chưa có course/object/unit (lần đầu đăng nhập),
+    // _syncStudentFromFirestore() bên dưới sẽ gọi lại listener sau khi sync xong.
     if (typeof startExamRoomListener === 'function') startExamRoomListener();
     if (typeof startRealtimeListeners=== 'function') startRealtimeListeners();
     if (typeof startPresence         === 'function') startPresence();
@@ -1220,7 +1223,16 @@ async function _syncStudentFromFirestore(studentId) {
     localStorage.setItem('studentUnit', data.unit || '');
     localStorage.setItem('studentObject', data.object || '');
     localStorage.setItem('studentCourse', data.course || '');
-    
+
+    // ✅ FIX: Khởi động lại room listener sau khi có đầy đủ thông tin học viên
+    // (course / object / unit). startExamRoomListener() lần đầu trong initPage()
+    // có thể đã chạy trước khi sync xong → _checkEligibility() đọc localStorage
+    // rỗng → phòng thi bị lọc sai. Gọi lại ở đây đảm bảo eligibility đúng.
+    if (typeof startExamRoomListener === 'function') startExamRoomListener();
+
+    // ✅ FIX: Tương tự cho notifications — _filterNotifs() cũng đọc localStorage
+    if (typeof loadNotifications === 'function') loadNotifications();
+
   } catch(e) {
     console.warn('[Sync] Firestore lỗi:', e.code, '— giữ cache');
   }
