@@ -1858,11 +1858,11 @@ function showRoomsPage() {
   if (page) {
     page.style.display = 'block';
     page.scrollTop = 0;
-    // Bắt buộc gọi lại listener mỗi khi mở page để lấy dữ liệu mới nhất
+    // Cập nhật vị trí hiện tại của học viên lên Firebase để tính số người Online
+    updateUserPresence('Sảnh phòng thi'); 
     refreshExamRooms();
   }
 }
-
 function hideRoomsPage() {
   const page = document.getElementById('roomsPage');
   if (page) page.style.display = 'none';
@@ -1877,25 +1877,25 @@ async function focusAndEnterRoom(roomId) {
     const modal = document.getElementById('roomDetailModal');
     modal.style.display = 'flex';
 
-    // 1. Hủy các listener cũ nếu có
-    if (_currentRoomSub) _currentRoomSub();
-    if (_currentPresenceSub) _currentPresenceSub();
-    if (_autoEnterTimer) clearTimeout(_autoEnterTimer);
+    // Cập nhật vị trí để hệ thống biết học viên đã vào xem phòng cụ thể này
+    updateUserPresence('Đang xem phòng: ' + roomId, roomId);
 
-    // 2. Lắng nghe dữ liệu phòng thi
+    // Lắng nghe dữ liệu phòng thi theo thời gian thực
+    if (_currentRoomSub) _currentRoomSub();
     _currentRoomSub = db.collection('examRooms').doc(roomId).onSnapshot(doc => {
         if (!doc.exists) return;
         const room = { id: doc.id, ...doc.data() };
         
-        // Cập nhật UI cơ bản (Mô tả, Tiêu đề)
+        // Đổ dữ liệu vào Modal HTML bạn vừa làm
         document.getElementById('md_roomTitle').innerText = room.title;
-        document.getElementById('md_roomTime').innerText = "Giờ bắt đầu: " + room.startAt.toDate().toLocaleString('vi-VN');
-        document.getElementById('md_roomDesc').innerText = room.description || "Không có mô tả.";
+        document.getElementById('md_roomTime').innerText = "🕒 Giờ bắt đầu: " + room.startAt.toDate().toLocaleString('vi-VN');
+        document.getElementById('md_roomDesc').innerText = room.description || "Giám thị chưa có mô tả cho bài thi này.";
 
         const registeredUsers = room.registeredUsers || [];
         const isRegistered = registeredUsers.includes(user.uid);
 
-        // 3. Lắng nghe số người đang Online trong phòng (từ collection presence)
+        // Lắng nghe số người thực tế đang mở modal này (Online)
+        if (_currentPresenceSub) _currentPresenceSub();
         _currentPresenceSub = db.collection('presence')
             .where('currentRoomId', '==', roomId)
             .onSnapshot(pSnap => {
@@ -1907,10 +1907,10 @@ async function focusAndEnterRoom(roomId) {
                 document.getElementById('stat_waiting').innerText = Math.max(0, regCount - onlineCount);
             });
 
-        // 4. Render Nút Đăng ký / Vào phòng chờ
+        // Hiển thị nút bấm tương ứng
         renderActionButtons(room, isRegistered);
-
-        // 5. Kích hoạt đếm ngược tự động vào thi
+        
+        // Kích hoạt tính năng tự động vào bài thi khi đến giờ
         startAutoEnterTimer(room);
     });
 }
@@ -1933,7 +1933,16 @@ function renderActionButtons(room, isRegistered) {
             </button>`;
     }
 }
-
+function updateUserPresence(status, roomId = null) {
+    if (!user) return;
+    db.collection('presence').doc(user.uid).set({
+        name: user.displayName || user.email,
+        email: user.email,
+        status: status,
+        currentRoomId: roomId, // Lưu ID phòng để đếm số người trong phòng đó
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+}
 // Hàm đăng ký
 async function registerForRoom(roomId) {
     try {
