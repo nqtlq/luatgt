@@ -95,12 +95,12 @@ header {
 .card-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
 .card-header h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin: 0; }
 .card-body { padding: 20px; }
-/* ===== STUDENT INFO ===== */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.info-item { display: flex; flex-direction: column; gap: 3px; }
-.info-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.info-value { font-size: 14px; font-weight: 600; color: var(--text); }
-.info-item.full { grid-column: 1 / -1; }
+/* ===== STUDENT INFO — compact table ===== */
+.info-row td { padding: 5px 6px; vertical-align: middle; }
+.ilab { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; width: 1%; padding-right: 4px; }
+.ival { font-size: 13px; font-weight: 600; color: var(--text); padding-right: 12px; }
+.info-row { border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; }
 .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .badge-active { background: #d1fae5; color: #065f46; }
 .badge-locked { background: #fee2e2; color: #991b1b; }
@@ -540,52 +540,48 @@ header { padding-top: env(safe-area-inset-top); }
     <div>
       <!-- Student Info Card -->
       <div class="card" style="margin-bottom:20px;">
-        <div class="card-header" style="justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:8px;">
+        <div class="card-header" style="justify-content:space-between;padding:11px 16px;">
+          <div style="display:flex;align-items:center;gap:7px;">
             <span>👤</span>
-            <h3>Thông tin học viên</h3>
+            <h3 style="font-size:13px;">Thông tin học viên</h3>
           </div>
           <button onclick="openEditProfile()"
             title="Cập nhật thông tin cá nhân"
-            style="display:inline-flex;align-items:center;gap:5px;padding:5px 13px;background:linear-gradient(135deg,#264a8a,#1d3557);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(29,53,87,0.25);"
+            style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:linear-gradient(135deg,#264a8a,#1d3557);color:white;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(29,53,87,0.25);"
             onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 14px rgba(29,53,87,0.4)'"
             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(29,53,87,0.25)'">
             ✎ Cập nhật
           </button>
         </div>
-        <div class="card-body">
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Mã học viên</span>
-              <span class="info-value" id="infoCode" style="color:var(--accent);font-size:15px;">—</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Trạng thái</span>
-              <span class="info-value" id="infoStatus">—</span>
-            </div>
-            <div class="info-item full">
-              <span class="info-label">Họ và tên</span>
-              <span class="info-value" id="infoName" style="font-size:15px;">—</span>
-            </div>
-            <div class="info-item full">
-              <span class="info-label">Đơn vị</span>
-              <span class="info-value" id="infoUnit">—</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Ngày sinh</span>
-              <span class="info-value" id="infoDob">—</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Đối tượng</span>
-              <span class="info-value" id="infoObject">—</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Khóa học</span>
-              <span class="info-value" id="infoCourse">—</span>
-            </div>
-          </div>
-          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-            <button id="changePwBtn" onclick="openChangePwModal()" style="width:100%;padding:10px 16px;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(29,53,87,0.25);">
+        <div class="card-body" style="padding:10px 14px;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr class="info-row">
+              <td class="ilab">Mã HV</td>
+              <td class="ival"><span id="infoCode" style="color:var(--accent);font-weight:800;">—</span></td>
+              <td class="ilab">Trạng thái</td>
+              <td class="ival"><span id="infoStatus">—</span></td>
+            </tr>
+            <tr class="info-row">
+              <td class="ilab">Họ và tên</td>
+              <td class="ival" colspan="3"><span id="infoName" style="font-weight:700;">—</span></td>
+            </tr>
+            <tr class="info-row">
+              <td class="ilab">Đơn vị</td>
+              <td class="ival" colspan="3"><span id="infoUnit">—</span></td>
+            </tr>
+            <tr class="info-row">
+              <td class="ilab">Ngày sinh</td>
+              <td class="ival"><span id="infoDob">—</span></td>
+              <td class="ilab">Đối tượng</td>
+              <td class="ival"><span id="infoObject">—</span></td>
+            </tr>
+            <tr class="info-row">
+              <td class="ilab">Khóa học</td>
+              <td class="ival" colspan="3"><span id="infoCourse">—</span></td>
+            </tr>
+          </table>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+            <button id="changePwBtn" onclick="openChangePwModal()" style="width:100%;padding:9px 14px;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 2px 8px rgba(29,53,87,0.25);">
               🔑 Đổi mật khẩu
             </button>
           </div>
@@ -1224,105 +1220,132 @@ async function _syncStudentFromFirestore(studentId) {
 // EXAM RESULTS + CHART
 // =====================================================================
 function loadExamResults() {
-  if (examResultsUnsub) {
-    try { examResultsUnsub(); } catch(_) {}
-    examResultsUnsub = null;
-  }
-  
-  const noDataEl = document.getElementById('noDataMsg');
-  if (noDataEl) { noDataEl.textContent = '⏳ Đang tải dữ liệu...'; noDataEl.style.display = 'block'; }
+  if (examResultsUnsub) { try { examResultsUnsub(); } catch(_) {} examResultsUnsub = null; }
+
+  const noDataEl  = document.getElementById('noDataMsg');
   const tableWrap = document.getElementById('resultTableWrap');
-  if (tableWrap) tableWrap.style.display = 'none';
   const chartWrap = document.getElementById('chartWrap');
+  if (noDataEl)  { noDataEl.textContent = '⏳ Đang tải dữ liệu...'; noDataEl.style.display = 'block'; }
+  if (tableWrap) tableWrap.style.display = 'none';
   if (chartWrap) chartWrap.style.display = 'none';
-  
-  const _rsCode = studentCode;
-  const _rsAltCode = localStorage.getItem('studentId') || studentCode;
-  
+
+  // Tập hợp tất cả mã có thể được lưu trong Firebase
+  const code   = studentCode || '';
+  const userId = localStorage.getItem('studentId') || '';
+  const uid    = firebase.auth().currentUser?.uid || '';
+
+  // Thử lần lượt 3 field phổ biến: studentCode, code, userId
+  _tryQueryExamResults([
+    { field: 'studentCode', value: code },
+    { field: 'studentCode', value: userId },
+    { field: 'code',        value: code },
+    { field: 'userId',      value: uid },
+  ], 0);
+}
+
+let _examResultsAttempt = 0;
+
+function _tryQueryExamResults(candidates, idx) {
+  if (idx >= candidates.length) {
+    // Hết ứng viên — thử get() không lọc (dùng rules allow read: if true)
+    _fallbackGetAllExamResults();
+    return;
+  }
+  const { field, value } = candidates[idx];
+  if (!value) { _tryQueryExamResults(candidates, idx + 1); return; }
+
+  console.log(`[ExamResults] Thử query ${field} == "${value}"`);
+  let unsub;
   try {
-    examResultsUnsub = db.collection('examResults')
-      .where('studentCode', '==', _rsCode)
+    unsub = db.collection('examResults')
+      .where(field, '==', value)
       .orderBy('timestamp', 'desc')
       .limit(100)
-      .onSnapshot(
-        snap => {
-          console.log('examResults realtime:', snap.size, 'bản ghi');
-          if (snap.empty && _rsAltCode !== _rsCode) {
-            _fallbackQueryExamResults(_rsAltCode);
-          } else {
-            renderExamResults(snap);
-          }
-        },
-        err => {
-          console.error('examResults lỗi:', err.code);
-          _handleExamResultsError(err, _rsCode);
+      .onSnapshot(snap => {
+        if (snap.empty && idx < candidates.length - 1) {
+          // Không có kết quả → thử field tiếp theo
+          try { unsub && unsub(); } catch(_) {}
+          _tryQueryExamResults(candidates, idx + 1);
+        } else {
+          examResultsUnsub = unsub; // Ghi nhớ unsub hợp lệ
+          console.log(`[ExamResults] Thành công: ${snap.size} bản ghi (field=${field})`);
+          renderExamResults(snap);
         }
-      );
+      }, err => {
+        try { unsub && unsub(); } catch(_) {}
+        if (err.code === 'failed-precondition') {
+          // Thiếu index — thử query không orderBy
+          _tryQueryExamResultsNoIndex(candidates, idx);
+        } else {
+          _tryQueryExamResults(candidates, idx + 1);
+        }
+      });
   } catch(e) {
-    console.error('Không thể tạo listener:', e);
-    _handleExamResultsError(e, _rsCode);
+    _tryQueryExamResults(candidates, idx + 1);
   }
 }
 
-function _fallbackQueryExamResults(altCode) {
-  if (!altCode || altCode === studentCode) return;
-  console.log('Fallback query examResults theo:', altCode);
+function _tryQueryExamResultsNoIndex(candidates, idx) {
+  const { field, value } = candidates[idx];
+  console.log(`[ExamResults] Thử query không orderBy: ${field} == "${value}"`);
   db.collection('examResults')
-    .where('studentCode', '==', altCode)
-    .orderBy('timestamp', 'desc')
+    .where(field, '==', value)
     .limit(100)
-    .onSnapshot(
-      snap => { if (!snap.empty) renderExamResults(snap); },
-      err => console.warn('Fallback lỗi:', err.code)
-    );
+    .get()
+    .then(snap => {
+      if (snap.empty && idx < candidates.length - 1) {
+        _tryQueryExamResults(candidates, idx + 1);
+      } else {
+        // Sắp xếp phía client
+        const sorted = snap.docs.slice().sort((a, b) => {
+          const ta = a.data().timestamp?.toDate?.() || new Date(0);
+          const tb = b.data().timestamp?.toDate?.() || new Date(0);
+          return tb - ta;
+        });
+        renderExamResults({ forEach: cb => sorted.forEach(d => cb(d)), empty: sorted.length === 0, size: sorted.length });
+      }
+    })
+    .catch(() => _tryQueryExamResults(candidates, idx + 1));
+}
+
+async function _fallbackGetAllExamResults() {
+  // Tải không lọc, lọc phía client — chỉ dùng khi rules cho phép
+  console.log('[ExamResults] Fallback: tải toàn bộ, lọc client');
+  const code   = studentCode || '';
+  const userId = localStorage.getItem('studentId') || '';
+  const uid    = firebase.auth().currentUser?.uid || '';
+  const keys   = new Set([code, userId, uid].filter(Boolean));
+  try {
+    const snap = await db.collection('examResults').limit(300).get();
+    const filtered = snap.docs.filter(d => {
+      const data = d.data();
+      return keys.has(data.studentCode) || keys.has(data.code) || keys.has(data.userId);
+    });
+    filtered.sort((a, b) => {
+      const ta = a.data().timestamp?.toDate?.() || new Date(0);
+      const tb = b.data().timestamp?.toDate?.() || new Date(0);
+      return tb - ta;
+    });
+    renderExamResults({ forEach: cb => filtered.forEach(d => cb(d)), empty: filtered.length === 0, size: filtered.length });
+  } catch(e) {
+    _handleExamResultsError(e, code);
+  }
 }
 
 function _handleExamResultsError(err, code) {
   const noDataEl = document.getElementById('noDataMsg');
   if (!noDataEl) return;
-  
-  if (err.code === 'permission-denied') {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;line-height:1.6;">
-        <b>Không có quyền đọc dữ liệu bài thi.</b><br>
-        Kiểm tra Firestore Rules cho collection <code>examResults</code>.<br>
-        <small style="color:#666;">Mã lỗi: permission-denied</small>
-      </div>`;
-    noDataEl.style.display = 'block';
-    _fallbackLoadExamResults(code);
-  } else if (err.code === 'failed-precondition') {
-    noDataEl.innerHTML = `
-      <div style="color:#856404;background:#fff3cd;padding:16px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
-        <b>Cần tạo Index trong Firestore.</b><br>
-        Vào Firebase Console → Firestore → Indexes → Tạo index cho:<br>
-        <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code>
-      </div>`;
-    noDataEl.style.display = 'block';
+  if (err.code === 'failed-precondition') {
+    noDataEl.innerHTML = `<div style="color:#856404;background:#fff3cd;padding:14px;border-radius:10px;border:1px solid #ffc107;font-size:13px;line-height:1.6;">
+      <b>Cần tạo Index trong Firestore.</b><br>
+      Firebase Console → Firestore → Indexes:<br>
+      <code>examResults</code>: <code>studentCode ASC, timestamp DESC</code></div>`;
   } else {
-    noDataEl.innerHTML = `
-      <div style="color:#842029;background:#f8d7da;padding:16px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
-        Lỗi tải dữ liệu: ${err.message || err.code}<br>
-        <button onclick="loadExamResults()"
-          style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">
-          Thử lại
-        </button>
-      </div>`;
-    noDataEl.style.display = 'block';
+    noDataEl.innerHTML = `<div style="color:#842029;background:#f8d7da;padding:14px;border-radius:10px;border:1px solid #f5c2c7;font-size:13px;">
+      Lỗi tải dữ liệu: ${err.message || err.code}<br>
+      <button onclick="loadExamResults()" style="margin-top:10px;padding:8px 16px;background:#1d3557;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">Thử lại</button></div>`;
   }
-}
-
-async function _fallbackLoadExamResults(code) {
-  console.log('Thử fallback get() cho examResults...');
-  try {
-    const snap = await db.collection('examResults')
-      .where('studentCode', '==', code || studentCode)
-      .limit(100)
-      .get();
-    console.log('Fallback thành công:', snap.size, 'bản ghi');
-    renderExamResults(snap);
-  } catch(e) {
-    console.error('Fallback cũng thất bại:', e.code, e.message);
-  }
+  noDataEl.style.display = 'block';
 }
 
 function renderExamResults(snap) {
