@@ -1138,27 +1138,11 @@
 
       .exam-layout { grid-template-columns: 1fr; }
 
-      .exam-sidebar {
+      .exam-sidebar { display: none !important; }
 
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      .qmap-toggle-btn { display: flex; }
 
-        flex-direction: row; padding: 10px 14px; gap: 10px;
-
-        border-left: none; border-top: 2px solid var(--border);
-
-        background: white; box-shadow: 0 -4px 16px rgba(0,0,0,.12);
-
-        overflow-x: auto;
-
-      }
-
-      .exam-sidebar > div:first-child { display: none; }
-
-      .exam-legend { display: none; }
-
-      .sidebar-submit { white-space: nowrap; min-width: 120px; }
-
-      .exam-question-area { padding: 14px; min-height: calc(100vh - 280px); padding-bottom: 80px; }
+      .exam-question-area { padding: 14px; min-height: calc(100vh - 200px); padding-bottom: 90px; }
 
       .answers-list { grid-template-columns: 1fr; gap: 8px; }
 
@@ -1212,6 +1196,198 @@
 
       .set-card h3 { font-size: 13px; }
 
+    }
+
+    /* ===== EXAM PROGRESS BAR ===== */
+    .exam-progress-wrap {
+      background: rgba(255,255,255,.15);
+      border-radius: 6px;
+      overflow: hidden;
+      height: 6px;
+      width: 100%;
+      margin-top: 6px;
+    }
+    .exam-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #6ee7b7, #34d399);
+      border-radius: 6px;
+      transition: width .4s ease;
+    }
+
+    /* ===== SEARCH BAR ===== */
+    .set-search-wrap {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .set-search {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background: white;
+      outline: none;
+      transition: border-color .2s;
+      box-shadow: var(--shadow);
+    }
+    .set-search:focus { border-color: var(--accent); }
+    .set-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .set-count-badge {
+      display: inline-block;
+      background: #e0e7ff;
+      color: var(--accent);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    /* ===== MOBILE QMAP DRAWER ===== */
+    .qmap-toggle-btn {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      z-index: 60;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+    .qmap-toggle-btn:hover { transform: scale(1.05); }
+    .qmap-drawer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+    }
+    .qmap-drawer.open { display: block; }
+    .qmap-drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      backdrop-filter: blur(2px);
+    }
+    .qmap-drawer-panel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 16px 32px;
+      max-height: 70vh;
+      overflow-y: auto;
+      animation: drawerUp .25s ease;
+    }
+    @keyframes drawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .qmap-drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .qmap-drawer-header h4 { font-size: 16px; color: var(--blue); font-weight: 700; }
+    .qmap-drawer-close {
+      background: #f1f4f8;
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .qmap-drawer-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .qmap-drawer-grid .qmap-btn {
+      width: 100%;
+      height: 38px;
+      font-size: 12px;
+    }
+    .qmap-drawer-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .qmap-drawer-legend .legend-item { display: flex; align-items: center; gap: 5px; }
+
+    /* ===== CUSTOM CONFIRM MODAL ===== */
+    .custom-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9500;
+      padding: 20px;
+    }
+    .custom-confirm-overlay.show { display: flex; }
+    .custom-confirm-box {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,.3);
+      animation: cIn .25s;
+    }
+    .custom-confirm-box .cc-icon { font-size: 44px; margin-bottom: 10px; }
+    .custom-confirm-box h3 { font-size: 18px; color: var(--blue); font-weight: 700; margin-bottom: 8px; }
+    .custom-confirm-box p { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+    .cc-btns { display: flex; gap: 10px; }
+    .cc-btns button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      transition: all .2s;
+      min-height: 48px;
+    }
+    .cc-cancel { background: #f1f4f8; color: var(--blue); }
+    .cc-cancel:hover { background: #e0e7ff; }
+    .cc-ok { background: linear-gradient(135deg, var(--green), #1a7a6e); color: white; }
+    .cc-ok:hover { opacity: .9; }
+    .cc-unanswered-list {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #856404;
+      text-align: left;
     }
 
     html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
@@ -1452,6 +1628,12 @@
 
     </div>
 
+    <!-- SEARCH BAR -->
+    <div class="set-search-wrap" id="setSearchWrap" style="display:none;">
+      <span class="set-search-icon">🔍</span>
+      <input type="search" class="set-search" id="setSearchInput" placeholder="Tìm tên đề thi..." oninput="filterSets(this.value)" autocomplete="off">
+    </div>
+
     <div id="catTabs" class="cat-tabs" style="display:none;">
 
       <div class="cat-tab active" data-cat="moto" onclick="switchCat('moto')">
@@ -1596,11 +1778,15 @@
 
     <div class="exam-header">
 
-      <div class="exam-header-left">
+      <div class="exam-header-left" style="flex:1;min-width:0;">
 
         <h2 id="examSetName">Đề thi</h2>
 
         <p id="examStudentInfo"></p>
+
+        <div class="exam-progress-wrap" id="examProgressWrap" style="display:none;">
+          <div class="exam-progress-bar" id="examProgressBar" style="width:0%"></div>
+        </div>
 
       </div>
 
@@ -1646,6 +1832,48 @@
 
     </div>
 
+  </div>
+
+  <!-- MOBILE: Nút toggle bảng câu hỏi -->
+  <button class="qmap-toggle-btn" id="qmapToggleBtn" onclick="openQmapDrawer()" title="Bảng câu hỏi">
+    🗺️
+  </button>
+
+  <!-- MOBILE: Qmap Drawer -->
+  <div class="qmap-drawer" id="qmapDrawer">
+    <div class="qmap-drawer-backdrop" onclick="closeQmapDrawer()"></div>
+    <div class="qmap-drawer-panel">
+      <div class="qmap-drawer-header">
+        <h4>📋 Bảng câu hỏi</h4>
+        <button class="qmap-drawer-close" onclick="closeQmapDrawer()">✕</button>
+      </div>
+      <div class="qmap-drawer-grid" id="qmapDrawerGrid"></div>
+      <div class="qmap-drawer-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Đã trả lời</div>
+        <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Chưa trả lời</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Câu liệt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;width:12px;height:12px;flex-shrink:0;"></div>Đang xem</div>
+      </div>
+      <div style="margin-top:14px;">
+        <button onclick="closeQmapDrawer(); confirmSubmit();" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--green),#1a7a6e);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;">
+          ✓ Nộp bài
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CONFIRM SUBMIT MODAL -->
+  <div class="custom-confirm-overlay" id="customConfirmSubmit">
+    <div class="custom-confirm-box">
+      <div class="cc-icon">📝</div>
+      <h3 id="ccTitle">Xác nhận nộp bài</h3>
+      <div class="cc-unanswered-list" id="ccUnansweredInfo" style="display:none;"></div>
+      <p id="ccMessage">Bạn có chắc muốn nộp bài không?</p>
+      <div class="cc-btns">
+        <button class="cc-cancel" onclick="document.getElementById('customConfirmSubmit').classList.remove('show')">Xem lại</button>
+        <button class="cc-ok" onclick="document.getElementById('customConfirmSubmit').classList.remove('show'); submitExam(false);">Nộp bài ✓</button>
+      </div>
+    </div>
   </div>
 
   <!-- PAGE: RESULT -->
@@ -2209,8 +2437,8 @@
       snap.forEach(doc => {
 
         const s = { id:doc.id, ...doc.data() };
-        // Học viên có tài khoản KHÔNG thấy đề demo
-        if (s.isDemo || s.demo) return;
+        // Học viên có tài khoản KHÔNG thấy đề demo (khách vẫn thấy)
+        if (IS_STUDENT && (s.isDemo || s.demo)) return;
         const cat = (s.examType||s.category||"").toLowerCase();
 
         const isOto = cat==="oto"||cat==="ô tô"||cat==="car";
@@ -2222,6 +2450,8 @@
       if(lb) lb.style.display="none";
 
       const tabs = document.getElementById("catTabs"); if(tabs) tabs.style.display="flex";
+
+      const sw = document.getElementById("setSearchWrap"); if(sw) sw.style.display="block";
 
       const safeText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
 
@@ -2475,6 +2705,12 @@
 
     document.getElementById("examSetName").textContent = selectedSet.name||selectedSet.title||"Đề thi";
 
+    // Show mobile qmap toggle
+
+    const qmapBtn = document.getElementById('qmapToggleBtn');
+
+    if (qmapBtn) qmapBtn.style.display = 'flex';
+
     // Update header
 
     const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "ĐANG THI – "+((selectedSet.name||"").toUpperCase());
@@ -2571,6 +2807,24 @@
 
     updateQmap();
 
+    updateProgressBar();
+
+  }
+
+  function updateProgressBar() {
+
+    const bar = document.getElementById('examProgressBar');
+
+    const wrap = document.getElementById('examProgressWrap');
+
+    if (!bar || !questions.length) return;
+
+    const pct = Math.round((userAnswers.filter(a=>a!==null).length / questions.length) * 100);
+
+    bar.style.width = pct + '%';
+
+    if (wrap) wrap.style.display = 'block';
+
   }
 
   function selectAnswer(idx, val) {
@@ -2637,6 +2891,98 @@
 
     });
 
+    // Sync drawer grid too
+
+    questions.forEach((q, i) => {
+
+      const btn = document.getElementById("qbd"+i);
+
+      if (!btn) return;
+
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
+
+      const answered = userAnswers[i] !== null;
+
+      const isCurrent = i === currentIdx;
+
+      let cls = "qmap-btn";
+
+      if (isLiet) cls += " liet-btn";
+
+      if (answered) cls += " answered";
+
+      if (isCurrent) cls += " current";
+
+      btn.className = cls;
+
+    });
+
+  }
+
+  // ── Qmap Drawer (mobile) ──────────────────────────────────────
+
+  function openQmapDrawer() {
+
+    const drawer = document.getElementById('qmapDrawer');
+
+    const grid = document.getElementById('qmapDrawerGrid');
+
+    if (!drawer || !grid) return;
+
+    grid.innerHTML = questions.map((q, i) => {
+
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
+
+      const answered = userAnswers[i] !== null;
+
+      const isCurrent = i === currentIdx;
+
+      let cls = "qmap-btn" + (isLiet?" liet-btn":"") + (answered?" answered":"") + (isCurrent?" current":"");
+
+      return `<button class="${cls}" id="qbd${i}" onclick="closeQmapDrawer(); goTo(${i})">${i+1}</button>`;
+
+    }).join("");
+
+    drawer.classList.add('open');
+
+    document.body.style.overflow = 'hidden';
+
+  }
+
+  function closeQmapDrawer() {
+
+    const drawer = document.getElementById('qmapDrawer');
+
+    if (drawer) drawer.classList.remove('open');
+
+    document.body.style.overflow = '';
+
+  }
+
+  // ── Search/filter sets ────────────────────────────────────────
+
+  function filterSets(query) {
+
+    const q = query.trim().toLowerCase();
+
+    const cards = document.querySelectorAll('.set-card');
+
+    let visible = 0;
+
+    cards.forEach(card => {
+
+      const title = (card.querySelector('h3')?.textContent||'').toLowerCase();
+
+      const desc  = (card.querySelector('p')?.textContent||'').toLowerCase();
+
+      const match = !q || title.includes(q) || desc.includes(q);
+
+      card.style.display = match ? '' : 'none';
+
+      if (match) visible++;
+
+    });
+
   }
 
   // ── Timer ───────────────────────────────────────────────────────
@@ -2681,15 +3027,31 @@
 
   function confirmSubmit() {
 
-    const unanswered = userAnswers.filter(a=>a===null).length;
+    const unanswered = userAnswers.reduce((acc, a, i) => { if(a===null) acc.push(i+1); return acc; }, []);
 
-    const msg = unanswered > 0
+    const modal = document.getElementById('customConfirmSubmit');
 
-      ? `Bạn còn ${unanswered} câu chưa trả lời. Xác nhận nộp bài?`
+    const uInfo = document.getElementById('ccUnansweredInfo');
 
-      : "Xác nhận nộp bài?";
+    const msg = document.getElementById('ccMessage');
 
-    if (confirm(msg)) submitExam(false);
+    if (unanswered.length > 0) {
+
+      uInfo.style.display = 'block';
+
+      uInfo.textContent = `⚠️ Còn ${unanswered.length} câu chưa trả lời: Câu ${unanswered.slice(0,8).join(', ')}${unanswered.length>8?'...':''}`;
+
+      msg.textContent = 'Xác nhận nộp bài? Các câu chưa trả lời sẽ bị tính là sai.';
+
+    } else {
+
+      uInfo.style.display = 'none';
+
+      msg.textContent = 'Bạn đã trả lời tất cả câu hỏi. Xác nhận nộp bài?';
+
+    }
+
+    modal.classList.add('show');
 
   }
 
@@ -2838,6 +3200,12 @@
     document.getElementById("pgExam").classList.remove("active");
 
     document.getElementById("pgResult").classList.add("active");
+
+    // Hide mobile qmap toggle
+
+    const qmapBtn = document.getElementById('qmapToggleBtn');
+
+    if (qmapBtn) qmapBtn.style.display = 'none';
 
     const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "KẾT QUẢ BÀI THI";
 
