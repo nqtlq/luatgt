@@ -3122,13 +3122,16 @@
       // BƯỚC 2: Lưu bản ghi kết quả
       try {
 
-        const resultData = {
-  studentCode, studentName, studentUnit,
+       const resultData = {
+  studentCode,
+  studentName,
+  studentUnit,
+  studentObject: studentObj || "",
   setCode: set.code || set.id,
   setName: set.name || set.title || "",
   correctCount: correct,
-  wrongCount:   wrong,
-  skipCount:    skip,
+  wrongCount: wrong,
+  skipCount: skip,
   totalQuestions: questions.length,
   score: correct,
   passed,
@@ -3136,16 +3139,16 @@
   timeTaken,
   attemptNumber,
   answers: userAnswers,
-
-  // ✨ THÊM MỚI: Lưu chi tiết câu hỏi để xem lại trong Lịch sử
-  questions: questions.map(q => ({
-    content:       q.content || q.question || "",
-    answers:       Array.isArray(q.answers) ? q.answers : [],
+  questions: questions.map((q, i) => ({
+    content: q.content || q.question || "",
+    answers: Array.isArray(q.answers) ? q.answers : [],
     correctAnswer: q.correctAnswer ?? null,
-    isLiet:        q.isLietQuestion === true || q.isLiet === true || q.groupIndex === -1,
-    imageUrl:      q.imageUrl || ""
+    userAnswer: userAnswers[i] ?? null,
+    isLiet: q.isLietQuestion || q.isLiet === true || q.groupIndex === -1,
+    imageUrl: q.imageUrl || "",
+    groupIndex: q.groupIndex ?? null,
+    order: q.order ?? null
   })),
-
   timestamp: firebase.firestore.FieldValue.serverTimestamp()
 };
 
