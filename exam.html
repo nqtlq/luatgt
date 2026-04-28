@@ -679,19 +679,27 @@ header { padding-top: env(safe-area-inset-top); }
 <!-- TRANG PHÒNG THI ONLINE (Full page, không phải modal) -->
 <div id="roomsPage" style="display:none;position:fixed;inset:0;background:var(--bg, #f0f4f8);z-index:7000;overflow-y:auto;">
   <div style="max-width:860px;margin:0 auto;padding:20px 16px 40px;">
-    <!-- Header -->
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;padding:18px 22px;border-radius:16px;box-shadow:0 4px 20px rgba(29,53,87,0.3);">
-      <button onclick="hideRoomsPage()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">←</button>
-      <div style="flex:1;">
-        <div style="font-size:18px;font-weight:800;">🏫 Phòng thi Online</div>
-        <div id="roomCount" style="font-size:12px;opacity:0.8;margin-top:2px;">Đang tải...</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:24px;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;padding:18px 22px;border-radius:16px;box-shadow:0 4px 20px rgba(29,53,87,0.3);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="flex:1;">
+          <div style="font-size:18px;font-weight:800;">🏫 Phòng thi Online</div>
+          <div id="roomCount" style="font-size:12px;opacity:0.8;margin-top:2px;">Đang tải...</div>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.25);color:#6ee7b7;padding:4px 12px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);">
+          <span style="width:7px;height:7px;border-radius:50%;background:#10b981;animation:rtBlink 1.5s infinite;display:inline-block;"></span> Realtime
+        </span>
       </div>
-      <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.25);color:#6ee7b7;padding:4px 12px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);">
-        <span style="width:7px;height:7px;border-radius:50%;background:#10b981;animation:rtBlink 1.5s infinite;display:inline-block;"></span> Realtime
-      </span>
+      
+      <div style="display:flex;gap:10px;">
+        <button onclick="refreshExamRooms()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+          🔄 Làm mới
+        </button>
+        <button onclick="hideRoomsPage()" style="background:rgba(220,53,69,0.8);border:1px solid rgba(220,53,69,1);color:white;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;" onmouseover="this.style.background='rgba(220,53,69,1)'" onmouseout="this.style.background='rgba(220,53,69,0.8)'">
+          ⬅ Quay lại
+        </button>
+      </div>
     </div>
 
-    <!-- Grid phòng thi -->
     <div id="roomListGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;">
       <p style="text-align:center;color:#888;grid-column:1/-1;padding:40px 0;">⏳ Đang kiểm tra danh sách phòng thi...</p>
     </div>
@@ -1766,11 +1774,14 @@ let _eligibleRoomsList = []; // Mảng lưu các phòng thi hợp lệ
 
 function startExamRoomListener() {
   if (_roomUnsub) { try { _roomUnsub(); } catch(_) {} }
+  
+  const grid = document.getElementById('roomListGrid');
+  if (grid) grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;padding:40px 0;">⏳ Đang tải dữ liệu từ máy chủ...</p>';
+
   _roomUnsub = db.collection('examRooms')
     .where('status', 'in', ['scheduled', 'open'])
     .orderBy('startAt', 'asc')
     .onSnapshot(snap => {
-      const grid = document.getElementById('roomListGrid');
       const countSpan = document.getElementById('roomCount');
       if (grid) grid.innerHTML = '';
       
@@ -1806,24 +1817,38 @@ function startExamRoomListener() {
             card.className = 'room-card';
             card.innerHTML = `
                 <h4 style="color:var(--blue); margin-bottom:8px;">${room.title || 'Phòng thi'}</h4>
-                <p style="font-size:13px; margin:4px 0;">📄 Đề thi: ${room.setName || room.setCode || '---'}</p>
-                <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: ${startTime.toLocaleString('vi-VN')}</p>
-                <p style="font-size:13px; margin:4px 0;">👥 Trạng thái: <b style="color:${room.status === 'open' ? 'var(--green)' : '#f4a261'}">${room.status === 'open' ? 'Đang mở' : 'Sắp diễn ra'}</b></p>
+                <p style="font-size:13px; margin:4px 0;">📄 Đề thi: <strong style="color:var(--text);">${room.setName || room.setCode || '---'}</strong></p>
+                <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${startTime.toLocaleString('vi-VN')}</strong></p>
+                <p style="font-size:13px; margin:4px 0;">👥 Trạng thái: <b style="color:${room.status === 'open' ? 'var(--green)' : '#f4a261'}">${room.status === 'open' ? '🟢 Đang diễn ra' : '⏳ Sắp diễn ra'}</b></p>
                 <button class="action-btn btn-start" style="width:100%; min-height:40px; padding:10px; margin-top:12px;" onclick="focusAndEnterRoom('${room.id}')">Tham gia / Vào phòng chờ</button>
             `;
             grid.appendChild(card);
             _scheduleInvite(room); // Nhắc nhở 3 phút trước giờ thi
          });
       }
-    }, err => console.warn('examRoom listener lỗi:', err.code));
+    }, err => {
+      console.warn('examRoom listener lỗi:', err.code);
+      if (grid) {
+          // Báo lỗi cụ thể ra giao diện để phát hiện nếu bị thiếu Index
+          let errMsg = err.message;
+          if (err.code === 'failed-precondition') errMsg = "Cần tạo Index trên Firebase cho truy vấn này.";
+          grid.innerHTML = `<p style="text-align:center;color:var(--red);grid-column:1/-1;padding:30px 0;">⚠️ Lỗi tải danh sách phòng: ${errMsg}</p>`;
+      }
+    });
+}
+
+// Hàm thủ công làm mới danh sách phòng
+function refreshExamRooms() {
+    startExamRoomListener();
 }
 
 function showRoomsPage() {
   const page = document.getElementById('roomsPage');
   if (page) {
     page.style.display = 'block';
-    // Scroll lên đầu trang phòng thi
     page.scrollTop = 0;
+    // Bắt buộc gọi lại listener mỗi khi mở page để lấy dữ liệu mới nhất
+    refreshExamRooms();
   }
 }
 
