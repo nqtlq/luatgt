@@ -370,6 +370,10 @@ header { padding-top: env(safe-area-inset-top); }
   transition: opacity 0.4s ease;
   pointer-events: none; /* Đảm bảo không chặn click khi đang ẩn */
 }
+@keyframes rtBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
 </style>
 <link rel="icon" href="data:,">
 </head>
@@ -536,9 +540,18 @@ header { padding-top: env(safe-area-inset-top); }
     <div>
       <!-- Student Info Card -->
       <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">
-          <span>👤</span>
-          <h3>Thông tin học viên</h3>
+        <div class="card-header" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span>👤</span>
+            <h3>Thông tin học viên</h3>
+          </div>
+          <button onclick="openEditProfile()"
+            title="Cập nhật thông tin cá nhân"
+            style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.35);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;"
+            onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+            onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+            ✎ Cập nhật
+          </button>
         </div>
         <div class="card-body">
           <div class="info-grid">
@@ -571,9 +584,6 @@ header { padding-top: env(safe-area-inset-top); }
               <span class="info-value" id="infoCourse">—</span>
             </div>
           </div>
-          <button class="action-btn btn-detail" onclick="openEditProfile()" style="background: linear-gradient(135deg, #4b6cb7, #182848); margin-bottom: 10px; width: 100%;">
-              📝 Cập nhật thông tin cá nhân
-            </button>
           <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
             <button id="changePwBtn" onclick="openChangePwModal()" style="width:100%;padding:10px 16px;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(29,53,87,0.25);">
               🔑 Đổi mật khẩu
@@ -624,9 +634,14 @@ header { padding-top: env(safe-area-inset-top); }
       </div>
       <!-- Chart + Table Card -->
       <div class="card">
-        <div class="card-header">
-          <span>📊</span>
-          <h3>Thống kê kết quả thi</h3>
+        <div class="card-header" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span>📊</span>
+            <h3>Thống kê kết quả thi</h3>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#065f46;background:#d1fae5;padding:3px 10px;border-radius:20px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#10b981;animation:rtBlink 1.5s infinite;display:inline-block;"></span> Realtime
+          </span>
         </div>
         <div class="card-body">
           <div class="chart-wrap" id="chartWrap">
@@ -649,6 +664,10 @@ header { padding-top: env(safe-area-inset-top); }
         <button class="action-btn btn-detail" onclick="location.href='exam_detail.html'">
           📈 Thống kê chi tiết
         </button>
+        <button class="action-btn" onclick="openRoomsModal()" style="background:linear-gradient(135deg,#1a2744,#264a8a);position:relative;">
+          🏫 Phòng thi Online
+          <span id="roomBadgeCount" style="display:none;position:absolute;top:8px;right:10px;background:#e63946;color:white;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;">0</span>
+        </button>
         <button class="action-btn btn-start" onclick="location.href='test.html'">
           ▶ Làm bài kiểm tra
         </button>
@@ -657,42 +676,18 @@ header { padding-top: env(safe-area-inset-top); }
   </div>
 </div>
 
-<div class="card" id="onlineRoomsSection" style="margin-bottom: 24px; border-top: 4px solid var(--accent);">
-  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <h3>🌐 Phòng thi Online</h3>
-    <span id="roomCount" style="font-size: 12px; background: var(--bg); padding: 2px 8px; border-radius: 10px;">Đang tải...</span>
-  </div>
-  <div class="card-body">
-    <div id="roomListGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
-      <p style="text-align: center; color: #888; grid-column: 1/-1;">Đang kiểm tra danh sách phòng thi...</p>
+<!-- MODAL PHÒNG THI ONLINE -->
+<div id="roomsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:white;border-radius:18px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;">
+    <div style="background:linear-gradient(135deg,#1d3557,#264a8a);color:white;padding:18px 22px;border-radius:18px 18px 0 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <div>
+        <h3 style="margin:0;font-size:17px;font-weight:800;">🏫 Phòng thi Online</h3>
+        <span id="roomCount" style="font-size:12px;opacity:0.8;">Đang tải...</span>
+      </div>
+      <button onclick="closeRoomsModal()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
     </div>
-  </div>
-</div>
-
-<div id="editProfileModal" class="admin-warn-overlay"> 
-  <div class="admin-warn-box" style="max-width: 450px;">
-    <div class="awb-header"><h3>📝 Cập nhật hồ sơ</h3></div>
-    <div class="awb-body" style="text-align: left;">
-      <div style="margin-bottom: 12px; opacity: 0.6;">
-        <label style="font-size: 12px; display: block; margin-bottom: 4px;">Họ và Tên (Khóa - Không được sửa)</label>
-        <input type="text" id="edit_name" readonly class="readonly-blur" style="width: 100%; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; cursor: not-allowed;">
-      </div>
-      <div style="margin-bottom: 12px; opacity: 0.6;">
-        <label style="font-size: 12px; display: block; margin-bottom: 4px;">Mã học viên (Khóa - Không được sửa)</label>
-        <input type="text" id="edit_code" readonly class="readonly-blur" style="width: 100%; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; cursor: not-allowed;">
-      </div>
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">Số điện thoại</label>
-        <input type="text" id="edit_phone" placeholder="Nhập số điện thoại mới" style="width: 100%; padding: 10px; border: 1px solid var(--blue); border-radius: 8px;">
-      </div>
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">Ngày sinh</label>
-        <input type="date" id="edit_dob" style="width: 100%; padding: 10px; border: 1px solid var(--blue); border-radius: 8px;">
-      </div>
-    </div>
-    <div class="awb-footer" style="display: flex; gap: 10px;">
-      <button onclick="saveProfileUpdates()" class="btn-confirm" style="flex: 1; background: var(--green); color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer;">Lưu thay đổi</button>
-      <button onclick="document.getElementById('editProfileModal').classList.remove('show')" style="flex: 1; background: #ccc; border: none; border-radius: 8px; padding: 10px; cursor: pointer;">Hủy</button>
+    <div id="roomListGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;padding:20px;">
+      <p style="text-align:center;color:#888;grid-column:1/-1;">Đang kiểm tra danh sách phòng thi...</p>
     </div>
   </div>
 </div>
@@ -1707,11 +1702,19 @@ function startExamRoomListener() {
         }
       }
       
-      if (countSpan) countSpan.innerText = `${_eligibleRoomsList.length} phòng`;
+      const cnt = _eligibleRoomsList.length;
+      if (countSpan) countSpan.innerText = `${cnt} phòng`;
+
+      // Cập nhật badge trên nút
+      const badge = document.getElementById('roomBadgeCount');
+      if (badge) {
+        if (cnt > 0) { badge.textContent = cnt; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+      }
       
-      if (_eligibleRoomsList.length === 0) {
+      if (cnt === 0) {
         _activeRoom = null;
-        if (grid) grid.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1/-1;">Hiện không có phòng thi nào dành cho bạn.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;padding:30px 0;">Hiện không có phòng thi nào dành cho bạn.</p>';
         return;
       }
 
@@ -1733,6 +1736,14 @@ function startExamRoomListener() {
          });
       }
     }, err => console.warn('examRoom listener lỗi:', err.code));
+}
+
+function openRoomsModal() {
+  document.getElementById('roomsModal').style.display = 'flex';
+}
+
+function closeRoomsModal() {
+  document.getElementById('roomsModal').style.display = 'none';
 }
 
 // Xử lý khi bấm nút "Tham gia": Tự động check đăng ký hoặc đăng ký luôn
