@@ -1895,9 +1895,10 @@
       </div>
 
       <div class="result-detail-grid" id="resDetailGrid"></div>
-
+      <div class="result-detail-grid" id="resDetailGrid"></div>
       <div class="result-breakdown">
-
+      <div id="resSaveStatus" style="margin-bottom:16px;"></div>
+      <div class="result-breakdown">
         <h3>Chi tiết bài làm</h3>
 
         <div id="resBreakdown"></div>
@@ -3195,7 +3196,77 @@
 
   // ── Result page ─────────────────────────────────────────────────
 
-  function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore, saveOk, saveError, savedDocId }) {
+  // ĐỔI DÒNG NÀY:
+// function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore }) {
+
+// THÀNH:
+function showResult({ correct, wrong, skip, passed, lietFailed, timeTaken, passScore, saveOk, saveError, savedDocId }) {
+
+    document.getElementById("pgExam").classList.remove("active");
+    document.getElementById("pgResult").classList.add("active");
+
+    const qmapBtn = document.getElementById('qmapToggleBtn');
+    if (qmapBtn) qmapBtn.style.display = 'none';
+
+    const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "KẾT QUẢ BÀI THI";
+    const he = document.getElementById("headerEn"); if(he) he.textContent = "";
+
+    const hBtn = document.getElementById("headerBtns");
+    if(hBtn) hBtn.innerHTML=`<button class="btn-header btn-back" onclick="retryExam()">Thi lại</button>
+      <button class="btn-header" style="background:var(--green);color:white;" onclick="location.href='exam.html'">Trang chủ</button>`;
+
+    const safe = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+
+    safe("resVerdict",     passed?"🎉":"😔");
+    safe("resVerdictText", passed?"ĐẠT":"KHÔNG ĐẠT");
+    safe("resScore",       `${correct}/${questions.length}`);
+    safe("resScoreLabel",  `câu đúng trên tổng ${questions.length} câu · Cần ${passScore} câu để đạt`);
+
+    const vt = document.getElementById("resVerdictText");
+    if(vt) vt.className = "result-verdict-text "+(passed?"pass":"fail");
+
+    const mm = Math.floor(timeTaken/60), ss2 = timeTaken%60;
+
+    const grid = document.getElementById("resDetailGrid");
+    if(grid) grid.innerHTML = `
+      <div class="rd-card"><div class="rd-num" style="color:var(--green)">${correct}</div><div class="rd-lbl">Câu đúng</div></div>
+      <div class="rd-card"><div class="rd-num" style="color:var(--red)">${wrong}</div><div class="rd-lbl">Câu sai</div></div>
+      <div class="rd-card"><div class="rd-num" style="color:var(--muted)">${skip}</div><div class="rd-lbl">Bỏ qua</div></div>
+      <div class="rd-card"><div class="rd-num">${String(mm).padStart(2,'0')}:${String(ss2).padStart(2,'0')}</div><div class="rd-lbl">Thời gian</div></div>
+      ${lietFailed?`<div class="rd-card"><div class="rd-num" style="color:var(--yellow)">⚠</div><div class="rd-lbl">Sai câu liệt</div></div>`:""}`;
+
+    // ✅ FIX: Hiển thị trạng thái lưu kết quả
+    const saveEl = document.getElementById("resSaveStatus");
+    if (saveEl && IS_STUDENT) {
+      if (saveOk) {
+        saveEl.innerHTML = `<div style="
+          background:#d1fae5; border:1px solid #6ee7b7; border-radius:12px;
+          padding:12px 16px; font-size:13px; color:#065f46;
+          display:flex; align-items:center; gap:10px;">
+          <span style="font-size:18px;">✅</span>
+          <span>Kết quả đã lưu vào hệ thống thành công${savedDocId ? ` (ID: ${savedDocId})` : ''}.</span>
+        </div>`;
+      } else {
+        saveEl.innerHTML = `<div style="
+          background:#fee2e2; border:1px solid #fca5a5; border-radius:12px;
+          padding:12px 16px; font-size:13px; color:#991b1b;
+          display:flex; align-items:center; gap:10px;">
+          <span style="font-size:18px;">⚠️</span>
+          <div>
+            <b>Không lưu được kết quả!</b>
+            <div style="margin-top:3px;opacity:0.85;">Lý do: ${saveError || 'Lỗi không xác định'}. Vui lòng chụp màn hình làm bằng chứng.</div>
+          </div>
+        </div>`;
+      }
+    } else if (saveEl) {
+      saveEl.innerHTML = ''; // Ẩn nếu không phải student
+    }
+
+    const bd = document.getElementById("resBreakdown");
+    if(bd) {
+      // ... (giữ nguyên code render bd hiện tại) ...
+    }
+}
   document.getElementById("pgExam").classList.remove("active");
   document.getElementById("pgResult").classList.add("active");
 
