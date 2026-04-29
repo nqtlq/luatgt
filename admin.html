@@ -3947,43 +3947,51 @@ D. Đáp án D
             <span class="close" onclick="closeRoomModal()" style="cursor:pointer; font-size:24px;">&times;</span>
         </div>
 
-        <div style="padding: 20px; max-height: 70vh; overflow-y: auto;">
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="font-weight:bold;">Tên phòng thi:</label>
-                <input type="text" id="roomTitle" class="form-control" placeholder="Nhập tên phòng...">
-            </div>
+        <div style="max-height:70vh;overflow-y:auto;">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:13px;">
 
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="font-weight:bold; color: #2a9d8f;">Mô tả bài thi (Học viên sẽ thấy):</label>
-                <textarea id="roomDesc" class="form-control" style="height: 100px; resize: none;" placeholder="Mô tả nội dung, quy định phòng thi..."></textarea>
-            </div>
+          <input type="hidden" id="editRoomId">
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group">
-                    <label style="font-weight:bold;">Mã bộ đề:</label>
-                    <input type="text" id="roomSetCode" class="form-control" placeholder="Ví dụ: de_01">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight:bold;">Tên bộ đề (Nội bộ):</label>
-                    <input type="text" id="roomSetName" class="form-control" placeholder="Tên để admin quản lý">
-                </div>
-            </div>
+          <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Tên phòng thi *</label>
+            <input id="roomTitleInput" placeholder="VD: Thi tốt nghiệp Khóa 5..." style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;"></div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <div class="form-group">
-                    <label style="font-weight:bold;">Thời gian bắt đầu:</label>
-                    <input type="datetime-local" id="roomStart" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight:bold;">Thời lượng (Phút):</label>
-                    <input type="number" id="roomDuration" class="form-control" value="20">
-                </div>
-            </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ bắt đầu *</label>
+              <input type="datetime-local" id="roomStartInput" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
+            <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ kết thúc *</label>
+              <input type="datetime-local" id="roomEndInput" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
+          </div>
+
+          <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cho phép vào muộn (phút, 0 = không cho)</label>
+            <input type="number" id="roomLateInput" value="0" min="0" max="60" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;"></div>
+
+          <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Bộ đề thi *</label>
+            <select id="roomSetSelect" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;"><option value="">-- Chọn bộ đề --</option></select></div>
+
+          <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Đối tượng dự thi</label>
+            <select id="roomEligType" onchange="toggleEligFields()" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+              <option value="all">Tất cả học viên</option>
+              <option value="course">Theo khóa học</option>
+              <option value="object">Theo đối tượng</option>
+              <option value="unit">Theo đơn vị</option>
+              <option value="specific">Học viên cụ thể (mã HV)</option>
+            </select></div>
+
+          <div id="eligValuesWrap" style="display:none;">
+            <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;" id="eligValuesLabel">Giá trị (mỗi dòng 1 mục)</label>
+            <textarea id="roomEligValues" rows="3" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical;"></textarea></div>
+
+          <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Nội quy phòng thi</label>
+            <textarea id="roomRulesInput" rows="3" placeholder="• Không sử dụng tài liệu&#10;• Không nhờ người khác làm hộ&#10;• Nộp bài đúng thời gian" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical;"></textarea></div>
+
+          <div id="roomModalError" style="display:none;background:#f8d7da;color:#842029;border:1px solid #f5c2c7;border-radius:8px;padding:10px 12px;font-size:13px;"></div>
+
+          <div style="display:flex;gap:10px;">
+            <button onclick="closeRoomModal()" style="flex:1;padding:12px;background:#6c757d;color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;">Hủy</button>
+            <button onclick="saveRoom()" id="saveRoomBtn" style="flex:1;padding:12px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;">💾 Lưu phòng thi</button>
+          </div>
+
         </div>
-
-        <div style="padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #ddd; text-align: right;">
-            <button class="btn btn-secondary" onclick="closeRoomModal()" style="margin-right: 8px;">Hủy</button>
-            <button class="btn btn-primary" id="btnSaveRoom" onclick="saveRoom()" style="background: #1d3557; color: white; padding: 8px 25px;">Lưu phòng thi</button>
         </div>
     </div>
 </div>
@@ -5274,28 +5282,46 @@ function showCreateRoomModal(roomId = null) {
     const modal = document.getElementById('roomModal');
     if (!modal) return;
 
-    // Reset các trường và kiểm tra sự tồn tại của ID
-    const fields = ['roomTitle', 'roomDesc', 'roomSetCode', 'roomSetName', 'roomStart', 'roomDuration'];
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = (id === 'roomDuration') ? '20' : '';
-    });
+    // Reset tất cả trường về mặc định
+    ['roomTitleInput','roomRulesInput','roomEligValues'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['roomStartInput','roomEndInput'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const lateEl = document.getElementById('roomLateInput'); if(lateEl) lateEl.value='0';
+    const eligEl = document.getElementById('roomEligType'); if(eligEl) eligEl.value='all';
+    document.getElementById('eligValuesWrap').style.display='none';
+
+    // Điền danh sách bộ đề vào select
+    const sel = document.getElementById('roomSetSelect');
+    if (sel && typeof allQuestionSets !== 'undefined') {
+        sel.innerHTML = '<option value="">-- Chọn bộ đề --</option>' +
+            allQuestionSets.map(s => `<option value="${s.code}">${s.name || s.code}</option>`).join('');
+    }
+
+    const errEl = document.getElementById('roomModalError');
+    if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
 
     const titleEl = document.getElementById('roomModalTitle');
     if (roomId) {
         if (titleEl) titleEl.innerText = '📝 Chỉnh sửa phòng thi';
-        // Tìm dữ liệu trong mảng lmData (hoặc mảng chứa danh sách phòng của bạn)
-        const room = lmData.find(r => r.id === roomId);
+        // Tra cứu từ _allRooms (danh sách phòng thi thực)
+        const room = _allRooms.find(r => r.id === roomId);
         if (room) {
-            if (document.getElementById('roomTitle')) document.getElementById('roomTitle').value = room.title || '';
-            if (document.getElementById('roomDesc')) document.getElementById('roomDesc').value = room.description || '';
-            if (document.getElementById('roomSetCode')) document.getElementById('roomSetCode').value = room.setCode || '';
-            if (document.getElementById('roomSetName')) document.getElementById('roomSetName').value = room.setName || '';
-            if (document.getElementById('roomDuration')) document.getElementById('roomDuration').value = room.duration || 20;
-            if (room.startAt && document.getElementById('roomStart')) {
+            const g = id => document.getElementById(id);
+            if(g('roomTitleInput')) g('roomTitleInput').value = room.title || '';
+            if(g('roomLateInput'))  g('roomLateInput').value  = room.lateEntryMinutes || 0;
+            if(g('roomRulesInput')) g('roomRulesInput').value = room.rules || '';
+            if(g('roomSetSelect') && room.setCode) g('roomSetSelect').value = room.setCode;
+            if(room.startAt?.toDate) {
                 const d = room.startAt.toDate();
-                const v = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0, 16);
-                document.getElementById('roomStart').value = v;
+                g('roomStartInput').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            }
+            if(room.endAt?.toDate) {
+                const d = room.endAt.toDate();
+                g('roomEndInput').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            }
+            if(room.eligibility) {
+                if(g('roomEligType')) g('roomEligType').value = room.eligibility.type || 'all';
+                toggleEligFields();
+                if(g('roomEligValues')) g('roomEligValues').value = (room.eligibility.values||[]).join('\n');
             }
         }
     } else {
@@ -5325,56 +5351,6 @@ function toggleEligFields() {
 // Biến toàn cục để lưu ID phòng đang sửa
 let _editingRoomId = null;
 
-/**
- * Hàm mở Modal tạo/sửa phòng thi
- * @param {string|null} roomId - ID của phòng thi (null nếu là tạo mới)
- */
-function showRoomModal(roomId = null) {
-    _editingRoomId = roomId;
-    
-    const modal = document.getElementById('roomModal');
-    const titleEl = document.getElementById('roomModalTitle');
-    
-    // 1. Reset form về trống
-    document.getElementById('roomTitle').value = '';
-    document.getElementById('roomDesc').value = ''; // Trường mô tả mới
-    document.getElementById('roomSetCode').value = '';
-    document.getElementById('roomSetName').value = '';
-    document.getElementById('roomStart').value = '';
-    document.getElementById('roomDuration').value = '20';
-
-    if (roomId) {
-        // 2. Nếu là SỬA: Tìm dữ liệu phòng trong mảng lmData (hoặc mảng chứa danh sách phòng của bạn)
-        // Lưu ý: Thay 'lmData' bằng tên mảng chứa danh sách phòng thi trong code của bạn (thường là lmData hoặc listRooms)
-        const room = lmData.find(r => r.id === roomId);
-        
-        if (room) {
-            titleEl.innerText = '📝 Chỉnh sửa phòng thi';
-            document.getElementById('roomTitle').value = room.title || '';
-            document.getElementById('roomDesc').value = room.description || ''; 
-            document.getElementById('roomSetCode').value = room.setCode || '';
-            document.getElementById('roomSetName').value = room.setName || '';
-            document.getElementById('roomDuration').value = room.duration || 20;
-
-            // Xử lý hiển thị thời gian lên input
-            if (room.startAt) {
-                try {
-                    const date = room.startAt.toDate();
-                    const tzOffset = date.getTimezoneOffset() * 60000;
-                    const localISO = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
-                    document.getElementById('roomStart').value = localISO;
-                } catch(e) { console.error("Lỗi định dạng ngày:", e); }
-            }
-        }
-    } else {
-        // 3. Nếu là TẠO MỚI
-        titleEl.innerText = '➕ Tạo phòng thi mới';
-    }
-
-    // Hiển thị modal
-    if (modal) modal.style.display = 'flex';
-}
-
 /** Hàm đóng Modal */
 function closeRoomModal() {
     const modal = document.getElementById('roomModal');
@@ -5382,29 +5358,49 @@ function closeRoomModal() {
     _editingRoomId = null;
 }
 async function saveRoom() {
-    const title = document.getElementById('roomTitle').value.trim();
-    const desc = document.getElementById('roomDesc').value.trim();
-    const setCode = document.getElementById('roomSetCode').value.trim();
-    const setName = document.getElementById('roomSetName').value.trim();
-    const startVal = document.getElementById('roomStart').value;
-    const duration = parseInt(document.getElementById('roomDuration').value) || 20;
+    const g = id => document.getElementById(id);
+    const title    = g('roomTitleInput')?.value.trim() || '';
+    const startVal = g('roomStartInput')?.value || '';
+    const endVal   = g('roomEndInput')?.value || '';
+    const late     = parseInt(g('roomLateInput')?.value) || 0;
+    const setCode  = g('roomSetSelect')?.value || '';
+    const eligType = g('roomEligType')?.value || 'all';
+    const eligRaw  = g('roomEligValues')?.value || '';
+    const rules    = g('roomRulesInput')?.value.trim() || '';
 
-    if (!title || !startVal || !setCode) {
-        alert("Vui lòng nhập đầy đủ Tên phòng, Bộ đề và Thời gian!");
+    const errEl = g('roomModalError');
+    const showErr = msg => { if(errEl){ errEl.textContent=msg; errEl.style.display='block'; } else alert(msg); };
+
+    if (!title || !startVal || !endVal || !setCode) {
+        showErr('Vui lòng nhập đầy đủ: Tên phòng, Bộ đề, Giờ bắt đầu và Giờ kết thúc!');
         return;
     }
+    if (new Date(endVal) <= new Date(startVal)) {
+        showErr('Giờ kết thúc phải sau giờ bắt đầu!');
+        return;
+    }
+    if(errEl) errEl.style.display='none';
+
+    const selOpt = g('roomSetSelect');
+    const setName = selOpt ? (selOpt.options[selOpt.selectedIndex]?.text || setCode) : setCode;
+
+    const eligValues = eligType === 'all' ? [] : eligRaw.split('\n').map(s=>s.trim()).filter(Boolean);
 
     const roomData = {
         title,
-        description: desc, // Lưu mô tả mới
         setCode,
         setName,
-        duration,
+        rules,
+        lateEntryMinutes: late,
+        eligibility: { type: eligType, values: eligValues },
         startAt: firebase.firestore.Timestamp.fromDate(new Date(startVal)),
+        endAt:   firebase.firestore.Timestamp.fromDate(new Date(endVal)),
         status: 'scheduled',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
+    const btn = g('saveRoomBtn');
+    if(btn) { btn.disabled=true; btn.textContent='Đang lưu...'; }
     try {
         if (_editingRoomId) {
             await db.collection('examRooms').doc(_editingRoomId).update(roomData);
@@ -5414,10 +5410,12 @@ async function saveRoom() {
             await db.collection('examRooms').add(roomData);
         }
         closeRoomModal();
-        showToast("Đã lưu phòng thi thành công!");
+        showToast('Đã lưu phòng thi thành công!', 'success');
     } catch (e) {
         console.error(e);
-        alert("Lỗi khi lưu: " + e.message);
+        showErr('Lỗi khi lưu: ' + e.message);
+    } finally {
+        if(btn) { btn.disabled=false; btn.textContent='💾 Lưu phòng thi'; }
     }
 }
 function editRoom(id) {
@@ -7622,36 +7620,37 @@ function printTable() {
 
 </html>`;
 
-    // ✅ Dùng iframe ẩn để in trực tiếp — không mở trang blob trung gian
-
-    const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-
-    const blobUrl = URL.createObjectURL(blob);
+    // ✅ FIX HIỆU NĂNG: Dùng srcdoc thay vì Blob URL — không cần tạo object URL,
+    // iframe load tức thì, không chờ external resource (QR) mới mở dialog in.
+    // Script bên trong tự gọi print() sau khi DOM sẵn sàng.
+    const printHtml = htmlContent.replace('</body>',
+        `<script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Chờ ảnh QR (nếu load được) tối đa 1.5 giây, sau đó in luôn
+            var qr = document.querySelector('.qr-block img');
+            if (!qr) { setTimeout(window.print, 80); return; }
+            var done = false;
+            function go() { if(done) return; done=true; window.print(); }
+            qr.onload = go;
+            qr.onerror = go;
+            setTimeout(go, 1500);
+        });
+        <\/script></body>`
+    );
 
     const iframe = document.createElement('iframe');
-
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:0;height:0;border:0;opacity:0;';
-
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;border:0;opacity:0;';
     document.body.appendChild(iframe);
+    iframe.srcdoc = printHtml;
 
-    iframe.src = blobUrl;
-
-    iframe.onload = function () {
-
-        iframe.contentWindow.focus();
-
-        iframe.contentWindow.print();
-
-        iframe.contentWindow.addEventListener('afterprint', function () {
-
-            URL.revokeObjectURL(blobUrl);
-
+    // Dọn dẹp iframe sau khi đóng dialog in
+    iframe.addEventListener('load', function() {
+        iframe.contentWindow.addEventListener('afterprint', function() {
             document.body.removeChild(iframe);
-
         }, { once: true });
-
-    };
-
+        // Fallback: xóa iframe sau 2 phút phòng trường hợp afterprint không fire
+        setTimeout(() => { if(iframe.parentNode) document.body.removeChild(iframe); }, 120000);
+    });
 }
 
 // ==========================================
