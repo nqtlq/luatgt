@@ -5341,56 +5341,43 @@ function closeRoomModal() {
 
 // HÀM LƯU DỮ LIỆU
 async function saveRoom() {
-    // 1. Lấy an toàn các phần tử HTML
-    const idEl = document.getElementById('editRoomId');
-    const titleEl = document.getElementById('roomTitleInput');
-    const descEl = document.getElementById('roomDesc'); // Nếu HTML thiếu ô này, descEl sẽ là null
-    const startEl = document.getElementById('roomStartInput');
-    const endEl = document.getElementById('roomEndInput');
-    const lateEl = document.getElementById('roomLateInput');
-    const setEl = document.getElementById('roomSetSelect');
-    const eligTypeEl = document.getElementById('roomEligType');
-    const eligValsEl = document.getElementById('roomEligValues');
-    const rulesEl = document.getElementById('roomRulesInput');
-    // 2. Bắt lỗi ngay nếu thiếu các thẻ bắt buộc
-    if (!titleEl || !startEl || !endEl || !setEl) {
-        alert("Lỗi giao diện: Không tìm thấy ô nhập liệu! Hãy kiểm tra lại HTML của Modal.");
-        return;
-    }
-    // 3. Lấy giá trị (nếu thẻ không tồn tại thì gán giá trị rỗng/mặc định)
-    const id = idEl ? idEl.value : '';
-    const title = titleEl.value.trim();
-    const desc = descEl ? descEl.value.trim() : ''; 
-    const startV = startEl.value;
-    const endV = endEl.value;
-    const late = lateEl ? (parseInt(lateEl.value) || 0) : 0;
-    const setCode = setEl.value;
-    const setName = setEl.options[setEl.selectedIndex]?.dataset?.name || setCode;
-    const eligType = eligTypeEl ? eligTypeEl.value : 'all';
-    const eligVals = eligValsEl ? eligValsEl.value.split('\n').map(s => s.trim()).filter(Boolean) : [];
-    const rules = rulesEl ? rulesEl.value.trim() : '';
-    const errEl = document.getElementById('roomModalError');
-    if (errEl) errEl.style.display = 'none';
+    const id = document.getElementById('editRoomId').value;
+    const title = document.getElementById('roomTitleInput').value.trim();
+    const desc = document.getElementById('roomDesc').value.trim();
+    const startV = document.getElementById('roomStartInput').value;
+    const endV = document.getElementById('roomEndInput').value;
+    const late = parseInt(document.getElementById('roomLateInput').value) || 0;
+    
+    const sel = document.getElementById('roomSetSelect');
+    const setCode = sel.value;
+    const setName = sel.options[sel.selectedIndex]?.dataset?.name || setCode;
+    
+    const eligType = document.getElementById('roomEligType').value;
+    const eligVals = (document.getElementById('roomEligValues').value || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const rules = document.getElementById('roomRulesInput').value.trim();
 
-    // 4. Xác thực đầu vào
-    if (!title) { if(errEl){errEl.textContent='⚠️ Nhập tên phòng thi!'; errEl.style.display='block';} return; }
-    if (!desc) { if(errEl){errEl.textContent='⚠️ Nhập mô tả bài thi để học viên thấy!'; errEl.style.display='block';} return; }
-    if (!startV) { if(errEl){errEl.textContent='⚠️ Chọn giờ bắt đầu!'; errEl.style.display='block';} return; }
-    if (!endV) { if(errEl){errEl.textContent='⚠️ Chọn giờ kết thúc!'; errEl.style.display='block';} return; }
-    if (!setCode) { if(errEl){errEl.textContent='⚠️ Chọn bộ đề thi!'; errEl.style.display='block';} return; }
+    const errEl = document.getElementById('roomModalError');
+    errEl.style.display = 'none';
+
+    // Xác thực đầu vào
+    if (!title) { errEl.textContent = '⚠️ Nhập tên phòng thi!'; errEl.style.display = 'block'; return; }
+    if (!desc) { errEl.textContent = '⚠️ Nhập mô tả bài thi để học viên thấy!'; errEl.style.display = 'block'; return; }
+    if (!startV) { errEl.textContent = '⚠️ Chọn giờ bắt đầu!'; errEl.style.display = 'block'; return; }
+    if (!endV) { errEl.textContent = '⚠️ Chọn giờ kết thúc!'; errEl.style.display = 'block'; return; }
+    if (!setCode) { errEl.textContent = '⚠️ Chọn bộ đề thi!'; errEl.style.display = 'block'; return; }
+
     const startDate = new Date(startV);
     const endDate = new Date(endV);
-    if (endDate <= startDate) { if(errEl){errEl.textContent='⚠️ Giờ kết thúc phải sau giờ bắt đầu!'; errEl.style.display='block';} return; }
+    if (endDate <= startDate) { errEl.textContent = '⚠️ Giờ kết thúc phải sau giờ bắt đầu!'; errEl.style.display = 'block'; return; }
 
     const btn = document.getElementById('saveRoomBtn');
-    if (btn) {
-        btn.disabled = true; 
-        btn.textContent = '⏳ Đang lưu...';
-    }
+    btn.disabled = true; 
+    btn.textContent = '⏳ Đang lưu...';
+
     try {
         const data = { 
             title, 
-            description: desc, 
+            description: desc, // Trường Mô tả đảm bảo khách quan
             setCode, 
             setName, 
             rules, 
@@ -5401,27 +5388,24 @@ async function saveRoom() {
             status: startDate <= new Date() ? 'open' : 'scheduled',
             updatedAt: firebase.firestore.FieldValue.serverTimestamp() 
         };
+
         if (id) {
             await db.collection('examRooms').doc(id).update(data);
         } else {
             data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            data.registeredUsers = []; 
+            data.registeredUsers = []; // Khởi tạo mảng học viên đăng ký
             await db.collection('examRooms').add(data);
         }
+
         closeRoomModal();
         showToast('Đã lưu phòng thi thành công!', 'success');
     } catch(e) { 
-        if (errEl) {
-            errEl.textContent = '❌ Lỗi: ' + e.message; 
-            errEl.style.display = 'block'; 
-        } else {
-            alert('❌ Lỗi: ' + e.message);
-        }
+        errEl.textContent = '❌ Lỗi: ' + e.message; 
+        errEl.style.display = 'block'; 
     }
-    if (btn) {
-        btn.disabled = false; 
-        btn.textContent = '💾 Lưu phòng thi';
-    }
+
+    btn.disabled = false; 
+    btn.textContent = '💾 Lưu phòng thi';
 }
 function refreshRooms() {
   showToast('Đang làm mới danh sách phòng thi...','info',1500);
