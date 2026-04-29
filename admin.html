@@ -13274,117 +13274,57 @@ function refreshLiveMonitor() {
 /** Gửi cảnh báo đến học viên cụ thể qua Firestore signal */
 
 async function sendWarningToStudent(code) {
-
     const msg = prompt(`Nội dung cảnh báo gửi đến ${code}:`, 'Chú ý! Giám thị đang theo dõi.');
-
     if (!msg) return;
-
     try {
-
         await db.collection('presence').doc(code).update({
-
             adminSignal: { type: 'warning', message: msg, sentAt: firebase.firestore.FieldValue.serverTimestamp() }
-
         });
-
         showToast(`Đã gửi cảnh báo đến ${code}!`, 'success', 2000);
-
     } catch(e) {
-
         showToast('Lỗi gửi cảnh báo: ' + e.message, 'error');
-
     }
-
 }
-
- 
-
 /** Phát cảnh báo đến tất cả học viên đang thi */
-
 async function broadcastWarning() {
-
     const ok = await showConfirm('📢 Cảnh báo toàn phòng', 'Gửi thông báo đến TẤT CẢ học viên đang thi?', '📢');
-
     if (!ok) return;
-
     const msg = prompt('Nội dung thông báo:', 'Thông báo từ giám thị: Tập trung làm bài!');
-
     if (!msg) return;
-
     const examers = lmData.filter(s => s.currentSection?.includes('thi'));
-
     const batch = db.batch();
-
     examers.forEach(s => {
-
         batch.update(db.collection('presence').doc(s.code), {
-
             adminSignal: { type: 'broadcast', message: msg, sentAt: firebase.firestore.FieldValue.serverTimestamp() }
-
         });
-
     });
-
     try {
-
         await batch.commit();
-
         showToast(`Đã phát cảnh báo đến ${examers.length} học viên!`, 'success');
-
     } catch(e) {
-
         showToast('Lỗi: ' + e.message, 'error');
-
     }
-
 }
-
- 
-
 /** Kết thúc sớm bài thi của học viên */
-
 async function forceEndExam(code) {
-
     const ok = await showConfirm('⏹ Kết thúc bài thi', `Kết thúc sớm bài thi của ${code}?`, '⚠');
-
     if (!ok) return;
-
     try {
-
         await db.collection('presence').doc(code).update({
-
             adminSignal: { type: 'force_end', message: 'Bài thi đã bị kết thúc bởi giám thị.', sentAt: firebase.firestore.FieldValue.serverTimestamp() }
-
         });
-
         showToast(`Đã gửi lệnh kết thúc tới ${code}!`, 'warning', 2000);
-
     } catch(e) {
-
         showToast('Lỗi: ' + e.message, 'error');
-
     }
-
 }
-
- 
-
 /** Format giây thành mm:ss */
-
 function formatSeconds(sec) {
-
     if (!sec && sec !== 0) return '—';
-
     const m = Math.floor(sec / 60);
-
     const s = sec % 60;
-
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
 }
-
 </script>
-
 </body>
-
 </html>
