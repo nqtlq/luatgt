@@ -2349,22 +2349,42 @@ async function leaveWaitingRoom() {
 
 function startExamFromRoom() {
   if (!_activeRoom) return;
-  localStorage.setItem('examRoomId', _activeRoom.id);
-  localStorage.setItem('examRoomSetCode', _activeRoom.setCode || '');
-  // Lưu thời gian kết thúc để test.html tự động nộp bài
+
+  const setCode   = _activeRoom.setCode  || '';
+  const setName   = _activeRoom.setName  || _activeRoom.title || '';
+  const roomId    = _activeRoom.id;
+  const roomTitle = _activeRoom.title || '';
+
+  // ── Lưu đầy đủ thông tin vào localStorage ──
+  localStorage.setItem('examRoomId',      roomId);
+  localStorage.setItem('examRoomSetCode', setCode);
+  localStorage.setItem('examRoomSetName', setName);
+  localStorage.setItem('examRoomTitle',   roomTitle);
+  localStorage.setItem('examAutoStart',   '1');   // cờ để test.html bỏ qua bước chọn đề
+
   if (_activeRoom.endAt) {
-    const endMs = _activeRoom.endAt.toDate ? _activeRoom.endAt.toDate().getTime() : _activeRoom.endAt;
-    localStorage.setItem('examRoomEndAt', endMs.toString());
+    const endMs = _activeRoom.endAt.toDate ? _activeRoom.endAt.toDate().getTime() : Number(_activeRoom.endAt);
+    localStorage.setItem('examRoomEndAt', String(endMs));
   }
   if (_activeRoom.startAt) {
-    const startMs = _activeRoom.startAt.toDate ? _activeRoom.startAt.toDate().getTime() : _activeRoom.startAt;
-    localStorage.setItem('examRoomStartAt', startMs.toString());
+    const startMs = _activeRoom.startAt.toDate ? _activeRoom.startAt.toDate().getTime() : Number(_activeRoom.startAt);
+    localStorage.setItem('examRoomStartAt', String(startMs));
   }
   if (_activeRoom.durationMinutes) {
-    localStorage.setItem('examRoomDuration', _activeRoom.durationMinutes.toString());
+    localStorage.setItem('examRoomDuration', String(_activeRoom.durationMinutes));
   }
-  localStorage.setItem('examRoomTitle', _activeRoom.title || '');
-  location.href = 'test.html';
+  if (_activeRoom.passScore !== undefined) {
+    localStorage.setItem('examRoomPassScore', String(_activeRoom.passScore));
+  }
+
+  // ── Chuyển sang test.html với tham số trên URL ──
+  // test.html đọc ?autoStart=1&setCode=XXX để bỏ qua màn chọn đề
+  const params = new URLSearchParams({
+    autoStart: '1',
+    setCode:   setCode,
+    roomId:    roomId,
+  });
+  location.href = 'test.html?' + params.toString();
 }
 
 // =====================================================================
