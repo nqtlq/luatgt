@@ -246,9 +246,33 @@ header { padding-top: env(safe-area-inset-top); }
 .confirm-overlay, .modal-overlay { padding-bottom: env(safe-area-inset-bottom); }
 .confirm-btns button, .header-actions button { touch-action: manipulation; }
 /* ── Phòng thi online ── */
-.room-card{border:2px solid #1d3557;box-shadow:0 6px 28px rgba(29,53,87,.18);}
+.room-card{border:2px solid #1d3557;box-shadow:0 6px 28px rgba(29,53,87,.18);padding:18px;border-radius:16px;}
 .room-card .card-header{background:linear-gradient(135deg,#1d3557,#2a6496);padding:16px 20px;}
 .room-card .card-header h3{color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;}
+/* ── Nút Xem chi tiết & Đăng ký nổi bật ── */
+.room-detail-btn {
+  width:100%; padding:15px 20px; border:none; border-radius:12px;
+  background:linear-gradient(135deg,#e63946,#c0392b);
+  color:white; font-size:15px; font-weight:800; cursor:pointer;
+  transition:all .25s; box-shadow:0 4px 18px rgba(230,57,70,.55);
+  letter-spacing:.4px; margin-top:12px; position:relative; overflow:hidden;
+  animation:roomBtnPulse 2.2s ease-in-out infinite;
+}
+.room-detail-btn::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);
+  border-radius:inherit;
+}
+.room-detail-btn:hover {
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 8px 28px rgba(230,57,70,.7);
+  animation:none;
+}
+.room-detail-btn:active { transform:translateY(0) scale(1); }
+@keyframes roomBtnPulse {
+  0%,100% { box-shadow:0 4px 18px rgba(230,57,70,.55); }
+  50%      { box-shadow:0 4px 28px rgba(230,57,70,.85), 0 0 0 6px rgba(230,57,70,.18); }
+}
 .room-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;}
 .room-badge.scheduled{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);}
 .room-badge.open{background:rgba(42,200,100,0.25);color:#7fff9a;border:1px solid rgba(42,200,100,0.5);animation:pulse-green 1.5s infinite;}
@@ -1829,13 +1853,15 @@ function startExamRoomListener() {
             const card = document.createElement('div');
             card.className = 'room-card';
             // Trong hàm render danh sách phòng thi (startExamRoomListener)
-      card.innerHTML = `
+            card.innerHTML = `
             <h4 style="color:var(--blue); margin-bottom:8px;">${room.title || 'Phòng thi'}</h4>
             <p style="font-size:13px; color:#555; margin:8px 0; min-height:40px;">
               📝 <i>${room.description || 'Không có mô tả cho phòng thi này.'}</i>
             </p>
             <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${startTime.toLocaleString('vi-VN')}</strong></p>
-            <button class="action-btn" onclick="focusAndEnterRoom('${room.id}')">Xem chi tiết & Đăng ký</button>
+            <button class="room-detail-btn" onclick="focusAndEnterRoom('${room.id}')">
+              🔍 Xem chi tiết &amp; Đăng ký
+            </button>
         `;
             grid.appendChild(card);
             _scheduleInvite(room); // Nhắc nhở 3 phút trước giờ thi
@@ -1934,9 +1960,27 @@ function renderActionButtons(room, isRegistered) {
             </button>`;
     } else {
         const isOpen = room.status === 'open';
+        const now = new Date();
+        const startTime = room.startAt?.toDate ? room.startAt.toDate() : new Date(room.startAt);
+
+        // Kiểm tra đã quá thời gian cho vào muộn
+        if (isOpen && room.lateEntryMinutes) {
+            const deadline = new Date(startTime.getTime() + room.lateEntryMinutes * 60000);
+            if (now > deadline) {
+                container.innerHTML = `
+                    <div style="text-align:center;color:#2a9d8f;font-weight:bold;margin-bottom:8px;">✅ Bạn đã đăng ký tham gia</div>
+                    <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:14px;text-align:center;color:#991b1b;font-weight:700;font-size:14px;">
+                        ⛔ Đã quá thời gian cho vào thi muộn<br>
+                        <span style="font-size:12px;font-weight:500;">Thời gian vào muộn tối đa: ${room.lateEntryMinutes} phút</span>
+                    </div>`;
+                return;
+            }
+        }
+
         container.innerHTML = `
             <div style="text-align:center;color:#2a9d8f;font-weight:bold;margin-bottom:8px;">✅ Bạn đã đăng ký tham gia</div>
-            <button onclick="enterWaitingRoomFromModal()" style="width:100%;background:linear-gradient(135deg,#1d3557,#264a8a);color:white;padding:14px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:15px;">
+            ${isOpen && room.lateEntryMinutes ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#856404;text-align:center;">⏰ Vào muộn được phép — còn ${room.lateEntryMinutes} phút kể từ giờ mở</div>` : ''}
+            <button onclick="enterWaitingRoomFromModal()" style="width:100%;background:linear-gradient(135deg,${isOpen ? '#dc3545,#a02535' : '#1d3557,#264a8a'});color:white;padding:14px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.2);">
                 ${isOpen ? '🚀 Vào thi ngay!' : '🚪 Vào phòng chờ'}
             </button>`;
     }
@@ -2001,8 +2045,12 @@ function startAutoEnterTimer(room) {
 function goToExam(setCode) {
     showToast("🔔 Đến giờ thi! Đang tự động vào bài...", "success");
     setTimeout(() => {
-        // Gọi hàm bắt đầu làm bài hiện có của bạn
-        startActualExam(setCode); 
+        if (_activeRoom) {
+            startExamFromRoom(); // dùng hàm chuẩn để lưu đầy đủ localStorage
+        } else {
+            localStorage.setItem('examRoomSetCode', setCode || '');
+            location.href = 'test.html';
+        }
         closeRoomDetail();
     }, 1500);
 }
@@ -2192,15 +2240,30 @@ function _showWaitingRoom(room) {
   const cdEl = document.getElementById('wcdTime');
   const lbl = document.getElementById('wcdLabel');
   const btn = document.getElementById('wfStartBtn');
+
+  // ── Sửa: gọi _startRegListener để cập nhật số liệu thống kê ──
+  _startRegListener(room.id);
   
   if (_roomCdInterval) clearInterval(_roomCdInterval);
+
+  let _autoEnteredFromWaiting = false;
+
   function wTick() {
     const now = Date.now();
     if (room.status === 'open') {
-      const diff = room.endAt.toDate().getTime() - now;
-      if (lbl) lbl.textContent = 'Thời gian còn lại để nộp bài';
-      if (cdEl) cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Hết giờ';
+      const endMs = room.endAt?.toDate ? room.endAt.toDate().getTime() : 0;
+      const diff = endMs - now;
+      if (lbl) lbl.textContent = 'Thời gian còn lại để vào thi';
+      if (cdEl) cdEl.textContent = diff > 0 ? _fmtMs(diff) : 'Đã hết giờ';
       if (btn) { btn.disabled = false; btn.textContent = '🚀 Bắt đầu làm bài'; }
+      // Kiểm tra quá thời gian vào muộn
+      if (room.lateEntryMinutes && room.startAt) {
+        const startMs = room.startAt.toDate ? room.startAt.toDate().getTime() : 0;
+        const deadline = startMs + room.lateEntryMinutes * 60000;
+        if (now > deadline) {
+          if (btn) { btn.disabled = true; btn.textContent = '⛔ Hết thời gian vào muộn'; }
+        }
+      }
     } else {
       const diff = room.startAt.toDate().getTime() - now;
       if (lbl) lbl.textContent = 'Thi bắt đầu sau';
@@ -2213,7 +2276,48 @@ function _showWaitingRoom(room) {
   }
   wTick();
   _roomCdInterval = setInterval(wTick, 1000);
-  
+
+  // ── Mới: lắng nghe Firestore — khi phòng được mở, tự động vào thi ──
+  let _waitRoomDocUnsub = null;
+  if (_waitRoomDocUnsub) { try { _waitRoomDocUnsub(); } catch(_) {} }
+  _waitRoomDocUnsub = db.collection('examRooms').doc(room.id).onSnapshot(docSnap => {
+    if (!docSnap.exists) return;
+    const updatedRoom = { id: docSnap.id, ...docSnap.data() };
+
+    if (updatedRoom.status === 'open' && room.status !== 'open' && !_autoEnteredFromWaiting) {
+      // Cập nhật room object để tick hiển thị đúng
+      room.status = 'open';
+      room.endAt = updatedRoom.endAt;
+      wTick();
+
+      // Kiểm tra đăng ký + thời gian vào muộn trước khi tự động vào
+      const now2 = Date.now();
+      const startMs = updatedRoom.startAt?.toDate ? updatedRoom.startAt.toDate().getTime() : 0;
+      const deadline = updatedRoom.lateEntryMinutes
+        ? startMs + updatedRoom.lateEntryMinutes * 60000
+        : Infinity;
+
+      if (now2 <= deadline) {
+        _autoEnteredFromWaiting = true;
+        // Thông báo và tự động vào thi sau 2 giây
+        if (cdEl) cdEl.textContent = '🔔 PHÒNG ĐÃ MỞ!';
+        if (lbl) lbl.textContent = 'Tự động vào thi sau 3 giây...';
+        if (btn) { btn.disabled = false; btn.textContent = '🚀 Vào thi ngay!'; }
+        setTimeout(() => {
+          if (_waitRoomDocUnsub) { try { _waitRoomDocUnsub(); } catch(_) {} }
+          startExamFromRoom();
+        }, 3000);
+      }
+    }
+
+    // Phòng bị đóng trong khi đang chờ
+    if (updatedRoom.status === 'closed' && !_autoEnteredFromWaiting) {
+      if (lbl) lbl.textContent = '⚠️ Phòng thi đã kết thúc';
+      if (cdEl) cdEl.textContent = '——';
+      if (btn) { btn.disabled = true; btn.textContent = '🔴 Phòng đã đóng'; }
+    }
+  }, () => {});
+
   if (_roomWaitUnsub) { try { _roomWaitUnsub(); } catch(_) {} }
   _roomWaitUnsub = db.collection('examRooms').doc(room.id).collection('waitingRoom')
     .orderBy('joinedAt', 'asc').onSnapshot(snap => {
@@ -2247,6 +2351,19 @@ function startExamFromRoom() {
   if (!_activeRoom) return;
   localStorage.setItem('examRoomId', _activeRoom.id);
   localStorage.setItem('examRoomSetCode', _activeRoom.setCode || '');
+  // Lưu thời gian kết thúc để test.html tự động nộp bài
+  if (_activeRoom.endAt) {
+    const endMs = _activeRoom.endAt.toDate ? _activeRoom.endAt.toDate().getTime() : _activeRoom.endAt;
+    localStorage.setItem('examRoomEndAt', endMs.toString());
+  }
+  if (_activeRoom.startAt) {
+    const startMs = _activeRoom.startAt.toDate ? _activeRoom.startAt.toDate().getTime() : _activeRoom.startAt;
+    localStorage.setItem('examRoomStartAt', startMs.toString());
+  }
+  if (_activeRoom.durationMinutes) {
+    localStorage.setItem('examRoomDuration', _activeRoom.durationMinutes.toString());
+  }
+  localStorage.setItem('examRoomTitle', _activeRoom.title || '');
   location.href = 'test.html';
 }
 
