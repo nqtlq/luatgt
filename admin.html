@@ -861,6 +861,149 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
 
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
 
+const LIVE_MONITOR_CSS = `
+
+/* ═══ LIVE EXAM MONITOR ═══ */
+
+.live-monitor-wrap { margin-top: 16px; }
+
+.live-monitor-header {
+
+    display: flex; justify-content: space-between; align-items: center;
+
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+
+}
+
+.live-monitor-toolbar {
+
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+
+}
+
+.live-monitor-search {
+
+    padding: 8px 12px; border: 1px solid var(--border);
+
+    border-radius: var(--radius-sm); font-size: 13px;
+
+    background: var(--bg-input); color: var(--text-primary); min-width: 200px;
+
+}
+
+.lm-table-wrap {
+
+    border-radius: var(--radius-md); overflow: hidden;
+
+    border: 1px solid var(--border); background: var(--bg-card);
+
+}
+
+.lm-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+
+.lm-table th {
+
+    background: var(--bg-table-head); padding: 10px 12px;
+
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+
+    letter-spacing: .5px; color: var(--text-secondary);
+
+    border-bottom: 1px solid var(--border); white-space: nowrap; text-align: center;
+
+}
+
+.lm-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+
+.lm-table tr:last-child td { border-bottom: none; }
+
+.lm-table tr:hover td { background: var(--bg-hover); }
+
+ 
+
+/* Progress bar câu hỏi */
+
+.q-progress { width: 100%; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; min-width: 80px; }
+
+.q-progress-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+
+.q-progress-fill.ok   { background: var(--success); }
+
+.q-progress-fill.warn { background: var(--warning); }
+
+.q-progress-fill.danger { background: var(--danger); }
+
+ 
+
+/* Timer countdown */
+
+.lm-timer { font-family: 'Courier New', monospace; font-weight: 700; font-size: 13px; }
+
+.lm-timer.ok     { color: var(--success); }
+
+.lm-timer.warn   { color: var(--warning); }
+
+.lm-timer.danger { color: var(--danger); animation: blink 1s infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+ 
+
+/* Tab bị ẩn badge */
+
+.tab-hidden-badge {
+
+    display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px;
+
+    font-weight: 700; background: var(--danger-light); color: var(--danger);
+
+    margin-left: 4px;
+
+}
+
+ 
+
+/* Action buttons */
+
+.lm-actions { display: flex; gap: 4px; justify-content: center; }
+
+.lm-btn { padding: 4px 10px; border: none; border-radius: 6px; font-size: 11px;
+
+          font-weight: 700; cursor: pointer; transition: opacity .2s; }
+
+.lm-btn:hover { opacity: .8; }
+
+.lm-btn-warn  { background: var(--warning-light); color: #856404; }
+
+.lm-btn-kick  { background: var(--danger-light);  color: var(--danger); }
+
+ 
+
+/* Stats mini row */
+
+.lm-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.lm-stat-pill {
+
+    background: var(--bg-card); border: 1px solid var(--border);
+
+    border-radius: var(--radius-sm); padding: 8px 14px;
+
+    font-size: 12px; text-align: center;
+
+}
+
+.lm-stat-pill .num { font-size: 20px; font-weight: 800; line-height: 1.2; }
+
+.lm-stat-pill .lbl { color: var(--text-muted); font-size: 11px; }
+
+ 
+
+/* Empty state */
+
+.lm-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+
+`;
 
 </style>
 
@@ -5761,7 +5904,9 @@ function startRealtimeStudents() {
 
     if (rtStudentUnsub) rtStudentUnsub();
 
-    rtStudentUnsub = db.collection('students').onSnapshot(snap => {
+    let _rtStudentDebounce = null;
+
+    rtStudentUnsub = db.collection('students').onSnapshot({ includeMetadataChanges: false }, snap => {
 
         allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' }));
 
@@ -5783,23 +5928,29 @@ function startRealtimeStudents() {
 
         safeSet('lockedCount', locked);
 
-        // Update student-related UI
+        // Debounce UI re-render 300ms — tránh render liên tục khi nhiều thay đổi đồng thời
 
-        if (document.getElementById('students')?.classList.contains('active')) {
+        clearTimeout(_rtStudentDebounce);
 
-            updateStudentStats();
+        _rtStudentDebounce = setTimeout(() => {
 
-            filteredStudents = [...allStudents];
+          if (document.getElementById('students')?.classList.contains('active')) {
 
-            renderStudentTable();
+              updateStudentStats();
 
-        }
+              filteredStudents = [...allStudents];
 
-        updateOnlineUI();
+              renderStudentTable();
 
-        loadCourseFilter();
+          }
 
-        updateLastUpdateTime();
+          updateOnlineUI();
+
+          loadCourseFilter();
+
+          updateLastUpdateTime();
+
+        }, 300);
 
     }, err => console.warn('RT Students error:', err));
 
@@ -7480,28 +7631,57 @@ function printTable() {
     // ✅ FIX HIỆU NĂNG: Dùng srcdoc thay vì Blob URL — không cần tạo object URL,
     // iframe load tức thì, không chờ external resource (QR) mới mở dialog in.
     // Script bên trong tự gọi print() sau khi DOM sẵn sàng.
-    // Loại bỏ chờ QR bên ngoài - in ngay sau khi DOM sẵn sàng (300ms)
     const printHtml = htmlContent.replace('</body>',
-        `<script>window.addEventListener('DOMContentLoaded', function() { setTimeout(window.print, 300); });<\/script></body>`
+        `<script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Chờ ảnh QR (nếu load được) tối đa 1.5 giây, sau đó in luôn
+            var qr = document.querySelector('.qr-block img');
+            if (!qr) { window.print(); return; }
+            var done = false;
+            function go() { if(done) return; done=true; window.print(); }
+            // Nếu ảnh đã load xong từ cache -> in ngay, không chờ thêm
+            if (qr.complete && qr.naturalWidth > 0) { go(); return; }
+            qr.onload = go;
+            qr.onerror = go;
+            setTimeout(go, 400);
+        });
+        <\/script></body>`
     );
 
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;height:297mm;border:0;opacity:0;';
-    document.body.appendChild(iframe);
-
-    // Dọn dẹp iframe sau khi đóng dialog in
-    iframe.addEventListener('load', function() {
-        try {
-            iframe.contentWindow.addEventListener('afterprint', function() {
-                setTimeout(() => { if(iframe.parentNode) document.body.removeChild(iframe); }, 100);
-            }, { once: true });
-        } catch(_) {}
-        // Fallback: xóa iframe sau 30 giây
-        setTimeout(() => { if(iframe.parentNode) document.body.removeChild(iframe); }, 30000);
+    // Dùng window.open() thay vì iframe ẩn — đảm bảo dialog in hiện ra đúng
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+        // Popup bị chặn — fallback sang iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;border:0;z-index:-1;visibility:hidden;';
+        document.body.appendChild(iframe);
+        iframe.contentWindow.document.open();
+        iframe.contentWindow.document.write(printHtml);
+        iframe.contentWindow.document.close();
+        iframe.addEventListener('load', () => {
+            setTimeout(() => {
+                try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(_) {}
+                setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); }, 60000);
+            }, 200);
+        });
+        return;
+    }
+    printWin.document.open();
+    printWin.document.write(printHtml);
+    printWin.document.close();
+    printWin.focus();
+    // Sau khi DOM và ảnh sẵn sàng mới gọi print()
+    printWin.addEventListener('load', () => {
+        setTimeout(() => {
+            try { printWin.print(); } catch(_) {}
+        }, 200);
     });
-
-    // Set srcdoc sau khi đã gắn vào DOM
-    iframe.srcdoc = printHtml;
+    // Nếu load event không fire (window.open đôi khi vậy), fallback sau 600ms
+    setTimeout(() => {
+        try {
+            if (!printWin.closed) { printWin.focus(); printWin.print(); }
+        } catch(_) {}
+    }, 600);
 }
 
 // ==========================================
