@@ -1007,16 +1007,37 @@ const LIVE_MONITOR_CSS = `
 /* --- CSS CẬP NHẬT CHO MODAL QUẢN LÝ PHÒNG THI --- */
 
 /* Đảm bảo Modal luôn nổi lên trên cùng và không bị các thành phần khác che khuất */
+/* Lớp nền mờ của Modal */
 #createRoomModal {
     display: none; 
     position: fixed; 
     inset: 0; 
     background: rgba(0, 0, 0, 0.7); 
-    z-index: 99999; /* Chỉ số rất cao để đảm bảo luôn nổi trên cùng */
+    z-index: 99999; /* Cực cao để không bị che */
     align-items: center; 
     justify-content: center; 
     padding: 15px;
-    pointer-events: auto; /* Cho phép nhận sự kiện chuột */
+    pointer-events: auto;
+}
+
+/* Nội dung Modal */
+.modal-content-inner {
+    background: white; 
+    border-radius: 12px; 
+    width: 100%; 
+    max-width: 600px; 
+    max-height: 90vh; 
+    display: flex; 
+    flex-direction: column; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    overflow: hidden;
+    position: relative;
+}
+
+/* Ô nhập liệu ngày tháng tùy chỉnh */
+.date-input-custom {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
 }
 
 /* Khối nội dung bên trong Modal */
@@ -4014,45 +4035,40 @@ D. Đáp án D
     </div>
 
     <!-- Modal tạo/sửa phòng -->
-    <div id="createRoomModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center; padding:15px;">
-  <div style="background:white; border-radius:16px; width:100%; max-width:600px; max-height:95vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.5); overflow:hidden; position:relative;">
-    
-    <div style="padding:18px 24px; background:#1d3557; color:white; display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="margin:0; font-size:18px;" id="roomModalTitle">Tạo phòng thi mới</h3>
-      <button onclick="closeRoomModal()" style="background:none; border:none; color:white; font-size:30px; cursor:pointer; line-height:1;">&times;</button>
+    <div id="createRoomModal">
+  <div class="modal-content-inner">
+    <div style="padding:15px 20px; background:#1d3557; color:white; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:17px;" id="roomModalTitle">Tạo phòng thi mới</h3>
+      <span onclick="closeRoomModal()" style="cursor:pointer; font-size:28px; line-height:1; padding:0 10px;">&times;</span>
     </div>
 
-    <div style="padding:24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:15px;">
-      <input type="hidden" id="editRoomId">
-
-      <div>
-        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:#555;">Tên phòng thi *</label>
-        <input id="roomTitleInput" placeholder="VD: Thi thử đợt 1 - Khóa 5" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
+    <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px;">
+      <input type="hidden" id="editRoomId"> <div>
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Tên phòng thi *</label>
+        <input id="roomTitleInput" placeholder="VD: Thi tốt nghiệp Khóa 5..." style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px;">
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div>
-          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:#555;">Bắt đầu (dd/mm/yyyy HH:mm) *</label>
-          <input id="roomStartInput" class="date-input-custom" placeholder="30/04/2026 08:00" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Giờ bắt đầu (dd/mm/yyyy HH:mm) *</label>
+          <input id="roomStartInput" class="date-input-custom" placeholder="30/04/2026 08:00" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px;">
         </div>
         <div>
-          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:#555;">Kết thúc (dd/mm/yyyy HH:mm) *</label>
-          <input id="roomEndInput" class="date-input-custom" placeholder="30/04/2026 10:30" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Giờ kết thúc (dd/mm/yyyy HH:mm) *</label>
+          <input id="roomEndInput" class="date-input-custom" placeholder="30/04/2026 10:30" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px;">
         </div>
       </div>
 
       <div>
-        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:#555;">Mô tả</label>
-        <textarea id="roomDesc" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; min-height:60px;"></textarea>
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Bộ đề thi *</label>
+        <select id="roomSetSelect" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px;"></select>
       </div>
 
-      <div id="eligValuesWrap">
-         </div>
-    </div>
+      </div>
 
-    <div style="padding:15px 24px; border-top:1px solid #eee; display:flex; justify-content:flex-end; gap:12px; background:#f9f9f9;">
-      <button class="btn" onclick="closeRoomModal()" style="background:#6c757d; padding:10px 20px;">Hủy bỏ</button>
-      <button class="btn" onclick="saveRoom()" style="background:#198754; padding:10px 30px; font-weight:700;">Lưu phòng thi</button>
+    <div style="padding:15px 20px; border-top:1px solid #ddd; display:flex; gap:10px; background:#f9f9f9;">
+      <button onclick="closeRoomModal()" style="flex:1; padding:12px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer;">Hủy</button>
+      <button onclick="saveRoom()" id="saveRoomBtn" style="flex:1; padding:12px; background:#1d3557; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;">💾 Lưu phòng thi</button>
     </div>
   </div>
 </div>
@@ -13541,7 +13557,94 @@ function formatSeconds(sec) {
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
 }
+/** 3.1. Hàm chuyển đổi từ chuỗi dd/mm/yyyy HH:mm sang đối tượng Date */
+function parseVNToDate(str) {
+    if (!str) return null;
+    try {
+        const parts = str.split(' ');
+        const dateParts = parts[0].split('/');
+        const timeParts = parts[1] ? parts[1].split(':') : ["00", "00"];
+        
+        // Cấu trúc: new Date(year, monthIndex, day, hours, minutes)
+        // Lưu ý: Tháng trong JS bắt đầu từ 0
+        const d = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+        return isNaN(d.getTime()) ? null : d;
+    } catch (e) {
+        return null;
+    }
+}
 
+/** 3.2. Hàm hiển thị từ Firebase/Date sang chuỗi dd/mm/yyyy HH:mm */
+function formatDateToVN(date) {
+    if (!date) return "";
+    const d = (date instanceof firebase.firestore.Timestamp) ? date.toDate() : new Date(date);
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** 3.3. Cập nhật hàm showCreateRoomModal (Fix lỗi null và hiển thị ngày tháng) */
+function showCreateRoomModal(roomId = null) {
+    const modal = document.getElementById('createRoomModal');
+    if (!modal) return;
+
+    // 1. Reset Form an toàn
+    const fields = {
+        'editRoomId': '',
+        'roomTitleInput': '',
+        'roomStartInput': '',
+        'roomEndInput': '',
+        'roomDesc': '',
+        'roomModalError': ''
+    };
+    
+    Object.keys(fields).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'DIV') el.style.display = 'none';
+            else el.value = fields[id];
+        }
+    });
+
+    document.getElementById('roomModalTitle').textContent = roomId ? '✏️ Sửa phòng thi' : '🏫 Tạo phòng thi mới';
+
+    // 2. Nếu là chế độ sửa, điền dữ liệu vào
+    if (roomId && typeof _allRooms !== 'undefined') {
+        const room = _allRooms.find(r => r.id === roomId);
+        if (room) {
+            document.getElementById('editRoomId').value = roomId;
+            document.getElementById('roomTitleInput').value = room.title || '';
+            document.getElementById('roomStartInput').value = formatDateToVN(room.startAt);
+            document.getElementById('roomEndInput').value = formatDateToVN(room.endAt);
+            document.getElementById('roomDesc').value = room.description || '';
+            if(document.getElementById('roomSetSelect')) document.getElementById('roomSetSelect').value = room.setCode || '';
+        }
+    }
+
+    modal.style.display = 'flex';
+}
+
+/** 3.4. Hàm Lưu (Đã tích hợp parse ngày tháng mới) */
+async function saveRoom() {
+    const title = document.getElementById('roomTitleInput').value.trim();
+    const startStr = document.getElementById('roomStartInput').value.trim();
+    const endStr = document.getElementById('roomEndInput').value.trim();
+    const errorEl = document.getElementById('roomModalError');
+
+    // Chuyển đổi ngày tháng
+    const startDate = parseVNToDate(startStr);
+    const endDate = parseVNToDate(endStr);
+
+    if (!title || !startDate || !endDate) {
+        if (errorEl) {
+            errorEl.textContent = "⚠️ Vui lòng nhập đầy đủ thông tin và đúng định dạng dd/mm/yyyy HH:mm";
+            errorEl.style.display = "block";
+        }
+        return;
+    }
+
+    // Logic lưu vào Firebase của bạn tiếp tục ở đây...
+    // Ví dụ: const startAtTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
+}
 </script>
 
 </body>
