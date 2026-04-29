@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Trang Học Viên | HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1875,44 +1875,43 @@ let _autoEnterTimer = null;
 async function focusAndEnterRoom(roomId) {
     _activeRoomId = roomId;
     const modal = document.getElementById('roomDetailModal');
-    modal.style.display = 'flex';
+    if (modal) { modal.style.display = 'flex'; modal.style.pointerEvents = 'all'; }
 
-    // Cập nhật vị trí để hệ thống biết học viên đã vào xem phòng cụ thể này
     updateUserPresence('Đang xem phòng: ' + roomId, roomId);
 
-    // Lắng nghe dữ liệu phòng thi theo thời gian thực
     if (_currentRoomSub) _currentRoomSub();
     _currentRoomSub = db.collection('examRooms').doc(roomId).onSnapshot(doc => {
         if (!doc.exists) return;
         const room = { id: doc.id, ...doc.data() };
-        
-        // Đổ dữ liệu vào Modal HTML bạn vừa làm
-        document.getElementById('md_roomTitle').innerText = room.title;
-        document.getElementById('md_roomTime').innerText = "🕒 Giờ bắt đầu: " + room.startAt.toDate().toLocaleString('vi-VN');
-        document.getElementById('md_roomDesc').innerText = room.description || "Giám thị chưa có mô tả cho bài thi này.";
+        _activeRoom = room;
+
+        const titleEl = document.getElementById('md_roomTitle');
+        const timeEl  = document.getElementById('md_roomTime');
+        const descEl  = document.getElementById('md_roomDesc');
+        if (titleEl) titleEl.innerText = room.title || 'Phòng thi';
+        if (timeEl)  timeEl.innerText  = "🕒 Giờ bắt đầu: " + (room.startAt?.toDate ? room.startAt.toDate().toLocaleString('vi-VN') : '---');
+        if (descEl)  descEl.innerText  = room.description || "Giám thị chưa có mô tả.";
 
         const registeredUsers = room.registeredUsers || [];
-        const isRegistered = registeredUsers.includes(user.uid);
+        const isRegistered = registeredUsers.includes(studentCode);
 
-        // Lắng nghe số người thực tế đang mở modal này (Online)
         if (_currentPresenceSub) _currentPresenceSub();
         _currentPresenceSub = db.collection('presence')
             .where('currentRoomId', '==', roomId)
             .onSnapshot(pSnap => {
                 const onlineCount = pSnap.size;
                 const regCount = registeredUsers.length;
-                
-                document.getElementById('stat_registered').innerText = regCount;
-                document.getElementById('stat_online').innerText = onlineCount;
-                document.getElementById('stat_waiting').innerText = Math.max(0, regCount - onlineCount);
-            });
+                const regEl  = document.getElementById('stat_registered');
+                const onlEl  = document.getElementById('stat_online');
+                const waitEl = document.getElementById('stat_waiting');
+                if (regEl)  regEl.innerText  = regCount;
+                if (onlEl)  onlEl.innerText  = onlineCount;
+                if (waitEl) waitEl.innerText = Math.max(0, regCount - onlineCount);
+            }, () => {});
 
-        // Hiển thị nút bấm tương ứng
         renderActionButtons(room, isRegistered);
-        
-        // Kích hoạt tính năng tự động vào bài thi khi đến giờ
         startAutoEnterTimer(room);
-    });
+    }, err => { console.warn('focusAndEnterRoom lỗi:', err.code); });
 }
 function renderActionButtons(room, isRegistered) {
     const container = document.getElementById('md_actions');
@@ -1934,24 +1933,36 @@ function renderActionButtons(room, isRegistered) {
     }
 }
 function updateUserPresence(status, roomId = null) {
-    if (!user) return;
-    db.collection('presence').doc(user.uid).set({
-        name: user.displayName || user.email,
-        email: user.email,
+    if (!studentCode) return;
+    const presId = localStorage.getItem('studentId') || studentCode;
+    db.collection('presence').doc(presId).set({
+        studentCode: studentCode,
+        studentName: localStorage.getItem('studentName') || studentCode,
         status: status,
-        currentRoomId: roomId, // Lưu ID phòng để đếm số người trong phòng đó
+        currentSection: status,
+        currentRoomId: roomId,
         lastActive: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 }
 // Hàm đăng ký
 async function registerForRoom(roomId) {
+    if (!studentCode) return alert('Bạn chưa đăng nhập!');
     try {
-        await db.collection('examRooms').doc(roomId).update({
-            registeredUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
+        // Lưu vào subcollection registrations (dùng chung với toggleRoomRegistration)
+        await db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).set({
+            studentCode,
+            studentName: localStorage.getItem('studentName') || studentCode,
+            registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+            inWaitingRoom: false
         });
-        showToast("Đăng ký thành công!");
+        // Cũng ghi vào registeredUsers array để hiển thị số lượng
+        await db.collection('examRooms').doc(roomId).update({
+            registeredUsers: firebase.firestore.FieldValue.arrayUnion(studentCode)
+        });
+        // Cập nhật lại giao diện
+        if (_activeRoom) focusAndEnterRoom(roomId);
     } catch (e) {
-        showToast("Lỗi đăng ký: " + e.message, "error");
+        alert("Lỗi đăng ký: " + e.message);
     }
 }
 
@@ -1992,10 +2003,11 @@ function goToExam(setCode) {
 }
 
 function closeRoomDetail() {
-    document.getElementById('roomDetailModal').style.display = 'none';
-    if (_currentRoomSub) _currentRoomSub();
-    if (_currentPresenceSub) _currentPresenceSub();
-    if (_autoEnterTimer) clearTimeout(_autoEnterTimer);
+    const modal = document.getElementById('roomDetailModal');
+    if (modal) { modal.style.display = 'none'; modal.style.pointerEvents = 'none'; }
+    if (_currentRoomSub) { try { _currentRoomSub(); } catch(_){} _currentRoomSub = null; }
+    if (_currentPresenceSub) { try { _currentPresenceSub(); } catch(_){} _currentPresenceSub = null; }
+    if (_autoEnterTimer) { clearTimeout(_autoEnterTimer); _autoEnterTimer = null; }
 }
 function _checkEligibility(room) {
   if (!room.eligibility || room.eligibility.type === 'all') return true;
@@ -2486,7 +2498,12 @@ async function saveProfileUpdates() {
     }
   });
 })();
-<div style="padding:25px 20px; background:linear-gradient(135deg,#1d3557,#264a8a); color:white; text-align:center;">
+</script>
+
+<!-- MODAL CHI TIẾT PHÒNG THI -->
+<div id="roomDetailModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:8000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.4);">
+    <div style="padding:25px 20px; background:linear-gradient(135deg,#1d3557,#264a8a); color:white; text-align:center;">
         <h3 id="md_roomTitle" style="margin:0; font-size:20px; letter-spacing:0.5px;">Tên phòng thi</h3>
         <div id="md_roomTime" style="margin-top:8px; font-size:13px; background:rgba(255,255,255,0.15); display:inline-block; padding:4px 12px; border-radius:20px;">
             🕒 Giờ bắt đầu: --:--
@@ -2523,7 +2540,8 @@ async function saveProfileUpdates() {
     <button onclick="closeRoomDetail()" style="width:100%; padding:15px; border:none; background:#f8f9fa; color:#666; font-weight:600; cursor:pointer; border-top:1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f1f3f5'" onmouseout="this.style.background='#f8f9fa'">
         Đóng cửa sổ
     </button>
-</div>
-</script>
+  </div>
+</div><!-- /roomDetailModal -->
+
 </body>
 </html>
