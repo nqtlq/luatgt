@@ -5303,7 +5303,6 @@ function showCreateRoomModal(roomId = null) {
     }
     modal.style.display = 'flex';
 }
-function closeRoomModal() { document.getElementById('createRoomModal').style.display = 'none'; }
 
 function refreshRooms() {
   showToast('Đang làm mới danh sách phòng thi...','info',1500);
@@ -5422,29 +5421,8 @@ async function saveRoom() {
     }
 }
 function editRoom(id) {
-
-  const r = _allRooms.find(x=>x.id===id); if(!r) return;
-
-  showCreateRoomModal();
-
-  document.getElementById('editRoomId').value = id;
-
-  document.getElementById('roomModalTitle').textContent = '✏️ Sửa phòng thi';
-
-  document.getElementById('roomTitleInput').value = r.title||'';
-
-  document.getElementById('roomLateInput').value  = r.lateEntryMinutes||0;
-
-  document.getElementById('roomRulesInput').value = r.rules||'';
-
-  if(r.startAt?.toDate) document.getElementById('roomStartInput').value = r.startAt.toDate().toISOString().slice(0,16);
-
-  if(r.endAt?.toDate)   document.getElementById('roomEndInput').value   = r.endAt.toDate().toISOString().slice(0,16);
-
-  if(r.setCode) document.getElementById('roomSetSelect').value = r.setCode;
-
-  if(r.eligibility) { document.getElementById('roomEligType').value=r.eligibility.type||'all'; toggleEligFields(); document.getElementById('roomEligValues').value=(r.eligibility.values||[]).join('\n'); }
-
+  // Delegate entirely to showCreateRoomModal which handles both create & edit
+  showCreateRoomModal(id);
 }
 
 async function openRoomNow(id) { if(!confirm('Mở phòng thi ngay?'))return; await db.collection('examRooms').doc(id).update({status:'open',openedAt:firebase.firestore.FieldValue.serverTimestamp()}); }
@@ -11275,38 +11253,6 @@ function parseDateVN(str) {
     return isNaN(d) ? null : d;
 
 }
-
-function getResultDateFrom() { return null; } // legacy stub
-
-function getResultDateTo()   { return null; } // legacy stub
-
-function parseDateTimeVN() {
-
-  const dateStr = document.getElementById('schedDate')?.value || '';
-
-  const timeStr = document.getElementById('schedTime')?.value || '08:00';
-
-  const dp = dateStr.split('/');
-
-  if (dp.length !== 3 || dp[2].length !== 4) return null;
-
-  const [dd, mm, yyyy] = dp.map(Number);
-
-  const tp = timeStr.split(':');
-
-  const hh = parseInt(tp[0]) || 0;
-
-  const min = parseInt(tp[1]) || 0;
-
-  const dt = new Date(yyyy, mm-1, dd, hh, min, 0, 0);
-
-  return isNaN(dt.getTime()) ? null : dt;
-
-}
-
-function getResultDateFrom() { return getDate3('resultFrom'); }
-
-function getResultDateTo()   { return getDate3('resultTo'); }
 
 // ── Preview lịch gửi thông báo ──────────────────────────
 
