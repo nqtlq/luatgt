@@ -5445,8 +5445,9 @@ function switchRoomTab(tab, btn) {
 // GIÁM SÁT PHÒNG THI INLINE (Tab Giám sát)
 // =========================================================
 let _monRoomId = null, _monRoomData = null;
-let _monUnsubPresence = null, _monUnsubResults = null;
-let _monAllStudents = [], _monFilteredStudents = [], _monRegistrations = {}, _monResultsMap = {};
+let _monUnsubPresence = null, _monUnsubResults = null, _monUnsubRoom = null;
+let _monAllStudents = [], _monFilteredStudents = [], _monRegistrations = {}, _monResultsMap = {}, _monPresenceMap = {};
+
 
 function enterRoomMonitor(roomId) {
     _monRoomId = roomId;
@@ -5458,7 +5459,24 @@ function enterRoomMonitor(roomId) {
     const panel  = document.getElementById('monitorPanel');
     if (noRoom) noRoom.style.display = 'none';
     if (panel)  panel.style.display  = '';
-    // Tải dữ liệu phòng
+    // Dừng listener cũ nếu có
+    if (_monUnsubPresence) { _monUnsubPresence(); _monUnsubPresence = null; }
+    if (_monUnsubResults)  { _monUnsubResults();  _monUnsubResults  = null; }
+    if (_monUnsubRoom)     { _monUnsubRoom();     _monUnsubRoom     = null; }
+    // Listener real-time cho document phòng thi
+    _monUnsubRoom = db.collection('examRooms').doc(roomId).onSnapshot(snap => {
+        if (!snap.exists) return;
+        _monRoomData = { id: snap.id, ...snap.data() };
+        _updateMonitorHeader();
+    }, () => {
+        db.collection('examRooms').doc(roomId).get().then(snap => {
+            if (!snap.exists) return;
+            _monRoomData = { id: snap.id, ...snap.data() };
+            _updateMonitorHeader();
+            _monStartListening();
+        });
+    });
+    // Tải dữ liệu phòng lần đầu
     db.collection('examRooms').doc(roomId).get().then(snap => {
         if (!snap.exists) return;
         _monRoomData = { id: snap.id, ...snap.data() };
@@ -5486,61 +5504,87 @@ function _monStartListening() {
     if (_monUnsubResults)  { _monUnsubResults();  _monUnsubResults  = null; }
     _monRegistrations = {};
     _monResultsMap    = {};
-    // Lắng nghe đăng ký
+
+    // Tải danh sách đăng ký trước
     db.collection('examRooms').doc(_monRoomId).collection('registrations').get().then(snap => {
-        snap.forEach(d => { _monRegistrations[d.id] = d.data(); });
-    });
-    // Lắng nghe presence
-    _monUnsubPresence = db.collection('examRooms').doc(_monRoomId).collection('presence')
-        .onSnapshot(snap => {
-            _monAllStudents = [];
-            snap.forEach(d => {
-                const data = d.data();
-                _monAllStudents.push({
-                    code: d.id,
-                    name: data.name || _monRegistrations[d.id]?.name || d.id,
-                    status: data.status || 'registered',
-                    progress: data.progress || null
-                });
-            });
-            // Thêm HV đăng ký nhưng chưa vào
-            Object.keys(_monRegistrations).forEach(code => {
-                if (!_monAllStudents.find(s => s.code === code)) {
-                    _monAllStudents.push({
-                        code, name: _monRegistrations[code].name || code,
-                        status: 'registered', progress: null
-                    });
-                }
-            });
-            _mergeMonitorScores();
-            document.getElementById('monitorLastUpdate').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
+        snap.forEach(d => { _monRegistrations[d.id] = { code: d.id, ...d.data() }; });
+        _buildMonitorStudents();
+    }).catch(()=>{});
+
+    // Lắng nghe presence từ ROOT collection (đây là nơi test.html ghi dữ liệu)
+    // Lọc client-side theo examRoomId hoặc đăng ký
+    _monUnsubPresence = db.collection('presence').onSnapshot(snap => {
+        _monPresenceMap = {};
+        snap.forEach(d => {
+            const data = d.data();
+            if (data.examRoomId === _monRoomId || _monRegistrations[d.id]) {
+                _monPresenceMap[d.id] = { code: d.id, ...data };
+            }
         });
-    // Lắng nghe kết quả nộp bài
+        _buildMonitorStudents();
+    }, () => {});
+
+    // Lắng nghe kết quả nộp bài — field đúng là examRoomId
     _monUnsubResults = db.collection('examResults')
-        .where('roomId', '==', _monRoomId)
+        .where('examRoomId', '==', _monRoomId)
         .onSnapshot(snap => {
             _monResultsMap = {};
             snap.forEach(d => {
                 const data = d.data();
-                _monResultsMap[data.studentCode] = data;
+                const code = data.studentCode;
+                const ts = data.timestamp?.toMillis?.() || 0;
+                if (!_monResultsMap[code] || ts > (_monResultsMap[code]._ts||0)) {
+                    _monResultsMap[code] = { id: d.id, _ts: ts, ...data };
+                }
             });
-            _mergeMonitorScores();
-        });
+            _buildMonitorStudents();
+        }, () => {});
 }
 
-function _mergeMonitorScores() {
-    _monAllStudents.forEach(s => {
-        const res = _monResultsMap[s.code];
-        if (res) {
-            s.score  = res.correctAnswers ?? res.score ?? null;
-            s.passed = res.passed;
-            s.total  = res.totalQuestions || 0;
-            if (s.status !== 'submitted') s.status = 'submitted';
-        } else {
-            s.score  = null;
-            s.passed = null;
+function _buildMonitorStudents() {
+    const allCodes = new Set([
+        ...Object.keys(_monRegistrations),
+        ...Object.keys(_monPresenceMap),
+        ...Object.keys(_monResultsMap)
+    ]);
+
+    _monAllStudents = [];
+    allCodes.forEach(code => {
+        const reg      = _monRegistrations[code];
+        const presence = _monPresenceMap[code];
+        const result   = _monResultsMap[code];
+        const name = result?.studentName || presence?.studentName || reg?.studentName || reg?.name || code;
+
+        let status = 'registered';
+        let progress = null;
+        let score = null, passed = null, total = 0;
+
+        if (result) {
+            status  = 'submitted';
+            score   = result.score ?? result.correctCount ?? result.correctAnswers ?? null;
+            passed  = result.passed ?? null;
+            total   = result.totalQuestions || 0;
+            progress = total ? { done: total, total } : null;
+        } else if (presence?.isOnline && presence.currentSection !== 'Đã thoát') {
+            const sec = presence.currentSection || '';
+            if (sec === 'Đang thi' || presence.examStartTime) {
+                status = 'doing';
+                const ans = presence.answeredCount ?? null;
+                const tot = presence.totalQuestions ?? null;
+                if (ans !== null) progress = { done: ans, total: tot || '?' };
+            } else if (sec === 'Phòng chờ' || sec) {
+                status = 'waiting';
+            }
         }
+
+        _monAllStudents.push({ code, name, status, progress, score, passed, total });
     });
+
+    const sortOrd = { submitted:0, doing:1, waiting:2, registered:3, absent:4 };
+    _monAllStudents.sort((a,b) => (sortOrd[a.status]||3) - (sortOrd[b.status]||3));
+
+    const lu = document.getElementById('monitorLastUpdate');
+    if (lu) lu.textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
     _updateMonStats();
     filterMonitor();
 }
@@ -5638,8 +5682,9 @@ function _renderMonTable() {
 function stopMonitor() {
     if (_monUnsubPresence) { _monUnsubPresence(); _monUnsubPresence = null; }
     if (_monUnsubResults)  { _monUnsubResults();  _monUnsubResults  = null; }
+    if (_monUnsubRoom)     { _monUnsubRoom();     _monUnsubRoom     = null; }
     _monRoomId = null; _monRoomData = null;
-    _monAllStudents = []; _monFilteredStudents = [];
+    _monAllStudents = []; _monFilteredStudents = []; _monPresenceMap = {}; _monResultsMap = {};
     const noRoom = document.getElementById('monitorNoRoom');
     const panel  = document.getElementById('monitorPanel');
     if (noRoom) noRoom.style.display = '';
@@ -5789,7 +5834,8 @@ function _renderRoomList(rooms) {
         ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng phòng</button>`:''}
 
         <button onclick="sendWarnToRoom('${r.id}')" style="padding:8px 16px;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)33;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;">🚨 Cảnh báo</button>
-        <button onclick="enterRoomMonitor('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#6610f2,#520dc2);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(102,16,242,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">👁 Vào phòng</button>
+        <button onclick="enterRoomMonitor('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#6610f2,#520dc2);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(102,16,242,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">👁 Giám sát</button>
+        <button onclick="enterRoomInvigilate('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#0d6efd,#0856d6);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(13,110,253,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🎓 Coi thi</button>
         <button onclick="deleteRoom('${r.id}')" style="padding:8px 16px;background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-secondary)'">🗑 Xóa</button>
 
       </div>
