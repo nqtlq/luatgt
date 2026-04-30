@@ -65,6 +65,8 @@
     --danger-light: rgba(220,53,69,0.15);
     --warning-light: rgba(255,193,7,0.15);
 }
+    /* Giám thị - pulse animation cho đang thi */
+@keyframes invigPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
     /* ===== QUẢN LÝ ĐỀ THI ===== */
     #question_sets table { table-layout: auto; min-width: unset; }
     #question_sets table th,
@@ -4024,7 +4026,89 @@ D. Đáp án D
       </div><!-- /roomTabPanel_results -->
 
     </div><!-- /exam_rooms -->
+<!-- ===== MODAL GIÁM THỊ PHÒNG THI ===== -->
+    <div id="invigModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);overflow-y:auto;">
+      <div style="min-height:100vh;display:flex;flex-direction:column;padding:20px;gap:0;">
 
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0f1729,#1a2744,#1e3a5f);border-radius:16px 16px 0 0;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="color:rgba(255,255,255,.65);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">👁 CHẾ ĐỘ GIÁM THỊ</div>
+            <div id="invigRoomTitle" style="color:white;font-size:20px;font-weight:800;">Phòng thi</div>
+            <div id="invigRoomInfo" style="color:rgba(255,255,255,.72);font-size:13px;margin-top:4px;"></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div id="invigStatusBadge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;"></div>
+            <button onclick="closeRoomInvigilate()" style="background:rgba(220,53,69,.9);border:none;color:white;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">✕ Đóng</button>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div style="background:var(--bg-card);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:14px 24px;display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+          <div style="display:flex;gap:24px;flex-wrap:wrap;flex:1;">
+            <div style="text-align:center;min-width:80px;padding:4px 0;">
+              <div id="invigStatReg" style="font-size:24px;font-weight:800;color:var(--accent);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Đã đăng ký</div>
+            </div>
+            <div style="text-align:center;min-width:80px;padding:4px 0;">
+              <div id="invigStatWaiting" style="font-size:24px;font-weight:800;color:#f59e0b;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Phòng chờ</div>
+            </div>
+            <div style="text-align:center;min-width:80px;padding:4px 0;">
+              <div id="invigStatDoing" style="font-size:24px;font-weight:800;color:var(--success);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Đang làm bài</div>
+            </div>
+            <div style="text-align:center;min-width:80px;padding:4px 0;">
+              <div id="invigStatSubmitted" style="font-size:24px;font-weight:800;color:#6610f2;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Đã nộp</div>
+            </div>
+            <div style="text-align:center;min-width:80px;padding:4px 0;">
+              <div id="invigStatAbsent" style="font-size:24px;font-weight:800;color:var(--text-muted);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Vắng</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;">
+            <span style="font-size:12px;color:var(--text-muted);">🔴 Realtime · <b id="invigLastUpdate">—</b></span>
+            <button onclick="refreshInvigilate()" style="padding:7px 14px;background:var(--accent-light);color:var(--accent);border:1px solid rgba(13,110,253,.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🔄 Làm mới</button>
+            <button onclick="exportInvigilateExcel()" style="padding:7px 14px;background:var(--success-light);color:var(--success);border:1px solid rgba(25,135,84,.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📥 Xuất Excel</button>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div style="background:var(--bg-card);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <input type="text" id="invigSearch" placeholder="🔍 Tìm họ tên, mã HV..." oninput="filterInvigilate()" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+          <select id="invigStatusFilter" onchange="filterInvigilate()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+            <option value="">Tất cả trạng thái</option>
+            <option value="registered">📋 Đã đăng ký</option>
+            <option value="waiting">⏳ Phòng chờ</option>
+            <option value="doing">✍ Đang làm bài</option>
+            <option value="submitted">✅ Đã nộp bài</option>
+            <option value="absent">❌ Vắng</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:0 0 16px 16px;overflow-x:auto;flex:1;">
+          <table style="width:100%;border-collapse:collapse;min-width:680px;">
+            <thead>
+              <tr style="background:var(--bg-table-head);">
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:44px;">#</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:100px;">Mã HV</th>
+                <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);">Họ và tên</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:150px;">Trạng thái</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:170px;">Tiến độ làm bài</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:150px;">Kết quả</th>
+              </tr>
+            </thead>
+            <tbody id="invigTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">⏳ Đang tải dữ liệu...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+    <!-- /MODAL GIÁM THỊ -->
     <!-- Modal tạo/sửa phòng -->
 
     <div id="roomModal" class="modal" style="display:none;">
@@ -5358,7 +5442,7 @@ function _renderRoomList(rooms) {
         ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng phòng</button>`:''}
 
         <button onclick="sendWarnToRoom('${r.id}')" style="padding:8px 16px;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)33;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;">🚨 Cảnh báo</button>
-
+        <button onclick="enterRoomInvigilate('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#6610f2,#520dc2);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(102,16,242,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">👁 Vào phòng</button>
         <button onclick="deleteRoom('${r.id}')" style="padding:8px 16px;background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-secondary)'">🗑 Xóa</button>
 
       </div>
@@ -13712,6 +13796,277 @@ function exportSessionResultsExcel() {
     } else {
         showToast('Thư viện XLSX chưa được tải!', 'error');
     }
+}
+// =====================================================================
+// GIÁM THỊ PHÒNG THI — INVIGILATE
+// =====================================================================
+let _invigRoomId = null;
+let _invigRoomData = null;
+let _invigAllStudents = [];
+let _invigFilteredStudents = [];
+let _invigUnsubPresence = null;
+let _invigUnsubResults = null;
+let _invigPresenceMap = {};
+let _invigResultsMap = {};
+let _invigRegistrations = {};
+
+async function enterRoomInvigilate(roomId) {
+    _invigRoomId = roomId;
+    _invigRegistrations = {};
+    _invigPresenceMap = {};
+    _invigResultsMap = {};
+    _invigAllStudents = [];
+    _invigFilteredStudents = [];
+
+    const modal = document.getElementById('invigModal');
+    if (!modal) return;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Reset search/filter
+    const srch = document.getElementById('invigSearch'); if(srch) srch.value = '';
+    const filt = document.getElementById('invigStatusFilter'); if(filt) filt.value = '';
+
+    // Load room info
+    try {
+        const roomDoc = await db.collection('examRooms').doc(roomId).get();
+        _invigRoomData = roomDoc.exists ? { id: roomDoc.id, ...roomDoc.data() } : null;
+    } catch(e) { _invigRoomData = null; }
+
+    const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    if (_invigRoomData) {
+        const el1 = document.getElementById('invigRoomTitle');
+        const el2 = document.getElementById('invigRoomInfo');
+        const el3 = document.getElementById('invigStatusBadge');
+        if(el1) el1.textContent = '👁 ' + (_invigRoomData.title || 'Phòng thi');
+        if(el2) el2.innerHTML = `📄 ${escapeHtml(_invigRoomData.setName||_invigRoomData.setCode||'—')} &nbsp;·&nbsp; ⏰ ${fmt(_invigRoomData.startAt)} → ${fmt(_invigRoomData.endAt)}`;
+        if(el3) {
+            const sm = {scheduled:'⏳ Sắp diễn ra', open:'🟢 Đang mở', closed:'🔴 Đã kết thúc'};
+            el3.textContent = sm[_invigRoomData.status] || _invigRoomData.status;
+        }
+    }
+    document.getElementById('invigLastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
+
+    // Load registrations
+    try {
+        const regSnap = await db.collection('examRooms').doc(roomId).collection('registrations').get();
+        regSnap.forEach(d => { _invigRegistrations[d.id] = { code: d.id, ...d.data() }; });
+    } catch(e) { console.warn('Invigilate reg:', e.code); }
+
+    _renderInvigilateTable();
+    _startInvigilateListeners();
+}
+
+function _startInvigilateListeners() {
+    if (!_invigRoomId || !db) return;
+    if (_invigUnsubPresence) { _invigUnsubPresence(); _invigUnsubPresence = null; }
+    if (_invigUnsubResults)  { _invigUnsubResults();  _invigUnsubResults  = null; }
+
+    // Presence listener — lọc client-side theo phòng hoặc theo đăng ký
+    _invigUnsubPresence = db.collection('presence').onSnapshot(snap => {
+        _invigPresenceMap = {};
+        snap.forEach(d => {
+            const data = d.data();
+            if (data.examRoomId === _invigRoomId || _invigRegistrations[d.id]) {
+                _invigPresenceMap[d.id] = { code: d.id, ...data };
+            }
+        });
+        _buildInvigilateStudents();
+    }, () => {});
+
+    // Results listener — theo phòng thi
+    _invigUnsubResults = db.collection('examResults')
+        .where('examRoomId', '==', _invigRoomId)
+        .onSnapshot(snap => {
+            _invigResultsMap = {};
+            snap.forEach(d => {
+                const data = d.data();
+                const code = data.studentCode;
+                const ts = data.timestamp?.toMillis?.() || 0;
+                if (!_invigResultsMap[code] || ts > (_invigResultsMap[code]._ts||0)) {
+                    _invigResultsMap[code] = { id: d.id, _ts: ts, ...data };
+                }
+            });
+            _buildInvigilateStudents();
+        }, () => {});
+}
+
+function _buildInvigilateStudents() {
+    const allCodes = new Set([
+        ...Object.keys(_invigRegistrations),
+        ...Object.keys(_invigPresenceMap),
+        ...Object.keys(_invigResultsMap)
+    ]);
+
+    _invigAllStudents = [];
+    allCodes.forEach(code => {
+        const reg      = _invigRegistrations[code];
+        const presence = _invigPresenceMap[code];
+        const result   = _invigResultsMap[code];
+        const name = result?.studentName || presence?.studentName || reg?.studentName || reg?.name || code;
+
+        let status = 'registered';
+        let progress = null;
+        let score = null, passed = null;
+
+        if (result) {
+            status   = 'submitted';
+            score    = result.score ?? result.correctCount ?? null;
+            passed   = result.passed ?? null;
+            const t  = result.totalQuestions || 0;
+            progress = t ? { done: t, total: t } : null;
+        } else if (presence?.isOnline && presence.currentSection !== 'Đã thoát') {
+            const sec = presence.currentSection || '';
+            if (sec === 'Đang thi' || presence.examStartTime) {
+                status = 'doing';
+                const ans = presence.answeredCount ?? null;
+                const tot = presence.totalQuestions ?? null;
+                if (ans !== null) progress = { done: ans, total: tot || '?' };
+            } else if (sec) {
+                status = 'waiting';
+            }
+        }
+
+        _invigAllStudents.push({ code, name, status, progress, score, passed });
+    });
+
+    const sortOrd = { submitted:0, doing:1, waiting:2, registered:3, absent:4 };
+    _invigAllStudents.sort((a,b) => (sortOrd[a.status]||3) - (sortOrd[b.status]||3));
+
+    document.getElementById('invigLastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
+    _updateInvigilateStats();
+    filterInvigilate();
+}
+
+function _updateInvigilateStats() {
+    const c = { registered:0, waiting:0, doing:0, submitted:0 };
+    _invigAllStudents.forEach(s => { if(c[s.status]!==undefined) c[s.status]++; });
+    const totalReg = Object.keys(_invigRegistrations).length;
+    const absent   = Math.max(0, totalReg - c.waiting - c.doing - c.submitted);
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('invigStatReg',       totalReg);
+    set('invigStatWaiting',   c.waiting);
+    set('invigStatDoing',     c.doing);
+    set('invigStatSubmitted', c.submitted);
+    set('invigStatAbsent',    absent);
+}
+
+function filterInvigilate() {
+    const q  = (document.getElementById('invigSearch')?.value||'').toLowerCase().trim();
+    const st = document.getElementById('invigStatusFilter')?.value||'';
+    _invigFilteredStudents = _invigAllStudents.filter(s => {
+        const mq  = !q  || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q);
+        const mst = !st || s.status === st;
+        return mq && mst;
+    });
+    _renderInvigilateTable();
+}
+
+function _renderInvigilateTable() {
+    const tbody = document.getElementById('invigTableBody');
+    if (!tbody) return;
+    const students = _invigFilteredStudents;
+
+    const total = _invigAllStudents.length;
+    if (!total) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">
+            ${Object.keys(_invigRegistrations).length === 0
+                ? '<div style="font-size:48px;margin-bottom:12px;">📭</div><div>Chưa có học viên đăng ký phòng thi này</div>'
+                : '<div>⏳ Đang chờ học viên tham gia...</div>'
+            }</td></tr>`;
+        return;
+    }
+    if (!students.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
+        return;
+    }
+
+    const statusBadge = {
+        registered: `<span style="background:#e9ecef;color:#495057;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📋 Đã đăng ký</span>`,
+        waiting:    `<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">⏳ Phòng chờ</span>`,
+        doing:      `<span style="background:#d1e7dd;color:#0a6640;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;animation:invigPulse 2s infinite;">✍ Đang làm bài</span>`,
+        submitted:  `<span style="background:#cff4fc;color:#055160;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ Đã nộp bài</span>`,
+        absent:     `<span style="background:#f8d7da;color:#842029;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">❌ Vắng</span>`
+    };
+
+    tbody.innerHTML = students.map((s, i) => {
+        // Progress cell
+        let progHtml = `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+        if (s.status === 'submitted') {
+            progHtml = `<span style="font-size:12px;color:#6610f2;font-weight:700;">✅ Hoàn thành</span>`;
+        } else if (s.progress) {
+            const pct = s.progress.total && s.progress.total !== '?'
+                ? Math.round(s.progress.done * 100 / s.progress.total) : null;
+            const color = s.status === 'doing' ? 'var(--success)' : 'var(--accent)';
+            progHtml = `<div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                <div style="width:80px;height:7px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0;">
+                    <div style="height:100%;width:${pct||0}%;background:${color};border-radius:4px;"></div>
+                </div>
+                <span style="font-size:11px;font-weight:700;color:var(--text-secondary);white-space:nowrap;">${s.progress.done}/${s.progress.total}${pct!==null?' ('+pct+'%)':''}</span>
+            </div>`;
+        }
+
+        // Score cell
+        let scoreHtml = `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+        if (s.score !== null && s.score !== undefined) {
+            const res  = _invigResultsMap[s.code];
+            const tot  = res?.totalQuestions || 0;
+            const pct  = tot ? Math.round(s.score * 100 / tot) : 0;
+            const col  = s.passed ? 'var(--success)' : 'var(--danger)';
+            const lbl  = s.passed ? '✅ ĐẠT' : '❌ KHÔNG ĐẠT';
+            scoreHtml = `<div style="text-align:center;">
+                <div style="font-weight:800;color:${col};font-size:15px;">${s.score}${tot?'/'+tot:''}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${pct}% · ${lbl}</div>
+            </div>`;
+        }
+
+        const rowBg = s.status === 'doing' ? 'rgba(25,135,84,.04)' : s.status === 'submitted' ? 'rgba(102,16,242,.03)' : '';
+        return `<tr style="border-bottom:1px solid var(--border-light);background:${rowBg};transition:background .15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='${rowBg}'">
+            <td style="text-align:center;padding:12px 14px;color:var(--text-muted);font-size:13px;">${i+1}</td>
+            <td style="text-align:center;padding:12px 14px;font-weight:700;font-size:12px;font-family:monospace;color:var(--text-primary);">${escapeHtml(s.code)}</td>
+            <td style="padding:12px 14px;font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(s.name)}</td>
+            <td style="text-align:center;padding:12px 14px;">${statusBadge[s.status]||statusBadge.registered}</td>
+            <td style="padding:12px 14px;">${progHtml}</td>
+            <td style="padding:12px 14px;">${scoreHtml}</td>
+        </tr>`;
+    }).join('');
+}
+
+function closeRoomInvigilate() {
+    if (_invigUnsubPresence) { _invigUnsubPresence(); _invigUnsubPresence = null; }
+    if (_invigUnsubResults)  { _invigUnsubResults();  _invigUnsubResults  = null; }
+    const modal = document.getElementById('invigModal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    _invigRoomId = null;
+}
+
+function refreshInvigilate() {
+    if (_invigRoomId) enterRoomInvigilate(_invigRoomId);
+}
+
+function exportInvigilateExcel() {
+    if (!_invigAllStudents.length) { showToast('Chưa có dữ liệu!', 'warning'); return; }
+    if (typeof XLSX === 'undefined') { showToast('Thư viện XLSX chưa tải!', 'error'); return; }
+    const stLbl = { registered:'Đã đăng ký', waiting:'Phòng chờ', doing:'Đang làm bài', submitted:'Đã nộp bài', absent:'Vắng' };
+    const rows  = [['#','Mã HV','Họ và tên','Trạng thái','Tiến độ','Điểm','Kết quả']];
+    _invigAllStudents.forEach((s,i) => {
+        const res = _invigResultsMap[s.code];
+        const tot = res?.totalQuestions||0;
+        const pct = tot && s.score!==null ? Math.round(s.score*100/tot)+'%' : '—';
+        rows.push([
+            i+1, s.code, s.name,
+            stLbl[s.status]||s.status,
+            s.progress ? `${s.progress.done}/${s.progress.total}` : (s.status==='submitted'?'Hoàn thành':'—'),
+            s.score!==null&&s.score!==undefined ? `${s.score}${tot?'/'+tot:''}` : '—',
+            s.score!==null ? (s.passed?'ĐẠT':'KHÔNG ĐẠT') : '—'
+        ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Giám thị');
+    XLSX.writeFile(wb, `giam_thi_${(_invigRoomData?.title||'phong_thi').replace(/\s+/g,'_')}_${Date.now()}.xlsx`);
+    showToast('Đã xuất Excel!', 'success');
 }
 </script>
 </body>
