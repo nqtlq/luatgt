@@ -1162,14 +1162,6 @@ const LIVE_MONITOR_CSS = `
 
             </button>
 
-            <button onclick="showPage('session_results',this)">
-
-                <span class="menu-icon">🏆</span>
-
-                <span class="menu-text">Tổng hợp buổi thi</span>
-
-            </button>
-
             <button onclick="showPage('notifications',this)">
 
                 <span class="menu-icon">🔔</span>
@@ -3846,87 +3838,6 @@ D. Đáp án D
 
     </div>
 
-    <!-- ========== SESSION RESULTS PAGE ========== -->
-
-    <div id="session_results" class="page">
-
-      <div class="page-header">
-        <h2>🏆 Tổng hợp kết quả buổi thi</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-secondary" onclick="loadSessionResults()" style="display:flex;align-items:center;gap:6px;">🔄 Làm mới</button>
-          <button class="btn btn-primary" onclick="exportSessionResultsExcel()" style="display:flex;align-items:center;gap:6px;">📥 Xuất Excel</button>
-        </div>
-      </div>
-
-      <!-- Chọn phòng thi -->
-      <div class="box" style="margin-bottom:16px;">
-        <h3>🏫 Chọn buổi thi để xem kết quả</h3>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          <select id="sessionRoomSelect" style="flex:1;min-width:240px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg-input);color:var(--text-primary);" onchange="onSessionRoomChange()">
-            <option value="">-- Chọn phòng thi --</option>
-          </select>
-          <input type="text" id="sessionStudentSearch" placeholder="🔍 Tìm tên/mã học viên..." style="flex:2;min-width:180px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" oninput="filterSessionResults()">
-          <select id="sessionStatusFilter" style="flex:1;min-width:150px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" onchange="filterSessionResults()">
-            <option value="all">Tất cả</option>
-            <option value="pass">✅ Đạt</option>
-            <option value="fail">❌ Không đạt</option>
-            <option value="absent">⚠ Vắng/Chưa nộp</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Thống kê tổng quan buổi thi -->
-      <div id="sessionSummaryBox" style="display:none;" class="box" style="margin-bottom:16px;">
-        <h3 id="sessionSummaryTitle">📊 Tổng quan buổi thi</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:16px;">
-          <div class="miniStatBox" style="border-left:4px solid var(--accent);">
-            <div class="label">Đã đăng ký</div><div class="value" id="sess_reg">0</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid var(--success);">
-            <div class="label">Đã nộp bài</div><div class="value" id="sess_submitted">0</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid var(--success);">
-            <div class="label">Đạt</div><div class="value" id="sess_pass">0</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid var(--danger);">
-            <div class="label">Không đạt</div><div class="value" id="sess_fail">0</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid var(--warning);">
-            <div class="label">Vắng/Chưa nộp</div><div class="value" id="sess_absent">0</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid var(--info);">
-            <div class="label">Điểm TB</div><div class="value" id="sess_avg">—</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid #7c3aed;">
-            <div class="label">Điểm cao nhất</div><div class="value" id="sess_max">—</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid #db2777;">
-            <div class="label">Điểm thấp nhất</div><div class="value" id="sess_min">—</div>
-          </div>
-          <div class="miniStatBox" style="border-left:4px solid #0891b2;">
-            <div class="label">TG làm TB</div><div class="value" id="sess_avg_time">—</div>
-          </div>
-        </div>
-        <!-- Biểu đồ phân bố điểm -->
-        <div style="margin-top:16px;">
-          <h4 style="margin-bottom:10px;font-size:13px;color:var(--text-muted);">📊 Phân bố điểm thi</h4>
-          <div style="height:180px;position:relative;"><canvas id="sessScoreChart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Bảng kết quả chi tiết từng thí sinh -->
-      <div class="box">
-        <h3>📋 Kết quả chi tiết từng thí sinh</h3>
-        <div id="sessionResultsWrap">
-          <div style="text-align:center;padding:50px;color:var(--text-muted);">
-            👆 Hãy chọn một buổi thi để xem kết quả
-          </div>
-        </div>
-        <div id="sessionResultsPagination" class="pagination" style="margin-top:12px;"></div>
-      </div>
-
-    </div>
-
     <!-- ========== STATS PAGE ========== -->
 
     <div id="stats" class="page">
@@ -3997,11 +3908,10 @@ D. Đáp án D
 
     <div id="exam_rooms" class="page">
 
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-
+      <!-- Tiêu đề trang -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <h2 style="font-size:20px;font-weight:800;color:var(--text-primary);">🏫 Phòng thi Online</h2>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="roomActionsBar">
 
           <button onclick="refreshRooms()" style="padding:10px 16px;background:var(--bg-hover);color:var(--text-primary);border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='var(--bg-hover)'">🔄 Làm mới</button>
 
@@ -4011,21 +3921,109 @@ D. Đáp án D
 
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
-
-        <div class="dash-card"><div style="font-size:22px;font-weight:800;color:var(--primary);" id="rStatTotal">0</div><div style="font-size:12px;color:var(--text-secondary);">Tổng phòng</div></div>
-
-        <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#2a9d8f;" id="rStatOpen">0</div><div style="font-size:12px;color:var(--text-secondary);">Đang mở</div></div>
-
-        <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#e76f51;" id="rStatSched">0</div><div style="font-size:12px;color:var(--text-secondary);">Sắp diễn ra</div></div>
-
-        <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#888;" id="rStatClosed">0</div><div style="font-size:12px;color:var(--text-secondary);">Đã kết thúc</div></div>
-
       </div>
 
-      <div id="roomList"><div style="text-align:center;padding:40px;color:#888;">⏳ Đang tải...</div></div>
+      </div><!-- /roomActionsBar -->
+      </div><!-- /page header flex -->
 
-    </div>
+      <!-- Tab navigation -->
+      <div class="image-tabs" style="margin-bottom:18px;border-radius:10px 10px 0 0;overflow:hidden;">
+        <button class="img-tab active" id="roomTab_list" onclick="switchRoomTab('list',this)">
+          🏠 Danh sách phòng thi
+        </button>
+        <button class="img-tab" id="roomTab_results" onclick="switchRoomTab('results',this)">
+          🏆 Tổng hợp kết quả
+        </button>
+      </div>
+
+      <!-- Tab 1: Danh sách phòng thi -->
+      <div id="roomTabPanel_list" class="img-tab-content active">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+          <div class="dash-card"><div style="font-size:22px;font-weight:800;color:var(--primary);" id="rStatTotal">0</div><div style="font-size:12px;color:var(--text-secondary);">Tổng phòng</div></div>
+          <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#2a9d8f;" id="rStatOpen">0</div><div style="font-size:12px;color:var(--text-secondary);">Đang mở</div></div>
+          <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#e76f51;" id="rStatSched">0</div><div style="font-size:12px;color:var(--text-secondary);">Sắp diển ra</div></div>
+          <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#888;" id="rStatClosed">0</div><div style="font-size:12px;color:var(--text-secondary);">Đã kết thúc</div></div>
+        </div>
+        <div id="roomList"><div style="text-align:center;padding:40px;color:#888;">⏳ Đang tải...</div></div>
+      </div><!-- /roomTabPanel_list -->
+
+      <!-- Tab 2: Tổng hợp kết quả -->
+      <div id="roomTabPanel_results" class="img-tab-content" style="display:none;">
+        <!-- Nội dung sẽ được render bởi renderSessionResultsTab() -->
+        <div id="sessionResultsTabInner">
+          <!-- Chọn phòng thi -->
+          <div class="box" style="margin-bottom:16px;">
+            <h3>🏫 Chọn buổi thi để xem kết quả</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <select id="sessionRoomSelect" style="flex:2;min-width:240px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg-input);color:var(--text-primary);" onchange="onSessionRoomChange()">
+                <option value="">-- Chọn buổi thi --</option>
+              </select>
+              <input type="text" id="sessionStudentSearch" placeholder="🔍 Tìm tên/mã học viên..." style="flex:2;min-width:180px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" oninput="filterSessionResults()">
+              <select id="sessionStatusFilter" style="flex:1;min-width:150px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" onchange="filterSessionResults()">
+                <option value="all">Tất cả</option>
+                <option value="pass">✅ Đạt</option>
+                <option value="fail">❌ Không đạt</option>
+                <option value="absent">⚠ Vắng/Chưa nộp</option>
+              </select>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" onclick="loadSessionResults()" style="display:flex;align-items:center;gap:6px;">🔄 Làm mới</button>
+                <button class="btn btn-primary" onclick="exportSessionResultsExcel()" style="display:flex;align-items:center;gap:6px;">📥 Xuất Excel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thống kê tổng quan buổi thi -->
+          <div id="sessionSummaryBox" style="display:none;" class="box" style="margin-bottom:16px;">
+            <h3 id="sessionSummaryTitle">📊 Tổng quan buổi thi</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:16px;">
+              <div class="miniStatBox" style="border-left:4px solid var(--accent);">
+                <div class="label">Đã đăng ký</div><div class="value" id="sess_reg">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--success);">
+                <div class="label">Đã nộp bài</div><div class="value" id="sess_submitted">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--success);">
+                <div class="label">Đạt</div><div class="value" id="sess_pass">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--danger);">
+                <div class="label">Không đạt</div><div class="value" id="sess_fail">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--warning);">
+                <div class="label">Vắng/Chưa nộp</div><div class="value" id="sess_absent">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--info);">
+                <div class="label">Điểm TB</div><div class="value" id="sess_avg">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #7c3aed;">
+                <div class="label">Điểm cao nhất</div><div class="value" id="sess_max">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #db2777;">
+                <div class="label">Điểm thấp nhất</div><div class="value" id="sess_min">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #0891b2;">
+                <div class="label">TG làm TB</div><div class="value" id="sess_avg_time">—</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <h4 style="margin-bottom:10px;font-size:13px;color:var(--text-muted);">📊 Phân bố điểm thi</h4>
+              <div style="height:180px;position:relative;"><canvas id="sessScoreChart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Bảng kết quả chi tiết từng thí sinh -->
+          <div class="box">
+            <h3>📋 Kết quả chi tiết từng thí sinh</h3>
+            <div id="sessionResultsWrap">
+              <div style="text-align:center;padding:50px;color:var(--text-muted);">
+                👆 Hãy chọn một buổi thi để xem kết quả
+              </div>
+            </div>
+            <div id="sessionResultsPagination" class="pagination" style="margin-top:12px;"></div>
+          </div>
+        </div><!-- /sessionResultsTabInner -->
+      </div><!-- /roomTabPanel_results -->
+
+    </div><!-- /exam_rooms -->
 
     <!-- Modal tạo/sửa phòng -->
 
@@ -5227,13 +5225,13 @@ function showPage(id, btn) {
             break;
 
         case 'session_results':
-            loadSessionResults();
-            break;
+            // Tổng hợp kết quả đã được gộp vào tab của Phòng thi Online
+            showPage('exam_rooms', document.querySelector('.menu button[onclick*="exam_rooms"]'));
+            switchRoomTab('results', document.getElementById('roomTab_results'));
+            return;
 
         case 'exam_rooms':
-
             loadExamRooms();
-
             break;
 
     }
@@ -5247,6 +5245,27 @@ function showPage(id, btn) {
 // =========================================================
 
 let _allRooms = [], _roomListUnsub = null;
+
+function switchRoomTab(tab, btn) {
+    // Cập nhật active state của tab buttons
+    document.querySelectorAll('#exam_rooms .img-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    // Ẩn/hiện các panel
+    const listPanel    = document.getElementById('roomTabPanel_list');
+    const resultsPanel = document.getElementById('roomTabPanel_results');
+    if (listPanel)    listPanel.style.display    = tab === 'list'    ? '' : 'none';
+    if (resultsPanel) resultsPanel.style.display = tab === 'results' ? '' : 'none';
+
+    // Cập nhật action bar: chỉ hiện nút Tạo phòng khi ở tab danh sách
+    const actBar = document.getElementById('roomActionsBar');
+    if (actBar) actBar.style.display = tab === 'list' ? 'flex' : 'none';
+
+    // Nếu chuyển sang tab kết quả → tải danh sách phòng vào dropdown
+    if (tab === 'results') {
+        loadSessionResults();
+    }
+}
 
 function loadExamRooms() {
 
@@ -7741,40 +7760,20 @@ function printTable() {
         <\/script></body>`
     );
 
-    // Dùng window.open() thay vì iframe ẩn — đảm bảo dialog in hiện ra đúng
-    const printWin = window.open('', '_blank');
-    if (!printWin) {
-        // Popup bị chặn — fallback sang iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;border:0;z-index:-1;visibility:hidden;';
-        document.body.appendChild(iframe);
-        iframe.contentWindow.document.open();
-        iframe.contentWindow.document.write(printHtml);
-        iframe.contentWindow.document.close();
-        iframe.addEventListener('load', () => {
-            setTimeout(() => {
-                try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(_) {}
-                setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); }, 60000);
-            }, 200);
-        });
-        return;
-    }
-    printWin.document.open();
-    printWin.document.write(printHtml);
-    printWin.document.close();
-    printWin.focus();
-    // Sau khi DOM và ảnh sẵn sàng mới gọi print()
-    printWin.addEventListener('load', () => {
+    // Dùng iframe ẩn với srcdoc — KHÔNG mở tab about:blank, không bị chặn popup
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden;';
+    iframe.setAttribute('srcdoc', printHtml);
+    document.body.appendChild(iframe);
+    iframe.addEventListener('load', () => {
         setTimeout(() => {
-            try { printWin.print(); } catch(_) {}
-        }, 200);
+            try {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            } catch(_) {}
+            setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); }, 90000);
+        }, 150);
     });
-    // Nếu load event không fire (window.open đôi khi vậy), fallback sau 600ms
-    setTimeout(() => {
-        try {
-            if (!printWin.closed) { printWin.focus(); printWin.print(); }
-        } catch(_) {}
-    }, 600);
 }
 
 // ==========================================
@@ -13508,88 +13507,49 @@ async function onSessionRoomChange() {
     if (summaryBox) summaryBox.style.display = 'none';
 
     try {
-        // ── 1. Thông tin phòng thi ──
+        // Lấy thông tin phòng thi
         const roomDoc = await db.collection('examRooms').doc(roomId).get();
         const roomData = roomDoc.exists ? roomDoc.data() : {};
         const titleEl = document.getElementById('sessionSummaryTitle');
         if (titleEl) titleEl.textContent = `📊 Tổng quan buổi thi — ${roomData.title || roomId}`;
 
-        // ── 2. Danh sách đăng ký ──
+        // Lấy danh sách đăng ký
         const regSnap = await db.collection('examRooms').doc(roomId).collection('registrations').get();
         const regStudents = {};
         regSnap.forEach(d => { regStudents[d.id] = d.data(); });
         const totalReg = regSnap.size;
 
-        // ── 3. Lấy kết quả thi — ưu tiên query theo examRoomId ──
-        let resultDocs = [];
-
-        // Thử query chính xác theo examRoomId
+        // Lấy kết quả thi của phòng này
+        let resultsSnap;
         try {
-            const snap = await db.collection('examResults').where('examRoomId', '==', roomId).get();
-            snap.forEach(d => resultDocs.push({ id: d.id, ...d.data() }));
-        } catch(e) { /* index chưa có, dùng fallback */ }
-
-        // Fallback 1: quét tất cả và lọc theo examRoomId (nếu query lỗi)
-        if (!resultDocs.length) {
-            try {
-                const allSnap = await db.collection('examResults').limit(1000).get();
-                allSnap.forEach(d => {
-                    const data = d.data();
-                    if (data.examRoomId === roomId) resultDocs.push({ id: d.id, ...data });
-                });
-            } catch(e2) { /* bỏ qua */ }
+            resultsSnap = await db.collection('examResults').where('examRoomId', '==', roomId).get();
+        } catch(e) {
+            // Fallback: tải tất cả và lọc client
+            const allSnap = await db.collection('examResults').limit(500).get();
+            const filtered = allSnap.docs.filter(d => d.data().examRoomId === roomId);
+            resultsSnap = { forEach: cb => filtered.forEach(cb), size: filtered.length, docs: filtered };
         }
 
-        // Fallback 2: lọc theo setCode + khoảng thời gian của phòng thi
-        // (dành cho kết quả cũ chưa lưu examRoomId)
-        if (!resultDocs.length && (roomData.setCode || roomData.setName)) {
-            const roomSetCode = roomData.setCode || '';
-            const startMs = roomData.startAt?.toDate ? roomData.startAt.toDate().getTime() : 0;
-            const endMs   = roomData.endAt?.toDate   ? roomData.endAt.toDate().getTime()   : Date.now();
-            const bufferMs = 2 * 60 * 60 * 1000; // ±2 giờ dự phòng
-
-            try {
-                let q = db.collection('examResults');
-                if (roomSetCode) q = q.where('setCode', '==', roomSetCode);
-                const snap = await q.limit(500).get();
-                snap.forEach(d => {
-                    const data = d.data();
-                    const ts = data.timestamp?.toDate ? data.timestamp.toDate().getTime() : null;
-                    // Nếu không có examRoomId hoặc examRoomId khớp, và thời gian nộp nằm trong cửa sổ
-                    if (!data.examRoomId || data.examRoomId === roomId) {
-                        if (!ts || (ts >= startMs - bufferMs && ts <= endMs + bufferMs)) {
-                            if (!resultDocs.find(r => r.id === d.id)) {
-                                resultDocs.push({ id: d.id, ...data });
-                            }
-                        }
-                    }
-                });
-            } catch(e3) { /* bỏ qua */ }
-        }
-
-        // ── 4. Giữ kết quả mới nhất nếu học viên nộp nhiều lần ──
         const submittedMap = {};
-        resultDocs.forEach(data => {
-            const code = data.studentCode || data.code || data.id;
+        resultsSnap.forEach(d => {
+            const data = d.data();
+            const code = data.studentCode || data.code || d.id;
+            // Giữ kết quả mới nhất nếu có nhiều lần nộp
             if (!submittedMap[code] || (data.timestamp?.toDate?.() > submittedMap[code].timestamp?.toDate?.())) {
-                submittedMap[code] = data;
+                submittedMap[code] = { id: d.id, ...data };
             }
         });
 
-        // ── 5. Gộp: học viên đăng ký + học viên thi không có trong danh sách đăng ký ──
+        // Tổng hợp kết quả
         _sessionAllResults = [];
-        const processedCodes = new Set();
+        let pass = 0, fail = 0, scores = [];
 
-        // Duyệt từ danh sách đăng ký
         Object.keys(regStudents).forEach(code => {
-            processedCodes.add(code);
             const reg = regStudents[code];
             const result = submittedMap[code] || null;
-            const timeTakenSec = result?.timeTaken || null;
-            _sessionAllResults.push({
+            const row = {
                 code,
                 name: reg.studentName || result?.studentName || code,
-                unit: reg.studentUnit || result?.studentUnit || '',
                 registered: true,
                 submitted: !!result,
                 passed: result ? !!result.passed : null,
@@ -13597,71 +13557,34 @@ async function onSessionRoomChange() {
                 total: result?.totalQuestions || 0,
                 setName: result?.setName || result?.setCode || roomData.setName || '—',
                 submittedAt: result?.timestamp || null,
-                timeTaken: timeTakenSec,
-                resultId: result?.id || null,
-            });
+                duration: result?.duration || null,
+            };
+            if (result) {
+                if (result.passed) pass++; else fail++;
+                const pct = row.total ? Math.round(row.score * 100 / row.total) : 0;
+                scores.push(pct);
+            }
+            _sessionAllResults.push(row);
         });
 
-        // Thêm học viên thi nhưng không có trong danh sách đăng ký
-        Object.keys(submittedMap).forEach(code => {
-            if (processedCodes.has(code)) return;
-            const result = submittedMap[code];
-            _sessionAllResults.push({
-                code,
-                name: result.studentName || code,
-                unit: result.studentUnit || '',
-                registered: false,
-                submitted: true,
-                passed: !!result.passed,
-                score: result.correctCount ?? result.score ?? 0,
-                total: result.totalQuestions || 0,
-                setName: result.setName || result.setCode || '—',
-                submittedAt: result.timestamp || null,
-                timeTaken: result.timeTaken || null,
-                resultId: result.id || null,
-            });
-        });
-
-        // ── 6. Tính thống kê ──
-        let pass = 0, fail = 0, scores = [], timings = [];
-        _sessionAllResults.forEach(r => {
-            if (!r.submitted) return;
-            if (r.passed) pass++; else fail++;
-            if (r.total) scores.push(Math.round(r.score * 100 / r.total));
-            if (r.timeTaken) timings.push(r.timeTaken);
-        });
-
-        const submitted = _sessionAllResults.filter(r => r.submitted).length;
-        const absent    = _sessionAllResults.filter(r => !r.submitted && r.registered).length;
-        const passRate  = submitted ? Math.round(pass * 100 / submitted) : 0;
+        // Cập nhật thống kê
+        const submitted = Object.keys(submittedMap).length;
+        const absent = Math.max(0, totalReg - submitted);
         const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
         const maxS = scores.length ? Math.max(...scores) : null;
         const minS = scores.length ? Math.min(...scores) : null;
-        const avgTime = timings.length ? Math.round(timings.reduce((a,b)=>a+b,0)/timings.length) : null;
 
-        const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        setEl('sess_reg',       totalReg || _sessionAllResults.length);
-        setEl('sess_submitted', submitted);
-        setEl('sess_pass',      pass + (submitted ? ` (${passRate}%)` : ''));
-        setEl('sess_fail',      fail);
-        setEl('sess_absent',    absent);
-        setEl('sess_avg',       avg  !== null ? avg  + '%' : '—');
-        setEl('sess_max',       maxS !== null ? maxS + '%' : '—');
-        setEl('sess_min',       minS !== null ? minS + '%' : '—');
-
-        // Cột thời gian TB làm bài
-        const avgTimeEl = document.getElementById('sess_avg_time');
-        if (avgTimeEl) {
-            if (avgTime) {
-                const m = Math.floor(avgTime / 60), s = avgTime % 60;
-                avgTimeEl.textContent = `${m}p ${s < 10 ? '0' : ''}${s}s`;
-            } else { avgTimeEl.textContent = '—'; }
-        }
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('sess_reg', totalReg);
+        set('sess_submitted', submitted);
+        set('sess_pass', pass);
+        set('sess_fail', fail);
+        set('sess_absent', absent);
+        set('sess_avg', avg !== null ? avg + '%' : '—');
+        set('sess_max', maxS !== null ? maxS + '%' : '—');
+        set('sess_min', minS !== null ? minS + '%' : '—');
 
         if (summaryBox) summaryBox.style.display = 'block';
-
-        // ── 7. Vẽ biểu đồ phân bố điểm ──
-        _renderSessionScoreChart(scores);
 
         _sessionCurrentPage = 1;
         _sessionFilteredResults = [..._sessionAllResults];
@@ -13673,59 +13596,11 @@ async function onSessionRoomChange() {
     }
 }
 
-function _renderSessionScoreChart(scores) {
-    const canvas = document.getElementById('sessScoreChart');
-    if (!canvas) return;
-    // Phân nhóm: 0-49, 50-59, 60-69, 70-79, 80-89, 90-100
-    const bands = [
-        { label: '0-49%',   min:0,  max:49  },
-        { label: '50-59%',  min:50, max:59  },
-        { label: '60-69%',  min:60, max:69  },
-        { label: '70-79%',  min:70, max:79  },
-        { label: '80-89%',  min:80, max:89  },
-        { label: '90-100%', min:90, max:100 },
-    ];
-    const counts = bands.map(b => scores.filter(s => s >= b.min && s <= b.max).length);
-    const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6'];
-
-    if (window._sessChartInstance) {
-        window._sessChartInstance.destroy();
-        window._sessChartInstance = null;
-    }
-    if (typeof Chart === 'undefined') return;
-    const ctx = canvas.getContext('2d');
-    window._sessChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: bands.map(b => b.label),
-            datasets: [{
-                label: 'Số thí sinh',
-                data: counts,
-                backgroundColor: colors,
-                borderRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }
-            }
-        }
-    });
-}
-
 function filterSessionResults() {
-    const q      = (document.getElementById('sessionStudentSearch')?.value || '').trim().toLowerCase();
-    const status = document.getElementById('sessionStatusFilter')?.value || 'all';
-    _sessionFilteredResults = _sessionAllResults.filter(r => {
-        if (q && !r.name.toLowerCase().includes(q) && !r.code.toLowerCase().includes(q)) return false;
-        if (status === 'pass'   && !(r.submitted && r.passed))  return false;
-        if (status === 'fail'   && !(r.submitted && !r.passed)) return false;
-        if (status === 'absent' && r.submitted)                 return false;
-        return true;
-    });
+    const q = (document.getElementById('sessionStudentSearch')?.value || '').trim().toLowerCase();
+    _sessionFilteredResults = _sessionAllResults.filter(r =>
+        !q || r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)
+    );
     _sessionCurrentPage = 1;
     renderSessionResultsTable();
 }
@@ -13755,41 +13630,30 @@ function renderSessionResultsTable() {
 
     wrap.innerHTML = `
       <div class="tableWrap" style="overflow-x:auto;">
-        <table class="activity-table" style="width:100%;min-width:780px;">
+        <table class="activity-table" style="width:100%;min-width:700px;">
           <thead>
             <tr>
               <th>#</th><th>Mã HV</th><th>Họ và tên</th><th>Đề thi</th>
-              <th>Điểm</th><th>Kết quả</th><th>Thời gian làm</th><th>Nộp lúc</th><th>Trạng thái</th>
+              <th>Điểm</th><th>Kết quả</th><th>Thời gian nộp</th><th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
             ${pageData.map((r, i) => {
               const idx = start + i + 1;
               const pct = r.total ? Math.round(r.score * 100 / r.total) : 0;
-              const scoreStr = r.submitted
-                ? `<b style="color:${r.passed ? 'var(--success)' : 'var(--danger)'};">${r.score}/${r.total}</b> <span style="font-size:11px;color:var(--text-muted);">(${pct}%)</span>`
-                : '<span style="color:var(--text-muted)">—</span>';
+              const scoreStr = r.submitted ? `<b style="color:${r.passed ? 'var(--success)' : 'var(--danger)'};">${r.score}/${r.total}</b> <span style="font-size:11px;color:var(--text-muted);">(${pct}%)</span>` : '<span style="color:var(--text-muted)">—</span>';
               const resultBadge = !r.submitted
                 ? '<span style="background:var(--warning-light);color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">⚠ Chưa nộp</span>'
                 : r.passed
                   ? '<span style="background:var(--success-light);color:var(--success);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ ĐẠT</span>'
                   : '<span style="background:var(--danger-light);color:var(--danger);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">❌ KHÔNG ĐẠT</span>';
-              let timeStr = '—';
-              if (r.submitted && r.timeTaken) {
-                  const m = Math.floor(r.timeTaken / 60), s = r.timeTaken % 60;
-                  timeStr = `${m}p ${s < 10 ? '0' : ''}${s}s`;
-              }
-              const notRegBadge = !r.registered
-                ? ' <span title="Không có trong ds đăng ký" style="font-size:10px;background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 5px;">?</span>'
-                : '';
               return `<tr>
                 <td style="text-align:center;color:var(--text-muted);">${idx}</td>
                 <td style="text-align:center;font-weight:700;font-size:12px;">${escapeHtml(r.code)}</td>
-                <td style="text-align:left;font-weight:600;">${escapeHtml(r.name)}${notRegBadge}</td>
+                <td style="text-align:left;font-weight:600;">${escapeHtml(r.name)}</td>
                 <td style="text-align:center;font-size:12px;">${escapeHtml(r.setName)}</td>
                 <td style="text-align:center;">${scoreStr}</td>
                 <td style="text-align:center;">${resultBadge}</td>
-                <td style="text-align:center;font-size:12px;color:var(--text-muted);">${timeStr}</td>
                 <td style="text-align:center;font-size:12px;color:var(--text-muted);">${fmtDT(r.submittedAt)}</td>
                 <td style="text-align:center;">
                   ${r.submitted
@@ -13826,29 +13690,21 @@ function exportSessionResultsExcel() {
     if (!_sessionAllResults.length) { showToast('Chưa có dữ liệu để xuất!', 'warning'); return; }
     const select = document.getElementById('sessionRoomSelect');
     const title = select?.options[select.selectedIndex]?.text || 'Kết quả buổi thi';
-    const rows = [['#','Mã HV','Họ và tên','Đơn vị','Đề thi','Điểm','Tổng câu','% đúng','Kết quả','Thời gian làm','Nộp lúc']];
+    const rows = [['#','Mã HV','Họ và tên','Đề thi','Điểm','Tổng câu','% đúng','Kết quả','Thời gian nộp']];
     _sessionAllResults.forEach((r, i) => {
         const pct = r.total ? Math.round(r.score * 100 / r.total) : 0;
         const ts = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : '—';
-        let timeStr = '—';
-        if (r.submitted && r.timeTaken) {
-            const m = Math.floor(r.timeTaken / 60), s = r.timeTaken % 60;
-            timeStr = `${m}p ${s < 10 ? '0' : ''}${s}s`;
-        }
         rows.push([
-            i+1, r.code, r.name, r.unit || '', r.setName,
+            i+1, r.code, r.name, r.setName,
             r.submitted ? r.score : '—',
             r.submitted ? r.total : '—',
             r.submitted ? pct + '%' : '—',
             !r.submitted ? 'Vắng' : r.passed ? 'ĐẠT' : 'KHÔNG ĐẠT',
-            timeStr,
             r.submitted ? ts : '—'
         ]);
     });
     if (typeof XLSX !== 'undefined') {
         const ws = XLSX.utils.aoa_to_sheet(rows);
-        // Căn chỉnh độ rộng cột
-        ws['!cols'] = [5,12,25,18,18,7,9,8,14,14,20].map(w => ({ wch: w }));
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Kết quả');
         XLSX.writeFile(wb, `ketqua_buoi_thi_${Date.now()}.xlsx`);
