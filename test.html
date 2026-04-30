@@ -4094,9 +4094,19 @@
       questions    = await loadQuestionsForSet(set);
       userAnswers  = new Array(questions.length).fill(null);
       currentIdx   = 0;
-      timerSec     = (set.examTime || set.duration || set.timeLimit || 45) * 60;
       examStartTime = new Date();
       examSubmitted = false;
+
+      // === TÍNH THỜI GIAN CÒN LẠI THEO endAt PHÒNG THI ===
+      // Nếu vào muộn → thời gian ngắn hơn quy định
+      const examDurationSec = (set.examTime || set.duration || set.timeLimit || 45) * 60;
+      const endAtDate = _waitRoomData?.endAt?.toDate ? _waitRoomData.endAt.toDate() : null;
+      if (endAtDate) {
+          const remainSec = Math.floor((endAtDate.getTime() - Date.now()) / 1000);
+          timerSec = Math.max(10, Math.min(examDurationSec, remainSec));
+      } else {
+          timerSec = examDurationSec;
+      }
 
       // Chuyển sang trang làm bài
       document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
@@ -4117,12 +4127,21 @@
       // Cập nhật presence -> Đang thi
       if (IS_STUDENT && db && studentCode) {
         db.collection('presence').doc(studentCode).set({
+          isOnline: true,
+          studentCode,
+          studentName: studentName || '',
+          userType: 'student',
           currentSection: 'Đang thi',
           examRoomId: _waitRoomId,
+          examSetCode: set.code || set.id || '',
+          examSetName: set.name || set.title || '',
           totalQuestions: questions.length,
           answeredCount: 0,
+          timeRemaining: timerSec,
+          tabHidden: false,
           examStartTime: firebase.firestore.FieldValue.serverTimestamp(),
-          lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+          _clientTime: Date.now()
         }, { merge: true }).catch(()=>{});
       }
 
