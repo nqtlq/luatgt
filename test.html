@@ -3122,6 +3122,12 @@
       // BƯỚC 2: Lưu bản ghi kết quả
       try {
 
+       // Đọc thông tin phòng thi từ localStorage / URL (nếu thi qua phòng thi online)
+       const _urlParams  = new URLSearchParams(location.search);
+       const _examRoomId    = _urlParams.get('roomId')    || localStorage.getItem('examRoomId')    || '';
+       const _examRoomTitle = localStorage.getItem('examRoomTitle')   || '';
+       const _examRoomSetName = localStorage.getItem('examRoomSetName') || '';
+
        const resultData = {
   studentCode,
   studentName,
@@ -3138,6 +3144,11 @@
   lietFailed,
   timeTaken,
   attemptNumber,
+  // ── Liên kết phòng thi online ──
+  ...(_examRoomId ? {
+    examRoomId:    _examRoomId,
+    examRoomTitle: _examRoomTitle,
+  } : {}),
   answers: userAnswers,
   questions: questions.map((q, i) => ({
     content: q.content || q.question || "",
@@ -3696,38 +3707,6 @@
       await setupUI();
 
       await loadSets();
-
-      // ── TỰ ĐỘNG VÀO THI TỪ PHÒNG THI ONLINE ──
-      // Kiểm tra cờ autoStart được set bởi startExamFromRoom() trong exam.html
-      (async function() {
-        const _urlP = new URLSearchParams(location.search);
-        const _autoStart = _urlP.get('autoStart') === '1'
-                        || localStorage.getItem('examAutoStart') === '1';
-        const _roomSetCode = _urlP.get('setCode')
-                          || localStorage.getItem('examRoomSetCode') || '';
-
-        if (_autoStart && _roomSetCode && IS_STUDENT) {
-          // Xóa cờ để tránh re-trigger khi tải lại
-          localStorage.removeItem('examAutoStart');
-
-          // Tìm bộ đề theo code hoặc id
-          const _autoSet = allSets.find(s =>
-            (s.code && s.code === _roomSetCode) || s.id === _roomSetCode
-          );
-
-          if (_autoSet) {
-            selectedSet = _autoSet;
-            document.body.style.visibility = 'visible';
-            // Bắt đầu thi luôn, KHÔNG hiện modal xác nhận
-            await beginExam();
-            return; // Đã chuyển sang trang thi, dừng init
-          } else {
-            // Nếu không tìm thấy đề (có thể do set chưa active),
-            // vẫn hiển thị trang bình thường để học viên tự chọn
-            console.warn('[AutoStart] Không tìm thấy bộ đề:', _roomSetCode);
-          }
-        }
-      })();
 
       // Presence cho trang chọn đề (student)
 
