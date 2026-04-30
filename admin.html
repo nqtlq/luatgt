@@ -3923,15 +3923,13 @@ D. Đáp án D
 
       </div>
 
-      </div>
-
-      </div><!-- /roomActionsBar -->
-      </div><!-- /page header flex -->
-
-      <!-- Tab navigation -->
+      <!-- Tab navigation — nằm đúng trong #exam_rooms.page -->
       <div class="image-tabs" style="margin-bottom:18px;border-radius:10px 10px 0 0;overflow:hidden;">
         <button class="img-tab active" id="roomTab_list" onclick="switchRoomTab('list',this)">
           🏠 Danh sách phòng thi
+        </button>
+        <button class="img-tab" id="roomTab_monitor" onclick="switchRoomTab('monitor',this)">
+          👁 Giám sát phòng thi
         </button>
         <button class="img-tab" id="roomTab_results" onclick="switchRoomTab('results',this)">
           🏆 Tổng hợp kết quả
@@ -3949,7 +3947,93 @@ D. Đáp án D
         <div id="roomList"><div style="text-align:center;padding:40px;color:#888;">⏳ Đang tải...</div></div>
       </div><!-- /roomTabPanel_list -->
 
-      <!-- Tab 2: Tổng hợp kết quả -->
+      <!-- Tab 2: Giám sát phòng thi inline -->
+      <div id="roomTabPanel_monitor" class="img-tab-content" style="display:none;">
+        <div id="monitorNoRoom" style="text-align:center;padding:60px 20px;">
+          <div style="font-size:64px;margin-bottom:16px;">🏫</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Chưa có phòng thi nào đang được giám sát</div>
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:24px;">Chọn phòng ở tab <b>Danh sách</b> → nhấn <b>👁 Vào phòng</b> để bắt đầu giám sát trực tiếp</div>
+          <button onclick="switchRoomTab('list',document.getElementById('roomTab_list'))" style="padding:12px 28px;background:linear-gradient(135deg,#0d6efd,#0856d6);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(13,110,253,.35);">← Quay lại danh sách</button>
+        </div>
+        <div id="monitorPanel" style="display:none;">
+          <div style="background:linear-gradient(135deg,#0f1729,#1a2744,#1e3a5f);border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="color:rgba(255,255,255,.6);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#2bff8e;animation:invigPulse 1.5s infinite;display:inline-block;"></span> ĐANG GIÁM SÁT TRỰC TIẾP</div>
+              <div id="monitorRoomTitle" style="color:white;font-size:20px;font-weight:800;">—</div>
+              <div id="monitorRoomInfo" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:4px;"></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <div id="monitorStatusBadge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;"></div>
+              <span id="monitorLastUpdate" style="color:rgba(255,255,255,.5);font-size:11px;"></span>
+              <button onclick="refreshMonitor()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">🔄 Làm mới</button>
+              <button onclick="exportMonitorExcel()" style="background:rgba(25,135,84,.9);border:none;color:white;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">📥 Xuất Excel</button>
+              <button onclick="stopMonitor()" style="background:rgba(220,53,69,.9);border:none;color:white;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;">✕ Thoát giám sát</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatReg" style="font-size:26px;font-weight:800;color:var(--accent);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Đã đăng ký</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatWaiting" style="font-size:26px;font-weight:800;color:#f59e0b;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Phòng chờ</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--success);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatDoing" style="font-size:26px;font-weight:800;color:var(--success);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">✍ Đang thi</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatSubmitted" style="font-size:26px;font-weight:800;color:#6610f2;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">✅ Đã nộp</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatAbsent" style="font-size:26px;font-weight:800;color:var(--danger);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">❌ Vắng</div>
+            </div>
+            <div style="flex:2;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;justify-content:center;box-shadow:var(--shadow-sm);">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚙ Điều khiển phòng</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="monBtnOpen" onclick="monitorOpenRoom()" style="display:none;padding:7px 14px;background:linear-gradient(135deg,#2a9d8f,#1a7a6e);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">▶ Mở phòng ngay</button>
+                <button id="monBtnClose" onclick="monitorCloseRoom()" style="display:none;padding:7px 14px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🔒 Đóng phòng</button>
+                <button onclick="monitorSendWarn()" style="padding:7px 14px;background:var(--warning-light);color:#856404;border:1px solid #ffc10750;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🚨 Cảnh báo HV</button>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow-sm);">
+            <input type="text" id="monSearch" placeholder="🔍 Tìm theo tên, mã học viên..." oninput="filterMonitor()" style="flex:2;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+            <select id="monStatusFilter" onchange="filterMonitor()" style="flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+              <option value="">Tất cả trạng thái</option>
+              <option value="waiting">⏳ Phòng chờ</option>
+              <option value="doing">✍ Đang làm bài</option>
+              <option value="submitted">✅ Đã nộp</option>
+              <option value="registered">📋 Đã đăng ký</option>
+            </select>
+            <div style="font-size:12px;color:var(--text-muted);margin-left:auto;" id="monFilterCount"></div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);">
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:700px;">
+                <thead>
+                  <tr style="background:var(--bg-table-head);border-bottom:2px solid var(--border);">
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:48px;">STT</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:110px;">Mã HV</th>
+                    <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;color:var(--text-secondary);">Họ và tên</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:140px;">Trạng thái</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:160px;">Tiến độ</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:140px;">Kết quả</th>
+                  </tr>
+                </thead>
+                <tbody id="monTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">Đang chờ dữ liệu...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div><!-- /monitorPanel -->
+      </div><!-- /roomTabPanel_monitor -->
+
+      <!-- Tab 3: Tổng hợp kết quả -->
       <div id="roomTabPanel_results" class="img-tab-content" style="display:none;">
         <!-- Nội dung sẽ được render bởi renderSessionResultsTab() -->
         <div id="sessionResultsTabInner">
@@ -4032,10 +4116,21 @@ D. Đáp án D
 
         <!-- Header -->
         <div style="background:linear-gradient(135deg,#0f1729,#1a2744,#1e3a5f);border-radius:16px 16px 0 0;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <div>
+          <div style="flex:1;min-width:0;">
             <div style="color:rgba(255,255,255,.65);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">👁 CHẾ ĐỘ GIÁM THỊ</div>
             <div id="invigRoomTitle" style="color:white;font-size:20px;font-weight:800;">Phòng thi</div>
             <div id="invigRoomInfo" style="color:rgba(255,255,255,.72);font-size:13px;margin-top:4px;"></div>
+          </div>
+          <!-- Đồng hồ hệ thống + đếm ngược -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:180px;">
+            <div id="invigSystemClock" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:8px 16px;text-align:center;font-family:'Courier New',monospace;">
+              <div style="font-size:20px;font-weight:800;color:white;letter-spacing:2px;" id="invigClockTime">--:--:--</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;" id="invigClockDate"></div>
+            </div>
+            <div id="invigCountdownWrap" style="display:none;background:rgba(255,193,7,.18);border:1px solid rgba(255,193,7,.45);border-radius:12px;padding:7px 16px;text-align:center;min-width:160px;">
+              <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;" id="invigCountdownLabel">⏳ Còn lại</div>
+              <div style="font-family:'Courier New',monospace;font-size:22px;font-weight:900;letter-spacing:2px;" id="invigCountdown" style="color:white;">--:--:--</div>
+            </div>
           </div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <div id="invigStatusBadge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;"></div>
@@ -5331,24 +5426,276 @@ function showPage(id, btn) {
 let _allRooms = [], _roomListUnsub = null;
 
 function switchRoomTab(tab, btn) {
-    // Cập nhật active state của tab buttons
     document.querySelectorAll('#exam_rooms .img-tab').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
 
-    // Ẩn/hiện các panel
-    const listPanel    = document.getElementById('roomTabPanel_list');
-    const resultsPanel = document.getElementById('roomTabPanel_results');
-    if (listPanel)    listPanel.style.display    = tab === 'list'    ? '' : 'none';
-    if (resultsPanel) resultsPanel.style.display = tab === 'results' ? '' : 'none';
+    const panels = { list: 'roomTabPanel_list', monitor: 'roomTabPanel_monitor', results: 'roomTabPanel_results' };
+    Object.entries(panels).forEach(([key, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = key === tab ? '' : 'none';
+    });
 
-    // Cập nhật action bar: chỉ hiện nút Tạo phòng khi ở tab danh sách
     const actBar = document.getElementById('roomActionsBar');
     if (actBar) actBar.style.display = tab === 'list' ? 'flex' : 'none';
 
-    // Nếu chuyển sang tab kết quả → tải danh sách phòng vào dropdown
-    if (tab === 'results') {
-        loadSessionResults();
+    if (tab === 'results') loadSessionResults();
+}
+
+// =========================================================
+// GIÁM SÁT PHÒNG THI INLINE (Tab Giám sát)
+// =========================================================
+let _monRoomId = null, _monRoomData = null;
+let _monUnsubPresence = null, _monUnsubResults = null;
+let _monAllStudents = [], _monFilteredStudents = [], _monRegistrations = {}, _monResultsMap = {};
+
+function enterRoomMonitor(roomId) {
+    _monRoomId = roomId;
+    // Chuyển sang tab Giám sát
+    const monBtn = document.getElementById('roomTab_monitor');
+    switchRoomTab('monitor', monBtn);
+    // Hiện panel
+    const noRoom = document.getElementById('monitorNoRoom');
+    const panel  = document.getElementById('monitorPanel');
+    if (noRoom) noRoom.style.display = 'none';
+    if (panel)  panel.style.display  = '';
+    // Tải dữ liệu phòng
+    db.collection('examRooms').doc(roomId).get().then(snap => {
+        if (!snap.exists) return;
+        _monRoomData = { id: snap.id, ...snap.data() };
+        _updateMonitorHeader();
+        _monStartListening();
+    });
+}
+
+function _updateMonitorHeader() {
+    const r = _monRoomData;
+    if (!r) return;
+    const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
+    document.getElementById('monitorRoomTitle').textContent = r.title || '(Không tên)';
+    document.getElementById('monitorRoomInfo').textContent  = `📄 ${r.setName||r.setCode||'—'}  ⏰ ${fmt(r.startAt)} → ${fmt(r.endAt)}`;
+    const badges = { scheduled:'⏳ Sắp diễn ra', open:'🟢 Đang mở', closed:'🔴 Kết thúc' };
+    document.getElementById('monitorStatusBadge').textContent = badges[r.status] || r.status;
+    const btnOpen  = document.getElementById('monBtnOpen');
+    const btnClose = document.getElementById('monBtnClose');
+    if (btnOpen)  btnOpen.style.display  = r.status === 'scheduled' ? '' : 'none';
+    if (btnClose) btnClose.style.display = r.status === 'open'      ? '' : 'none';
+}
+
+function _monStartListening() {
+    if (_monUnsubPresence) { _monUnsubPresence(); _monUnsubPresence = null; }
+    if (_monUnsubResults)  { _monUnsubResults();  _monUnsubResults  = null; }
+    _monRegistrations = {};
+    _monResultsMap    = {};
+    // Lắng nghe đăng ký
+    db.collection('examRooms').doc(_monRoomId).collection('registrations').get().then(snap => {
+        snap.forEach(d => { _monRegistrations[d.id] = d.data(); });
+    });
+    // Lắng nghe presence
+    _monUnsubPresence = db.collection('examRooms').doc(_monRoomId).collection('presence')
+        .onSnapshot(snap => {
+            _monAllStudents = [];
+            snap.forEach(d => {
+                const data = d.data();
+                _monAllStudents.push({
+                    code: d.id,
+                    name: data.name || _monRegistrations[d.id]?.name || d.id,
+                    status: data.status || 'registered',
+                    progress: data.progress || null
+                });
+            });
+            // Thêm HV đăng ký nhưng chưa vào
+            Object.keys(_monRegistrations).forEach(code => {
+                if (!_monAllStudents.find(s => s.code === code)) {
+                    _monAllStudents.push({
+                        code, name: _monRegistrations[code].name || code,
+                        status: 'registered', progress: null
+                    });
+                }
+            });
+            _mergeMonitorScores();
+            document.getElementById('monitorLastUpdate').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
+        });
+    // Lắng nghe kết quả nộp bài
+    _monUnsubResults = db.collection('examResults')
+        .where('roomId', '==', _monRoomId)
+        .onSnapshot(snap => {
+            _monResultsMap = {};
+            snap.forEach(d => {
+                const data = d.data();
+                _monResultsMap[data.studentCode] = data;
+            });
+            _mergeMonitorScores();
+        });
+}
+
+function _mergeMonitorScores() {
+    _monAllStudents.forEach(s => {
+        const res = _monResultsMap[s.code];
+        if (res) {
+            s.score  = res.correctAnswers ?? res.score ?? null;
+            s.passed = res.passed;
+            s.total  = res.totalQuestions || 0;
+            if (s.status !== 'submitted') s.status = 'submitted';
+        } else {
+            s.score  = null;
+            s.passed = null;
+        }
+    });
+    _updateMonStats();
+    filterMonitor();
+}
+
+function _updateMonStats() {
+    const c = { registered:0, waiting:0, doing:0, submitted:0 };
+    _monAllStudents.forEach(s => { if (c[s.status] !== undefined) c[s.status]++; });
+    const totalReg = Object.keys(_monRegistrations).length || _monAllStudents.length;
+    const absent   = Math.max(0, totalReg - c.waiting - c.doing - c.submitted);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('monStatReg',       totalReg);
+    set('monStatWaiting',   c.waiting);
+    set('monStatDoing',     c.doing);
+    set('monStatSubmitted', c.submitted);
+    set('monStatAbsent',    absent);
+}
+
+function filterMonitor() {
+    const q  = (document.getElementById('monSearch')?.value || '').toLowerCase().trim();
+    const st = document.getElementById('monStatusFilter')?.value || '';
+    _monFilteredStudents = _monAllStudents.filter(s => {
+        const mq  = !q  || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q);
+        const mst = !st || s.status === st;
+        return mq && mst;
+    });
+    const cnt = document.getElementById('monFilterCount');
+    if (cnt) cnt.textContent = `Hiển thị: ${_monFilteredStudents.length} / ${_monAllStudents.length}`;
+    _renderMonTable();
+}
+
+function _renderMonTable() {
+    const tbody = document.getElementById('monTableBody');
+    if (!tbody) return;
+    const students = _monFilteredStudents;
+    const total    = _monAllStudents.length;
+
+    if (!total) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">
+            <div style="font-size:48px;margin-bottom:12px;">📭</div>
+            <div>${Object.keys(_monRegistrations).length === 0 ? 'Chưa có học viên đăng ký phòng thi này' : 'Đang chờ học viên tham gia...'}</div>
+        </td></tr>`;
+        return;
     }
+    if (!students.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
+        return;
+    }
+
+    const statusBadge = {
+        registered: `<span style="background:#e9ecef;color:#495057;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📋 Đã đăng ký</span>`,
+        waiting:    `<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">⏳ Phòng chờ</span>`,
+        doing:      `<span style="background:#d1e7dd;color:#0a6640;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;animation:invigPulse 2s infinite;">✍ Đang thi</span>`,
+        submitted:  `<span style="background:#cff4fc;color:#055160;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ Đã nộp</span>`,
+        absent:     `<span style="background:#f8d7da;color:#842029;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">❌ Vắng</span>`
+    };
+
+    tbody.innerHTML = students.map((s, i) => {
+        let progHtml = `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+        if (s.status === 'submitted') {
+            progHtml = `<span style="font-size:12px;color:#6610f2;font-weight:700;">✅ Hoàn thành</span>`;
+        } else if (s.progress) {
+            const pct = s.progress.total && s.progress.total !== '?'
+                ? Math.round(s.progress.done * 100 / s.progress.total) : null;
+            const color = s.status === 'doing' ? 'var(--success)' : 'var(--accent)';
+            progHtml = `<div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                <div style="width:80px;height:7px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0;">
+                    <div style="height:100%;width:${pct||0}%;background:${color};border-radius:4px;"></div>
+                </div>
+                <span style="font-size:11px;font-weight:700;color:var(--text-secondary);">${s.progress.done}/${s.progress.total}${pct!==null?' ('+pct+'%)':''}</span>
+            </div>`;
+        }
+        let scoreHtml = `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+        if (s.score !== null && s.score !== undefined) {
+            const tot = s.total || 0;
+            const pct = tot ? Math.round(s.score * 100 / tot) : 0;
+            const col = s.passed ? 'var(--success)' : 'var(--danger)';
+            const lbl = s.passed ? '✅ ĐẠT' : '❌ KĐ';
+            scoreHtml = `<div style="text-align:center;">
+                <div style="font-weight:800;color:${col};font-size:15px;">${s.score}${tot?'/'+tot:''}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${pct}% · ${lbl}</div>
+            </div>`;
+        }
+        const rowBg = s.status==='doing' ? 'rgba(25,135,84,.04)' : s.status==='submitted' ? 'rgba(102,16,242,.03)' : '';
+        return `<tr style="border-bottom:1px solid var(--border-light);background:${rowBg};transition:background .15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='${rowBg}'">
+            <td style="text-align:center;padding:12px 14px;color:var(--text-muted);font-size:13px;">${i+1}</td>
+            <td style="text-align:center;padding:12px 14px;font-weight:700;font-size:12px;font-family:monospace;color:var(--text-primary);">${escapeHtml(s.code)}</td>
+            <td style="padding:12px 14px;font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(s.name)}</td>
+            <td style="text-align:center;padding:12px 14px;">${statusBadge[s.status]||statusBadge.registered}</td>
+            <td style="padding:12px 14px;">${progHtml}</td>
+            <td style="padding:12px 14px;">${scoreHtml}</td>
+        </tr>`;
+    }).join('');
+}
+
+function stopMonitor() {
+    if (_monUnsubPresence) { _monUnsubPresence(); _monUnsubPresence = null; }
+    if (_monUnsubResults)  { _monUnsubResults();  _monUnsubResults  = null; }
+    _monRoomId = null; _monRoomData = null;
+    _monAllStudents = []; _monFilteredStudents = [];
+    const noRoom = document.getElementById('monitorNoRoom');
+    const panel  = document.getElementById('monitorPanel');
+    if (noRoom) noRoom.style.display = '';
+    if (panel)  panel.style.display  = 'none';
+}
+
+function refreshMonitor() {
+    if (_monRoomId) enterRoomMonitor(_monRoomId);
+}
+
+async function monitorOpenRoom() {
+    if (!_monRoomId) return;
+    if (!await showConfirm('Mở phòng thi', 'Mở phòng thi ngay bây giờ?', '▶')) return;
+    await db.collection('examRooms').doc(_monRoomId).update({ status: 'open' });
+    _monRoomData.status = 'open';
+    _updateMonitorHeader();
+    showToast('Đã mở phòng thi!', 'success');
+}
+
+async function monitorCloseRoom() {
+    if (!_monRoomId) return;
+    if (!await showConfirm('Đóng phòng thi', 'Đóng phòng thi? Học viên sẽ không vào được nữa.', '🔒')) return;
+    await db.collection('examRooms').doc(_monRoomId).update({ status: 'closed', endAt: firebase.firestore.Timestamp.now() });
+    _monRoomData.status = 'closed';
+    _updateMonitorHeader();
+    showToast('Đã đóng phòng thi!', 'warning');
+}
+
+async function monitorSendWarn() {
+    if (!_monRoomId) return;
+    if (!await showConfirm('Gửi cảnh báo', 'Gửi cảnh báo tới tất cả học viên trong phòng?', '🚨')) return;
+    await db.collection('examRooms').doc(_monRoomId).update({
+        warning: { message: 'Giám thị nhắc nhở: Tập trung làm bài, không được gian lận!', at: firebase.firestore.Timestamp.now() }
+    });
+    showToast('Đã gửi cảnh báo!', 'warning');
+}
+
+function exportMonitorExcel() {
+    if (!_monAllStudents.length) { showToast('Chưa có dữ liệu!', 'warning'); return; }
+    if (typeof XLSX === 'undefined') { showToast('Thư viện XLSX chưa tải!', 'error'); return; }
+    const stLbl = { registered:'Đã đăng ký', waiting:'Phòng chờ', doing:'Đang làm bài', submitted:'Đã nộp bài' };
+    const rows  = [['#','Mã HV','Họ và tên','Trạng thái','Tiến độ','Điểm','Kết quả']];
+    _monAllStudents.forEach((s, i) => {
+        rows.push([
+            i+1, s.code, s.name,
+            stLbl[s.status] || s.status,
+            s.progress ? `${s.progress.done}/${s.progress.total}` : (s.status==='submitted'?'Hoàn thành':'—'),
+            s.score!=null ? `${s.score}${s.total?'/'+s.total:''}` : '—',
+            s.score!=null ? (s.passed?'ĐẠT':'KHÔNG ĐẠT') : '—'
+        ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Giám sát');
+    XLSX.writeFile(wb, `giam_sat_${(_monRoomData?.title||'phong_thi').replace(/\s+/g,'_')}_${Date.now()}.xlsx`);
+    showToast('Đã xuất Excel!', 'success');
 }
 
 function loadExamRooms() {
@@ -5442,7 +5789,7 @@ function _renderRoomList(rooms) {
         ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng phòng</button>`:''}
 
         <button onclick="sendWarnToRoom('${r.id}')" style="padding:8px 16px;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)33;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;">🚨 Cảnh báo</button>
-        <button onclick="enterRoomInvigilate('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#6610f2,#520dc2);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(102,16,242,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">👁 Vào phòng</button>
+        <button onclick="enterRoomMonitor('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#6610f2,#520dc2);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(102,16,242,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">👁 Vào phòng</button>
         <button onclick="deleteRoom('${r.id}')" style="padding:8px 16px;background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-secondary)'">🗑 Xóa</button>
 
       </div>
@@ -13806,9 +14153,12 @@ let _invigAllStudents = [];
 let _invigFilteredStudents = [];
 let _invigUnsubPresence = null;
 let _invigUnsubResults = null;
+let _invigUnsubRoom = null;
 let _invigPresenceMap = {};
 let _invigResultsMap = {};
 let _invigRegistrations = {};
+let _invigClockInterval = null;
+let _invigCountdownInterval = null;
 
 async function enterRoomInvigilate(roomId) {
     _invigRoomId = roomId;
@@ -13837,13 +14187,8 @@ async function enterRoomInvigilate(roomId) {
     if (_invigRoomData) {
         const el1 = document.getElementById('invigRoomTitle');
         const el2 = document.getElementById('invigRoomInfo');
-        const el3 = document.getElementById('invigStatusBadge');
         if(el1) el1.textContent = '👁 ' + (_invigRoomData.title || 'Phòng thi');
         if(el2) el2.innerHTML = `📄 ${escapeHtml(_invigRoomData.setName||_invigRoomData.setCode||'—')} &nbsp;·&nbsp; ⏰ ${fmt(_invigRoomData.startAt)} → ${fmt(_invigRoomData.endAt)}`;
-        if(el3) {
-            const sm = {scheduled:'⏳ Sắp diễn ra', open:'🟢 Đang mở', closed:'🔴 Đã kết thúc'};
-            el3.textContent = sm[_invigRoomData.status] || _invigRoomData.status;
-        }
     }
     document.getElementById('invigLastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
 
@@ -13853,14 +14198,113 @@ async function enterRoomInvigilate(roomId) {
         regSnap.forEach(d => { _invigRegistrations[d.id] = { code: d.id, ...d.data() }; });
     } catch(e) { console.warn('Invigilate reg:', e.code); }
 
+    // Bắt đầu đồng hồ hệ thống và đếm ngược
+    _startInvigClock();
+
     _renderInvigilateTable();
     _startInvigilateListeners();
+}
+
+// Đồng hồ hệ thống + đồng hồ đếm ngược trong modal giám thị
+function _startInvigClock() {
+    if (_invigClockInterval) clearInterval(_invigClockInterval);
+    if (_invigCountdownInterval) clearInterval(_invigCountdownInterval);
+
+    function _tickClock() {
+        const n = new Date();
+        const hh = String(n.getHours()).padStart(2,'0');
+        const mm = String(n.getMinutes()).padStart(2,'0');
+        const ss = String(n.getSeconds()).padStart(2,'0');
+        const dd = String(n.getDate()).padStart(2,'0');
+        const mo = String(n.getMonth()+1).padStart(2,'0');
+        const yy = n.getFullYear();
+        const thu = ['CN','T2','T3','T4','T5','T6','T7'][n.getDay()];
+        const ct = document.getElementById('invigClockTime');
+        const cd = document.getElementById('invigClockDate');
+        if(ct) ct.textContent = `${hh}:${mm}:${ss}`;
+        if(cd) cd.textContent = `${thu} ${dd}/${mo}/${yy}`;
+
+        // Cập nhật trạng thái phòng thi real-time dựa theo giờ
+        _updateInvigStatusRealtime(n);
+    }
+
+    _tickClock();
+    _invigClockInterval = setInterval(_tickClock, 1000);
+}
+
+function _updateInvigStatusRealtime(now) {
+    if (!_invigRoomData) return;
+    const badge = document.getElementById('invigStatusBadge');
+    const cdWrap = document.getElementById('invigCountdownWrap');
+    const cdEl = document.getElementById('invigCountdown');
+    const cdLbl = document.getElementById('invigCountdownLabel');
+    if (!badge) return;
+
+    const startMs = _invigRoomData.startAt?.toDate ? _invigRoomData.startAt.toDate().getTime() : null;
+    const endMs   = _invigRoomData.endAt?.toDate   ? _invigRoomData.endAt.toDate().getTime()   : null;
+    const nowMs = now.getTime();
+
+    let statusKey = _invigRoomData.status || 'scheduled';
+    // Tự tính trạng thái theo thời gian thực (dù Firestore chưa cập nhật)
+    if (startMs && endMs) {
+        if (nowMs < startMs) statusKey = 'scheduled';
+        else if (nowMs >= startMs && nowMs < endMs) statusKey = 'open';
+        else statusKey = 'closed';
+    }
+
+    const sm = {
+        scheduled: {lbl:'⏳ Sắp diễn ra', bg:'rgba(244,162,97,.25)', border:'rgba(244,162,97,.6)', color:'#fdd5a0'},
+        open:      {lbl:'🟢 Đang thi',    bg:'rgba(25,135,84,.25)',  border:'rgba(25,135,84,.6)',  color:'#7fffc4'},
+        closed:    {lbl:'🔴 Đã kết thúc', bg:'rgba(220,53,69,.25)',  border:'rgba(220,53,69,.6)',  color:'#ffb3bb'}
+    };
+    const s = sm[statusKey] || sm.closed;
+    badge.textContent = s.lbl;
+    badge.style.background = s.bg;
+    badge.style.borderColor = s.border;
+    badge.style.color = s.color;
+
+    // Đồng hồ đếm ngược
+    if (cdWrap && cdEl) {
+        if (statusKey === 'open' && endMs) {
+            const diff = Math.max(0, endMs - nowMs);
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s2 = Math.floor((diff % 60000) / 1000);
+            cdEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s2).padStart(2,'0')}`;
+            cdEl.style.color = diff < 300000 ? '#ff6b6b' : diff < 600000 ? '#ffd93d' : '#7fffc4';
+            if(cdLbl) cdLbl.textContent = '⏳ Còn lại';
+            cdWrap.style.display = 'block';
+            cdWrap.style.background = diff < 300000 ? 'rgba(220,53,69,.25)' : diff < 600000 ? 'rgba(255,193,7,.18)' : 'rgba(25,135,84,.18)';
+            cdWrap.style.borderColor = diff < 300000 ? 'rgba(220,53,69,.5)' : diff < 600000 ? 'rgba(255,193,7,.5)' : 'rgba(25,135,84,.4)';
+        } else if (statusKey === 'scheduled' && startMs) {
+            const diff = Math.max(0, startMs - nowMs);
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s2 = Math.floor((diff % 60000) / 1000);
+            cdEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s2).padStart(2,'0')}`;
+            cdEl.style.color = '#fdd5a0';
+            if(cdLbl) cdLbl.textContent = '🕐 Bắt đầu sau';
+            cdWrap.style.display = 'block';
+            cdWrap.style.background = 'rgba(244,162,97,.15)';
+            cdWrap.style.borderColor = 'rgba(244,162,97,.4)';
+        } else {
+            cdWrap.style.display = 'none';
+        }
+    }
 }
 
 function _startInvigilateListeners() {
     if (!_invigRoomId || !db) return;
     if (_invigUnsubPresence) { _invigUnsubPresence(); _invigUnsubPresence = null; }
     if (_invigUnsubResults)  { _invigUnsubResults();  _invigUnsubResults  = null; }
+    if (_invigUnsubRoom)     { _invigUnsubRoom();     _invigUnsubRoom     = null; }
+
+    // Listener cho document phòng thi — cập nhật real-time status/endAt
+    _invigUnsubRoom = db.collection('examRooms').doc(_invigRoomId).onSnapshot(snap => {
+        if (snap.exists) {
+            _invigRoomData = { id: snap.id, ...snap.data() };
+        }
+    }, () => {});
 
     // Presence listener — lọc client-side theo phòng hoặc theo đăng ký
     _invigUnsubPresence = db.collection('presence').onSnapshot(snap => {
@@ -14035,6 +14479,9 @@ function _renderInvigilateTable() {
 function closeRoomInvigilate() {
     if (_invigUnsubPresence) { _invigUnsubPresence(); _invigUnsubPresence = null; }
     if (_invigUnsubResults)  { _invigUnsubResults();  _invigUnsubResults  = null; }
+    if (_invigUnsubRoom)     { _invigUnsubRoom();     _invigUnsubRoom     = null; }
+    if (_invigClockInterval)    { clearInterval(_invigClockInterval);    _invigClockInterval    = null; }
+    if (_invigCountdownInterval){ clearInterval(_invigCountdownInterval); _invigCountdownInterval = null; }
     const modal = document.getElementById('invigModal');
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = '';
