@@ -417,16 +417,19 @@
     .exam-question-area { background: white; padding: 24px; min-height: calc(100vh - 220px); }
 
     .exam-sidebar {
+
       background: #f8fafc;
+
       border-left: 1px solid var(--border);
+
       padding: 16px;
+
       display: flex;
+
       flex-direction: column;
+
       gap: 12px;
-      position: sticky;
-      top: 0;
-      max-height: 100vh;
-      overflow-y: auto;
+
     }
 
     .q-progress { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
@@ -1103,13 +1106,13 @@
 
       .exam-layout { grid-template-columns: 1fr; }
 
-      /* Trên mobile: sidebar hiển thị bên dưới, layout dọc */
-      .exam-layout { grid-template-columns: 1fr; }
-      .exam-sidebar { border-left: none; border-top: 1px solid var(--border); max-height: none; position: static; }
-      .qmap { grid-template-columns: repeat(8, 1fr); gap: 4px; }
+      .exam-sidebar { display: none !important; }
+
+      .qmap-flat-wrap { display: block; }
+
       .qmap-toggle-btn { display: none !important; }
 
-      .exam-question-area { padding: 14px; min-height: calc(100vh - 200px); padding-bottom: 90px; }
+      .exam-question-area { padding: 14px; min-height: calc(100vh - 200px); padding-bottom: 16px; }
 
       .answers-list { grid-template-columns: 1fr; gap: 8px; }
 
@@ -1218,91 +1221,42 @@
       margin-left: 8px;
     }
 
-    /* ===== MOBILE QMAP DRAWER ===== */
-    .qmap-toggle-btn {
+    /* ===== MOBILE QMAP DRAWER - ẩn hoàn toàn, dùng flat map thay thế ===== */
+    .qmap-toggle-btn { display: none !important; }
+    .qmap-drawer { display: none !important; }
+
+    /* ===== FLAT QUESTION MAP - luôn hiển thị dạng phẳng ===== */
+    .qmap-flat-wrap {
       display: none;
-      position: fixed;
-      bottom: 80px;
-      right: 16px;
-      z-index: 60;
-      background: var(--blue);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-size: 18px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.25);
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      transition: all .2s;
-    }
-    .qmap-toggle-btn:hover { transform: scale(1.05); }
-    .qmap-drawer {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-    }
-    .qmap-drawer.open { display: block; }
-    .qmap-drawer-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,.5);
-      backdrop-filter: blur(2px);
-    }
-    .qmap-drawer-panel {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
       background: white;
-      border-radius: 20px 20px 0 0;
-      padding: 20px 16px 32px;
-      max-height: 70vh;
-      overflow-y: auto;
-      animation: drawerUp .25s ease;
+      border-top: 2px solid var(--border);
+      padding: 12px 14px;
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.08);
     }
-    @keyframes drawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .qmap-drawer-header {
+    .qmap-flat-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      justify-content: space-between;
     }
-    .qmap-drawer-header h4 { font-size: 16px; color: var(--blue); font-weight: 700; }
-    .qmap-drawer-close {
-      background: #f1f4f8;
-      border: none;
-      border-radius: 8px;
+    .qmap-flat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .qmap-flat-grid .qmap-btn {
       width: 32px;
       height: 32px;
-      font-size: 16px;
-      cursor: pointer;
-      color: var(--muted);
+      font-size: 11px;
     }
-    .qmap-drawer-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .qmap-drawer-grid .qmap-btn {
-      width: 100%;
-      height: 38px;
-      font-size: 12px;
-    }
-    .qmap-drawer-legend {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--muted);
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-    .qmap-drawer-legend .legend-item { display: flex; align-items: center; gap: 5px; }
 
     /* ===== CUSTOM CONFIRM MODAL ===== */
     .custom-confirm-overlay {
@@ -1830,30 +1784,55 @@
       <div class="exam-question-area" id="examQuestionArea"></div>
 
       <div class="exam-sidebar">
+
         <div>
-          <div class="qmap-title">📋 Sơ đồ bài thi</div>
+
+          <div class="qmap-title">Bảng câu hỏi</div>
+
           <div class="qmap" id="qmap"></div>
+
         </div>
+
         <div class="exam-legend">
+
           <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div>Đã trả lời</div>
+
           <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);"></div>Chưa trả lời</div>
+
           <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div>Câu liệt</div>
+
           <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;"></div>Đang xem</div>
+
         </div>
+
         <button class="sidebar-submit" onclick="confirmSubmit()">Nộp bài</button>
+
       </div>
 
     </div>
 
   </div>
 
-  <!-- MOBILE: Nút toggle bảng câu hỏi -->
-  <button class="qmap-toggle-btn" id="qmapToggleBtn" onclick="openQmapDrawer()" title="Bảng câu hỏi">
-    🗺️
-  </button>
+  <!-- FLAT QUESTION MAP - always visible below exam on mobile -->
+  <div class="qmap-flat-wrap" id="qmapFlatWrap">
+    <div class="qmap-flat-title">
+      <span>📋 Sơ đồ bài thi</span>
+      <span id="qmapFlatProgress" style="font-size:11px;color:var(--accent);font-weight:700;"></span>
+    </div>
+    <div class="qmap-flat-grid" id="qmapFlatGrid"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);">
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;border-radius:3px;background:var(--blue);"></div>Đã trả lời</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;border-radius:3px;background:white;border:1.5px solid var(--border);"></div>Chưa trả lời</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;border-radius:3px;background:var(--yellow);"></div>Câu liệt</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;border-radius:50%;background:var(--green);"></div>Đang xem</div>
+    </div>
+  </div>
 
-  <!-- MOBILE: Qmap Drawer -->
-  <div class="qmap-drawer" id="qmapDrawer">
+  <!-- Floating button - ẩn hoàn toàn -->
+  <button class="qmap-toggle-btn" id="qmapToggleBtn" style="display:none!important" onclick="openQmapDrawer()" title="Bảng câu hỏi">🗺️</button>
+
+  <!-- Drawer - ẩn hoàn toàn -->
+  <div class="qmap-drawer" id="qmapDrawer" style="display:none!important">
     <div class="qmap-drawer-backdrop" onclick="closeQmapDrawer()"></div>
     <div class="qmap-drawer-panel">
       <div class="qmap-drawer-header">
@@ -2731,12 +2710,6 @@
 
     document.getElementById("examSetName").textContent = selectedSet.name||selectedSet.title||"Đề thi";
 
-    // Show mobile qmap toggle
-
-    const qmapBtn = document.getElementById('qmapToggleBtn');
-
-    if (qmapBtn) qmapBtn.style.display = 'flex';
-
     // Update header
 
     const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "ĐANG THI – "+((selectedSet.name||"").toUpperCase());
@@ -2889,6 +2862,23 @@
 
     }).join("");
 
+    // Build flat qmap (mobile)
+    const flatGrid = document.getElementById("qmapFlatGrid");
+    if (flatGrid) {
+      flatGrid.innerHTML = questions.map((q, i) => {
+        const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
+        return `<button class="qmap-btn ${isLiet?'liet-btn':''}" id="qbf${i}" onclick="goTo(${i})">${i+1}</button>`;
+      }).join("");
+    }
+
+    // Show flat qmap wrap
+    const flatWrap = document.getElementById('qmapFlatWrap');
+    if (flatWrap) flatWrap.style.display = 'block';
+
+    // Update progress
+    const prog = document.getElementById('qmapFlatProgress');
+    if (prog) prog.textContent = `0/${questions.length} câu`;
+
   }
 
   function updateQmap() {
@@ -2916,6 +2906,25 @@
       btn.className = cls;
 
     });
+
+    // Sync flat qmap too
+    questions.forEach((q, i) => {
+      const btn = document.getElementById("qbf"+i);
+      if (!btn) return;
+      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
+      const answered = userAnswers[i] !== null;
+      const isCurrent = i === currentIdx;
+      let cls = "qmap-btn";
+      if (isLiet) cls += " liet-btn";
+      if (answered) cls += " answered";
+      if (isCurrent) cls += " current";
+      btn.className = cls;
+    });
+
+    // Update flat qmap progress
+    const answered = userAnswers.filter(a => a !== null).length;
+    const prog = document.getElementById('qmapFlatProgress');
+    if (prog) prog.textContent = `${answered}/${questions.length} câu`;
 
     // Sync drawer grid too
 
@@ -3015,26 +3024,13 @@
 
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    // Nếu có endAt từ phòng thi → tính thời gian thực; ngược lại dùng timerSec
-    const endAtDate = _waitRoomData?.endAt?.toDate ? _waitRoomData.endAt.toDate() : null;
-
     timerInterval = setInterval(() => {
-      if (endAtDate) {
-        // Tính theo endAt của phòng thi — đồng hồ đếm ngược đến khi đóng phòng
-        timerSec = Math.max(0, Math.floor((endAtDate.getTime() - Date.now()) / 1000));
-      } else {
-        timerSec = Math.max(0, timerSec - 1);
-      }
-      renderTimer();
-      // Cập nhật presence mỗi 30 giây
-      if (IS_STUDENT && timerSec % 30 === 0) {
-        updatePresenceState();
-      }
+      timerSec--;
       if (timerSec <= 0) {
         clearInterval(timerInterval);
-        timerInterval = null;
+        timerSec = 0;
         renderTimer();
-        // Overlay hết giờ
+        // Hiển thị overlay "Hết thời gian"
         const tuo = document.getElementById('timeUpOverlay');
         if (tuo) {
           tuo.style.display = 'flex';
@@ -3049,22 +3045,31 @@
           if (tuo) tuo.style.display = 'none';
           submitExam(true);
         }, 3200);
+        return;
       }
+      renderTimer();
+      // Update presence every 30s automatically
+
+      if (IS_STUDENT && timerSec % 30 === 0) updatePresenceState();
+
     }, 1000);
+
     renderTimer();
+
   }
 
   function renderTimer() {
+
     const el = document.getElementById("timerDisplay");
+
     if (!el) return;
-    const totalSec = Math.max(0, timerSec);
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    el.textContent = h > 0
-      ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    el.className = "timer-value" + (totalSec <= 60 ? " danger" : totalSec <= 300 ? " warning" : "");
+
+    const m = Math.floor(timerSec/60), s = timerSec%60;
+
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+    el.className = "timer-value" + (timerSec<=60?" danger":timerSec<=300?" warning":"");
+
   }
 
   // ── Submit ──────────────────────────────────────────────────────
@@ -3299,11 +3304,14 @@
 
     document.getElementById("pgResult").classList.add("active");
 
-    // Hide mobile qmap toggle
+    // Hide mobile qmap toggle and flat qmap
 
     const qmapBtn = document.getElementById('qmapToggleBtn');
 
     if (qmapBtn) qmapBtn.style.display = 'none';
+
+    const flatWrap = document.getElementById('qmapFlatWrap');
+    if (flatWrap) flatWrap.style.display = 'none';
 
     const hv = document.getElementById("headerVi"); if(hv) hv.textContent = "KẾT QUẢ BÀI THI";
 
@@ -3545,16 +3553,9 @@
 
       else if (signal.type === 'force_end' && !examSubmitted) {
 
-        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        timerSec = 0; renderTimer();
-        showAdminWarning('⏹ ' + signal.message);
+        showAdminWarning('⚠ ' + signal.message);
+
         setTimeout(() => submitExam(true), 3000);
-
-      } else if (signal.type === 'room_closed' && !examSubmitted) {
-
-        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        timerSec = 0; renderTimer();
-        _showRoomClosedOverlay(signal.message || 'Giám thị đã đóng phòng thi.');
 
       }
 
@@ -3793,18 +3794,9 @@
 
           } else if (signal.type === 'force_end' && !examSubmitted) {
 
-            // Dừng đồng hồ ngay lập tức
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            timerSec = 0; renderTimer();
-            showAdminWarning('⏹ ' + signal.message);
+            showAdminWarning('⚠ ' + signal.message);
+
             setTimeout(() => { if (!examSubmitted) submitExam(true); }, 3000);
-
-          } else if (signal.type === 'room_closed' && !examSubmitted) {
-
-            // Phòng thi đóng: dừng đồng hồ, hiện overlay đặc biệt, nộp bài
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            timerSec = 0; renderTimer();
-            _showRoomClosedOverlay(signal.message || 'Giám thị đã đóng phòng thi.');
 
           }
 
@@ -3990,52 +3982,13 @@
       } else if (status === 'scheduled') {
         if (!_openingStarted) _startPreOpenCountdown(_waitRoomData.startAt);
       } else if (status === 'closed') {
-        // Phòng đóng trong khi đang thi → nộp bài ngay
-        if (document.getElementById('pgExam')?.classList.contains('active') && !examSubmitted) {
-          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-          timerSec = 0; renderTimer();
-          _showRoomClosedOverlay('Phòng thi đã đóng. Bài của bạn sẽ được tự động nộp.');
-        } else if (!_openingStarted) {
-          _showWaitError('Phòng thi đã đóng hoặc kết thúc.');
-        }
+        _showWaitError('Phòng thi đã đóng hoặc kết thúc.');
       }
     }, err => {
       // Fallback khi mất kết nối
       if (_waitRoomData?.status === 'open' && !_openingStarted) _showOpeningCountdown();
       else if (_waitRoomData?.startAt && !_openingStarted) _startPreOpenCountdown(_waitRoomData.startAt);
     });
-  }
-
-  // Overlay phòng đóng
-  function _showRoomClosedOverlay(msg) {
-    // Tạo overlay nếu chưa có
-    let ov = document.getElementById('roomClosedOverlay');
-    if (!ov) {
-      ov = document.createElement('div');
-      ov.id = 'roomClosedOverlay';
-      ov.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:white;text-align:center;padding:24px;';
-      ov.innerHTML = `
-        <div style="width:110px;height:110px;background:linear-gradient(135deg,#dc3545,#b02a37);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;">🔒</div>
-        <div style="font-size:28px;font-weight:900;">Phòng thi đã đóng!</div>
-        <div id="roomClosedMsg" style="font-size:15px;opacity:.85;max-width:340px;line-height:1.7;"></div>
-        <div style="font-size:14px;color:#ffd166;font-weight:700;">Đang nộp bài và tính kết quả...</div>
-        <div style="width:240px;height:8px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;">
-          <div id="roomClosedBar" style="height:100%;background:white;width:100%;border-radius:4px;transition:width 4s linear;"></div>
-        </div>`;
-      document.body.appendChild(ov);
-    }
-    const msgEl = document.getElementById('roomClosedMsg');
-    if (msgEl) msgEl.textContent = msg || '';
-    ov.style.display = 'flex';
-    const bar = document.getElementById('roomClosedBar');
-    if (bar) {
-      bar.style.transition = 'none'; bar.style.width = '100%';
-      setTimeout(() => { bar.style.transition = 'width 4s linear'; bar.style.width = '0%'; }, 80);
-    }
-    setTimeout(() => {
-      ov.style.display = 'none';
-      if (!examSubmitted) submitExam(true);
-    }, 4200);
   }
 
   function _startPreOpenCountdown(startAtTs) {
@@ -4134,6 +4087,7 @@
 
       // Dừng listener phòng chờ
       if (_waitRoomUnsub) { _waitRoomUnsub(); _waitRoomUnsub = null; }
+
       // Tải câu hỏi
       if (msg) msg.textContent = 'Đang tải câu hỏi...';
       questions    = await loadQuestionsForSet(set);
@@ -4152,17 +4106,20 @@
       } else {
           timerSec = examDurationSec;
       }
+
       // Chuyển sang trang làm bài
       document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
       document.getElementById('pgExam')?.classList.add('active');
+
       const snEl = document.getElementById('examSetName');
       if (snEl) snEl.textContent = set.name || set.title || 'Đề thi';
-      const qmapBtn = document.getElementById('qmapToggleBtn');
-      if (qmapBtn) qmapBtn.style.display = 'flex';
+
       renderQuestion(0);
-      renderQmap();
+      buildQmap();
       startTimer();
+
       if (overlay) overlay.classList.remove('show');
+
       // Cập nhật presence -> Đang thi
       if (IS_STUDENT && db && studentCode) {
         db.collection('presence').doc(studentCode).set({
@@ -4183,12 +4140,30 @@
           _clientTime: Date.now()
         }, { merge: true }).catch(()=>{});
       }
+
       if (IS_STUDENT) startExamPresence();
+
+      // === Lắng nghe trạng thái phòng: nếu admin đóng phòng → tự nộp bài ===
+      if (_waitRoomId && db) {
+        const _examRoomUnsub = db.collection('examRooms').doc(_waitRoomId).onSnapshot(snap => {
+          if (!snap.exists) return;
+          const roomStatus = snap.data()?.status;
+          if (roomStatus === 'closed' && !examSubmitted) {
+            _examRoomUnsub && _examRoomUnsub();
+            // Dừng timer ngay
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; timerSec = 0; }
+            showAdminWarning('🔒 Phòng thi đã đóng. Bài thi của bạn đang được nộp tự động...');
+            setTimeout(() => submitExam(true), 3000);
+          }
+        }, () => {});
+      }
+
     } catch(e) {
       if (overlay) overlay.classList.remove('show');
       _showWaitError('Lỗi khi tải đề thi: ' + (e.message || e.code));
     }
   }
+
   function _showWaitError(msg) {
     const pg = document.getElementById('pgWaitRoom');
     if (!pg) return;
@@ -4200,5 +4175,7 @@
     </div>`;
   }
 </script>
+
 </body>
+
 </html>
