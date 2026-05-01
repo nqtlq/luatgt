@@ -67,7 +67,6 @@
 }
     /* Giám thị - pulse animation cho đang thi */
 @keyframes invigPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
-@keyframes closePulse { 0%,100%{box-shadow:0 3px 10px rgba(220,53,69,.35)} 50%{box-shadow:0 3px 20px rgba(220,53,69,.8)} }
     /* ===== QUẢN LÝ ĐỀ THI ===== */
     #question_sets table { table-layout: auto; min-width: unset; }
     #question_sets table th,
@@ -3924,8 +3923,11 @@ D. Đáp án D
 
       </div>
 
-      <!-- Tab 1: Danh sách phòng thi -->
-      <div id="roomTabPanel_list" class="img-tab-content active">
+      <!-- Tab navigation — chỉ giữ Danh sách phòng thi -->
+      <div style="margin-bottom:18px;"></div>
+
+      <!-- Danh sách phòng thi -->
+      <div id="roomTabPanel_list">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:var(--primary);" id="rStatTotal">0</div><div style="font-size:12px;color:var(--text-secondary);">Tổng phòng</div></div>
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#2a9d8f;" id="rStatOpen">0</div><div style="font-size:12px;color:var(--text-secondary);">Đang mở</div></div>
@@ -3933,6 +3935,12 @@ D. Đáp án D
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#888;" id="rStatClosed">0</div><div style="font-size:12px;color:var(--text-secondary);">Đã kết thúc</div></div>
         </div>
         <div id="roomList"><div style="text-align:center;padding:40px;color:#888;">⏳ Đang tải...</div></div>
+      </div>
+
+      <!-- Tab 2 & 3 đã bị xóa theo yêu cầu -->
+      <div id="roomTabPanel_monitor" style="display:none;">
+        </div>
+
     </div><!-- /exam_rooms -->
 <!-- ===== MODAL GIÁM THỊ PHÒNG THI ===== -->
     <div id="invigModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);overflow-y:auto;">
@@ -5594,26 +5602,15 @@ function loadExamRooms() {
 }
 
 function _updateRoomStats(rooms) {
-    const now = Date.now();
-    let total = rooms.length, open = 0, sched = 0, closed = 0;
-    rooms.forEach(r => {
-        const startMs = r.startAt?.toDate ? r.startAt.toDate().getTime() : null;
-        const endMs   = r.endAt?.toDate   ? r.endAt.toDate().getTime()   : null;
-        // Tính real-time từ timestamps
-        let st = r.status;
-        if (startMs && endMs) {
-            if (now < startMs) st = 'scheduled';
-            else if (now >= startMs && now < endMs && st !== 'closed') st = 'open';
-            else if (now >= endMs) st = 'closed';
-        }
-        if (st === 'open') open++;
-        else if (st === 'scheduled') sched++;
-        else closed++;
-    });
-    document.getElementById('rStatTotal').textContent  = total;
-    document.getElementById('rStatOpen').textContent   = open;
-    document.getElementById('rStatSched').textContent  = sched;
-    document.getElementById('rStatClosed').textContent = closed;
+
+  document.getElementById('rStatTotal').textContent  = rooms.length;
+
+  document.getElementById('rStatOpen').textContent   = rooms.filter(r=>r.status==='open').length;
+
+  document.getElementById('rStatSched').textContent  = rooms.filter(r=>r.status==='scheduled').length;
+
+  document.getElementById('rStatClosed').textContent = rooms.filter(r=>r.status==='closed').length;
+
 }
 
 function _renderRoomList(rooms) {
@@ -5666,9 +5663,7 @@ function _renderRoomList(rooms) {
 
         ${r.status==='scheduled'?`<button onclick="openRoomNow('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#2a9d8f,#1a7a6e);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(42,157,143,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">▶ Mở ngay</button>`:''}
 
-        ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;animation:closePulse 1.5s ease infinite;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng ngay</button>`:''}
-
-        ${r.status==='closed'?`<span style="padding:8px 16px;background:#f1f3f5;color:#868e96;border-radius:9px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;">✓ Đã kết thúc</span>`:''}
+        ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;animation:invigPulse 2s infinite;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng ngay</button>`:''}
 
         <button onclick="sendWarnToRoom('${r.id}')" style="padding:8px 16px;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)33;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;">🚨 Cảnh báo</button>
         <button onclick="enterRoomInvigilate('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#0d6efd,#0856d6);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(13,110,253,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🎓 Coi thi</button>
@@ -5849,48 +5844,38 @@ function editRoom(id) {
 }
 
 async function openRoomNow(id) {
-    if (!confirm('Mở phòng thi ngay?\nHọc viên đang ở phòng chờ sẽ được tự động vào thi sau 10 giây.')) return;
-    try {
-        await db.collection('examRooms').doc(id).update({
-            status: 'open',
-            openedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            adminSignal: { type: 'room_opened', sentAt: firebase.firestore.FieldValue.serverTimestamp() }
-        });
-        showToast('✅ Phòng thi đã mở! Học viên sẽ tự động vào thi.', 'success', 3000);
-    } catch(e) { showToast('Lỗi mở phòng: ' + e.message, 'error'); }
+  try {
+    await db.collection('examRooms').doc(id).update({status:'open', openedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    showToast('✅ Phòng thi đã mở! Học viên đang ở phòng chờ sẽ tự động vào thi sau 10 giây.', 'success', 4000);
+  } catch(e) { showToast('Lỗi khi mở phòng: ' + e.message, 'error'); }
 }
 
 async function closeRoom(id) {
-    if (!confirm('Đóng phòng thi ngay?\nTất cả học viên đang làm bài sẽ bị tự động nộp bài và nhận kết quả.')) return;
-    try {
-        // 1. Ghi trạng thái closed lên Firestore → test.html đang onSnapshot sẽ nhận ngay
-        await db.collection('examRooms').doc(id).update({
-            status: 'closed',
-            closedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            adminSignal: {
-                type: 'room_closed',
-                message: 'Giám thị đã đóng phòng thi. Bài của bạn sẽ được tự động nộp.',
-                sentAt: firebase.firestore.FieldValue.serverTimestamp()
-            }
-        });
-        // 2. Gửi force_end tới tất cả HV đang online trong phòng
-        const presSnap = await db.collection('presence')
-            .where('examRoomId', '==', id)
-            .where('isOnline', '==', true)
-            .get();
-        const batch = db.batch();
-        presSnap.forEach(d => {
-            batch.update(d.ref, {
-                adminSignal: {
-                    type: 'force_end',
-                    message: 'Giám thị đã đóng phòng thi. Bài của bạn đã được nộp.',
-                    sentAt: firebase.firestore.FieldValue.serverTimestamp()
-                }
-            });
-        });
-        if (!presSnap.empty) await batch.commit();
-        showToast(`✅ Đã đóng phòng & gửi lệnh nộp bài tới ${presSnap.size} học viên.`, 'success', 4000);
-    } catch(e) { showToast('Lỗi đóng phòng: ' + e.message, 'error'); }
+  if (!await showConfirm('Đóng phòng thi', 'Đóng phòng thi ngay? Học viên đang thi sẽ nhận được thông báo và bài thi sẽ tự động nộp.', '🔒')) return;
+  try {
+    // Gửi tín hiệu force_end đến tất cả HV đang thi trong phòng này
+    const presenceSnap = await db.collection('presence')
+      .where('examRoomId', '==', id)
+      .where('isOnline', '==', true)
+      .get();
+    const batch = db.batch();
+    presenceSnap.docs.forEach(doc => {
+      batch.update(doc.ref, {
+        adminSignal: {
+          type: 'force_end',
+          message: 'Phòng thi đã đóng. Bài thi của bạn đang được nộp tự động...',
+          sentAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
+    });
+    // Đóng phòng
+    batch.update(db.collection('examRooms').doc(id), {
+      status: 'closed',
+      closedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await batch.commit();
+    showToast(`🔒 Phòng thi đã đóng. Đã thông báo đến ${presenceSnap.size} học viên đang thi.`, 'success', 5000);
+  } catch(e) { showToast('Lỗi khi đóng phòng: ' + e.message, 'error'); }
 }
 
 async function deleteRoom(id) { if(!confirm('Xóa phòng thi này?'))return; await db.collection('examRooms').doc(id).delete(); }
