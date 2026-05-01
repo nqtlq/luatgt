@@ -417,19 +417,16 @@
     .exam-question-area { background: white; padding: 24px; min-height: calc(100vh - 220px); }
 
     .exam-sidebar {
-
       background: #f8fafc;
-
       border-left: 1px solid var(--border);
-
       padding: 16px;
-
       display: flex;
-
       flex-direction: column;
-
       gap: 12px;
-
+      position: sticky;
+      top: 0;
+      max-height: 100vh;
+      overflow-y: auto;
     }
 
     .q-progress { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
@@ -1106,9 +1103,11 @@
 
       .exam-layout { grid-template-columns: 1fr; }
 
-      .exam-sidebar { display: none !important; }
-
-      .qmap-toggle-btn { display: flex; }
+      /* Trên mobile: sidebar hiển thị bên dưới, layout dọc */
+      .exam-layout { grid-template-columns: 1fr; }
+      .exam-sidebar { border-left: none; border-top: 1px solid var(--border); max-height: none; position: static; }
+      .qmap { grid-template-columns: repeat(8, 1fr); gap: 4px; }
+      .qmap-toggle-btn { display: none !important; }
 
       .exam-question-area { padding: 14px; min-height: calc(100vh - 200px); padding-bottom: 90px; }
 
@@ -1831,29 +1830,17 @@
       <div class="exam-question-area" id="examQuestionArea"></div>
 
       <div class="exam-sidebar">
-
         <div>
-
-          <div class="qmap-title">Bảng câu hỏi</div>
-
+          <div class="qmap-title">📋 Sơ đồ bài thi</div>
           <div class="qmap" id="qmap"></div>
-
         </div>
-
         <div class="exam-legend">
-
           <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div>Đã trả lời</div>
-
           <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);"></div>Chưa trả lời</div>
-
           <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div>Câu liệt</div>
-
           <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;"></div>Đang xem</div>
-
         </div>
-
         <button class="sidebar-submit" onclick="confirmSubmit()">Nộp bài</button>
-
       </div>
 
     </div>
@@ -3028,13 +3015,26 @@
 
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
+    // Nếu có endAt từ phòng thi → tính thời gian thực; ngược lại dùng timerSec
+    const endAtDate = _waitRoomData?.endAt?.toDate ? _waitRoomData.endAt.toDate() : null;
+
     timerInterval = setInterval(() => {
-      timerSec--;
+      if (endAtDate) {
+        // Tính theo endAt của phòng thi — đồng hồ đếm ngược đến khi đóng phòng
+        timerSec = Math.max(0, Math.floor((endAtDate.getTime() - Date.now()) / 1000));
+      } else {
+        timerSec = Math.max(0, timerSec - 1);
+      }
+      renderTimer();
+      // Cập nhật presence mỗi 30 giây
+      if (IS_STUDENT && timerSec % 30 === 0) {
+        updatePresenceState();
+      }
       if (timerSec <= 0) {
         clearInterval(timerInterval);
-        timerSec = 0;
+        timerInterval = null;
         renderTimer();
-        // Hiển thị overlay "Hết thời gian"
+        // Overlay hết giờ
         const tuo = document.getElementById('timeUpOverlay');
         if (tuo) {
           tuo.style.display = 'flex';
@@ -3049,31 +3049,22 @@
           if (tuo) tuo.style.display = 'none';
           submitExam(true);
         }, 3200);
-        return;
       }
-      renderTimer();
-      // Update presence every 30s automatically
-
-      if (IS_STUDENT && timerSec % 30 === 0) updatePresenceState();
-
     }, 1000);
-
     renderTimer();
-
   }
 
   function renderTimer() {
-
     const el = document.getElementById("timerDisplay");
-
     if (!el) return;
-
-    const m = Math.floor(timerSec/60), s = timerSec%60;
-
-    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
-    el.className = "timer-value" + (timerSec<=60?" danger":timerSec<=300?" warning":"");
-
+    const totalSec = Math.max(0, timerSec);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    el.textContent = h > 0
+      ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    el.className = "timer-value" + (totalSec <= 60 ? " danger" : totalSec <= 300 ? " warning" : "");
   }
 
   // ── Submit ──────────────────────────────────────────────────────
@@ -3554,9 +3545,16 @@
 
       else if (signal.type === 'force_end' && !examSubmitted) {
 
-        showAdminWarning('⚠ ' + signal.message);
-
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        timerSec = 0; renderTimer();
+        showAdminWarning('⏹ ' + signal.message);
         setTimeout(() => submitExam(true), 3000);
+
+      } else if (signal.type === 'room_closed' && !examSubmitted) {
+
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        timerSec = 0; renderTimer();
+        _showRoomClosedOverlay(signal.message || 'Giám thị đã đóng phòng thi.');
 
       }
 
@@ -3795,9 +3793,18 @@
 
           } else if (signal.type === 'force_end' && !examSubmitted) {
 
-            showAdminWarning('⚠ ' + signal.message);
-
+            // Dừng đồng hồ ngay lập tức
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            timerSec = 0; renderTimer();
+            showAdminWarning('⏹ ' + signal.message);
             setTimeout(() => { if (!examSubmitted) submitExam(true); }, 3000);
+
+          } else if (signal.type === 'room_closed' && !examSubmitted) {
+
+            // Phòng thi đóng: dừng đồng hồ, hiện overlay đặc biệt, nộp bài
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            timerSec = 0; renderTimer();
+            _showRoomClosedOverlay(signal.message || 'Giám thị đã đóng phòng thi.');
 
           }
 
@@ -3983,13 +3990,52 @@
       } else if (status === 'scheduled') {
         if (!_openingStarted) _startPreOpenCountdown(_waitRoomData.startAt);
       } else if (status === 'closed') {
-        _showWaitError('Phòng thi đã đóng hoặc kết thúc.');
+        // Phòng đóng trong khi đang thi → nộp bài ngay
+        if (document.getElementById('pgExam')?.classList.contains('active') && !examSubmitted) {
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          timerSec = 0; renderTimer();
+          _showRoomClosedOverlay('Phòng thi đã đóng. Bài của bạn sẽ được tự động nộp.');
+        } else if (!_openingStarted) {
+          _showWaitError('Phòng thi đã đóng hoặc kết thúc.');
+        }
       }
     }, err => {
       // Fallback khi mất kết nối
       if (_waitRoomData?.status === 'open' && !_openingStarted) _showOpeningCountdown();
       else if (_waitRoomData?.startAt && !_openingStarted) _startPreOpenCountdown(_waitRoomData.startAt);
     });
+  }
+
+  // Overlay phòng đóng
+  function _showRoomClosedOverlay(msg) {
+    // Tạo overlay nếu chưa có
+    let ov = document.getElementById('roomClosedOverlay');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'roomClosedOverlay';
+      ov.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:white;text-align:center;padding:24px;';
+      ov.innerHTML = `
+        <div style="width:110px;height:110px;background:linear-gradient(135deg,#dc3545,#b02a37);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;">🔒</div>
+        <div style="font-size:28px;font-weight:900;">Phòng thi đã đóng!</div>
+        <div id="roomClosedMsg" style="font-size:15px;opacity:.85;max-width:340px;line-height:1.7;"></div>
+        <div style="font-size:14px;color:#ffd166;font-weight:700;">Đang nộp bài và tính kết quả...</div>
+        <div style="width:240px;height:8px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;">
+          <div id="roomClosedBar" style="height:100%;background:white;width:100%;border-radius:4px;transition:width 4s linear;"></div>
+        </div>`;
+      document.body.appendChild(ov);
+    }
+    const msgEl = document.getElementById('roomClosedMsg');
+    if (msgEl) msgEl.textContent = msg || '';
+    ov.style.display = 'flex';
+    const bar = document.getElementById('roomClosedBar');
+    if (bar) {
+      bar.style.transition = 'none'; bar.style.width = '100%';
+      setTimeout(() => { bar.style.transition = 'width 4s linear'; bar.style.width = '0%'; }, 80);
+    }
+    setTimeout(() => {
+      ov.style.display = 'none';
+      if (!examSubmitted) submitExam(true);
+    }, 4200);
   }
 
   function _startPreOpenCountdown(startAtTs) {
@@ -4088,7 +4134,6 @@
 
       // Dừng listener phòng chờ
       if (_waitRoomUnsub) { _waitRoomUnsub(); _waitRoomUnsub = null; }
-
       // Tải câu hỏi
       if (msg) msg.textContent = 'Đang tải câu hỏi...';
       questions    = await loadQuestionsForSet(set);
@@ -4107,23 +4152,17 @@
       } else {
           timerSec = examDurationSec;
       }
-
       // Chuyển sang trang làm bài
       document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
       document.getElementById('pgExam')?.classList.add('active');
-
       const snEl = document.getElementById('examSetName');
       if (snEl) snEl.textContent = set.name || set.title || 'Đề thi';
-
       const qmapBtn = document.getElementById('qmapToggleBtn');
       if (qmapBtn) qmapBtn.style.display = 'flex';
-
       renderQuestion(0);
       renderQmap();
       startTimer();
-
       if (overlay) overlay.classList.remove('show');
-
       // Cập nhật presence -> Đang thi
       if (IS_STUDENT && db && studentCode) {
         db.collection('presence').doc(studentCode).set({
@@ -4144,15 +4183,12 @@
           _clientTime: Date.now()
         }, { merge: true }).catch(()=>{});
       }
-
       if (IS_STUDENT) startExamPresence();
-
     } catch(e) {
       if (overlay) overlay.classList.remove('show');
       _showWaitError('Lỗi khi tải đề thi: ' + (e.message || e.code));
     }
   }
-
   function _showWaitError(msg) {
     const pg = document.getElementById('pgWaitRoom');
     if (!pg) return;
@@ -4164,7 +4200,5 @@
     </div>`;
   }
 </script>
-
 </body>
-
 </html>
