@@ -8259,20 +8259,14 @@ function printTable() {
         <\/script></body>`
     );
 
-    // Dùng iframe ẩn với srcdoc — KHÔNG mở tab about:blank, không bị chặn popup
+    // Dùng iframe ẩn với srcdoc — script bên trong tự gọi print() qua DOMContentLoaded
+    // KHÔNG gọi thêm print() từ parent để tránh hiển thị dialog in 2 lần
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden;';
     iframe.setAttribute('srcdoc', printHtml);
     document.body.appendChild(iframe);
-    iframe.addEventListener('load', () => {
-        setTimeout(() => {
-            try {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            } catch(_) {}
-            setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); }, 90000);
-        }, 150);
-    });
+    // Tự động dọn iframe sau 2 phút (đủ để in xong)
+    setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); }, 120000);
 }
 
 // ==========================================
@@ -12548,7 +12542,11 @@ async function confirmDeleteAllData() {
 
     try {
 
-        const collections = ['students', 'questionSets', 'questions', 'examResults'];
+        // ── 1. Xóa các collection thông thường ──────────────────────
+        const collections = [
+            'students', 'questionSets', 'questions', 'examResults',
+            'notifications', 'presence', 'adminWarnings', 'sessions', 'emailQueue'
+        ];
 
         for (const name of collections) {
 
@@ -12565,6 +12563,34 @@ async function confirmDeleteAllData() {
             }
 
         }
+
+        // ── 2. Xóa examRooms + subcollection registrations ──────────
+        const roomsSnap = await db.collection('examRooms').get();
+
+        for (const roomDoc of roomsSnap.docs) {
+
+            // Xóa subcollection registrations trước
+            const regSnap = await db.collection('examRooms').doc(roomDoc.id)
+                .collection('registrations').get();
+
+            for (let i = 0; i < regSnap.docs.length; i += 500) {
+
+                const batch = db.batch();
+
+                regSnap.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+
+                await batch.commit();
+
+            }
+
+            // Sau đó xóa document phòng thi
+            await roomDoc.ref.delete();
+
+        }
+
+        // ── 3. Reset bộ đếm khách về 0 (không xóa doc, chỉ reset count) ─
+        await db.collection('systemConfig').doc('guestCounter')
+            .set({ count: 0 }, { merge: true });
 
         allStudents = []; allQuestionSets = []; allResults = [];
 
