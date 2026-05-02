@@ -3923,11 +3923,11 @@ D. Đáp án D
 
       </div>
 
-      <!-- Tab navigation — chỉ giữ Danh sách phòng thi -->
+      <!-- Tab navigation — chỉ còn Danh sách phòng thi -->
       <div style="margin-bottom:18px;"></div>
 
-      <!-- Danh sách phòng thi -->
-      <div id="roomTabPanel_list">
+      <!-- Tab 1: Danh sách phòng thi -->
+      <div id="roomTabPanel_list" class="img-tab-content active">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:var(--primary);" id="rStatTotal">0</div><div style="font-size:12px;color:var(--text-secondary);">Tổng phòng</div></div>
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#2a9d8f;" id="rStatOpen">0</div><div style="font-size:12px;color:var(--text-secondary);">Đang mở</div></div>
@@ -3935,11 +3935,169 @@ D. Đáp án D
           <div class="dash-card"><div style="font-size:22px;font-weight:800;color:#888;" id="rStatClosed">0</div><div style="font-size:12px;color:var(--text-secondary);">Đã kết thúc</div></div>
         </div>
         <div id="roomList"><div style="text-align:center;padding:40px;color:#888;">⏳ Đang tải...</div></div>
-      </div>
+      </div><!-- /roomTabPanel_list -->
 
-      <!-- Tab 2 & 3 đã bị xóa theo yêu cầu -->
+      <!-- Tab 2: Giám sát phòng thi inline (ẩn) -->
       <div id="roomTabPanel_monitor" style="display:none;">
+        <div id="monitorNoRoom" style="text-align:center;padding:60px 20px;">
+          <div style="font-size:64px;margin-bottom:16px;">🏫</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Chưa có phòng thi nào đang được giám sát</div>
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:24px;">Chọn phòng ở tab <b>Danh sách</b> → nhấn <b>👁 Vào phòng</b> để bắt đầu giám sát trực tiếp</div>
+          <button onclick="switchRoomTab('list',document.getElementById('roomTab_list'))" style="padding:12px 28px;background:linear-gradient(135deg,#0d6efd,#0856d6);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(13,110,253,.35);">← Quay lại danh sách</button>
         </div>
+        <div id="monitorPanel" style="display:none;">
+          <div style="background:linear-gradient(135deg,#0f1729,#1a2744,#1e3a5f);border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="color:rgba(255,255,255,.6);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#2bff8e;animation:invigPulse 1.5s infinite;display:inline-block;"></span> ĐANG GIÁM SÁT TRỰC TIẾP</div>
+              <div id="monitorRoomTitle" style="color:white;font-size:20px;font-weight:800;">—</div>
+              <div id="monitorRoomInfo" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:4px;"></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <div id="monitorStatusBadge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;"></div>
+              <span id="monitorLastUpdate" style="color:rgba(255,255,255,.5);font-size:11px;"></span>
+              <button onclick="refreshMonitor()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">🔄 Làm mới</button>
+              <button onclick="exportMonitorExcel()" style="background:rgba(25,135,84,.9);border:none;color:white;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">📥 Xuất Excel</button>
+              <button onclick="stopMonitor()" style="background:rgba(220,53,69,.9);border:none;color:white;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;">✕ Thoát giám sát</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatReg" style="font-size:26px;font-weight:800;color:var(--accent);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Đã đăng ký</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatWaiting" style="font-size:26px;font-weight:800;color:#f59e0b;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Phòng chờ</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--success);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatDoing" style="font-size:26px;font-weight:800;color:var(--success);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">✍ Đang thi</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatSubmitted" style="font-size:26px;font-weight:800;color:#6610f2;">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">✅ Đã nộp</div>
+            </div>
+            <div style="flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+              <div id="monStatAbsent" style="font-size:26px;font-weight:800;color:var(--danger);">0</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">❌ Vắng</div>
+            </div>
+            <div style="flex:2;min-width:200px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;justify-content:center;box-shadow:var(--shadow-sm);">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚙ Điều khiển phòng</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="monBtnOpen" onclick="monitorOpenRoom()" style="display:none;padding:7px 14px;background:linear-gradient(135deg,#2a9d8f,#1a7a6e);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">▶ Mở phòng ngay</button>
+                <button id="monBtnClose" onclick="monitorCloseRoom()" style="display:none;padding:7px 14px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🔒 Đóng phòng</button>
+                <button onclick="monitorSendWarn()" style="padding:7px 14px;background:var(--warning-light);color:#856404;border:1px solid #ffc10750;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🚨 Cảnh báo HV</button>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow-sm);">
+            <input type="text" id="monSearch" placeholder="🔍 Tìm theo tên, mã học viên..." oninput="filterMonitor()" style="flex:2;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+            <select id="monStatusFilter" onchange="filterMonitor()" style="flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+              <option value="">Tất cả trạng thái</option>
+              <option value="waiting">⏳ Phòng chờ</option>
+              <option value="doing">✍ Đang làm bài</option>
+              <option value="submitted">✅ Đã nộp</option>
+              <option value="registered">📋 Đã đăng ký</option>
+            </select>
+            <div style="font-size:12px;color:var(--text-muted);margin-left:auto;" id="monFilterCount"></div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);">
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:700px;">
+                <thead>
+                  <tr style="background:var(--bg-table-head);border-bottom:2px solid var(--border);">
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:48px;">STT</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:110px;">Mã HV</th>
+                    <th style="padding:12px 14px;text-align:left;font-size:12px;font-weight:700;color:var(--text-secondary);">Họ và tên</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:140px;">Trạng thái</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:160px;">Tiến độ</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);width:140px;">Kết quả</th>
+                  </tr>
+                </thead>
+                <tbody id="monTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">Đang chờ dữ liệu...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div><!-- /monitorPanel -->
+      </div><!-- /roomTabPanel_monitor -->
+
+      <!-- Tab 3: Tổng hợp kết quả (ẩn) -->
+      <div id="roomTabPanel_results" style="display:none;">
+        <!-- Nội dung sẽ được render bởi renderSessionResultsTab() -->
+        <div id="sessionResultsTabInner">
+          <!-- Chọn phòng thi -->
+          <div class="box" style="margin-bottom:16px;">
+            <h3>🏫 Chọn buổi thi để xem kết quả</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <select id="sessionRoomSelect" style="flex:2;min-width:240px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg-input);color:var(--text-primary);" onchange="onSessionRoomChange()">
+                <option value="">-- Chọn buổi thi --</option>
+              </select>
+              <input type="text" id="sessionStudentSearch" placeholder="🔍 Tìm tên/mã học viên..." style="flex:2;min-width:180px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" oninput="filterSessionResults()">
+              <select id="sessionStatusFilter" style="flex:1;min-width:150px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);" onchange="filterSessionResults()">
+                <option value="all">Tất cả</option>
+                <option value="pass">✅ Đạt</option>
+                <option value="fail">❌ Không đạt</option>
+                <option value="absent">⚠ Vắng/Chưa nộp</option>
+              </select>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" onclick="loadSessionResults()" style="display:flex;align-items:center;gap:6px;">🔄 Làm mới</button>
+                <button class="btn btn-primary" onclick="exportSessionResultsExcel()" style="display:flex;align-items:center;gap:6px;">📥 Xuất Excel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thống kê tổng quan buổi thi -->
+          <div id="sessionSummaryBox" style="display:none;" class="box" style="margin-bottom:16px;">
+            <h3 id="sessionSummaryTitle">📊 Tổng quan buổi thi</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:16px;">
+              <div class="miniStatBox" style="border-left:4px solid var(--accent);">
+                <div class="label">Đã đăng ký</div><div class="value" id="sess_reg">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--success);">
+                <div class="label">Đã nộp bài</div><div class="value" id="sess_submitted">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--success);">
+                <div class="label">Đạt</div><div class="value" id="sess_pass">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--danger);">
+                <div class="label">Không đạt</div><div class="value" id="sess_fail">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--warning);">
+                <div class="label">Vắng/Chưa nộp</div><div class="value" id="sess_absent">0</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid var(--info);">
+                <div class="label">Điểm TB</div><div class="value" id="sess_avg">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #7c3aed;">
+                <div class="label">Điểm cao nhất</div><div class="value" id="sess_max">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #db2777;">
+                <div class="label">Điểm thấp nhất</div><div class="value" id="sess_min">—</div>
+              </div>
+              <div class="miniStatBox" style="border-left:4px solid #0891b2;">
+                <div class="label">TG làm TB</div><div class="value" id="sess_avg_time">—</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <h4 style="margin-bottom:10px;font-size:13px;color:var(--text-muted);">📊 Phân bố điểm thi</h4>
+              <div style="height:180px;position:relative;"><canvas id="sessScoreChart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Bảng kết quả chi tiết từng thí sinh -->
+          <div class="box">
+            <h3>📋 Kết quả chi tiết từng thí sinh</h3>
+            <div id="sessionResultsWrap">
+              <div style="text-align:center;padding:50px;color:var(--text-muted);">
+                👆 Hãy chọn một buổi thi để xem kết quả
+              </div>
+            </div>
+            <div id="sessionResultsPagination" class="pagination" style="margin-top:12px;"></div>
+          </div>
+        </div><!-- /sessionResultsTabInner -->
+      </div><!-- /roomTabPanel_results -->
 
     </div><!-- /exam_rooms -->
 <!-- ===== MODAL GIÁM THỊ PHÒNG THI ===== -->
@@ -5268,7 +5426,7 @@ function switchRoomTab(tab, btn) {
     });
 
     const actBar = document.getElementById('roomActionsBar');
-    if (actBar) actBar.style.display = tab === 'list' ? 'flex' : 'none';
+    if (actBar) actBar.style.display = 'flex';
 
     if (tab === 'results') loadSessionResults();
 }
@@ -5538,8 +5696,17 @@ async function monitorOpenRoom() {
 
 async function monitorCloseRoom() {
     if (!_monRoomId) return;
-    if (!await showConfirm('Đóng phòng thi', 'Đóng phòng thi? Học viên sẽ không vào được nữa.', '🔒')) return;
-    await db.collection('examRooms').doc(_monRoomId).update({ status: 'closed', endAt: firebase.firestore.Timestamp.now() });
+    if (!await showConfirm('Đóng phòng thi', '⚠ HV đang thi sẽ nhận thông báo và bài thi tự nộp.', '🔒')) return;
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('examRooms').doc(_monRoomId).update({
+        status: 'closed',
+        closedAt: now,
+        roomSignal: {
+            type: 'room_closed',
+            message: 'Giám thị đã đóng phòng thi. Bài thi của bạn đã được nộp tự động.',
+            at: now
+        }
+    });
     _monRoomData.status = 'closed';
     _updateMonitorHeader();
     showToast('Đã đóng phòng thi!', 'warning');
@@ -5663,7 +5830,7 @@ function _renderRoomList(rooms) {
 
         ${r.status==='scheduled'?`<button onclick="openRoomNow('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#2a9d8f,#1a7a6e);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(42,157,143,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">▶ Mở ngay</button>`:''}
 
-        ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;animation:invigPulse 2s infinite;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng ngay</button>`:''}
+        ${r.status==='open'?`<button onclick="closeRoom('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(220,53,69,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🔒 Đóng phòng</button>`:''}
 
         <button onclick="sendWarnToRoom('${r.id}')" style="padding:8px 16px;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)33;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;">🚨 Cảnh báo</button>
         <button onclick="enterRoomInvigilate('${r.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#0d6efd,#0856d6);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(13,110,253,.35);display:flex;align-items:center;gap:5px;transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🎓 Coi thi</button>
@@ -5844,38 +6011,31 @@ function editRoom(id) {
 }
 
 async function openRoomNow(id) {
-  try {
-    await db.collection('examRooms').doc(id).update({status:'open', openedAt: firebase.firestore.FieldValue.serverTimestamp()});
-    showToast('✅ Phòng thi đã mở! Học viên đang ở phòng chờ sẽ tự động vào thi sau 10 giây.', 'success', 4000);
-  } catch(e) { showToast('Lỗi khi mở phòng: ' + e.message, 'error'); }
+  if(!confirm('Mở phòng thi ngay? Hệ thống sẽ đếm ngược 10 giây để HV vào thi.')) return;
+  await db.collection('examRooms').doc(id).update({
+    status: 'open',
+    openedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    roomSignal: {
+      type: 'room_opened',
+      at: firebase.firestore.FieldValue.serverTimestamp()
+    }
+  });
+  showToast('Đã mở phòng thi! HV sẽ tự động vào thi sau 10 giây.', 'success');
 }
 
 async function closeRoom(id) {
-  if (!await showConfirm('Đóng phòng thi', 'Đóng phòng thi ngay? Học viên đang thi sẽ nhận được thông báo và bài thi sẽ tự động nộp.', '🔒')) return;
-  try {
-    // Gửi tín hiệu force_end đến tất cả HV đang thi trong phòng này
-    const presenceSnap = await db.collection('presence')
-      .where('examRoomId', '==', id)
-      .where('isOnline', '==', true)
-      .get();
-    const batch = db.batch();
-    presenceSnap.docs.forEach(doc => {
-      batch.update(doc.ref, {
-        adminSignal: {
-          type: 'force_end',
-          message: 'Phòng thi đã đóng. Bài thi của bạn đang được nộp tự động...',
-          sentAt: firebase.firestore.FieldValue.serverTimestamp()
-        }
-      });
-    });
-    // Đóng phòng
-    batch.update(db.collection('examRooms').doc(id), {
-      status: 'closed',
-      closedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    await batch.commit();
-    showToast(`🔒 Phòng thi đã đóng. Đã thông báo đến ${presenceSnap.size} học viên đang thi.`, 'success', 5000);
-  } catch(e) { showToast('Lỗi khi đóng phòng: ' + e.message, 'error'); }
+  if(!confirm('Đóng phòng thi ngay?\n⚠ Tất cả HV đang thi sẽ nhận thông báo, kết quả được lưu và chuyển về phòng chờ.')) return;
+  const now = firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection('examRooms').doc(id).update({
+    status: 'closed',
+    closedAt: now,
+    roomSignal: {
+      type: 'room_closed',
+      message: 'Giám thị đã đóng phòng thi. Bài thi của bạn đã được nộp tự động.',
+      at: now
+    }
+  });
+  showToast('Đã đóng phòng thi! Tất cả HV đang thi sẽ được nộp bài tự động.', 'warning', 5000);
 }
 
 async function deleteRoom(id) { if(!confirm('Xóa phòng thi này?'))return; await db.collection('examRooms').doc(id).delete(); }
