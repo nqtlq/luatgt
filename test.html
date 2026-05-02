@@ -3572,6 +3572,41 @@
 
       if (IS_STUDENT) startTestSessionMonitor();
 
+      // ── Bảo trì: kick khách ngay khi bật maintenance ─────────────
+      if (IS_GUEST && db) {
+        // Kiểm tra ngay lúc load
+        try {
+          await ensureAuth();
+          const maintDoc = await db.collection('systemConfig').doc('maintenance').get();
+          if (maintDoc.exists && maintDoc.data()?.enabled) {
+            localStorage.removeItem('userType');
+            localStorage.removeItem('guestSeqNumber');
+            location.replace('index.html');
+            return;
+          }
+        } catch(_) {}
+
+        // Lắng nghe realtime — kick ngay khi admin bật bảo trì
+        db.collection('systemConfig').doc('maintenance').onSnapshot(snap => {
+          if (snap.exists && snap.data()?.enabled) {
+            localStorage.removeItem('userType');
+            localStorage.removeItem('guestSeqNumber');
+            location.replace('index.html');
+          }
+        }, () => {});
+
+        // Kiểm tra guestCounter: nếu server đã bị reset về 0,
+        // xóa số thứ tự đã lưu để khách nhận số mới
+        try {
+          const ctrDoc = await db.collection('systemConfig').doc('guestCounter').get();
+          const serverCount = ctrDoc.exists ? (ctrDoc.data()?.count || 0) : 0;
+          const savedSeq = localStorage.getItem('guestSeqNumber');
+          if (savedSeq && serverCount === 0) {
+            localStorage.removeItem('guestSeqNumber');
+          }
+        } catch(_) {}
+      }
+
     } catch(e) {
 
       console.error("Init error:", e);
