@@ -12186,68 +12186,68 @@ function filterOnlineDetail() {
 }
 
 function loadStats() {
-    // Lấy dữ liệu mới nhất từ examResults để bảng xếp hạng phản ánh đúng thành tích
-    if (!db) { _renderStatsFromCache(); return; }
-    db.collection('examResults').get().then(snap => {
-        const resultMap = {};
-        snap.forEach(doc => {
-            const d = doc.data();
-            const code = d.studentCode;
-            if (!code) return;
-            if (!resultMap[code]) {
-                resultMap[code] = { studentCode: code, studentName: d.studentName || '', studentUnit: d.studentUnit || '', exams: 0, bestScore: 0, totalScore: 0 };
-            }
-            const r = resultMap[code];
-            r.exams++;
-            const sc = Number(d.score ?? d.correctCount ?? d.correctAnswers ?? 0);
-            r.totalScore += sc;
-            if (sc > r.bestScore) r.bestScore = sc;
-            if (d.studentName) r.studentName = d.studentName;
-            if (d.studentUnit) r.studentUnit = d.studentUnit;
-        });
-        const merged = Object.values(resultMap).map(r => {
-            const stuMatch = (allStudents || []).find(s => s.code === r.studentCode);
-            return {
-                code:      r.studentCode,
-                name:      stuMatch?.name || r.studentName || r.studentCode,
-                unit:      stuMatch?.unit || r.studentUnit || '—',
-                exams:     r.exams,
-                bestScore: r.bestScore,
-                avgScore:  r.exams > 0 ? Math.round(r.totalScore / r.exams) : 0
-            };
-        });
-        const studentsWithExams = merged.filter(s => s.exams > 0);
-        const totalExams     = studentsWithExams.reduce((a, s) => a + s.exams, 0);
-        const passedStudents = studentsWithExams.filter(s => s.bestScore >= 25).length;
-        const passRate       = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
-        const avg            = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + s.avgScore, 0) / studentsWithExams.length) : 0;
-        const safe = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        safe('statTotalExams', totalExams);
-        safe('statPassRate', passRate + '%');
-        safe('statAvgScore', avg);
-        safe('statActiveStudents', studentsWithExams.length);
-        window._leaderboardData = studentsWithExams;
-        window._leaderboardSort = { col: 'bestScore', dir: -1 };
-        renderLeaderboard();
-        renderStatsCharts();
-    }).catch(() => { _renderStatsFromCache(); });
-}
 
-function _renderStatsFromCache() {
-    const studentsWithExams = (allStudents || []).filter(s => (s.exams || 0) > 0);
-    const totalExams = (allStudents || []).reduce((a, s) => a + (s.exams || 0), 0);
-    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 25).length;
+    // ── Tính toán lại từ allResults để đảm bảo chính xác ──────────
+    // Gom kết quả theo từng HV
+    const resultsByStudent = {};
+    allResults.forEach(r => {
+        const code = r.studentCode || r.code;
+        if (!code) return;
+        const score = Number(r.score) || 0;
+        if (!resultsByStudent[code]) {
+            resultsByStudent[code] = { scores: [], timestamps: [] };
+        }
+        resultsByStudent[code].scores.push(score);
+        const ts = r.timestamp?.toMillis ? r.timestamp.toMillis() : (r.timestamp ? new Date(r.timestamp).getTime() : 0);
+        resultsByStudent[code].timestamps.push(ts);
+    });
+
+    // Kết hợp allStudents với dữ liệu tính toán từ allResults
+    const enriched = allStudents.map(s => {
+        const code = s.code || s.id;
+        const rd = resultsByStudent[code];
+        if (rd && rd.scores.length > 0) {
+            const exams = rd.scores.length;
+            const bestScore = Math.max(...rd.scores);
+            const avgScore = Math.round(rd.scores.reduce((a, b) => a + b, 0) / exams);
+            return { ...s, exams, bestScore, avgScore };
+        }
+        // Fallback về dữ liệu trong Firestore nếu không có trong allResults
+        return { ...s, exams: s.exams || 0, bestScore: s.bestScore || 0, avgScore: s.avgScore || 0 };
+    });
+
+    const studentsWithExams = enriched.filter(s => (s.exams || 0) > 0);
+
+    const totalExams = enriched.reduce((a, s) => a + (s.exams || 0), 0);
+
+    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
+
     const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
+
     const avg = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + (s.avgScore || 0), 0) / studentsWithExams.length) : 0;
-    const safe = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    safe('statTotalExams', totalExams);
-    safe('statPassRate', passRate + '%');
-    safe('statAvgScore', avg);
-    safe('statActiveStudents', studentsWithExams.length);
+
+    
+
+    document.getElementById('statTotalExams').textContent = totalExams;
+
+    document.getElementById('statPassRate').textContent = passRate + '%';
+
+    document.getElementById('statAvgScore').textContent = avg;
+
+    document.getElementById('statActiveStudents').textContent = studentsWithExams.length;
+
+    
+
+    // Lưu lại studentsWithExams để sort function dùng
+
     window._leaderboardData = studentsWithExams;
-    window._leaderboardSort = { col: 'bestScore', dir: -1 };
+
+    window._leaderboardSort = { col: 'bestScore', dir: -1 }; // mặc định: điểm max giảm dần
+
     renderLeaderboard();
+
     renderStatsCharts();
+
 }
 
 // ─── Leaderboard sort helpers ───
@@ -14341,10 +14341,10 @@ function _updateInvigStatusRealtime(now) {
     const endMs   = _invigRoomData.endAt?.toDate   ? _invigRoomData.endAt.toDate().getTime()   : null;
     const nowMs = now.getTime();
 
-    // Ưu tiên trạng thái thực tế từ Firestore (admin đóng thủ công sẽ được tôn trọng)
+    // Ưu tiên trạng thái thực tế từ Firestore (đóng thủ công)
+    // Chỉ tính tự động theo giờ nếu Firestore chưa có trạng thái 'closed'
     let statusKey = _invigRoomData.status || 'scheduled';
     if (statusKey !== 'closed') {
-        // Chỉ tự tính theo thời gian nếu phòng chưa bị đóng thủ công
         if (startMs && endMs) {
             if (nowMs < startMs) statusKey = 'scheduled';
             else if (nowMs >= startMs && nowMs < endMs) statusKey = 'open';
@@ -14363,9 +14363,17 @@ function _updateInvigStatusRealtime(now) {
     badge.style.borderColor = s.border;
     badge.style.color = s.color;
 
-    // Đồng hồ đếm ngược
+    // Đồng hồ đếm ngược — dừng hoàn toàn khi phòng đã đóng
     if (cdWrap && cdEl) {
-        if (statusKey === 'open' && endMs) {
+        if (statusKey === 'closed') {
+            // Phòng đã đóng: dừng đồng hồ, hiển thị 00:00:00
+            cdEl.textContent = '00:00:00';
+            cdEl.style.color = '#ffb3bb';
+            if (cdLbl) cdLbl.textContent = '🔒 Đã kết thúc';
+            cdWrap.style.display = 'block';
+            cdWrap.style.background = 'rgba(220,53,69,.25)';
+            cdWrap.style.borderColor = 'rgba(220,53,69,.5)';
+        } else if (statusKey === 'open' && endMs) {
             const diff = Math.max(0, endMs - nowMs);
             const h = Math.floor(diff / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
