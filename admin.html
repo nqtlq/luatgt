@@ -12186,39 +12186,68 @@ function filterOnlineDetail() {
 }
 
 function loadStats() {
+    // Lấy dữ liệu mới nhất từ examResults để bảng xếp hạng phản ánh đúng thành tích
+    if (!db) { _renderStatsFromCache(); return; }
+    db.collection('examResults').get().then(snap => {
+        const resultMap = {};
+        snap.forEach(doc => {
+            const d = doc.data();
+            const code = d.studentCode;
+            if (!code) return;
+            if (!resultMap[code]) {
+                resultMap[code] = { studentCode: code, studentName: d.studentName || '', studentUnit: d.studentUnit || '', exams: 0, bestScore: 0, totalScore: 0 };
+            }
+            const r = resultMap[code];
+            r.exams++;
+            const sc = Number(d.score ?? d.correctCount ?? d.correctAnswers ?? 0);
+            r.totalScore += sc;
+            if (sc > r.bestScore) r.bestScore = sc;
+            if (d.studentName) r.studentName = d.studentName;
+            if (d.studentUnit) r.studentUnit = d.studentUnit;
+        });
+        const merged = Object.values(resultMap).map(r => {
+            const stuMatch = (allStudents || []).find(s => s.code === r.studentCode);
+            return {
+                code:      r.studentCode,
+                name:      stuMatch?.name || r.studentName || r.studentCode,
+                unit:      stuMatch?.unit || r.studentUnit || '—',
+                exams:     r.exams,
+                bestScore: r.bestScore,
+                avgScore:  r.exams > 0 ? Math.round(r.totalScore / r.exams) : 0
+            };
+        });
+        const studentsWithExams = merged.filter(s => s.exams > 0);
+        const totalExams     = studentsWithExams.reduce((a, s) => a + s.exams, 0);
+        const passedStudents = studentsWithExams.filter(s => s.bestScore >= 25).length;
+        const passRate       = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
+        const avg            = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + s.avgScore, 0) / studentsWithExams.length) : 0;
+        const safe = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        safe('statTotalExams', totalExams);
+        safe('statPassRate', passRate + '%');
+        safe('statAvgScore', avg);
+        safe('statActiveStudents', studentsWithExams.length);
+        window._leaderboardData = studentsWithExams;
+        window._leaderboardSort = { col: 'bestScore', dir: -1 };
+        renderLeaderboard();
+        renderStatsCharts();
+    }).catch(() => { _renderStatsFromCache(); });
+}
 
-    const studentsWithExams = allStudents.filter(s => (s.exams || 0) > 0);
-
-    const totalExams = allStudents.reduce((a, s) => a + (s.exams || 0), 0);
-
-    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
-
+function _renderStatsFromCache() {
+    const studentsWithExams = (allStudents || []).filter(s => (s.exams || 0) > 0);
+    const totalExams = (allStudents || []).reduce((a, s) => a + (s.exams || 0), 0);
+    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 25).length;
     const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
-
     const avg = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + (s.avgScore || 0), 0) / studentsWithExams.length) : 0;
-
-    
-
-    document.getElementById('statTotalExams').textContent = totalExams;
-
-    document.getElementById('statPassRate').textContent = passRate + '%';
-
-    document.getElementById('statAvgScore').textContent = avg;
-
-    document.getElementById('statActiveStudents').textContent = studentsWithExams.length;
-
-    
-
-    // Lưu lại studentsWithExams để sort function dùng
-
+    const safe = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    safe('statTotalExams', totalExams);
+    safe('statPassRate', passRate + '%');
+    safe('statAvgScore', avg);
+    safe('statActiveStudents', studentsWithExams.length);
     window._leaderboardData = studentsWithExams;
-
-    window._leaderboardSort = { col: 'bestScore', dir: -1 }; // mặc định: điểm max giảm dần
-
+    window._leaderboardSort = { col: 'bestScore', dir: -1 };
     renderLeaderboard();
-
     renderStatsCharts();
-
 }
 
 // ─── Leaderboard sort helpers ───
@@ -14312,12 +14341,15 @@ function _updateInvigStatusRealtime(now) {
     const endMs   = _invigRoomData.endAt?.toDate   ? _invigRoomData.endAt.toDate().getTime()   : null;
     const nowMs = now.getTime();
 
+    // Ưu tiên trạng thái thực tế từ Firestore (admin đóng thủ công sẽ được tôn trọng)
     let statusKey = _invigRoomData.status || 'scheduled';
-    // Tự tính trạng thái theo thời gian thực (dù Firestore chưa cập nhật)
-    if (startMs && endMs) {
-        if (nowMs < startMs) statusKey = 'scheduled';
-        else if (nowMs >= startMs && nowMs < endMs) statusKey = 'open';
-        else statusKey = 'closed';
+    if (statusKey !== 'closed') {
+        // Chỉ tự tính theo thời gian nếu phòng chưa bị đóng thủ công
+        if (startMs && endMs) {
+            if (nowMs < startMs) statusKey = 'scheduled';
+            else if (nowMs >= startMs && nowMs < endMs) statusKey = 'open';
+            else statusKey = 'closed';
+        }
     }
 
     const sm = {
