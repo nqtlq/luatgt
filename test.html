@@ -1166,32 +1166,11 @@
 
     }
 
-    /* ===== QMAP PHẲNG — LUÔN HIỂN THỊ ===== */
-    .qmap-flat-wrap {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-top: 16px;
-    }
-    .qmap-flat-wrap .qmap-title {
-      font-size: 12px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-    .qmap-flat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-    .qmap-flat-legend {
-      display: flex; gap: 14px; flex-wrap: wrap;
-      font-size: 11px; color: var(--muted);
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-    }
-    .qmap-flat-legend .legend-item { display: flex; align-items: center; gap: 5px; }
+    /* ===== QMAP PHẲNG — CŨ, ĐÃ XÓA ===== */
+    /* (Flat inline qmap removed) */
+
+    /* ===== PROGRESS BAR ===== */
+    .exam-progress-wrap {
       background: rgba(255,255,255,.15);
       border-radius: 6px;
       overflow: hidden;
@@ -1945,22 +1924,15 @@
       </div>
 
       <div class="result-detail-grid" id="resDetailGrid"></div>
-      <div class="result-detail-grid" id="resDetailGrid"></div>
       <div class="result-breakdown">
       <div id="resSaveStatus" style="margin-bottom:16px;"></div>
-      <div class="result-breakdown">
         <h3>Chi tiết bài làm</h3>
-
         <div id="resBreakdown"></div>
-
       </div>
 
-      <div class="result-actions">
-
-        <button class="btn-retry" onclick="retryExam()">Thi lại</button>
-
-        <button class="btn-home" onclick="location.href='exam.html'">Về trang chủ</button>
-
+      <div class="result-actions" id="resultActions">
+        <button class="btn-retry" onclick="retryExam()">🔄 Thi lại</button>
+        <button class="btn-home" onclick="location.href='exam.html'">🏠 Về trang chủ</button>
       </div>
 
     </div>
@@ -2792,32 +2764,7 @@
 
   }
 
-  // ── Sơ đồ bài thi dạng phẳng inline ──────────────────────────
-  function _buildFlatQmapHtml(currentI) {
-    if (!questions.length) return '';
-    let btns = questions.map((q, i) => {
-      const isLiet = q.isLietQuestion || q.isLiet === true || q.groupIndex === -1;
-      const answered = userAnswers[i] !== null;
-      const isCurrent = i === currentI;
-      let cls = 'qmap-btn';
-      if (isLiet) cls += ' liet-btn';
-      if (answered) cls += ' answered';
-      if (isCurrent) cls += ' current';
-      return `<button class="${cls}" onclick="goTo(${i})" title="Câu ${i+1}">${i+1}</button>`;
-    }).join('');
-
-    const answered = userAnswers.filter(a => a !== null).length;
-    return `
-      <div class="qmap-flat-wrap">
-        <div class="qmap-title">📋 Sơ đồ bài thi &nbsp;<span style="font-weight:600;color:var(--blue)">${answered}</span><span style="color:var(--muted)">/${questions.length} câu đã trả lời</span></div>
-        <div class="qmap-flat-grid">${btns}</div>
-        <div class="qmap-flat-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--blue);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Đã trả lời</div>
-          <div class="legend-item"><div class="legend-dot" style="background:white;border:1.5px solid var(--border);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Chưa trả lời</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);border-radius:3px;width:12px;height:12px;flex-shrink:0;"></div>Câu liệt</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--green);border-radius:50%;width:12px;height:12px;flex-shrink:0;"></div>Đang xem</div>
-        </div>
-      </div>`;
+  // (Flat inline qmap removed — only sidebar & mobile drawer remain)
   }
 
   // ── Render câu hỏi ──────────────────────────────────────────────
@@ -2879,9 +2826,6 @@
     });
 
     html += `</div>`;
-
-    // ── Sơ đồ bài thi phẳng inline ──
-    html += _buildFlatQmapHtml(idx);
 
     html += `<div class="exam-nav">
 
@@ -3373,11 +3317,18 @@
 
     const he = document.getElementById("headerEn"); if(he) he.textContent = "";
 
+    const _fromRoom = !!(_waitRoomId || localStorage.getItem('examRoomId'));
+
     const hBtn = document.getElementById("headerBtns");
 
-    if(hBtn) hBtn.innerHTML=`<button class="btn-header btn-back" onclick="retryExam()">Thi lại</button>
+    if(hBtn) hBtn.innerHTML = _fromRoom
+      ? `<button class="btn-header btn-back" onclick="location.href='exam.html'">⬅ Quay lại</button>`
+      : `<button class="btn-header btn-back" onclick="retryExam()">🔄 Thi lại</button>
+         <button class="btn-header" style="background:var(--green);color:white;" onclick="location.href='exam.html'">🏠 Trang chủ</button>`;
 
-      <button class="btn-header" style="background:var(--green);color:white;" onclick="location.href='exam.html'">Trang chủ</button>`;
+    // Ẩn nút Thi lại trong kết quả khi thi qua phòng thi online
+    const retryBtn = document.querySelector('#resultActions .btn-retry');
+    if (retryBtn) retryBtn.style.display = _fromRoom ? 'none' : '';
 
     const safe = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
 
@@ -4147,8 +4098,11 @@
     if (_openingStarted) return;
     _openingStarted = true;
 
-    document.getElementById('wrCountdownPanel').style.display = 'none';
-    document.getElementById('wrOpeningPanel').style.display   = 'block';
+    // Ẩn panel đếm ngược chờ, hiện panel đang mở
+    const cpEl = document.getElementById('wrCountdownPanel');
+    const opEl = document.getElementById('wrOpeningPanel');
+    if (cpEl) cpEl.style.display = 'none';
+    if (opEl) opEl.style.display   = 'block';
 
     // Update banner
     const banner = document.getElementById('wrBanner');
@@ -4175,7 +4129,10 @@
       if (sec <= 0) {
         clearInterval(_openingCdTimer);
         _openingCdTimer = null;
-        _autoStartRoomExam();
+        _autoStartRoomExam().catch(err => {
+          console.error('Auto start error:', err);
+          _showWaitError('Lỗi khi bắt đầu bài thi: ' + (err.message || err.code || err));
+        });
       }
     }, 1000);
   }
@@ -4237,6 +4194,15 @@
 
       const snEl = document.getElementById('examSetName');
       if (snEl) snEl.textContent = set.name || set.title || 'Đề thi';
+
+      // Cập nhật thông tin thí sinh
+      const siEl = document.getElementById('examStudentInfo');
+      if (siEl) siEl.textContent = `${studentName} (${studentCode})${studentUnit ? ' – ' + studentUnit : ''}`;
+
+      // Cập nhật header
+      const hvEl = document.getElementById('headerVi'); if(hvEl) hvEl.textContent = 'ĐANG THI – ' + ((set.name || '').toUpperCase());
+      const heEl = document.getElementById('headerEn'); if(heEl) heEl.textContent = 'Không thoát trình duyệt khi đang làm bài';
+      const hBtnEl = document.getElementById('headerBtns'); if(hBtnEl) hBtnEl.innerHTML = '';
 
       const qmapBtn = document.getElementById('qmapToggleBtn');
       if (qmapBtn) qmapBtn.style.display = 'flex';
