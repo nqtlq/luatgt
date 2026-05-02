@@ -403,10 +403,6 @@ function takeover_tab() {
 }
 async function createSession(studentCode) {
   const token = generateSessionToken();
-  // ✅ FIX: Lưu token cục bộ TRƯỚC khi gọi Firestore
-  // Đảm bảo test.html luôn tìm thấy token dù Firestore có lỗi hay không
-  sessionStorage.setItem('sessionToken_' + studentCode, token);
-  localStorage.setItem('sessionToken_' + studentCode, token);
   const sessionData = {
     token,
     deviceInfo: navigator.userAgent.substring(0, 100),
@@ -415,11 +411,13 @@ async function createSession(studentCode) {
   };
   try {
     await db.collection('sessions').doc(studentCode).set(sessionData);
+    sessionStorage.setItem('sessionToken_' + studentCode, token);
+    localStorage.setItem('sessionToken_' + studentCode, token);
+    return token;
   } catch(e) {
-    console.warn('Không thể tạo session Firestore (token đã lưu local):', e.message);
-    // Token đã được lưu local bên trên — không ảnh hưởng đến việc vào trang thi
+    console.warn('Không thể tạo session:', e.message);
+    return token;
   }
-  return token;
 }
 async function checkExistingSession(studentCode) {
   try {
@@ -745,7 +743,7 @@ async function tryExam(){
   localStorage.setItem('studentObject','—');
   localStorage.setItem('studentCourse','—');
   localStorage.setItem('studentDob',   '—');
-  // Chuyển sang trang thi thử (test.html) với chế độ khách
+  // Chuyển sang trang chọn đề thi với chế độ khách (chỉ thấy đề Demo)
   location.href = 'test.html';
 }
 // ================================================================
