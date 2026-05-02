@@ -2303,8 +2303,8 @@
 
         const s = { id:doc.id, ...doc.data() };
         // Khách CHỈ thấy đề demo; Học viên KHÔNG thấy đề demo
-        if (IS_GUEST && !(s.isDemo || s.demo)) return;
-        if (IS_STUDENT && (s.isDemo || s.demo)) return;
+        if (IS_GUEST && !s.isGuestDemo) return;
+        if (IS_STUDENT && s.isGuestDemo) return;
         const cat = (s.examType||s.category||"").toLowerCase();
 
         const isOto = cat==="oto"||cat==="ô tô"||cat==="car";
