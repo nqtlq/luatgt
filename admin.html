@@ -365,379 +365,756 @@ tbody tr:hover { background: var(--bg-hover); box-shadow: inset 3px 0 0 var(--ac
 .chart-container { position: relative; height: 260px; }
 /* ===== MODAL ===== */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+
 .modal.show { display: flex; }
+
 .modal-content { background: var(--bg-card); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; animation: modalIn 0.3s; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+
 @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
 .modal-content h3 { margin: 0 0 20px; color: var(--text-primary); font-size: 18px; font-weight: 700; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+
 .modal-content label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
 .modal-content input, .modal-content select, .modal-content textarea { width: 100%; padding: 10px 12px; margin-bottom: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: inherit; font-size: 14px; background: var(--bg-input); color: var(--text-primary); transition: var(--transition); }
+
 .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+
 .modal-content textarea { resize: vertical; min-height: 80px; }
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+
 .modal-header h3 { margin: 0; padding: 0; border: none; }
+
 .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 4px; line-height: 1; }
+
 .close-btn:hover { color: var(--danger); }
+
 /* ===== FORM ===== */
+
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
 .form-group { margin-bottom: 14px; }
+
 .form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
 /* ===== SECTIONS ===== */
+
 .section-card { background: var(--bg-hover); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+
 .section-card .section-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 2px solid var(--accent); }
+
 .info-section { border-left: 4px solid var(--accent); padding: 16px; border-radius: 6px; margin-bottom: 20px; background: var(--bg-card); }
+
 .groups-section { border-left: 4px solid var(--success); padding: 16px; border-radius: 6px; margin-bottom: 20px; background: var(--bg-card); }
+
 .liet-section { border-left: 4px solid var(--warning); padding: 16px; border-radius: 6px; background: var(--bg-card); margin-bottom: 20px; }
+
 .group-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 10px; transition: var(--transition); }
+
 .group-card:hover { border-color: var(--accent); }
+
 .group-card .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
 .group-card .group-number { background: var(--accent); color: white; padding: 3px 12px; border-radius: 15px; font-size: 11px; font-weight: 700; }
+
 .liet-checkbox { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--warning-light); border: 1px solid var(--warning); border-radius: 6px; }
+
 .liet-checkbox input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
 .liet-checkbox label { margin: 0; cursor: pointer; font-weight: 600; color: #856404; font-size: 13px; }
+
 .summary-box { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 18px; border-radius: var(--radius-md); margin-bottom: 20px; }
+
 .summary-box .summary-item { display: flex; justify-content: space-between; padding: 4px 0; }
+
 .summary-box .summary-item .label { opacity: 0.85; font-size: 13px; }
+
 .summary-box .summary-item .value { font-weight: 700; font-size: 16px; }
+
 .warning-box { background: var(--warning-light); border: 1px solid var(--warning); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 14px; }
+
 .warning-box .warning-title { font-weight: 700; color: #856404; margin-bottom: 4px; font-size: 13px; }
+
 .warning-box .warning-text { font-size: 12px; color: #856404; line-height: 1.6; }
+
 .duplicate-list { background: var(--danger-light); border: 1px solid rgba(220,53,69,0.3); padding: 10px; border-radius: 6px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+
 .duplicate-item { padding: 6px 8px; margin: 3px 0; background: var(--bg-card); border-radius: 4px; font-size: 12px; }
+
 .back-btn { margin-bottom: 16px; }
+
 .file-input-wrapper { position: relative; width: 100%; }
+
 .file-input-wrapper input[type="file"] { display: none; }
+
 .file-input-label { display: block; padding: 10px; background: var(--bg-hover); border: 2px dashed var(--border); border-radius: 6px; cursor: pointer; text-align: center; font-size: 12px; color: var(--text-muted); transition: var(--transition); }
+
 .file-input-label:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
 /* ===== UPLOAD LIET ===== */
+
 .liet-upload-area { margin-top: 14px; padding: 16px; background: var(--bg-card); border: 2px dashed var(--warning); border-radius: var(--radius-md); }
+
 .liet-upload-area h5 { font-size: 13px; font-weight: 700; color: #856404; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
 .liet-upload-area .file-input-label { border-color: var(--warning); color: #856404; background: var(--warning-light); }
+
 .liet-upload-area .file-input-label:hover { border-color: #856404; background: rgba(255,193,7,0.3); }
+
 /* ===== TOAST ===== */
+
 .toast-container { position: fixed; top: 80px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+
 .toast { padding: 12px 18px; border-radius: var(--radius-md); color: white; font-size: 13px; min-width: 280px; max-width: 400px; box-shadow: var(--shadow-lg); animation: slideIn 0.3s ease-out; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
 .toast.success { background: linear-gradient(135deg, #198754, #20c997); }
+
 .toast.error { background: linear-gradient(135deg, #dc3545, #e74c3c); }
+
 .toast.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
 .toast.info { background: linear-gradient(135deg, #0d6efd, #0dcaf0); }
+
 .toast-close { margin-left: auto; cursor: pointer; opacity: 0.7; font-size: 16px; }
+
 .toast-close:hover { opacity: 1; }
+
 @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
 /* ===== LOADING ===== */
+
 .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; flex-direction: column; gap: 16px; }
+
 [data-theme="dark"] .loading-overlay { background: rgba(17,19,24,0.85); }
+
 .loading-overlay.show { display: flex; }
+
 .spinner { width: 44px; height: 44px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
 .loading-text { color: var(--text-primary); font-size: 14px; font-weight: 600; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
+
 /* ===== CONFIRM DIALOG ===== */
+
 .confirm-dialog { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2500; }
+
 .confirm-dialog.show { display: flex; }
+
 .confirm-content { background: var(--bg-card); padding: 32px; border-radius: var(--radius-lg); max-width: 400px; width: 90%; text-align: center; animation: modalIn 0.3s; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+
 .confirm-icon { font-size: 48px; margin-bottom: 16px; }
+
 .confirm-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+
 .confirm-message { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+
 .confirm-buttons { display: flex; gap: 10px; justify-content: center; }
+
 /* ===== EXAM TYPE TABS ===== */
+
 .exam-type-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .exam-type-tab { padding: 10px 20px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+
 .exam-type-tab:hover { border-color: var(--accent); color: var(--accent); }
+
 .exam-type-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
 .exam-type-count { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+
 .exam-type-tab.active .exam-type-count { background: rgba(255,255,255,0.3); }
+
 /* ===== NOTIFICATION ITEMS ===== */
+
 .noti-item { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; background: var(--bg-card); transition: all 0.2s; }
+
 .noti-item:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
 .noti-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+
 .noti-type-badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+
 .noti-type-info { background: rgba(13,110,253,0.12); color: #0d6efd; }
+
 .noti-type-exam { background: rgba(255,193,7,0.15); color: #d4a017; }
+
 .noti-type-result { background: rgba(25,135,84,0.12); color: #198754; }
+
 .noti-type-urgent { background: rgba(220,53,69,0.12); color: #dc3545; }
+
 .noti-type-reminder { background: rgba(124,58,237,0.12); color: #7c3aed; }
+
 .noti-status-sent { color: var(--success); }
+
 .noti-status-scheduled { color: var(--warning); }
+
 .noti-status-draft { color: var(--text-muted); }
+
 /* ===== EXAM DETAIL ===== */
+
 .exam-detail-question { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; background: var(--bg-card); }
+
 .exam-detail-question.correct { border-left: 4px solid var(--success); }
+
 .exam-detail-question.wrong { border-left: 4px solid var(--danger); }
+
 .exam-detail-question.unanswered { border-left: 4px solid var(--text-muted); }
+
 .exam-answer-option { padding: 5px 10px; margin: 3px 0; border-radius: 4px; font-size: 13px; }
+
 .exam-answer-option.selected { background: rgba(13,110,253,0.12); font-weight: 600; }
+
 .exam-answer-option.correct-answer { background: rgba(25,135,84,0.12); color: var(--success); font-weight: 600; }
+
 .exam-answer-option.selected.wrong { background: rgba(220,53,69,0.12); color: var(--danger); text-decoration: line-through; }
+
 /* ===== RESULTS TOOLBAR ===== */
+
 .results-toolbar .toolbar-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
 /* ===== STUDENT TOOLBAR ===== */
+
 .student-toolbar { width: 100%; }
+
 .toolbar-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
 .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .toolbar-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
 .toolbar-filters input, .toolbar-filters select { padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg-card); color: var(--text-primary); }
+
 /* ===== PASSWORD COLUMN ===== */
+
 .password-mask { font-family: monospace; letter-spacing: 1px; color: var(--text-muted); font-size: 12px; cursor: pointer; }
+
 .password-mask:hover { color: var(--accent); }
+
 /* ===== SYSTEM SETTINGS ===== */
+
 .system-card { padding: 18px; border: 1px solid var(--border); border-radius: var(--radius-md); transition: var(--transition); background: var(--bg-card); box-shadow: var(--shadow-sm); }
 .system-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
 .system-card:hover { box-shadow: var(--shadow-sm); }
+
 .system-card h4 { margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+
 .system-card p { font-size: 12px; color: var(--text-muted); margin: 8px 0; }
+
 /* ===== RESET PASSWORD ===== */
+
 .reset-password-section { margin-top: 12px; padding: 12px; background: var(--warning-light); border: 1px solid var(--warning); border-radius: var(--radius-sm); }
+
 .reset-password-section .reset-title { font-weight: 700; color: #856404; font-size: 13px; margin-bottom: 8px; }
+
 /* ===== EMAIL VERIFY ===== */
+
 .verify-code-input { text-align: center; font-size: 24px; font-weight: 800; letter-spacing: 8px; padding: 14px; border: 2px solid var(--border); border-radius: var(--radius-md); width: 100%; background: var(--bg-input); color: var(--text-primary); }
+
 .verify-code-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+
 /* ===== LIET POSITION INPUTS ===== */
+
 .liet-positions-container { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+
 .liet-pos-item { display: flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 6px 10px; }
+
 .liet-pos-item label { font-size: 12px; font-weight: 600; color: #856404; margin: 0; white-space: nowrap; }
+
 .liet-pos-item input { width: 60px; padding: 6px 8px; border: 1px solid var(--warning); border-radius: 4px; font-size: 14px; font-weight: 700; text-align: center; color: var(--warning); background: var(--bg-input); }
+
 .liet-pos-item input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(13,110,253,0.15); }
+
 /* ===== REALTIME BLINK ===== */
+
 @keyframes rtBlink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
 .live-feed-item { padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-card); display:flex; flex-direction:column; gap:2px; }
+
 .live-feed-item.lf-pass  { border-left:3px solid var(--success); }
+
 .live-feed-item.lf-fail  { border-left:3px solid var(--danger); }
+
 .live-feed-item.lf-login { border-left:3px solid var(--accent); }
+
 .live-feed-item .lf-top  { display:flex; justify-content:space-between; align-items:center; }
+
 .live-feed-item .lf-name { font-weight:700; font-size:12px; color:var(--text-primary); }
+
 .live-feed-item .lf-time { font-size:10px; color:var(--text-muted); }
+
 .live-feed-item .lf-sub  { font-size:11px; color:var(--text-secondary); }
+
 /* ===== ACTIVITY TABLE ENHANCED ===== */
+
 .activity-table td.cell-pass { color:var(--success); font-weight:700; }
+
 .activity-table td.cell-fail { color:var(--danger); font-weight:700; }
+
 .activity-table td.cell-score { font-weight:700; font-size:13px; }
+
 /* ===== RESPONSIVE DASH CHART GRID ===== */
+
 @media (max-width:1100px) { #dashChartGrid { grid-template-columns:1fr 1fr !important; } #dashChartGrid > .chart-card:last-child { grid-column:1/-1; } }
+
 @media (max-width:768px)  { #dashChartGrid { grid-template-columns:1fr !important; } }
+
 .maintenance-banner { background: linear-gradient(135deg, #dc3545, #c82333); color: white; text-align: center; padding: 6px 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; animation: maintBlink 2s infinite; position: sticky; top: var(--header-height); z-index: 99; display: none; }
+
 .maintenance-banner.show { display: block; }
+
 @keyframes maintBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+
 /* ===== MAINTENANCE PAGE ===== */
+
 .maintenance-page { position: fixed; inset: 0; background: linear-gradient(135deg, #1a1f36 0%, #1e3a5f 50%, #0d6efd 100%); display: flex; align-items: center; justify-content: center; z-index: 10000; color: white; text-align: center; flex-direction: column; gap: 20px; }
+
 .maintenance-page .maint-icon { font-size: 80px; animation: pulse 2s infinite; }
+
 .maintenance-page h1 { font-size: 28px; font-weight: 800; }
+
 .maintenance-page p { font-size: 16px; opacity: 0.85; max-width: 500px; line-height: 1.8; }
+
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
 /* ===== BẢNG CỘT TỐI ƯU ===== */
+
 #studentTable th, #studentTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 #studentTable th { text-align: center !important; }
+
 #studentTable td:nth-child(4) { text-align: left; max-width: 180px; white-space: normal; word-break: break-word; }
+
 #studentTable td:nth-child(5) { text-align: left; max-width: 160px; white-space: normal; }
+
 /* ===== PRINT STYLES - IMPROVED ===== */
+
 #printHeader { display: none; }
+
 .print-letterhead, .print-date, .print-title { display: none; }
+
 @media print {
+
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
   header, aside, .toolbar, .btn, .statGrid, .pagination,
+
   .no-print, .toast-container, .loading-overlay, .dash-grid,
+
   .chart-grid, .miniStats, .sidebar-overlay,
+
   .confirm-dialog, .modal, .maintenance-banner { display: none !important; }
+
   body { background: white !important; color: black !important; margin: 0; padding: 0; }
+
   #layout { display: block; }
+
   main { padding: 0 !important; margin: 0; }
+
   .page { display: none !important; }
+
   #students.page { display: block !important; }
+
   .box { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
+
   .box > h3 { display: none !important; }
+
   #printHeader { display: block !important; margin-bottom: 8px; }
+
   .print-letterhead { width: 100%; border-collapse: collapse; border: none !important; margin-bottom: 2px; display: table !important; }
+
   .print-letterhead, .print-letterhead tr, .print-letterhead td { border: none !important; }
+
   .print-letterhead td { padding: 0; vertical-align: top; width: 50%; }
+
   .letterhead-left { text-align: center; font-size: 10pt; line-height: 1.5; }
+
   .letterhead-left div:first-child { font-size: 10pt; }
+
   .letterhead-unit { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+
   .letterhead-right { text-align: center; font-size: 10pt; line-height: 1.5; }
+
   .letterhead-republic { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+
   .letterhead-motto { font-size: 11pt; font-weight: bold; }
+
   .letterhead-underline { width: 60%; height: 1px; background: #000; margin: 3px auto 0; border-bottom: 1px solid #000; }
+
   .print-date { text-align: right; font-size: 10pt; font-style: italic; margin: 4px 0 6px; display: block !important; }
+
   .print-title { text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 6px 0 2px; letter-spacing: 1px; display: block !important; }
+
   #printInfo { text-align: center; font-size: 10pt; color: #555; margin: 0 0 10px; border-bottom: 1.5px solid #000; padding-bottom: 8px; }
+
   .tableWrap { border: none !important; max-height: none !important; overflow: visible !important; border-radius: 0 !important; }
+
   table { border: 1px solid #000 !important; font-size: 10pt !important; min-width: unset !important; width: 100% !important; }
+
   th, td { border: 1px solid #999 !important; padding: 5px 6px !important; color: black !important; font-size: 9pt !important; }
+
   th { background: #e8e8e8 !important; font-weight: bold !important; }
+
   tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+
   .status-badge { background: none !important; color: black !important; padding: 0; font-size: 9pt !important; }
+
   @page { margin-top: 2.5cm; margin-bottom: 2.0cm; margin-left: 2.5cm; margin-right: 1.5cm; size: A4 portrait; }
+
 }
+
 @media (min-width: 768px) { .header-clock { display: block; } }
+
 @media (max-width: 768px) {
+
   .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+
   .header-user .user-info { display: none; }
+
   .header-clock { display: none; }
+
   aside { position: fixed; left: -280px; top: var(--header-height); z-index: 200; width: 260px; box-shadow: var(--shadow-lg); height: calc(100vh - var(--header-height)); }
+
   aside.mobile-open { left: 0; }
+
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; top: var(--header-height); }
+
   aside.mobile-open ~ .sidebar-overlay { display: block; }
+
   main { padding: 16px; }
+
   .statGrid, .miniStats { grid-template-columns: 1fr; }
+
   .dash-grid { grid-template-columns: 1fr; }
+
   .chart-grid { grid-template-columns: 1fr; }
+
   .form-row { grid-template-columns: 1fr; }
+
   /* Toolbar mobile — bổ sung từ code 2 */
+
   .toolbar-row { flex-direction: column; align-items: stretch; }
+
   .toolbar-actions { justify-content: center; margin-bottom: 8px; }
+
   .toolbar-filters { flex-direction: column; }
+
   .toolbar-filters input, .toolbar-filters select { width: 100%; }
+
 }
+
     /* MODAL BỊ KHÓA */
+
 .kickout-modal {
+
     position: fixed;
+
     inset: 0;
+
     background: rgba(0,0,0,0.7);
+
     display: none;
+
     align-items: center;
+
     justify-content: center;
+
     z-index: 10000;
+
     backdrop-filter: blur(5px);
+
 }
+
 .kickout-modal.show { display: flex; }
+
 .kickout-box {
+
     background: white;
+
     padding: 30px;
+
     border-radius: 20px;
+
     width: 100%;
+
     max-width: 420px;
+
     text-align: center;
+
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+
     animation: kickoutFadeIn .4s;
+
     border-top: 6px solid #dc3545;
+
 }
+
 @keyframes kickoutFadeIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+
 .kickout-box .icon { font-size: 56px; margin-bottom: 15px; color: #dc3545; }
+
 .kickout-box h3 { margin: 0 0 12px; font-size: 20px; color: #1d3557; }
+
 .kickout-box p { font-size: 14px; color: #444; line-height: 1.6; margin: 0 0 20px; }
+
 .kickout-box .countdown { font-size: 13px; color: #888; }
+
 .kickout-box .countdown b { color: #1d3557; font-size: 15px; }
+
 const LIVE_MONITOR_CSS = `
+
 /* ═══ LIVE EXAM MONITOR ═══ */
+
 .live-monitor-wrap { margin-top: 16px; }
+
 .live-monitor-header {
+
     display: flex; justify-content: space-between; align-items: center;
+
     margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+
 }
+
 .live-monitor-toolbar {
+
     display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+
 }
+
 .live-monitor-search {
+
     padding: 8px 12px; border: 1px solid var(--border);
+
     border-radius: var(--radius-sm); font-size: 13px;
+
     background: var(--bg-input); color: var(--text-primary); min-width: 200px;
+
 }
+
 .lm-table-wrap {
+
     border-radius: var(--radius-md); overflow: hidden;
+
     border: 1px solid var(--border); background: var(--bg-card);
+
 }
+
 .lm-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+
 .lm-table th {
+
     background: var(--bg-table-head); padding: 10px 12px;
+
     font-size: 11px; font-weight: 700; text-transform: uppercase;
+
     letter-spacing: .5px; color: var(--text-secondary);
+
     border-bottom: 1px solid var(--border); white-space: nowrap; text-align: center;
+
 }
+
 .lm-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+
 .lm-table tr:last-child td { border-bottom: none; }
+
 .lm-table tr:hover td { background: var(--bg-hover); }
-/* Progress bar câu hỏi */
-.q-progress { width: 100%; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; min-width: 80px; }
-.q-progress-fill { height: 100%; border-radius: 4px; transition: width .5s; }
-.q-progress-fill.ok   { background: var(--success); }
-.q-progress-fill.warn { background: var(--warning); }
-.q-progress-fill.danger { background: var(--danger); }
-/* Timer countdown */
-.lm-timer { font-family: 'Courier New', monospace; font-weight: 700; font-size: 13px; }
-.lm-timer.ok     { color: var(--success); }
-.lm-timer.warn   { color: var(--warning); }
-.lm-timer.danger { color: var(--danger); animation: blink 1s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
  
+
+/* Progress bar câu hỏi */
+
+.q-progress { width: 100%; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; min-width: 80px; }
+
+.q-progress-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+
+.q-progress-fill.ok   { background: var(--success); }
+
+.q-progress-fill.warn { background: var(--warning); }
+
+.q-progress-fill.danger { background: var(--danger); }
+
+ 
+
+/* Timer countdown */
+
+.lm-timer { font-family: 'Courier New', monospace; font-weight: 700; font-size: 13px; }
+
+.lm-timer.ok     { color: var(--success); }
+
+.lm-timer.warn   { color: var(--warning); }
+
+.lm-timer.danger { color: var(--danger); animation: blink 1s infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+ 
+
 /* Tab bị ẩn badge */
+
 .tab-hidden-badge {
+
     display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px;
+
     font-weight: 700; background: var(--danger-light); color: var(--danger);
+
     margin-left: 4px;
+
 }
+
+ 
 
 /* Action buttons */
+
 .lm-actions { display: flex; gap: 4px; justify-content: center; }
+
 .lm-btn { padding: 4px 10px; border: none; border-radius: 6px; font-size: 11px;
+
           font-weight: 700; cursor: pointer; transition: opacity .2s; }
+
 .lm-btn:hover { opacity: .8; }
+
 .lm-btn-warn  { background: var(--warning-light); color: #856404; }
+
 .lm-btn-kick  { background: var(--danger-light);  color: var(--danger); }
 
+ 
+
 /* Stats mini row */
+
 .lm-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
 .lm-stat-pill {
+
     background: var(--bg-card); border: 1px solid var(--border);
+
     border-radius: var(--radius-sm); padding: 8px 14px;
+
     font-size: 12px; text-align: center;
+
 }
+
 .lm-stat-pill .num { font-size: 20px; font-weight: 800; line-height: 1.2; }
+
 .lm-stat-pill .lbl { color: var(--text-muted); font-size: 11px; }
 
+ 
+
 /* Empty state */
+
 .lm-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+
 `;
+
 </style>
+
 </head>
 
+    
+
 <body>
+
 <!-- LOADING -->
+
 <div class="loading-overlay" id="loadingOverlay">
+
     <div class="spinner"></div>
+
     <div class="loading-text" id="loadingText">Đang tải dữ liệu...</div>
+
 </div>
+
 <!-- TOAST -->
+
 <div class="toast-container" id="toastContainer"></div>
+
 <!-- CONFIRM -->
+
 <div class="confirm-dialog" id="confirmDialog">
+
     <div class="confirm-content">
+
         <div class="confirm-icon" id="confirmIcon">❓</div>
+
         <div class="confirm-title" id="confirmTitle">Xác nhận</div>
+
         <div class="confirm-message" id="confirmMessage">Bạn có chắc chắn?</div>
+
         <div class="confirm-buttons">
+
             <button class="btn btn-secondary" onclick="closeConfirmDialog(false)">Hủy</button>
+
             <button class="btn btn-danger" onclick="closeConfirmDialog(true)">Xác nhận</button>
+
         </div>
+
     </div>
+
 </div>
+
 <!-- HEADER -->
+
 <header>
+
     <div class="header-left">
+
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+
         <div class="logo">
+
             <div class="logo-icon">🚗</div>
+
             <span id="headerTitle">ADMIN PANEL - TRANG QUẢN TRỊ HỆ THỐNG</span>
+
         </div>
+
     </div>
+
     <div class="header-right">
+
         <div class="header-clock" id="currentTime"></div>
+
         <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()" title="Đổi giao diện">🌙</button>
+
         <div class="header-user">
+
             <div class="avatar" id="adminAvatar">A</div>
+
             <div class="user-info">
+
                 <div class="user-name" id="headerAdminName">Admin</div>
+
                 <div class="user-role">👑 Quản trị viên</div>
+
             </div>
+
         </div>
+
         <button class="logout-btn" onclick="logout()">
+
             <span>🚪</span> Đăng xuất
+
         </button>
+
     </div>
+
 </header>
+
 <!-- MAINTENANCE BANNER -->
+
 <div class="maintenance-banner" id="maintenanceBanner">
+
     ⚠ HỆ THỐNG ĐANG TRONG CHẾ ĐỘ BẢO TRÌ / NÂNG CẤP ⚠
+
 </div>
+
 <div id="layout">
+
     <!-- SIDEBAR -->
+
     <aside id="sidebar">
+
         <!-- Brand -->
         <div class="menu-text" style="display:flex;align-items:center;gap:10px;padding:4px 6px 18px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:14px;">
           <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4fc3f7,#0288d1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎓</div>
@@ -746,257 +1123,505 @@ const LIVE_MONITOR_CSS = `
             <div style="color:rgba(255,255,255,0.45);font-size:10px;font-weight:600;letter-spacing:.5px;">ADMIN DASHBOARD</div>
           </div>
         </div>
+
         <button class="sidebar-toggle" onclick="toggleSidebar()" title="Thu gọn">
+
             ◀ <span class="menu-text" style="font-size:12px;">Thu gọn</span>
+
         </button>
+
         <div class="menu">
+
             <button class="active" onclick="showPage('dashboard',this)">
+
                 <span class="menu-icon">📊</span>
+
                 <span class="menu-text">Tổng quan</span>
+
             </button>
+
             <button onclick="showPage('students',this)">
+
                 <span class="menu-icon">👥</span>
+
                 <span class="menu-text">Quản lý học viên</span>
+
             </button>
+
             <button onclick="showPage('question_sets',this)">
+
                 <span class="menu-icon">📝</span>
+
                 <span class="menu-text">Quản lý đề thi</span>
+
             </button>
+
             <button onclick="showPage('results',this)">
+
                 <span class="menu-icon">📋</span>
+
                 <span class="menu-text">Kết quả thi</span>
+
             </button>
+
             <button onclick="showPage('notifications',this)">
+
                 <span class="menu-icon">🔔</span>
+
                 <span class="menu-text">Thông báo</span>
+
             </button>
+
             <button onclick="showPage('stats',this)">
+
                 <span class="menu-icon">📈</span>
+
                 <span class="menu-text">Thống kê</span>
+
             </button>
+
             <button onclick="showPage('online_detail',this)">
+
                 <span class="menu-icon">📡</span>
+
                 <span class="menu-text">Giám sát online</span>
+
                 <span id="sidebarOnlineBadge" style="display:none;margin-left:auto;background:var(--danger);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;">0</span>
+
             </button>
+
             <button onclick="showPage('exam_rooms',this)">
+
                 <span class="menu-icon">🏫</span>
+
                 <span class="menu-text">Phòng thi Online</span>
+
             </button>
+
             <button onclick="showPage('system',this)">
+
                 <span class="menu-icon">⚙</span>
+
                 <span class="menu-text">Hệ thống</span>
+
             </button>
+
         </div>
+
     </aside>
+
     <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
     <main>
+
         <!-- ========== DASHBOARD ========== -->
+
         <div id="dashboard" class="page active">
+
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+
                 <h2 style="font-size:20px;font-weight:800;color:var(--text-primary);">📊 Tổng quan hệ thống</h2>
+
                 <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);">
+
                     <span style="display:inline-flex;align-items:center;gap:4px;"><span id="rtPulse" style="width:8px;height:8px;border-radius:50%;background:var(--success);animation:rtBlink 1.5s infinite;"></span> Realtime</span>
+
                     <span>Cập nhật: <b id="lastUpdateTime">—</b></span>
+
                 </div>
+
             </div>
+
             <!-- STAT CARDS ROW 1 -->
+
             <div class="dash-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px;">
+
                 <div class="dash-card" style="cursor:pointer;" onclick="showPage('students',document.querySelectorAll('.menu button')[1])">
+
                     <div class="card-stripe blue"></div>
+
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+
                         <div class="card-icon blue" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">👥</div>
+
                         <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:10px;font-weight:700;">TỔNG</span>
+
                     </div>
+
                     <div class="card-label">Học viên</div>
+
                     <div class="card-value" id="totalStudents">0</div>
+
                     <div class="card-subtitle">Hoạt động: <strong id="activeStudents" style="color:var(--success);">0</strong> · Khóa: <strong id="lockedStudentsD" style="color:var(--danger);">0</strong></div>
+
                 </div>
+
                 <div class="dash-card" style="cursor:pointer;" onclick="showPage('online_detail',null)">
+
                     <div class="card-stripe green"></div>
+
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+
                         <div class="card-icon green" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">🟢</div>
+
                         <span id="onlineLiveBadge" style="font-size:10px;background:rgba(25,135,84,0.15);color:var(--success);padding:2px 7px;border-radius:10px;font-weight:700;display:none;">● LIVE</span>
+
                     </div>
+
                     <div class="card-label">Đang Online</div>
+
                     <div class="card-value" id="onlineCount" style="color:var(--success);">0</div>
+
                     <div class="card-subtitle">HV: <strong id="examingCount" style="color:var(--warning);">0</strong> thi · Khách: <strong id="guestOnlineCount" style="color:var(--info,#0dcaf0);">0</strong></div>
+
                 </div>
+
                 <div class="dash-card">
+
                     <div class="card-stripe purple"></div>
+
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+
                         <div class="card-icon purple" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;background:rgba(124,58,237,0.1);">📝</div>
+
                         <span style="font-size:10px;background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:700;">HÔM NAY</span>
+
                     </div>
+
                     <div class="card-label">Lượt thi</div>
+
                     <div class="card-value" id="todayExams">0</div>
+
                     <div class="card-subtitle">Đạt: <strong id="todayPass" style="color:var(--success);">0</strong> · Không đạt: <strong id="todayFail" style="color:var(--danger);">0</strong></div>
+
                 </div>
+
                 <div class="dash-card">
+
                     <div class="card-stripe blue"></div>
+
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+
                         <div class="card-icon blue" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">🏆</div>
+
                         <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:10px;font-weight:700;">TỔNG</span>
+
                     </div>
+
                     <div class="card-label">Tổng lượt thi</div>
+
                     <div class="card-value" id="totalExamsD">0</div>
+
                     <div class="card-subtitle">Tỷ lệ đạt: <strong id="passRateD" style="color:var(--success);">—</strong></div>
+
                 </div>
+
                 <div class="dash-card">
+
                     <div class="card-stripe red"></div>
+
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+
                         <div class="card-icon red" style="width:40px;height:40px;font-size:18px;margin-bottom:10px;">📊</div>
+
                         <span style="font-size:10px;background:var(--danger-light);color:var(--danger);padding:2px 7px;border-radius:10px;font-weight:700;">TB</span>
+
                     </div>
+
                     <div class="card-label">Điểm trung bình</div>
+
                     <div class="card-value" id="avgScoreD">—</div>
+
                     <div class="card-subtitle">Điểm cao nhất hôm nay: <strong id="bestTodayD" style="color:var(--accent);">—</strong></div>
+
                 </div>
+
             </div>
+
             <!-- CHARTS + LIVE FEED -->
+
             <div style="display:grid;grid-template-columns:1fr 1fr 340px;gap:16px;margin-bottom:16px;" id="dashChartGrid">
+
                 <div class="chart-card">
+
                     <h4>📊 Lượt thi 7 ngày gần nhất</h4>
+
                     <div class="chart-container"><canvas id="chartExamsByDay"></canvas></div>
+
                 </div>
+
                 <div class="chart-card">
+
                     <h4>🎯 Tỷ lệ Đạt / Không đạt</h4>
+
                     <div class="chart-container"><canvas id="chartPassRate"></canvas></div>
+
                 </div>
+
                 <div class="chart-card" style="display:flex;flex-direction:column;">
 
                     <h4 style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
 
                         ⚡ Hoạt động trực tiếp
+
                         <span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:rtBlink 1.5s infinite;margin-left:auto;"></span>
+
                     </h4>
+
                     <div id="liveFeed" style="flex:1;overflow-y:auto;max-height:260px;display:flex;flex-direction:column;gap:6px;font-size:12px;">
+
                         <div style="text-align:center;color:var(--text-muted);padding:20px;">Đang theo dõi...</div>
+
                     </div>
+
                 </div>
+
             </div>
+
             <!-- ACTIVITY TABLE -->
+
             <div class="activity-section">
+
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+
                     <h3 style="margin:0;">📋 Lịch sử thi hôm nay</h3>
+
                     <span style="font-size:12px;color:var(--text-muted);" id="activityCount">0 bài</span>
+
                 </div>
+
                 <div style="max-height:350px; overflow-y:auto;">
+
                     <table class="activity-table">
+
                         <thead><tr><th style="width:200px">Thời gian</th><th style="width:200px">Học viên</th><th style="width:200px">Đề thi</th><th style="width:200px">Điểm</th><th style="width:auto">Kết quả</th></tr></thead>
+
                         <tbody id="activityTableBody"><tr><td colspan="5" class="activity-empty">Đang tải...</td></tr></tbody>
+
                     </table>
+
                 </div>
+
             </div>
+
         </div>
+
         <!-- KẾT THÚC DASHBOARD -->
+
         <!-- ========== ONLINE DETAIL / GIÁM SÁT PAGE ========== -->
+
         <div class="page" id="online_detail">
+
             <!-- Page header -->
+
             <div class="page-header">
+
                 <div style="display:flex;align-items:center;gap:12px;">
+
                     <h2 style="margin:0;">📡 Giám sát trực tiếp</h2>
+
                     <span id="lmLiveDot" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--danger);background:var(--danger-light);padding:3px 10px;border-radius:20px;">
+
                         <span style="width:8px;height:8px;border-radius:50%;background:var(--danger);animation:blink 1s infinite;"></span> LIVE
+
                     </span>
+
                 </div>
+
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
                     <button class="btn btn-outline btn-sm" onclick="refreshOnlineDetail()">🔄 Làm mới</button>
+
                     <button class="btn btn-danger btn-sm" onclick="broadcastWarning()">📢 Cảnh báo tất cả</button>
+
                 </div>
+
             </div>
+
             <!-- Stat pills row -->
+
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmTotalOnline" style="color:var(--success);">0</div>
+
                     <div class="lbl">🟢 Tổng online</div>
+
                 </div>
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmExaming" style="color:var(--warning);">0</div>
+
                     <div class="lbl">✍ Đang thi</div>
+
                 </div>
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmBrowsing" style="color:var(--accent);">0</div>
+
                     <div class="lbl">📖 Đang duyệt</div>
+
                 </div>
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmTabHidden" style="color:var(--danger);">0</div>
+
                     <div class="lbl">⚠ Rời tab</div>
+
                 </div>
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmAvgProgress">—</div>
+
                     <div class="lbl">% TB hoàn thành</div>
+
                 </div>
+
                 <div class="lm-stat-pill">
+
                     <div class="num" id="lmAvgTime">—</div>
+
                     <div class="lbl">⏱ Thời gian TB còn</div>
+
                 </div>
+
             </div>
+
             <!-- Toolbar tìm kiếm & lọc -->
+
             <div class="box" style="padding:14px 16px;margin-bottom:16px;">
+
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+
                     <input type="text" id="lmSearch" class="live-monitor-search" placeholder="🔍 Tìm mã HV, họ tên, đơn vị..."
+
                            oninput="filterLiveMonitor()" style="flex:1;min-width:200px;">
+
                     <select id="lmFilterStatus" onchange="filterLiveMonitor()"
+
                             style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-input);color:var(--text-primary);">
+
                         <option value="">Tất cả trạng thái</option>
+
                         <option value="exam">✍ Đang thi</option>
+
                         <option value="idle">📖 Duyệt / Chờ</option>
+
                         <option value="hidden">⚠ Rời tab</option>
+
                     </select>
+
                     <span style="font-size:12px;color:var(--text-muted);">Cập nhật: <b id="lmLastUpdate">—</b></span>
+
                 </div>
+
             </div>
+
             <!-- Bảng giám sát chính -->
+
             <div class="box" style="padding:0;overflow:hidden;">
+
                 <div style="overflow-x:auto;">
+
                     <table class="lm-table">
+
                         <thead>
+
                             <tr>
-                                <th style="width:50px;">#</th>
-                                <th style="width:60px;text-align:center;">Loại</th>
-                                <th style="width:100px;text-align:center;">Mã HV</th>
-                                <th style="text-align:center;">Họ và tên</th>
-                                <th style="width:140px;text-align:center;">Đơn vị</th>
-                                <th style="width:150px;text-align:center;">Đề thi</th>
-                                <th style="width:200px;text-align:center;">Tiến độ</th>
-                                <th style="width:100px;text-align:center;">Còn lại</th>
-                                <th style="width:200px;text-align:center;">Trạng thái</th>
+
+                                <th style="width:36px;">#</th>
+
+                                <th style="width:50px;text-align:center;">Loại</th>
+
+                                <th style="width:90px;text-align:center;">Mã HV</th>
+
+                                <th style="text-align:left;">Họ và tên</th>
+
+                                <th style="width:130px;text-align:left;">Đơn vị</th>
+
+                                <th style="width:110px;text-align:center;">Đề thi</th>
+
+                                <th style="width:130px;text-align:center;">Tiến độ</th>
+
+                                <th style="width:80px;text-align:center;">Còn lại</th>
+
+                                <th style="width:100px;text-align:center;">Trạng thái</th>
+
                                 <th style="width:100px;text-align:center;">Hoạt động</th>
-                                <th style="width:170px;text-align:center;">Thao tác</th>
+
+                                <th style="width:120px;text-align:center;">Thao tác</th>
+
                             </tr>
+
                         </thead>
+
                         <tbody id="lmTableBody">
+
                             <tr><td colspan="11" class="lm-empty">📡 Đang kết nối realtime...</td></tr>
+
                         </tbody>
+
                     </table>
+
                 </div>
+
                 <div id="lmEmptyState" style="display:none;text-align:center;padding:48px 20px;">
+
                     <div style="font-size:48px;margin-bottom:12px;">📭</div>
+
                     <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">Không có ai đang online</div>
+
                     <div style="font-size:13px;color:var(--text-muted);">Học viên sẽ xuất hiện ở đây khi đăng nhập vào hệ thống</div>
+
                 </div>
+
             </div>
+
             <!-- Hidden elements kept for backward compat with updateOnlineUI() -->
+
             <span id="onlineTotal" style="display:none;">0</span>
+
             <span id="onlineStudying" style="display:none;">0</span>
+
             <span id="onlineExaming" style="display:none;">0</span>
+
             <span id="onlineIdle" style="display:none;">0</span>
+
             <span id="onlineSearchInput" style="display:none;"></span>
+
             <span id="onlineFilterSection" style="display:none;"></span>
+
             <span id="onlineDetailTableBody" style="display:none;"></span>
+
             <span id="onlineDetailPagination" style="display:none;"></span>
+
         </div>
+
         <!-- KẾT THÚC ONLINE DETAIL -->
+
         <!-- ========== STUDENTS PAGE ========== -->
+
         <div class="page" id="students">
+
             <div class="page-header">
+
                 <h2>👥 Quản lý học viên</h2>
+
             </div>
+
             <!-- Stats cards - colorful blocks -->
+
             <div class="statGrid" style="margin-bottom:16px;">
+
                 <div class="statBox total">
+
                     <div>
+
                         <span style="font-size:12px;font-weight:700;opacity:0.9;text-transform:uppercase;letter-spacing:0.5px;">📊 TỔNG SỐ HỌC VIÊN</span>
 
                         <span class="main-num" id="totalCount">0</span>
@@ -11557,18 +12182,21 @@ function filterOnlineDetail() {
 function loadStats() {
 
     // ── Tính toán lại từ allResults để đảm bảo chính xác ──────────
-    // Gom kết quả theo từng HV
+    // Gom kết quả theo từng HV — đồng thời theo dõi trường passed
     const resultsByStudent = {};
     allResults.forEach(r => {
         const code = r.studentCode || r.code;
         if (!code) return;
         const score = Number(r.score) || 0;
+        // Ưu tiên field passed từ kết quả; fallback: score >= 80 (thang 0-100) hoặc score >= 21 (thang 0-30)
+        const isPassed = r.passed === true || (r.passed !== false && score >= 80);
         if (!resultsByStudent[code]) {
-            resultsByStudent[code] = { scores: [], timestamps: [] };
+            resultsByStudent[code] = { scores: [], timestamps: [], everPassed: false };
         }
         resultsByStudent[code].scores.push(score);
         const ts = r.timestamp?.toMillis ? r.timestamp.toMillis() : (r.timestamp ? new Date(r.timestamp).getTime() : 0);
         resultsByStudent[code].timestamps.push(ts);
+        if (isPassed) resultsByStudent[code].everPassed = true;
     });
 
     // Kết hợp allStudents với dữ liệu tính toán từ allResults
@@ -11579,17 +12207,18 @@ function loadStats() {
             const exams = rd.scores.length;
             const bestScore = Math.max(...rd.scores);
             const avgScore = Math.round(rd.scores.reduce((a, b) => a + b, 0) / exams);
-            return { ...s, exams, bestScore, avgScore };
+            return { ...s, exams, bestScore, avgScore, everPassed: rd.everPassed };
         }
         // Fallback về dữ liệu trong Firestore nếu không có trong allResults
-        return { ...s, exams: s.exams || 0, bestScore: s.bestScore || 0, avgScore: s.avgScore || 0 };
+        return { ...s, exams: s.exams || 0, bestScore: s.bestScore || 0, avgScore: s.avgScore || 0, everPassed: false };
     });
 
     const studentsWithExams = enriched.filter(s => (s.exams || 0) > 0);
 
     const totalExams = enriched.reduce((a, s) => a + (s.exams || 0), 0);
 
-    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
+    // Dùng trường everPassed (tổng hợp từ r.passed trong allResults) thay vì so sánh bestScore
+    const passedStudents = studentsWithExams.filter(s => s.everPassed).length;
 
     const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
 
@@ -11787,7 +12416,10 @@ function renderStatsCharts() {
 
         const counts = bands.map(() => 0);
 
-        allStudents.forEach(s => {
+        // Dùng dữ liệu đã enriched (từ loadStats) thay vì allStudents raw
+        // để đảm bảo bestScore phản ánh kết quả thực tế từ allResults
+        const statsChartData = window._leaderboardData || [];
+        statsChartData.forEach(s => {
 
             const sc = Math.min(30, Math.max(0, Number(s.bestScore) || 0));
 
@@ -13815,12 +14447,13 @@ function _startInvigilateListeners() {
         }
     }, () => {});
 
-    // Presence listener — lọc client-side theo phòng hoặc theo đăng ký
+    // Presence listener — chỉ lấy thí sinh đang THỰC SỰ ở trong phòng thi này
+    // (không bao gồm thí sinh đã đăng ký nhưng đang online ở nơi khác trong hệ thống)
     _invigUnsubPresence = db.collection('presence').onSnapshot(snap => {
         _invigPresenceMap = {};
         snap.forEach(d => {
             const data = d.data();
-            if (data.examRoomId === _invigRoomId || _invigRegistrations[d.id]) {
+            if (data.examRoomId === _invigRoomId) {
                 _invigPresenceMap[d.id] = { code: d.id, ...data };
             }
         });
