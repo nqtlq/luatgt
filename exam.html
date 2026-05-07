@@ -838,24 +838,6 @@ if (userType !== 'student' || !studentCode) {
   throw new Error('REDIRECT_TO_LOGIN');
 }
 
-
-// =====================================================================
-// UNSUB MANAGER — quản lý tập trung mọi Firestore listener
-// =====================================================================
-const UnsubManager = (() => {
-  const _map = new Map();
-  return {
-    add(key, fn) { this.remove(key); if (typeof fn === 'function') _map.set(key, fn); },
-    remove(key) { const fn = _map.get(key); if (fn) { try { fn(); } catch(_) {} _map.delete(key); } },
-    removeAll() { _map.forEach(fn => { try { fn(); } catch(_) {} }); _map.clear(); }
-  };
-})();
-
-// =====================================================================
-// QUESTION CACHE — tránh fetch lại câu hỏi đã load
-// =====================================================================
-const _questionSetCache = new Map();
-
 // =====================================================================
 // BIẾN TOÀN CỤC
 // =====================================================================
@@ -1133,7 +1115,7 @@ function startSessionMonitor() {
   }
   
   // Phát hiện thiết bị khác
-  UnsubManager.add('sessions', db.collection('sessions').doc(studentId).onSnapshot(snap => {
+  db.collection('sessions').doc(studentId).onSnapshot(snap => {
     if (!snap.exists || isKicked) return;
     const serverToken = snap.data()?.token;
     if (serverToken && serverToken !== myToken) {
@@ -1141,7 +1123,7 @@ function startSessionMonitor() {
         'Tài khoản đăng nhập từ thiết bị khác. Nếu không phải bạn — đổi mật khẩu ngay!',
         '⚠️');
     }
-  }, err => console.warn('Session monitor lỗi:', err.code)));
+  }, err => console.warn('Session monitor lỗi:', err.code));
 }
 
 // =====================================================================
@@ -1232,21 +1214,21 @@ function _renderStudentUI(data) {
 
 // ─── Sync từ Firestore (chạy ngầm, KHÔNG await ở initPage) ──────────
 async function _syncStudentFromFirestore(studentId) {
-  // Auth đã được đảm bảo bởi initPage() → gọi trực tiếp, không cần poll
-  if (!_authUser && auth) {
-    // Fallback: thử lấy currentUser một lần cuối
-    _authUser = auth.currentUser;
+  // Chờ auth sẵn tối đa 6 giây — polling nhẹ
+  let waited = 0;
+  while (!_authUser && waited < 6000) {
+    await new Promise(r => setTimeout(r, 200));
+    waited += 200;
   }
+  
   if (!_authUser) {
-    console.warn('[Sync] Auth chưa sẵn — bỏ qua sync Firestore');
+    console.warn('[Sync] Auth chưa sẵn sau 6s — bỏ qua sync');
     return;
   }
   
-  // Kiểm tra bảo trì — dùng cache (onSnapshot bên dưới sẽ cập nhật real-time)
+  // Kiểm tra bảo trì
   try {
-    let maint;
-    try { maint = await db.collection('systemConfig').doc('maintenance').get({ source: 'cache' }); }
-    catch(_) { maint = await db.collection('systemConfig').doc('maintenance').get(); }
+    const maint = await db.collection('systemConfig').doc('maintenance').get();
     if (maint.exists && maint.data().enabled) {
       kickOut('🛠 Hệ thống bảo trì', 'Hệ thống đang nâng cấp.', '🛠');
       return;
@@ -1329,7 +1311,7 @@ function _tryQueryExamResults(candidates, idx) {
   console.log(`[ExamResults] Thử query ${field} == "${value}"`);
   let unsub;
   try {
-    UnsubManager.add('examResults', db.collection('examResults')
+    unsub = db.collection('examResults')
       .where(field, '==', value)
       .orderBy('timestamp', 'desc')
       .limit(100)
@@ -1653,7 +1635,7 @@ function _filterNotifs(all) {
 
 function loadNotifications() {
   if (notifUnsub) { try { notifUnsub(); } catch(_) {} }
-  UnsubManager.add('notifications', db.collection('notifications')
+  notifUnsub = db.collection('notifications')
     .where('status', '==', 'sent').limit(50)
     .onSnapshot(snap => {
       const all = [];
@@ -1732,18 +1714,18 @@ function startRealtimeListeners() {
   const studentId = localStorage.getItem('studentId') || studentCode;
   
   // Giám sát tài khoản bị khóa — dùng doc ID thực
-  UnsubManager.add('student', db.collection('students').doc(studentId)
+  studentUnsub = db.collection('students').doc(studentId)
     .onSnapshot(doc => {
       if (doc.exists && doc.data().status === 'locked')
         kickOut('🔒 Tài khoản bị khóa!', 'Tài khoản của bạn vừa bị Quản trị viên vô hiệu hóa.', '🔒');
-    }, err => console.warn('Student watch lỗi:', err.code)));
+    }, err => console.warn('Student watch lỗi:', err.code));
   
   // Giám sát bảo trì
-  UnsubManager.add('maintenance', db.collection('systemConfig').doc('maintenance')
+  maintUnsub = db.collection('systemConfig').doc('maintenance')
     .onSnapshot(doc => {
       if (doc.exists && doc.data().enabled === true)
         kickOut('🛠 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🛠');
-    }, err => console.warn('Maint watch lỗi:', err.code)));
+    }, err => console.warn('Maint watch lỗi:', err.code));
 }
 
 // =====================================================================
@@ -1775,30 +1757,21 @@ function startPresence() {
   };
   
   heartbeat();
-  setInterval(heartbeat, 60000);
+  setInterval(heartbeat, 20000);
   
-  let _heartbeatTimer = null;
-  function startHeartbeatTimer() {
-    if (_heartbeatTimer) clearInterval(_heartbeatTimer);
-    _heartbeatTimer = setInterval(heartbeat, 60000);
-  }
-  startHeartbeatTimer();
-
   document.addEventListener('visibilitychange', () => {
     if (isKicked) return;
     if (document.hidden) {
       _tabHiddenSince = Date.now();
-      if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
       presenceRef.set({ tabHidden: true, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
     } else {
       const hiddenMs = _tabHiddenSince ? Date.now() - _tabHiddenSince : 0;
       _tabHiddenSince = null;
       presenceRef.set({ tabHidden: false, tabReturnedAfterMs: hiddenMs, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
-      startHeartbeatTimer();
     }
   });
   
-  UnsubManager.add('signal', presenceRef.onSnapshot(snap => {
+  _signalUnsub = presenceRef.onSnapshot(snap => {
     if (!snap.exists || isKicked) return;
     const signal = snap.data()?.adminSignal;
     if (!signal || !signal.sentAt) return;
@@ -1808,11 +1781,10 @@ function startPresence() {
       showAdminWarning(signal.message);
     }
     presenceRef.update({ adminSignal: firebase.firestore.FieldValue.delete() }).catch(() => {});
-  }, err => console.warn('Signal watch lỗi:', err.code)));
+  }, err => console.warn('Signal watch lỗi:', err.code));
   
   window.addEventListener('beforeunload', () => {
-    UnsubManager.removeAll();
-    if (_heartbeatTimer) clearInterval(_heartbeatTimer);
+    if (_signalUnsub) { try { _signalUnsub(); } catch(_) {} }
     if (!isKicked) presenceRef.set({ isOnline: false, currentSection: 'Đã thoát', tabHidden: false }, { merge: true }).catch(() => {});
   });
 }
@@ -1831,7 +1803,7 @@ function startExamRoomListener() {
   if (grid) grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;padding:40px 0;">⏳ Đang tải dữ liệu từ máy chủ...</p>';
 
   // Bỏ .orderBy('startAt', 'asc') để tránh lỗi Index Firebase
-  UnsubManager.add('roomList', db.collection('examRooms')
+  _roomUnsub = db.collection('examRooms')
     .where('status', 'in', ['scheduled', 'open'])
     .onSnapshot(snap => {
       const countSpan = document.getElementById('roomCount');
@@ -1886,7 +1858,7 @@ function startExamRoomListener() {
             <p style="font-size:13px; color:#555; margin:8px 0; min-height:40px;">
               📝 <i>${room.description || 'Không có mô tả cho phòng thi này.'}</i>
             </p>
-            <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${fmtDateTime(startTime)}</strong></p>
+            <p style="font-size:13px; margin:4px 0;">⏰ Bắt đầu: <strong>${startTime.toLocaleString('vi-VN')}</strong></p>
             <button class="room-detail-btn" onclick="focusAndEnterRoom('${room.id}')">
               🔍 Xem chi tiết &amp; Đăng ký
             </button>
@@ -1947,30 +1919,34 @@ async function focusAndEnterRoom(roomId) {
         const timeEl  = document.getElementById('md_roomTime');
         const descEl  = document.getElementById('md_roomDesc');
         if (titleEl) titleEl.innerText = room.title || '—';
-        if (timeEl)  timeEl.innerText  = '🕒 Giờ bắt đầu: ' + (room.startAt ? fmtDateTime(room.startAt) : '—');
+        if (timeEl)  timeEl.innerText  = '🕒 Giờ bắt đầu: ' + (room.startAt?.toDate?.().toLocaleString('vi-VN') || '—');
         if (descEl)  descEl.innerText  = room.description || 'Giám thị chưa có mô tả cho bài thi này.';
 
-        // Kiểm tra đăng ký + đếm người — 2 listener song song, không nested
-        UnsubManager.add('roomDetail_waiting', db.collection('examRooms').doc(roomId).collection('waitingRoom')
-          .onSnapshot(wSnap => {
-            const waitCount = wSnap.size;
-            const sonl = document.getElementById('stat_online');
-            if (sonl) sonl.innerText = waitCount;
-          }, () => {}));
+        // Kiểm tra đăng ký qua subcollection (dùng studentCode, không dùng user.uid)
+        db.collection('examRooms').doc(roomId).collection('registrations').doc(studentCode).get()
+          .then(regDoc => {
+            const isRegistered = regDoc.exists;
 
-        UnsubManager.add('roomDetail_reg', db.collection('examRooms').doc(roomId).collection('registrations')
-          .onSnapshot(rSnap => {
-            const regCount = rSnap.size;
-            const waitCount = parseInt(document.getElementById('stat_online')?.innerText || '0');
-            const sreg = document.getElementById('stat_registered');
-            const swat = document.getElementById('stat_waiting');
-            if (sreg) sreg.innerText = regCount;
-            if (swat) swat.innerText = Math.max(0, regCount - waitCount);
+            // Đếm người trong phòng chờ và số đã đăng ký
+            if (_currentPresenceSub) { try { _currentPresenceSub(); } catch(_) {} }
+            _currentPresenceSub = db.collection('examRooms').doc(roomId).collection('waitingRoom')
+                .onSnapshot(wSnap => {
+                    const waitCount = wSnap.size;
+                    db.collection('examRooms').doc(roomId).collection('registrations').get()
+                      .then(rSnap => {
+                        const regCount = rSnap.size;
+                        const sreg = document.getElementById('stat_registered');
+                        const sonl = document.getElementById('stat_online');
+                        const swat = document.getElementById('stat_waiting');
+                        if (sreg) sreg.innerText = regCount;
+                        if (sonl) sonl.innerText = waitCount;
+                        if (swat) swat.innerText = Math.max(0, regCount - waitCount);
+                      }).catch(() => {});
+                }, () => {});
 
-            const myReg = rSnap.docs.find(d => d.id === studentCode);
-            renderActionButtons(room, !!myReg);
+            renderActionButtons(room, isRegistered);
             startAutoEnterTimer(room);
-          }, () => {}));
+          }).catch(() => {});
     }, err => console.warn('focusAndEnterRoom lỗi:', err.code));
 }
 function renderActionButtons(room, isRegistered) {
@@ -2099,11 +2075,7 @@ function _checkEligibility(room) {
 }
 
 function _fmt(ts) {
-  if (!ts) return '---';
-  const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  if (isNaN(d)) return '---';
-  const p = x => String(x).padStart(2,'0');
-  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return ts?.toDate ? ts.toDate().toLocaleString('vi-VN', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
 }
 
 function _fmtMs(ms) {
@@ -2420,7 +2392,7 @@ function startExamFromRoom() {
 // =====================================================================
 function startAdminWarnListener() {
   if (!studentCode || !db) return;
-  UnsubManager.add('adminWarnings', db.collection('adminWarnings').where('active', '==', true)
+  db.collection('adminWarnings').where('active', '==', true)
     .orderBy('createdAt', 'desc').limit(5)
     .onSnapshot(snap => {
       snap.docs.forEach(doc => {
