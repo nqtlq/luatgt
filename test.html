@@ -1902,24 +1902,6 @@
 
   } catch (e) { console.error("Firebase init:", e); }
 
-
-  // ================================================================
-  // UNSUB MANAGER — quản lý tập trung mọi Firestore listener
-  // ================================================================
-  const UnsubManager = (() => {
-    const _map = new Map();
-    return {
-      add(key, fn) { this.remove(key); if (typeof fn === 'function') _map.set(key, fn); },
-      remove(key) { const fn = _map.get(key); if (fn) { try { fn(); } catch(_) {} _map.delete(key); } },
-      removeAll() { _map.forEach(fn => { try { fn(); } catch(_) {} }); _map.clear(); }
-    };
-  })();
-
-  // ================================================================
-  // QUESTION CACHE — tránh fetch lại câu hỏi đã load trong session
-  // ================================================================
-  const _qCache = new Map();
-
   // ================================================================
 
   // AUTH INFO
@@ -2401,40 +2383,23 @@
 
   //                   groupIndex(0-based, -1=liet), isLiet:bool, imageUrl, order }
 
-    async function loadQuestionsForSet(set) {
+  async function loadQuestionsForSet(set) {
 
     const setCode = set.code || set.id;
-
-    // Kiểm tra cache RAM trước — nếu có, tái dùng snap.docs đã lưu
-    // Cache lưu Firestore DocumentSnapshot[] → dùng trực tiếp như snap.docs
-    let snap;
-    if (_qCache.has(setCode)) {
-      const cachedDocs = _qCache.get(setCode);
-      if (cachedDocs && cachedDocs.length > 0) {
-        snap = { docs: cachedDocs, empty: false };
-        // Bỏ qua phần fetch bên dưới, nhảy thẳng vào xử lý
-      }
-    }
-
-    if (!snap) {
 
     let snap;
 
     try {
 
-      // Thử cache local trước (từ IndexedDB persistence)
-      try {
-        snap = await db.collection("questions")
-          .where("setCode", "==", setCode)
-          .orderBy("order", "asc")
-          .get({ source: 'cache' });
-      } catch(_) {
-        // Fallback fetch từ server
-        snap = await db.collection("questions")
-          .where("setCode", "==", setCode)
-          .orderBy("order", "asc")
-          .get();
-      }
+      // Thử query có orderBy (cần index)
+
+      snap = await db.collection("questions")
+
+        .where("setCode", "==", setCode)
+
+        .orderBy("order", "asc")
+
+        .get();
 
     } catch(e) {
 
@@ -2447,10 +2412,6 @@
         .get();
 
     }
-
-    // Lưu vào cache
-    _qCache.set(setCode, snap.docs);
-    } // end if (!snap)
 
     if (snap.empty) throw new Error(`Chưa có câu hỏi trong bộ đề này (setCode: ${setCode})`);
 
@@ -3291,7 +3252,7 @@
     // Lắng nghe tín hiệu đóng phòng trong lúc thi (nếu vào từ phòng thi online)
     const activeRoomId = _waitRoomId || localStorage.getItem('examRoomId');
     if (activeRoomId && db) {
-      UnsubManager.add('activeRoom', db.collection('examRooms').doc(activeRoomId).onSnapshot(snap => {
+      db.collection('examRooms').doc(activeRoomId).onSnapshot(snap => {
         if (!snap.exists) return;
         const data = snap.data();
         const signal = data?.roomSignal;
@@ -3330,7 +3291,7 @@
 
     if (_signalUnsub) _signalUnsub();
 
-    UnsubManager.add('signal', _presenceRef.onSnapshot(snap => {
+    _signalUnsub = _presenceRef.onSnapshot(snap => {
 
       if (!snap.exists) return;
 
@@ -3470,7 +3431,7 @@
 
     if (!myToken) return;
 
-    UnsubManager.add('sessions', db.collection('sessions').doc(studentCode).onSnapshot(snap => {
+    db.collection('sessions').doc(studentCode).onSnapshot(snap => {
 
       if (!snap.exists) return;
 
@@ -3569,7 +3530,7 @@
 
         if (_signalUnsub) _signalUnsub();
 
-        UnsubManager.add('signal', _presenceRef.onSnapshot(snap => {
+        _signalUnsub = _presenceRef.onSnapshot(snap => {
 
           if (!snap.exists) return;
 
@@ -3626,7 +3587,7 @@
         } catch(_) {}
 
         // Lắng nghe realtime — kick ngay khi admin bật bảo trì
-        UnsubManager.add('maintenance', db.collection('systemConfig').doc('maintenance').onSnapshot(snap => {
+        db.collection('systemConfig').doc('maintenance').onSnapshot(snap => {
           if (snap.exists && snap.data()?.enabled) {
             localStorage.removeItem('userType');
             localStorage.removeItem('guestSeqNumber');
@@ -3799,7 +3760,7 @@
     if (!_waitRoomId || !db) return;
     if (_waitRoomUnsub) { _waitRoomUnsub(); _waitRoomUnsub = null; }
 
-    UnsubManager.add('waitRoom', db.collection('examRooms').doc(_waitRoomId).onSnapshot(snap => {
+    _waitRoomUnsub = db.collection('examRooms').doc(_waitRoomId).onSnapshot(snap => {
       if (!snap.exists) return;
       _waitRoomData = { id: snap.id, ...snap.data() };
       const status  = _waitRoomData.status;
