@@ -1898,8 +1898,6 @@
 
     db   = firebase.firestore();
 
-    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
-
     auth = firebase.auth();
 
   } catch (e) { console.error("Firebase init:", e); }
@@ -2403,36 +2401,22 @@
 
   //                   groupIndex(0-based, -1=liet), isLiet:bool, imageUrl, order }
 
-  // Helper dùng chung giữa cache-hit và fresh-load
-  async function _processLoadedQuestions(set, setCode, docs) {
-    if (!docs || !docs.length) throw new Error(`Chưa có câu hỏi trong bộ đề này (setCode: ${setCode})`);
-    const allQ = docs.map(d => d.data ? { docId: d.id, ...d.data() } : d);
-    const lietQ   = allQ.filter(q => q.isLiet === true || q.groupIndex === -1);
-    const normalQ = allQ.filter(q => q.isLiet !== true && q.groupIndex !== -1);
-    return { allQ, lietQ, normalQ };
-  }
-
     async function loadQuestionsForSet(set) {
 
     const setCode = set.code || set.id;
 
-    // Kiểm tra cache trước — tránh fetch lại câu hỏi đã load
+    // Kiểm tra cache RAM trước — nếu có, tái dùng snap.docs đã lưu
+    // Cache lưu Firestore DocumentSnapshot[] → dùng trực tiếp như snap.docs
+    let snap;
     if (_qCache.has(setCode)) {
-      // Re-process inline từ cached docs (không gọi server)
-      const cached = _qCache.get(setCode);
-      if (cached && cached.length > 0) {
-        // Tạo một fake snap compatible với phần xử lý bên dưới
-        const fakeSnap = { docs: cached, empty: false };
-        // Dùng biến snap để tiếp tục flow bình thường
-        const allQ = cached.map(d => ({ docId: d.id, ...d.data() }));
-        const lietQ   = allQ.filter(q => q.isLiet === true || q.groupIndex === -1);
-        const normalQ = allQ.filter(q => q.isLiet !== true && q.groupIndex !== -1);
-        // Reroute vào phần xử lý bên dưới bằng cách set snap và tiếp tục
-        // (không return sớm, để code bên dưới chạy bình thường)
-        // → Ta set biến cờ để skip fetch
-        return await _processLoadedQuestions(set, setCode, cached);
+      const cachedDocs = _qCache.get(setCode);
+      if (cachedDocs && cachedDocs.length > 0) {
+        snap = { docs: cachedDocs, empty: false };
+        // Bỏ qua phần fetch bên dưới, nhảy thẳng vào xử lý
       }
     }
+
+    if (!snap) {
 
     let snap;
 
@@ -2466,6 +2450,7 @@
 
     // Lưu vào cache
     _qCache.set(setCode, snap.docs);
+    } // end if (!snap)
 
     if (snap.empty) throw new Error(`Chưa có câu hỏi trong bộ đề này (setCode: ${setCode})`);
 
