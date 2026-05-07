@@ -4657,6 +4657,8 @@ firebase.initializeApp(firebaseConfig);
 
 const db  = firebase.firestore();
 
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
 const auth = firebase.auth();
 
  
@@ -4764,6 +4766,40 @@ let generatedVerifyCode = '';
 let dashboardExamSeries = [];
 
 let dashboardPassFail = { pass: 0, fail: 0 };
+
+
+// ==========================================
+// UNSUB MANAGER — quản lý tập trung listeners
+// ==========================================
+const UnsubManager = (() => {
+  const _map = new Map();
+  return {
+    add(key, fn) { this.remove(key); if (typeof fn === 'function') _map.set(key, fn); },
+    remove(key) { const fn = _map.get(key); if (fn) { try { fn(); } catch(_) {} _map.delete(key); } },
+    removeAll() { _map.forEach(fn => { try { fn(); } catch(_) {} }); _map.clear(); }
+  };
+})();
+
+// ==========================================
+// QUESTION CACHE — tránh N+1 và re-fetch
+// ==========================================
+let _allQuestionsCache = null; // { bySet: Map<setCode, docs[]>, loadedAt: timestamp }
+
+async function getAllQuestionsOnce() {
+  const CACHE_TTL = 5 * 60 * 1000; // 5 phút
+  if (_allQuestionsCache && (Date.now() - _allQuestionsCache.loadedAt) < CACHE_TTL) {
+    return _allQuestionsCache.bySet;
+  }
+  const snap = await db.collection('questions').get();
+  const bySet = new Map();
+  snap.forEach(d => {
+    const sc = d.data().setCode;
+    if (!bySet.has(sc)) bySet.set(sc, []);
+    bySet.get(sc).push({ docId: d.id, ...d.data() });
+  });
+  _allQuestionsCache = { bySet, loadedAt: Date.now() };
+  return bySet;
+}
 
 // ==========================================
 
@@ -5478,7 +5514,7 @@ function enterRoomMonitor(roomId) {
 function _updateMonitorHeader() {
     const r = _monRoomData;
     if (!r) return;
-    const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
+    const fmt = ts => { if(!ts) return '---'; const d=ts?.toDate?ts.toDate():new Date(ts); if(isNaN(d))return '---'; const p=x=>String(x).padStart(2,'0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
     document.getElementById('monitorRoomTitle').textContent = r.title || '(Không tên)';
     document.getElementById('monitorRoomInfo').textContent  = `📄 ${r.setName||r.setCode||'—'}  ⏰ ${fmt(r.startAt)} → ${fmt(r.endAt)}`;
     const badges = { scheduled:'⏳ Sắp diễn ra', open:'🟢 Đang mở', closed:'🔴 Kết thúc' };
@@ -5574,7 +5610,7 @@ function _buildMonitorStudents() {
     _monAllStudents.sort((a,b) => (sortOrd[a.status]||3) - (sortOrd[b.status]||3));
 
     const lu = document.getElementById('monitorLastUpdate');
-    if (lu) lu.textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
+    if (lu) { const _mn=new Date(); lu.textContent='Cập nhật: '+`${String(_mn.getHours()).padStart(2,'0')}:${String(_mn.getMinutes()).padStart(2,'0')}`; }
     _updateMonStats();
     filterMonitor();
 }
@@ -5898,7 +5934,7 @@ function showCreateRoomModal(roomId = null) {
             if(g('roomRulesInput')) g('roomRulesInput').value = room.rules || '';
             if(g('roomSetSelect') && room.setCode) g('roomSetSelect').value = room.setCode;
             if(room.startAt?.toDate) {
-                const d = room.startAt.toDate();
+                const d = room.startAt?.toDate ? room.startAt.toDate() : new Date(room.startAt);
                 g('roomStartInput').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
             }
             if(room.endAt?.toDate) {
@@ -6189,7 +6225,14 @@ async function loadGuestExamConfig() {
 }
 async function loadStudentsFromDB() {
 
-    const snap = await db.collection('students').orderBy('createdAt', 'desc').get();
+    // Load toàn bộ (admin cần xem tất cả) — đã có RT listener cập nhật incremental
+    // Dùng cache trước nếu có để hiển thị nhanh
+    let snap;
+    try {
+        snap = await db.collection('students').orderBy('createdAt', 'desc').get({ source: 'cache' });
+    } catch(_) {
+        snap = await db.collection('students').orderBy('createdAt', 'desc').get();
+    }
 
     allStudents = snap.docs.map(doc => ({
 
@@ -6223,15 +6266,11 @@ async function refreshActualQuestionCounts() {
 
     try {
 
-        const promises = allQuestionSets.map(async set => {
-
-            const qs = await db.collection('questions').where('setCode', '==', set.code).get();
-
-            set.actualCount = qs.size;
-
+        // Tải toàn bộ questions 1 lần, đếm theo set ở client (thay vì N queries)
+        const bySet = await getAllQuestionsOnce();
+        allQuestionSets.forEach(set => {
+            set.actualCount = (bySet.get(set.code) || []).length;
         });
-
-        await Promise.all(promises);
 
     } catch (e) {
 
@@ -6289,7 +6328,7 @@ async function loadTodayExamsFromDB() {
 
         const t = new Date(); t.setHours(0,0,0,0);
 
-        const snap = await db.collection('examResults').where('timestamp','>=',t).get();
+        const snap = await db.collection('examResults').where('timestamp','>=', firebase.firestore.Timestamp.fromDate(t)).orderBy('timestamp','desc').limit(500).get();
 
         let pass = 0, fail = 0, scores = [], bestScore = 0;
 
@@ -6439,7 +6478,7 @@ function startRealtimeTodayExams() {
 
                         text: `${d2.setName||d2.setCode||'—'} • ${d2.correctCount||d2.score||0}/${d2.totalQuestions||0}`,
 
-                        time: ts.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+                        time: `${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}:${String(ts.getSeconds()).padStart(2,'0')}`,
 
                         badge: d2.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'
 
@@ -6475,35 +6514,35 @@ function startRealtimeAllExams() {
 
         .onSnapshot(snap => {
 
-            let total = 0, passed = 0;
-
-            snap.forEach(d => {
-
-                total++;
-
-                if (d.data().passed) passed++;
-
+            // Incremental update thay vì rebuild toàn bộ
+            let isFirstLoad = allResults.length === 0;
+            snap.docChanges().forEach(change => {
+                const data = change.doc.data();
+                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+                const st = allStudents.find(s => s.code === data.studentCode);
+                const r = { id: change.doc.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+                if (change.type === 'added')    allResults.unshift(r);
+                if (change.type === 'modified') { const i = allResults.findIndex(x => x.id === r.id); if (i > -1) allResults[i] = r; }
+                if (change.type === 'removed')  { allResults = allResults.filter(x => x.id !== r.id); }
             });
+            if (isFirstLoad && snap.docs.length > 0) {
+                allResults = snap.docs.map(d => {
+                    const data = d.data();
+                    const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+                    const st = allStudents.find(s => s.code === data.studentCode);
+                    return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+                });
+            }
+            // Giới hạn buffer 500
+            if (allResults.length > 500) allResults = allResults.slice(0, 500);
+
+            const total = allResults.length, passed = allResults.filter(r => r.passed).length;
 
             safeSet('totalExamsD', total);
 
             const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
 
             safeSet('passRateD', rate);
-
-            // Rebuild series for charts
-
-            allResults = snap.docs.map(d => {
-
-                const data = d.data();
-
-                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
-
-                const st = allStudents.find(s => s.code === data.studentCode);
-
-                return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
-
-            });
 
             buildDashboardSeriesFromResults();
 
@@ -6519,7 +6558,14 @@ function startRealtimeStudents() {
 
     rtStudentUnsub = db.collection('students').onSnapshot({ includeMetadataChanges: false }, snap => {
 
-        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' }));
+        // Incremental update thay vì rebuild toàn bộ
+        snap.docChanges().forEach(change => {
+            const d = { id: change.doc.id, ...change.doc.data(), code: change.doc.data().code || change.doc.id, status: change.doc.data().status || 'active' };
+            if (change.type === 'added')    { if (!allStudents.find(s => s.id === d.id)) allStudents.push(d); }
+            if (change.type === 'modified') { const i = allStudents.findIndex(s => s.id === d.id); if (i > -1) allStudents[i] = d; else allStudents.push(d); }
+            if (change.type === 'removed')  { allStudents = allStudents.filter(s => s.id !== d.id); }
+        });
+        if (!snap.docChanges().length) { /* initial full snap */ allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), code: d.data().code || d.id, status: d.data().status || 'active' })); }
 
         const active = allStudents.filter(s => s.status === 'active').length;
 
@@ -6571,7 +6617,7 @@ function updateLastUpdateTime() {
 
     const el = document.getElementById('lastUpdateTime');
 
-    if (el) el.textContent = new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const _n=new Date(); if(el) el.textContent=`${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')}`;
 
 }
 
@@ -6667,7 +6713,7 @@ function renderActivityTable(snap) {
 
         return `<tr>
 
-            <td>${ts.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td>
+            <td>${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}:${String(ts.getSeconds()).padStart(2,'0')}</td>
 
             <td style="text-align:left;">${escapeHtml(name)}</td>
 
@@ -6691,43 +6737,47 @@ function startPresenceListener() {
 
     
 
+    let _presenceRenderTimer = null;
+    function schedulePresenceRender() {
+        clearTimeout(_presenceRenderTimer);
+        _presenceRenderTimer = setTimeout(updateOnlineUI, 300);
+    }
+
     presenceUnsub = db.collection('presence')
 
         .onSnapshot({ includeMetadataChanges: false }, (snap) => {
 
-            presenceMap.clear();
-
             const now = Date.now();
 
-            snap.forEach(doc => {
-
-                const d = doc.data();
-
-                if (!d || !d.isOnline) return; // Bỏ qua doc không hợp lệ hoặc đã offline
-
-                
-
-                // Validate lastActive
-
+            // Incremental update — chỉ xử lý docs thay đổi
+            snap.docChanges().forEach(change => {
+                if (change.type === 'removed') {
+                    presenceMap.delete(change.doc.id);
+                    return;
+                }
+                const d = change.doc.data();
+                if (!d || !d.isOnline) { presenceMap.delete(change.doc.id); return; }
                 let lastActive = null;
-
                 if (d.lastActive?.toDate) lastActive = d.lastActive.toDate();
-
                 else if (d.lastActive) lastActive = new Date(d.lastActive);
-
-                
-
-                // Bỏ qua session quá cũ (> 5 phút không heartbeat)
-
-                if (lastActive && (now - lastActive.getTime()) > 300000) return;
-
-                
-
-                presenceMap.set(doc.id, d);
-
+                if (lastActive && (now - lastActive.getTime()) > 300000) { presenceMap.delete(change.doc.id); return; }
+                presenceMap.set(change.doc.id, d);
             });
+            // Initial load (first snapshot): xây dựng map đầy đủ
+            if (!snap.docChanges().length || snap.docChanges().every(c => c.type === 'added' && snap.size === snap.docChanges().length)) {
+                presenceMap.clear();
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (!d || !d.isOnline) return;
+                    let lastActive = null;
+                    if (d.lastActive?.toDate) lastActive = d.lastActive.toDate();
+                    else if (d.lastActive) lastActive = new Date(d.lastActive);
+                    if (lastActive && (Date.now() - lastActive.getTime()) > 300000) return;
+                    presenceMap.set(doc.id, d);
+                });
+            }
 
-            updateOnlineUI();
+            schedulePresenceRender(); // debounce render 300ms
 
         }, (err) => {
 
@@ -6963,7 +7013,7 @@ function buildDashboardSeriesFromResults() {
 
         days.push(new Date(d));
 
-        labels.push(d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }));
+        labels.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`);
 
         counts.push(0);
 
@@ -7899,6 +7949,9 @@ async function importStudents() {
 
             await batch.commit();
 
+            // Delay nhỏ giữa các batch để tránh Firestore rate limit
+            if (i + 500 < pendingImportData.length) await new Promise(r => setTimeout(r, 200));
+
         }
 
         showToast(`Nhập thành công ${pendingImportData.length} HV!`, 'success', 5000);
@@ -7929,7 +7982,7 @@ function exportToExcel() {
 
     XLSX.utils.book_append_sheet(wb, ws, 'DS');
 
-    XLSX.writeFile(wb, `HocVien_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`);
+    const _xd=new Date(); XLSX.writeFile(wb, `HocVien_${String(_xd.getDate()).padStart(2,'0')}-${String(_xd.getMonth()+1).padStart(2,'0')}-${_xd.getFullYear()}.xlsx`);
 
 }
 
@@ -7937,7 +7990,7 @@ function printTable() {
 
     const now = new Date();
 
-    const ngay = `Hà Nội, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+    const ngay = `Hà Nội, ngày ${String(now.getDate()).padStart(2,'0')} tháng ${String(now.getMonth() + 1).padStart(2,'0')} năm ${now.getFullYear()}`;
 
     const fc = document.getElementById('filterCourse')?.value || '';
 
@@ -10143,7 +10196,18 @@ async function loadQuestionsForSet(setCode) {
 
     try {
 
-        const snap = await db.collection('questions').where('setCode', '==', setCode).orderBy('order', 'asc').get();
+        // Thử cache trước (từ IndexedDB persistence hoặc RAM cache)
+        let snap;
+        try {
+            snap = await db.collection('questions').where('setCode', '==', setCode).orderBy('order', 'asc').get({ source: 'cache' });
+        } catch(_) {
+            snap = await db.collection('questions').where('setCode', '==', setCode).orderBy('order', 'asc').get();
+        }
+        // Invalidate RAM cache khi load trực tiếp theo setCode
+        if (_allQuestionsCache) {
+            const docs = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+            _allQuestionsCache.bySet.set(setCode, docs);
+        }
 
         allViewQuestions = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
 
@@ -12182,21 +12246,18 @@ function filterOnlineDetail() {
 function loadStats() {
 
     // ── Tính toán lại từ allResults để đảm bảo chính xác ──────────
-    // Gom kết quả theo từng HV — đồng thời theo dõi trường passed
+    // Gom kết quả theo từng HV
     const resultsByStudent = {};
     allResults.forEach(r => {
         const code = r.studentCode || r.code;
         if (!code) return;
         const score = Number(r.score) || 0;
-        // Ưu tiên field passed từ kết quả; fallback: score >= 80 (thang 0-100) hoặc score >= 21 (thang 0-30)
-        const isPassed = r.passed === true || (r.passed !== false && score >= 80);
         if (!resultsByStudent[code]) {
-            resultsByStudent[code] = { scores: [], timestamps: [], everPassed: false };
+            resultsByStudent[code] = { scores: [], timestamps: [] };
         }
         resultsByStudent[code].scores.push(score);
         const ts = r.timestamp?.toMillis ? r.timestamp.toMillis() : (r.timestamp ? new Date(r.timestamp).getTime() : 0);
         resultsByStudent[code].timestamps.push(ts);
-        if (isPassed) resultsByStudent[code].everPassed = true;
     });
 
     // Kết hợp allStudents với dữ liệu tính toán từ allResults
@@ -12207,18 +12268,17 @@ function loadStats() {
             const exams = rd.scores.length;
             const bestScore = Math.max(...rd.scores);
             const avgScore = Math.round(rd.scores.reduce((a, b) => a + b, 0) / exams);
-            return { ...s, exams, bestScore, avgScore, everPassed: rd.everPassed };
+            return { ...s, exams, bestScore, avgScore };
         }
         // Fallback về dữ liệu trong Firestore nếu không có trong allResults
-        return { ...s, exams: s.exams || 0, bestScore: s.bestScore || 0, avgScore: s.avgScore || 0, everPassed: false };
+        return { ...s, exams: s.exams || 0, bestScore: s.bestScore || 0, avgScore: s.avgScore || 0 };
     });
 
     const studentsWithExams = enriched.filter(s => (s.exams || 0) > 0);
 
     const totalExams = enriched.reduce((a, s) => a + (s.exams || 0), 0);
 
-    // Dùng trường everPassed (tổng hợp từ r.passed trong allResults) thay vì so sánh bestScore
-    const passedStudents = studentsWithExams.filter(s => s.everPassed).length;
+    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
 
     const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
 
@@ -12416,10 +12476,7 @@ function renderStatsCharts() {
 
         const counts = bands.map(() => 0);
 
-        // Dùng dữ liệu đã enriched (từ loadStats) thay vì allStudents raw
-        // để đảm bảo bestScore phản ánh kết quả thực tế từ allResults
-        const statsChartData = window._leaderboardData || [];
-        statsChartData.forEach(s => {
+        allStudents.forEach(s => {
 
             const sc = Math.min(30, Math.max(0, Number(s.bestScore) || 0));
 
@@ -12511,13 +12568,17 @@ async function backupSystem() {
 
         const backup = { timestamp: new Date().toISOString(), students: [], questionSets: [], questions: [], examResults: [] };
 
-        const studentsSnap = await db.collection('students').get(); studentsSnap.forEach(d => backup.students.push({ id: d.id, ...d.data() }));
-
-        const setsSnap = await db.collection('questionSets').get(); setsSnap.forEach(d => backup.questionSets.push({ id: d.id, ...d.data() }));
-
-        const questionsSnap = await db.collection('questions').get(); questionsSnap.forEach(d => backup.questions.push({ id: d.id, ...d.data() }));
-
-        const resultsSnap = await db.collection('examResults').orderBy('timestamp', 'desc').limit(3000).get(); resultsSnap.forEach(d => backup.examResults.push({ id: d.id, ...d.data() }));
+        // Tải song song để tối ưu tốc độ; giới hạn examResults 1000 (đủ cho backup gần đây)
+        const [studentsSnap, setsSnap, questionsSnap, resultsSnap] = await Promise.all([
+            db.collection('students').get(),
+            db.collection('questionSets').get(),
+            db.collection('questions').get(),
+            db.collection('examResults').orderBy('timestamp', 'desc').limit(1000).get()
+        ]);
+        studentsSnap.forEach(d => backup.students.push({ id: d.id, ...d.data() }));
+        setsSnap.forEach(d => backup.questionSets.push({ id: d.id, ...d.data() }));
+        questionsSnap.forEach(d => backup.questions.push({ id: d.id, ...d.data() }));
+        resultsSnap.forEach(d => backup.examResults.push({ id: d.id, ...d.data() }));
 
         
 
@@ -12525,7 +12586,7 @@ async function backupSystem() {
 
         const url = URL.createObjectURL(blob);
 
-        const a = document.createElement('a'); a.href = url; a.download = `backup_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.json`; a.click();
+        const a = document.createElement('a'); a.href = url; const _bkD = new Date(); const _bkName = `backup_${String(_bkD.getDate()).padStart(2,'0')}-${String(_bkD.getMonth()+1).padStart(2,'0')}-${_bkD.getFullYear()}_${String(_bkD.getHours()).padStart(2,'0')}${String(_bkD.getMinutes()).padStart(2,'0')}.json`; a.download = _bkName; a.click();
 
         URL.revokeObjectURL(url);
 
@@ -14447,13 +14508,12 @@ function _startInvigilateListeners() {
         }
     }, () => {});
 
-    // Presence listener — chỉ lấy thí sinh đang THỰC SỰ ở trong phòng thi này
-    // (không bao gồm thí sinh đã đăng ký nhưng đang online ở nơi khác trong hệ thống)
+    // Presence listener — lọc client-side theo phòng hoặc theo đăng ký
     _invigUnsubPresence = db.collection('presence').onSnapshot(snap => {
         _invigPresenceMap = {};
         snap.forEach(d => {
             const data = d.data();
-            if (data.examRoomId === _invigRoomId) {
+            if (data.examRoomId === _invigRoomId || _invigRegistrations[d.id]) {
                 _invigPresenceMap[d.id] = { code: d.id, ...data };
             }
         });
