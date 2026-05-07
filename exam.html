@@ -1134,7 +1134,7 @@ function startSessionMonitor() {
   }
   
   // Phát hiện thiết bị khác
-  db.collection('sessions').doc(studentId).onSnapshot(snap => {
+  UnsubManager.add('sessions', db.collection('sessions').doc(studentId).onSnapshot(snap => {
     if (!snap.exists || isKicked) return;
     const serverToken = snap.data()?.token;
     if (serverToken && serverToken !== myToken) {
@@ -1142,7 +1142,7 @@ function startSessionMonitor() {
         'Tài khoản đăng nhập từ thiết bị khác. Nếu không phải bạn — đổi mật khẩu ngay!',
         '⚠️');
     }
-  }, err => console.warn('Session monitor lỗi:', err.code));
+  }, err => console.warn('Session monitor lỗi:', err.code)));
 }
 
 // =====================================================================
@@ -1746,7 +1746,7 @@ function startRealtimeListeners() {
     .onSnapshot(doc => {
       if (doc.exists && doc.data().enabled === true)
         kickOut('🛠 Hệ thống bảo trì', 'Hệ thống đang được nâng cấp. Bạn sẽ được đăng xuất.', '🛠');
-    }, err => console.warn('Maint watch lỗi:', err.code))));
+    }, err => console.warn('Maint watch lỗi:', err.code)));
 }
 
 // =====================================================================
