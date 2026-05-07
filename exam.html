@@ -821,7 +821,6 @@ try {
   }
   
   db = firebase.firestore();
-  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
   auth = firebase.auth();
   firebaseReady = true;
   console.log("✅ Firebase Init Success");
@@ -1233,15 +1232,13 @@ function _renderStudentUI(data) {
 
 // ─── Sync từ Firestore (chạy ngầm, KHÔNG await ở initPage) ──────────
 async function _syncStudentFromFirestore(studentId) {
-  // Chờ auth sẵn tối đa 6 giây — polling nhẹ
-  let waited = 0;
-  while (!_authUser && waited < 6000) {
-    await new Promise(r => setTimeout(r, 200));
-    waited += 200;
+  // Auth đã được đảm bảo bởi initPage() → gọi trực tiếp, không cần poll
+  if (!_authUser && auth) {
+    // Fallback: thử lấy currentUser một lần cuối
+    _authUser = auth.currentUser;
   }
-  
   if (!_authUser) {
-    console.warn('[Sync] Auth chưa sẵn sau 6s — bỏ qua sync');
+    console.warn('[Sync] Auth chưa sẵn — bỏ qua sync Firestore');
     return;
   }
   
