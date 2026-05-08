@@ -1527,9 +1527,13 @@ const LIVE_MONITOR_CSS = `
             <div class="box" style="padding:0;overflow:hidden;">
 
                 <div style="overflow-x:auto;">
+
                     <table class="lm-table">
+
                         <thead>
+
                             <tr>
+
                                 <th style="width:50px;">#</th>
                                 <th style="width:80px;text-align:center;">Loại</th>
                                 <th style="width:120px;text-align:center;">Mã HV</th>
@@ -1541,22 +1545,39 @@ const LIVE_MONITOR_CSS = `
                                 <th style="width:150px;text-align:center;">Trạng thái</th>
                                 <th style="width:180px;text-align:center;">Hoạt động</th>
                                 <th style="width:200px;text-align:center;">Thao tác</th>
+
                             </tr>
+
                         </thead>
+
                         <tbody id="lmTableBody">
+
                             <tr><td colspan="11" class="lm-empty">📡 Đang kết nối realtime...</td></tr>
+
                         </tbody>
+
                     </table>
+
                 </div>
+
                 <div id="lmEmptyState" style="display:none;text-align:center;padding:48px 20px;">
+
                     <div style="font-size:48px;margin-bottom:12px;">📭</div>
+
                     <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">Không có ai đang online</div>
+
                     <div style="font-size:13px;color:var(--text-muted);">Học viên sẽ xuất hiện ở đây khi đăng nhập vào hệ thống</div>
+
                 </div>
+
             </div>
+
             <!-- Hidden elements kept for backward compat with updateOnlineUI() -->
+
             <span id="onlineTotal" style="display:none;">0</span>
+
             <span id="onlineStudying" style="display:none;">0</span>
+
             <span id="onlineExaming" style="display:none;">0</span>
 
             <span id="onlineIdle" style="display:none;">0</span>
@@ -4628,7 +4649,7 @@ D. Đáp án D
 
 <!-- BẮT ĐẦU PASTE TỪ ĐÂY TRỞ XUỐNG -->
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 
 // ==========================================
 
@@ -6568,21 +6589,6 @@ function startRealtimeAllExams() {
                 // Giới hạn buffer 500
                 if (allResults.length > 500) allResults = allResults.slice(0, 500);
             }
-
-            const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
-
-            safeSet('totalExamsD', total);
-
-            const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
-
-            safeSet('passRateD', rate);
-
-            buildDashboardSeriesFromResults();
-
-        }, err => console.warn('RT All Exams error:', err));
-
-}
-
 
             const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
 
