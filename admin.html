@@ -4182,11 +4182,13 @@ D. Đáp án D
                 <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);">Họ và tên</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:150px;">Trạng thái</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:170px;">Tiến độ làm bài</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:120px;">⏱ TG làm bài</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:150px;">Kết quả</th>
+                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:110px;">Thao tác</th>
               </tr>
             </thead>
             <tbody id="invigTableBody">
-              <tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">⏳ Đang tải dữ liệu...</td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:60px;color:var(--text-muted);">⏳ Đang tải dữ liệu...</td></tr>
             </tbody>
           </table>
         </div>
@@ -4212,10 +4214,30 @@ D. Đáp án D
             <input id="roomTitleInput" placeholder="VD: Thi tốt nghiệp Khóa 5..." style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;"></div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ bắt đầu *</label>
-              <input type="datetime-local" id="roomStartInput" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
-            <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ kết thúc *</label>
-              <input type="datetime-local" id="roomEndInput" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
+            <!-- Giờ bắt đầu: date picker + select giờ/phút 24h -->
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ bắt đầu *</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="text" id="roomStartDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
+                  onclick="openDatePicker('roomStartDate')"
+                  style="flex:1;padding:9px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;text-align:center;cursor:pointer;background:#fff;box-sizing:border-box;">
+                <select id="roomStartHour" style="padding:9px 4px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-weight:700;width:58px;text-align:center;cursor:pointer;background:#fff;"></select>
+                <span style="font-weight:700;color:#888;">:</span>
+                <select id="roomStartMinute" style="padding:9px 4px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-weight:700;width:58px;text-align:center;cursor:pointer;background:#fff;"></select>
+              </div>
+            </div>
+            <!-- Giờ kết thúc: date picker + select giờ/phút 24h -->
+            <div>
+              <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Giờ kết thúc *</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="text" id="roomEndDate" placeholder="dd/mm/yyyy" maxlength="10" readonly
+                  onclick="openDatePicker('roomEndDate')"
+                  style="flex:1;padding:9px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;text-align:center;cursor:pointer;background:#fff;box-sizing:border-box;">
+                <select id="roomEndHour" style="padding:9px 4px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-weight:700;width:58px;text-align:center;cursor:pointer;background:#fff;"></select>
+                <span style="font-weight:700;color:#888;">:</span>
+                <select id="roomEndMinute" style="padding:9px 4px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-weight:700;width:58px;text-align:center;cursor:pointer;background:#fff;"></select>
+              </div>
+            </div>
           </div>
 
           <div><label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cho phép vào muộn (phút, 0 = không cho)</label>
@@ -5031,6 +5053,17 @@ function safeText(v, fallback = '') {
 
 }
 
+// ── Helper thống nhất: kiểm tra một kết quả thi có ĐẠT không ─────────────
+// Dùng nhất quán ở tất cả các mảng thống kê (dashboard, stats, results, today)
+// Xử lý cả dữ liệu cũ không có field 'passed' bằng cách fallback về score >= 80
+function isPassed(r) {
+    if (r.passed === true) return true;
+    if (r.passed === false) return false;
+    // Fallback: dữ liệu cũ chưa có field passed → dùng score
+    return (Number(r.score) || 0) >= 80;
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 function escapeHtml(text) {
 
     const div = document.createElement('div');
@@ -5648,14 +5681,14 @@ function _renderMonTable() {
     const total    = _monAllStudents.length;
 
     if (!total) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:60px;color:var(--text-muted);">
             <div style="font-size:48px;margin-bottom:12px;">📭</div>
             <div>${Object.keys(_monRegistrations).length === 0 ? 'Chưa có học viên đăng ký phòng thi này' : 'Đang chờ học viên tham gia...'}</div>
         </td></tr>`;
         return;
     }
     if (!students.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
         return;
     }
 
@@ -5822,7 +5855,7 @@ function _renderRoomList(rooms) {
 
   if (!rooms.length) { el.innerHTML='<div style="text-align:center;padding:30px;color:#888;">Chưa có phòng thi. Nhấn <b>+ Tạo phòng thi mới</b>.</div>'; return; }
 
-  const fmt = ts => ts?.toDate ? ts.toDate().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '---';
+  const fmt = ts => { if(!ts) return '---'; const d=ts?.toDate?ts.toDate():new Date(ts); if(isNaN(d))return '---'; const p=x=>String(x).padStart(2,'0'); return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`; };
 
   const bdg = {scheduled:['#e8f4fd','#1d3557','⏳ Sắp diễn ra'],open:['#d1e7dd','#0a6640','🟢 Đang mở'],closed:['#f8d7da','#842029','🔴 Kết thúc']};
 
@@ -5907,7 +5940,9 @@ function showCreateRoomModal(roomId = null) {
 
     // Reset tất cả trường về mặc định
     ['roomTitleInput','roomRulesInput','roomEligValues'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    ['roomStartInput','roomEndInput'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    // Reset custom date/time pickers
+    ['roomStartDate','roomEndDate'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    initRoomTimePickers();
     const lateEl = document.getElementById('roomLateInput'); if(lateEl) lateEl.value='0';
     const eligEl = document.getElementById('roomEligType'); if(eligEl) eligEl.value='all';
     document.getElementById('eligValuesWrap').style.display='none';
@@ -5933,13 +5968,14 @@ function showCreateRoomModal(roomId = null) {
             if(g('roomLateInput'))  g('roomLateInput').value  = room.lateEntryMinutes || 0;
             if(g('roomRulesInput')) g('roomRulesInput').value = room.rules || '';
             if(g('roomSetSelect') && room.setCode) g('roomSetSelect').value = room.setCode;
-            if(room.startAt?.toDate) {
+            initRoomTimePickers();
+            if(room.startAt) {
                 const d = room.startAt?.toDate ? room.startAt.toDate() : new Date(room.startAt);
-                g('roomStartInput').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+                setRoomDateTime('roomStartDate','roomStartHour','roomStartMinute', d);
             }
-            if(room.endAt?.toDate) {
-                const d = room.endAt.toDate();
-                g('roomEndInput').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            if(room.endAt) {
+                const d = room.endAt?.toDate ? room.endAt.toDate() : new Date(room.endAt);
+                setRoomDateTime('roomEndDate','roomEndHour','roomEndMinute', d);
             }
             if(room.eligibility) {
                 if(g('roomEligType')) g('roomEligType').value = room.eligibility.type || 'all';
@@ -5983,22 +6019,30 @@ function closeRoomModal() {
 async function saveRoom() {
     const g = id => document.getElementById(id);
     const title    = g('roomTitleInput')?.value.trim() || '';
-    const startVal = g('roomStartInput')?.value || '';
-    const endVal   = g('roomEndInput')?.value || '';
     const late     = parseInt(g('roomLateInput')?.value) || 0;
     const setCode  = g('roomSetSelect')?.value || '';
     const eligType = g('roomEligType')?.value || 'all';
     const eligRaw  = g('roomEligValues')?.value || '';
     const rules    = g('roomRulesInput')?.value.trim() || '';
 
+    // Đọc từ custom picker dd/mm/yyyy + select giờ/phút 24h
+    const startDate = g('roomStartDate')?.value || '';
+    const endDate   = g('roomEndDate')?.value   || '';
+    const startDt   = parseRoomDateTime('roomStartDate','roomStartHour','roomStartMinute');
+    const endDt     = parseRoomDateTime('roomEndDate','roomEndHour','roomEndMinute');
+
     const errEl = g('roomModalError');
     const showErr = msg => { if(errEl){ errEl.textContent=msg; errEl.style.display='block'; } else alert(msg); };
 
-    if (!title || !startVal || !endVal || !setCode) {
+    if (!title || !startDate || !endDate || !setCode) {
         showErr('Vui lòng nhập đầy đủ: Tên phòng, Bộ đề, Giờ bắt đầu và Giờ kết thúc!');
         return;
     }
-    if (new Date(endVal) <= new Date(startVal)) {
+    if (!startDt || !endDt) {
+        showErr('Ngày/giờ không hợp lệ. Vui lòng kiểm tra lại (định dạng dd/mm/yyyy)!');
+        return;
+    }
+    if (endDt <= startDt) {
         showErr('Giờ kết thúc phải sau giờ bắt đầu!');
         return;
     }
@@ -6016,8 +6060,8 @@ async function saveRoom() {
         rules,
         lateEntryMinutes: late,
         eligibility: { type: eligType, values: eligValues },
-        startAt: firebase.firestore.Timestamp.fromDate(new Date(startVal)),
-        endAt:   firebase.firestore.Timestamp.fromDate(new Date(endVal)),
+        startAt: firebase.firestore.Timestamp.fromDate(startDt),
+        endAt:   firebase.firestore.Timestamp.fromDate(endDt),
         status: 'scheduled',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -6336,7 +6380,7 @@ async function loadTodayExamsFromDB() {
 
             const data = d.data();
 
-            if (data.passed) pass++; else fail++;
+            if (isPassed(data)) pass++; else fail++;
 
             const sc = Number(data.correctCount || data.score) || 0;
 
@@ -6428,7 +6472,7 @@ function startRealtimeTodayExams() {
 
                 const data = d.data();
 
-                if (data.passed) pass++; else fail++;
+                if (isPassed(data)) pass++; else fail++;
 
                 const sc = Number(data.correctCount || data.score) || 0;
 
@@ -6536,7 +6580,7 @@ function startRealtimeAllExams() {
             // Giới hạn buffer 500
             if (allResults.length > 500) allResults = allResults.slice(0, 500);
 
-            const total = allResults.length, passed = allResults.filter(r => r.passed).length;
+            const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
 
             safeSet('totalExamsD', total);
 
@@ -7035,7 +7079,7 @@ function buildDashboardSeriesFromResults() {
 
         
 
-        const passed = (r.passed === true) || ((Number(r.score) || 0) >= 80);
+        const passed = isPassed(r);
 
         if (passed) passFail.pass++; else passFail.fail++;
 
@@ -10615,7 +10659,7 @@ function updateResultStats() {
 
     const total = filteredResults.length;
 
-    const passed = filteredResults.filter(r => r.passed).length;
+    const passed = filteredResults.filter(r => isPassed(r)).length;
 
     const avg = total > 0 ? Math.round(filteredResults.reduce((a, r) => a + (Number(r.score) || 0), 0) / total) : 0;
 
@@ -10855,7 +10899,7 @@ function startRtStudentResults(studentCode) {
 
                 const pad = x => String(x).padStart(2,'0');
 
-                const tStr = `${pad(ts.getDate())}/${pad(ts.getMonth()+1)} ${pad(ts.getHours())}:${pad(ts.getMinutes())}:${pad(ts.getSeconds())}`;
+                const tStr = `${pad(ts.getDate())}/${pad(ts.getMonth()+1)}/${ts.getFullYear()} ${pad(ts.getHours())}:${pad(ts.getMinutes())}:${pad(ts.getSeconds())}`;
 
                 latestEl.innerHTML = `Kết quả mới nhất: ${latest.correctCount||0}/${latest.totalQuestions||0}
 
@@ -11131,7 +11175,7 @@ async function showStudentProfile(code) {
 
     } finally { hideLoading(); }
 
-    const passed     = results.filter(r => r.passed).length;
+    const passed     = results.filter(r => isPassed(r)).length;
 
     const bestScore  = results.reduce((m, r) => Math.max(m, Number(r.score) || 0), 0);
 
@@ -11935,6 +11979,53 @@ function parseDateVN(str) {
 
 // ── Preview lịch gửi thông báo ──────────────────────────
 
+// ── Khởi tạo dropdown giờ/phút cho phòng thi (custom 24h) ──
+function initRoomTimePickers() {
+    ['roomStartHour','roomEndHour'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel || sel.options.length > 0) return;
+        for (let h = 0; h <= 23; h++) {
+            const o = document.createElement('option');
+            o.value = o.textContent = String(h).padStart(2,'0');
+            if (h === 8) o.selected = true;
+            sel.appendChild(o);
+        }
+    });
+    ['roomStartMinute','roomEndMinute'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel || sel.options.length > 0) return;
+        for (let m = 0; m <= 55; m += 5) {
+            const o = document.createElement('option');
+            o.value = o.textContent = String(m).padStart(2,'0');
+            sel.appendChild(o);
+        }
+    });
+}
+
+// ── Helper: đọc ngày dd/mm/yyyy + giờ + phút thành Date ─────
+function parseRoomDateTime(dateId, hourId, minuteId) {
+    const dStr = document.getElementById(dateId)?.value || '';
+    const hVal = document.getElementById(hourId)?.value || '00';
+    const mVal = document.getElementById(minuteId)?.value || '00';
+    const parts = dStr.split('/');
+    if (parts.length !== 3) return null;
+    const [dd, mm, yyyy] = parts.map(Number);
+    const dt = new Date(yyyy, mm - 1, dd, parseInt(hVal), parseInt(mVal), 0, 0);
+    return isNaN(dt.getTime()) ? null : dt;
+}
+
+// ── Helper: set giá trị date picker + hour/minute từ Date ───
+function setRoomDateTime(dateId, hourId, minuteId, dt) {
+    if (!dt) return;
+    const p = x => String(x).padStart(2,'0');
+    const dateEl = document.getElementById(dateId);
+    const hourSel = document.getElementById(hourId);
+    const minSel  = document.getElementById(minuteId);
+    if (dateEl)  dateEl.value  = `${p(dt.getDate())}/${p(dt.getMonth()+1)}/${dt.getFullYear()}`;
+    if (hourSel) hourSel.value = p(dt.getHours());
+    if (minSel)  minSel.value  = p(Math.floor(dt.getMinutes()/5)*5); // làm tròn xuống bội 5
+}
+
 // ── Khởi tạo dropdown giờ và phút ──────────────────────────
 
 function initScheduleTimePickers() {
@@ -12278,8 +12369,9 @@ function loadStats() {
 
     const totalExams = enriched.reduce((a, s) => a + (s.exams || 0), 0);
 
-    const passedStudents = studentsWithExams.filter(s => (s.bestScore || 0) >= 80).length;
-
+    // passRate: HV có ít nhất 1 lần thi đạt (passed===true trong allResults)
+    const passedCodes = new Set(allResults.filter(r => isPassed(r)).map(r => r.studentCode || r.code));
+    const passedStudents = studentsWithExams.filter(s => passedCodes.has(s.code || s.id)).length;
     const passRate = studentsWithExams.length ? Math.round(passedStudents / studentsWithExams.length * 100) : 0;
 
     const avg = studentsWithExams.length ? Math.round(studentsWithExams.reduce((a, s) => a + (s.avgScore || 0), 0) / studentsWithExams.length) : 0;
@@ -12476,7 +12568,9 @@ function renderStatsCharts() {
 
         const counts = bands.map(() => 0);
 
-        allStudents.forEach(s => {
+        // Ưu tiên _leaderboardData (bestScore tính từ allResults trong loadStats)
+        const srcData = window._leaderboardData || allStudents;
+        srcData.forEach(s => {
 
             const sc = Math.min(30, Math.max(0, Number(s.bestScore) || 0));
 
@@ -14247,7 +14341,8 @@ function renderSessionResultsTable() {
         if (!ts) return '—';
         const d = ts?.toDate ? ts.toDate() : new Date(ts);
         if (isNaN(d)) return '—';
-        return d.toLocaleString('vi-VN', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
+        const p = x => String(x).padStart(2,'0');
+        return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
     };
 
     wrap.innerHTML = `
@@ -14256,7 +14351,7 @@ function renderSessionResultsTable() {
           <thead>
             <tr>
               <th>#</th><th>Mã HV</th><th>Họ và tên</th><th>Đề thi</th>
-              <th>Điểm</th><th>Kết quả</th><th>Thời gian nộp</th><th>Trạng thái</th>
+              <th>Điểm</th><th>Kết quả</th><th>TG làm bài</th><th>Thời gian nộp</th><th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -14276,6 +14371,7 @@ function renderSessionResultsTable() {
                 <td style="text-align:center;font-size:12px;">${escapeHtml(r.setName)}</td>
                 <td style="text-align:center;">${scoreStr}</td>
                 <td style="text-align:center;">${resultBadge}</td>
+                <td style="text-align:center;font-size:12px;color:var(--text-muted);">${(() => { if(!r.submitted||!r.duration) return '—'; const ds=Number(r.duration); if(!ds) return '—'; const dm=Math.floor(ds/60),dss=ds%60; return String(dm).padStart(2,'0')+':'+String(dss).padStart(2,'0'); })()}</td>
                 <td style="text-align:center;font-size:12px;color:var(--text-muted);">${fmtDT(r.submittedAt)}</td>
                 <td style="text-align:center;">
                   ${r.submitted
@@ -14312,15 +14408,22 @@ function exportSessionResultsExcel() {
     if (!_sessionAllResults.length) { showToast('Chưa có dữ liệu để xuất!', 'warning'); return; }
     const select = document.getElementById('sessionRoomSelect');
     const title = select?.options[select.selectedIndex]?.text || 'Kết quả buổi thi';
-    const rows = [['#','Mã HV','Họ và tên','Đề thi','Điểm','Tổng câu','% đúng','Kết quả','Thời gian nộp']];
+    const rows = [['#','Mã HV','Họ và tên','Đề thi','Điểm','Tổng câu','% đúng','TG làm bài (mm:ss)','Kết quả','Thời gian nộp']];
     _sessionAllResults.forEach((r, i) => {
         const pct = r.total ? Math.round(r.score * 100 / r.total) : 0;
-        const ts = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : '—';
+        const _d = r.submittedAt?.toDate ? r.submittedAt.toDate() : (r.submittedAt ? new Date(r.submittedAt) : null);
+        const ts = _d ? `${String(_d.getDate()).padStart(2,'0')}/${String(_d.getMonth()+1).padStart(2,'0')}/${_d.getFullYear()} ${String(_d.getHours()).padStart(2,'0')}:${String(_d.getMinutes()).padStart(2,'0')}` : '—';
+        let durStr = '—';
+        if (r.submitted && r.duration) {
+            const dsec = Number(r.duration);
+            if (dsec > 0) { const dm=Math.floor(dsec/60),ds=dsec%60; durStr=`${String(dm).padStart(2,'0')}:${String(ds).padStart(2,'0')}`; }
+        }
         rows.push([
             i+1, r.code, r.name, r.setName,
             r.submitted ? r.score : '—',
             r.submitted ? r.total : '—',
             r.submitted ? pct + '%' : '—',
+            r.submitted ? durStr : '—',
             !r.submitted ? 'Vắng' : r.passed ? 'ĐẠT' : 'KHÔNG ĐẠT',
             r.submitted ? ts : '—'
         ]);
@@ -14381,7 +14484,7 @@ async function enterRoomInvigilate(roomId) {
         if(el1) el1.textContent = '👁 ' + (_invigRoomData.title || 'Phòng thi');
         if(el2) el2.innerHTML = `📄 ${escapeHtml(_invigRoomData.setName||_invigRoomData.setCode||'—')} &nbsp;·&nbsp; ⏰ ${fmt(_invigRoomData.startAt)} → ${fmt(_invigRoomData.endAt)}`;
     }
-    document.getElementById('invigLastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
+    { const _n=new Date(); document.getElementById('invigLastUpdate').textContent=`${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')}`; }
 
     // Load registrations
     try {
@@ -14573,13 +14676,23 @@ function _buildInvigilateStudents() {
             }
         }
 
-        _invigAllStudents.push({ code, name, status, progress, score, passed });
+        // Thời gian làm bài: lấy từ result.timeTaken (giây) khi đã nộp,
+        // hoặc tính từ presence.startAt đến hiện tại khi đang thi
+        let examDurationSec = null;
+        if (result && result.timeTaken) {
+            examDurationSec = result.timeTaken; // giây, do test.html lưu
+        } else if (presence?.startAt && status === 'doing') {
+            const startMs = presence.startAt?.toDate ? presence.startAt.toDate().getTime()
+                          : (presence.startAt?.seconds ? presence.startAt.seconds * 1000 : null);
+            if (startMs) examDurationSec = Math.round((Date.now() - startMs) / 1000);
+        }
+        _invigAllStudents.push({ code, name, status, progress, score, passed, examDurationSec });
     });
 
     const sortOrd = { submitted:0, doing:1, waiting:2, registered:3, absent:4 };
     _invigAllStudents.sort((a,b) => (sortOrd[a.status]||3) - (sortOrd[b.status]||3));
 
-    document.getElementById('invigLastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
+    { const _n=new Date(); document.getElementById('invigLastUpdate').textContent=`${String(_n.getHours()).padStart(2,'0')}:${String(_n.getMinutes()).padStart(2,'0')}:${String(_n.getSeconds()).padStart(2,'0')}`; }
     _updateInvigilateStats();
     filterInvigilate();
 }
@@ -14615,7 +14728,7 @@ function _renderInvigilateTable() {
 
     const total = _invigAllStudents.length;
     if (!total) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted);">
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:60px;color:var(--text-muted);">
             ${Object.keys(_invigRegistrations).length === 0
                 ? '<div style="font-size:48px;margin-bottom:12px;">📭</div><div>Chưa có học viên đăng ký phòng thi này</div>'
                 : '<div>⏳ Đang chờ học viên tham gia...</div>'
@@ -14623,7 +14736,7 @@ function _renderInvigilateTable() {
         return;
     }
     if (!students.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted);">🔍 Không tìm thấy kết quả phù hợp</td></tr>`;
         return;
     }
 
@@ -14666,6 +14779,28 @@ function _renderInvigilateTable() {
             </div>`;
         }
 
+        // Định dạng thời gian làm bài
+        let durHtml = `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+        if (s.examDurationSec !== null && s.examDurationSec !== undefined) {
+            const dm = Math.floor(s.examDurationSec / 60);
+            const ds = s.examDurationSec % 60;
+            const durStr = `${String(dm).padStart(2,'0')}:${String(ds).padStart(2,'0')}`;
+            const durColor = s.status === 'doing' ? 'var(--accent)' : 'var(--text-secondary)';
+            const durIcon  = s.status === 'doing' ? '⏱' : '✔';
+            durHtml = `<span style="font-family:monospace;font-size:13px;font-weight:700;color:${durColor};">${durIcon} ${durStr}</span>`;
+        }
+
+        // Thao tác — cảnh báo & buộc dừng (chỉ hiện khi đang thi)
+        const actionHtml = s.status === 'doing' || s.status === 'submitted' ? `
+            <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+                <button onclick="sendWarningToStudent('${escapeHtml(s.code)}')"
+                    style="padding:4px 9px;border:none;border-radius:7px;background:var(--warning-light);color:#856404;font-size:11px;font-weight:700;cursor:pointer;"
+                    title="Gửi cảnh báo">⚠ Cảnh báo</button>
+                ${s.status === 'doing' ? `<button onclick="forceEndExam('${escapeHtml(s.code)}')"
+                    style="padding:4px 9px;border:none;border-radius:7px;background:var(--danger-light);color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;"
+                    title="Buộc dừng bài thi">⏹ Dừng</button>` : ''}
+            </div>` : `<span style="color:var(--text-muted);font-size:11px;">—</span>`;
+
         const rowBg = s.status === 'doing' ? 'rgba(25,135,84,.04)' : s.status === 'submitted' ? 'rgba(102,16,242,.03)' : '';
         return `<tr style="border-bottom:1px solid var(--border-light);background:${rowBg};transition:background .15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='${rowBg}'">
             <td style="text-align:center;padding:12px 14px;color:var(--text-muted);font-size:13px;">${i+1}</td>
@@ -14673,7 +14808,9 @@ function _renderInvigilateTable() {
             <td style="padding:12px 14px;font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(s.name)}</td>
             <td style="text-align:center;padding:12px 14px;">${statusBadge[s.status]||statusBadge.registered}</td>
             <td style="padding:12px 14px;">${progHtml}</td>
+            <td style="text-align:center;padding:12px 14px;">${durHtml}</td>
             <td style="padding:12px 14px;">${scoreHtml}</td>
+            <td style="text-align:center;padding:10px 8px;">${actionHtml}</td>
         </tr>`;
     }).join('');
 }
@@ -14698,15 +14835,22 @@ function exportInvigilateExcel() {
     if (!_invigAllStudents.length) { showToast('Chưa có dữ liệu!', 'warning'); return; }
     if (typeof XLSX === 'undefined') { showToast('Thư viện XLSX chưa tải!', 'error'); return; }
     const stLbl = { registered:'Đã đăng ký', waiting:'Phòng chờ', doing:'Đang làm bài', submitted:'Đã nộp bài', absent:'Vắng' };
-    const rows  = [['#','Mã HV','Họ và tên','Trạng thái','Tiến độ','Điểm','Kết quả']];
+    const rows  = [['#','Mã HV','Họ và tên','Trạng thái','Tiến độ','TG làm bài','Điểm','Kết quả']];
     _invigAllStudents.forEach((s,i) => {
         const res = _invigResultsMap[s.code];
         const tot = res?.totalQuestions||0;
         const pct = tot && s.score!==null ? Math.round(s.score*100/tot)+'%' : '—';
+        let durStr = '—';
+        if (s.examDurationSec !== null && s.examDurationSec !== undefined) {
+            const dm = Math.floor(s.examDurationSec / 60);
+            const ds = s.examDurationSec % 60;
+            durStr = `${String(dm).padStart(2,'0')}:${String(ds).padStart(2,'0')}`;
+        }
         rows.push([
             i+1, s.code, s.name,
             stLbl[s.status]||s.status,
             s.progress ? `${s.progress.done}/${s.progress.total}` : (s.status==='submitted'?'Hoàn thành':'—'),
+            durStr,
             s.score!==null&&s.score!==undefined ? `${s.score}${tot?'/'+tot:''}` : '—',
             s.score!==null ? (s.passed?'ĐẠT':'KHÔNG ĐẠT') : '—'
         ]);
