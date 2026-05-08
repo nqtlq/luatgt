@@ -4679,7 +4679,15 @@ firebase.initializeApp(firebaseConfig);
 
 const db  = firebase.firestore();
 
+// ── Tối ưu hiệu năng Firestore ─────────────────────────────────────────────
+db.settings({
+    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,  // cache không giới hạn
+    experimentalAutoDetectLongPolling: true,                  // tự detect polling tốt nhất
+    merge: true
+});
+// Cache offline → load lần sau nhanh hơn đáng kể
 db.enablePersistence({ synchronizeTabs: false }).catch(() => {});
+// ──────────────────────────────────────────────────────────────────────────
 
 const auth = firebase.auth();
 
@@ -6295,15 +6303,23 @@ async function loadStudentsFromDB() {
 }
 
 async function loadQuestionSetsFromDB() {
-
-    await loadGuestExamConfig();
-
-    const snap = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
-
+    // Chạy song song: guestConfig + questionSets (không phụ thuộc nhau)
+    let snap;
+    const [configDoc] = await Promise.all([
+        db.collection('systemConfig').doc('guestExam').get().catch(() => null),
+        (async () => {
+            try {
+                snap = await db.collection('questionSets').orderBy('createdAt', 'desc').get({ source: 'cache' });
+            } catch (_) {
+                snap = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
+            }
+        })()
+    ]);
+    // Xử lý guest config
+    if (configDoc?.exists) window.guestExamConfig = configDoc.data();
+    // Xử lý question sets
     allQuestionSets = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), code: doc.data().code || doc.id }));
-
     await refreshActualQuestionCounts();
-
 }
 
 async function refreshActualQuestionCounts() {
@@ -6516,7 +6532,7 @@ function startRealtimeTodayExams() {
 
                     addLiveFeedItem({
 
-                        type: d2.passed ? 'pass' : 'fail',
+                        type: isPassed(d2) ? 'pass' : 'fail',
 
                         name,
 
@@ -6524,7 +6540,7 @@ function startRealtimeTodayExams() {
 
                         time: `${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}:${String(ts.getSeconds()).padStart(2,'0')}`,
 
-                        badge: d2.passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'
+                        badge: isPassed(d2) ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'
 
                     });
 
@@ -6550,6 +6566,8 @@ function startRealtimeAllExams() {
 
     if (rtAllExamUnsub) rtAllExamUnsub();
 
+    let _rtAllInitialized = false; // flag tránh xung đột với loadAllResultsFromDB
+
     rtAllExamUnsub = db.collection('examResults')
 
         .orderBy('timestamp','desc')
@@ -6558,27 +6576,44 @@ function startRealtimeAllExams() {
 
         .onSnapshot(snap => {
 
-            // Incremental update thay vì rebuild toàn bộ
-            let isFirstLoad = allResults.length === 0;
-            snap.docChanges().forEach(change => {
-                const data = change.doc.data();
-                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
-                const st = allStudents.find(s => s.code === data.studentCode);
-                const r = { id: change.doc.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
-                if (change.type === 'added')    allResults.unshift(r);
-                if (change.type === 'modified') { const i = allResults.findIndex(x => x.id === r.id); if (i > -1) allResults[i] = r; }
-                if (change.type === 'removed')  { allResults = allResults.filter(x => x.id !== r.id); }
-            });
-            if (isFirstLoad && snap.docs.length > 0) {
+            if (!_rtAllInitialized) {
+                // ── Lần đầu bắn: rebuild toàn bộ từ snapshot (nguồn sự thật duy nhất) ──
+                _rtAllInitialized = true;
                 allResults = snap.docs.map(d => {
                     const data = d.data();
                     const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
                     const st = allStudents.find(s => s.code === data.studentCode);
                     return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
                 });
+            } else {
+                // ── Lần sau: incremental update (chỉ xử lý thay đổi) ─────────────────
+                snap.docChanges().forEach(change => {
+                    const data = change.doc.data();
+                    const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
+                    const st = allStudents.find(s => s.code === data.studentCode);
+                    const r = { id: change.doc.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
+                    if (change.type === 'added')    { if (!allResults.find(x => x.id === r.id)) allResults.unshift(r); }
+                    if (change.type === 'modified') { const i = allResults.findIndex(x => x.id === r.id); if (i > -1) allResults[i] = r; else allResults.unshift(r); }
+                    if (change.type === 'removed')  { allResults = allResults.filter(x => x.id !== r.id); }
+                });
+                // Giới hạn buffer 500
+                if (allResults.length > 500) allResults = allResults.slice(0, 500);
             }
-            // Giới hạn buffer 500
-            if (allResults.length > 500) allResults = allResults.slice(0, 500);
+
+            const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
+
+            safeSet('totalExamsD', total);
+
+            const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
+
+            safeSet('passRateD', rate);
+
+            buildDashboardSeriesFromResults();
+
+        }, err => console.warn('RT All Exams error:', err));
+
+}
+
 
             const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
 
@@ -6753,7 +6788,7 @@ function renderActivityTable(snap) {
 
         const total= d.totalQuestions || 0;
 
-        const pass = d.passed === true;
+        const pass = isPassed(d);
 
         return `<tr>
 
@@ -11489,7 +11524,12 @@ async function loadNotificationsFromDB() {
 
     try {
 
-        const snap = await db.collection('notifications').orderBy('createdAt', 'desc').get();
+        let snap;
+        try {
+            snap = await db.collection('notifications').orderBy('createdAt', 'desc').get({ source: 'cache' });
+        } catch (_) {
+            snap = await db.collection('notifications').orderBy('createdAt', 'desc').get();
+        }
 
         allNotifications = snap.docs.map(d => ({
 
@@ -13548,54 +13588,31 @@ async function initializeSystem() {
 
     try {
 
-        await db.collection('students').limit(1).get(); // Test connection
-
+        // ── Bước 1: Load students cache-first — cần trước listeners để resolve tên ──────
         await loadStudentsFromDB();
 
-        await loadQuestionSetsFromDB();
-
-        await loadAllResultsFromDB();
-
-        await loadTodayExamsFromDB();
-
-        await loadActivitiesFromDB();
-
-        await loadNotificationsFromDB();
-
-        
-
+        // ── Bước 2: Khởi real-time listeners NGAY — tự load allResults + cập nhật RT ────
+        // Bỏ: loadAllResultsFromDB, loadTodayExamsFromDB, loadActivitiesFromDB (redundant)
+        startRealtimeDashboard();
         startPresenceListener();
 
-        startRealtimeDashboard();   // 🔴 Real-time listeners for all dashboard stats
+        // ── Bước 3: Load song song — không phụ thuộc nhau ────────────────────────────────
+        await Promise.all([
+            loadQuestionSetsFromDB(),
+            loadNotificationsFromDB(),
+            loadMaintenanceState()
+        ]);
 
+        // ── Bước 4: Render UI ─────────────────────────────────────────────────────────────
         loadDashboard();
-
         loadStudents();
-
         loadCourseFilter();
-
         loadQuestionSets();
-
-        loadStats();
-
-        
-
-        renderDashboardCharts();
-
-        renderStatsCharts();
-
-        await loadMaintenanceState();
-
         checkScheduledNotifications();
-
-        
 
         showToast('Kết nối thành công! Tất cả số liệu cập nhật theo thời gian thực.', 'success', 3000);
 
-        
-
-        // Light background sync for charts every 60s (real-time data already handled by onSnapshot)
-
+        // Sync nhẹ mỗi 60s (real-time đã có onSnapshot)
         setInterval(() => {
 
             buildDashboardSeriesFromResults();
