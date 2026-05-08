@@ -1537,7 +1537,7 @@ const LIVE_MONITOR_CSS = `
                                 <th style="width:50px;">#</th>
                                 <th style="width:80px;text-align:center;">Loại</th>
                                 <th style="width:120px;text-align:center;">Mã HV</th>
-                                <th style="text-align:left;">Họ và tên</th>
+                                <th style="text-align:center;">Họ và tên</th>
                                 <th style="width:200px;text-align:left;">Đơn vị</th>
                                 <th style="width:160px;text-align:center;">Đề thi</th>
                                 <th style="width:200px;text-align:center;">Tiến độ</th>
@@ -4167,7 +4167,7 @@ D. Đáp án D
           <table style="width:100%;border-collapse:collapse;min-width:680px;">
             <thead>
               <tr style="background:var(--bg-table-head);">
-                <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:px;">#</th>
+                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:60px;">#</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:100px;">Mã HV</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);">Họ và tên</th>
                 <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border);width:200px;">Trạng thái</th>
@@ -6556,7 +6556,16 @@ function startRealtimeAllExams() {
 
     if (rtAllExamUnsub) rtAllExamUnsub();
 
-    let _rtAllInitialized = false; // flag tránh xung đột với loadAllResultsFromDB
+    let _rtAllInitialized = false;
+    let _totalExamCount   = 0; // tổng thực từ count() — không bị cap bởi limit(500)
+
+    // ── Lấy tổng thực tế ngay lập tức bằng count() aggregation ──────────────
+    db.collection('examResults').count().get()
+        .then(snap => {
+            _totalExamCount = snap.data().count || 0;
+            safeSet('totalExamsD', _totalExamCount);
+        })
+        .catch(() => { /* fallback từ allResults.length bên dưới */ });
 
     rtAllExamUnsub = db.collection('examResults')
 
@@ -6567,7 +6576,7 @@ function startRealtimeAllExams() {
         .onSnapshot(snap => {
 
             if (!_rtAllInitialized) {
-                // ── Lần đầu bắn: rebuild toàn bộ từ snapshot (nguồn sự thật duy nhất) ──
+                // ── Lần đầu bắn: rebuild buffer 500 kết quả gần nhất ────────
                 _rtAllInitialized = true;
                 allResults = snap.docs.map(d => {
                     const data = d.data();
@@ -6575,26 +6584,39 @@ function startRealtimeAllExams() {
                     const st = allStudents.find(s => s.code === data.studentCode);
                     return { id: d.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
                 });
+                // Nếu count() chưa về kịp, dùng tạm snap.size làm fallback
+                if (_totalExamCount === 0) {
+                    _totalExamCount = snap.size;
+                    safeSet('totalExamsD', _totalExamCount);
+                }
             } else {
-                // ── Lần sau: incremental update (chỉ xử lý thay đổi) ─────────────────
+                // ── Lần sau: incremental update ──────────────────────────────
                 snap.docChanges().forEach(change => {
                     const data = change.doc.data();
                     const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp||Date.now());
                     const st = allStudents.find(s => s.code === data.studentCode);
                     const r = { id: change.doc.id, ...data, timestamp: ts, studentName: st?.name || data.studentName || '?' };
-                    if (change.type === 'added')    { if (!allResults.find(x => x.id === r.id)) allResults.unshift(r); }
-                    if (change.type === 'modified') { const i = allResults.findIndex(x => x.id === r.id); if (i > -1) allResults[i] = r; else allResults.unshift(r); }
-                    if (change.type === 'removed')  { allResults = allResults.filter(x => x.id !== r.id); }
+                    if (change.type === 'added') {
+                        if (!allResults.find(x => x.id === r.id)) allResults.unshift(r);
+                        _totalExamCount++;                       // cập nhật tổng thực
+                    }
+                    if (change.type === 'modified') {
+                        const i = allResults.findIndex(x => x.id === r.id);
+                        if (i > -1) allResults[i] = r; else allResults.unshift(r);
+                    }
+                    if (change.type === 'removed') {
+                        allResults = allResults.filter(x => x.id !== r.id);
+                        _totalExamCount = Math.max(0, _totalExamCount - 1);
+                    }
                 });
-                // Giới hạn buffer 500
+                // Giới hạn buffer 500 (chỉ ảnh hưởng bộ nhớ, KHÔNG ảnh hưởng _totalExamCount)
                 if (allResults.length > 500) allResults = allResults.slice(0, 500);
+                safeSet('totalExamsD', _totalExamCount);        // hiển thị tổng thực
             }
 
-            const total = allResults.length, passed = allResults.filter(r => isPassed(r)).length;
+            const passed = allResults.filter(r => isPassed(r)).length;
 
-            safeSet('totalExamsD', total);
-
-            const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
+            const rate = _totalExamCount > 0 ? Math.round(passed / _totalExamCount * 100) + '%' : '—';
 
             safeSet('passRateD', rate);
 
