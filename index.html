@@ -475,14 +475,24 @@ function isEmail(s){ return s.includes('@'); }
 function detectLoginType(){
   const val = document.getElementById('loginInput').value.trim();
   const badge = document.getElementById('typeBadge');
-  const btn = document.getElementById('loginBtn');
+  const icon  = document.getElementById('inputIcon');
+  const btn   = document.getElementById('loginBtn');
   if(!val){
     badge.className='type-badge'; badge.innerHTML='';
-    btn.textContent='Đăng nhập'; btn.style.background='#1d3557'; return;
+    icon.textContent='👤'; btn.textContent='Đăng nhập';
+    btn.style.background='#1d3557'; return;
   }
-  badge.className='type-badge student'; badge.innerHTML='🎓 Học viên';
-  btn.textContent='🎓 Đăng nhập';
-  btn.style.background='#1d3557';
+  if(isEmail(val)){
+    badge.className='type-badge admin'; badge.innerHTML='🛡️ Quản trị viên';
+    icon.textContent='📧';
+    btn.textContent='🛡️ Đăng nhập Quản trị';
+    btn.style.background='linear-gradient(135deg,#1a1f36,#0d6efd)';
+  } else {
+    badge.className='type-badge student'; badge.innerHTML='🎓 Học viên';
+    icon.textContent='🎓';
+    btn.textContent='🎓 Đăng nhập Học viên';
+    btn.style.background='#1d3557';
+  }
 }
 // ================================================================
 // XSS PROTECTION — luôn escape dữ liệu từ server/user trước khi render HTML
@@ -681,13 +691,12 @@ async function doStudentLogin(raw, pass){
   if (storedHash) {
     ok = await verifyPassword(pass, storedHash);
   } else {
-    // Không có hash → kiểm tra mật khẩu mặc định qua hash (không so sánh plaintext)
     ok = await isDefaultPass(pass);
-    if (!ok) {
-      showError('❌ Sai mật khẩu. Nếu chưa đổi mật khẩu lần nào, hãy dùng mật khẩu do quản trị viên cấp.');
-      document.getElementById('password').value='';
-      document.getElementById('password').focus(); return;
-    }
+  }
+  if(!ok){
+    showError('❌ Sai mật khẩu. Vui lòng thử lại.');
+    document.getElementById('password').value='';
+    document.getElementById('password').focus(); return;
   }
   
   if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
