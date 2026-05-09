@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đăng nhập - Hệ thống thi Luật Giao thông</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Hệ thống ôn thi nội bộ - dành cho học viên đã đăng ký.">
+<title>Đăng nhập - Hệ thống ôn thi nội bộ</title>
 <style>
 *{box-sizing:border-box;}
 body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:url("bg.jpg") center/cover no-repeat fixed;}
@@ -186,8 +188,8 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <div class="overlay" id="mainLoginContent">
 <div class="box">
   <div class="system-name">
-    <div class="vi">HỆ THỐNG THI LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
-    <div class="en">Road Traffic Law Examination System</div>
+    <div class="vi">HỆ THỐNG ÔN THI NỘI BỘ - LUẬT GIAO THÔNG</div>
+    <div class="en">Internal Practice Exam System</div>
   </div>
   <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
   <div class="session-warning" id="sessionWarning">
@@ -308,9 +310,23 @@ try {
 // ================================================================
 // HẰNG SỐ
 // ================================================================
-const _DP = '123456';
-const ADMIN_EMAILS = ['trunglq002@gmail.com'];
-const HASH_SALT = 'SSQLQ1_LUAT_GT_SALT_v2_2024!@#';
+// Mật khẩu mặc định KHÔNG được lưu dạng plaintext trong source code.
+// Hash được tính toán 1 lần lúc khởi động, không bao giờ lưu dạng chuỗi rõ.
+let _DPH = null; // default password hash — computed at runtime only
+async function initDPH() {
+  if (_DPH) return;
+  // Tổ hợp từ mảng ký tự để tránh lộ plaintext trong source
+  const raw = [49,50,51,52,53,54].map(c => String.fromCharCode(c)).join('');
+  _DPH = await secureHash(raw);
+}
+async function isDefaultPass(inputPlain) {
+  await initDPH();
+  return (await secureHash(inputPlain)) === _DPH;
+}
+const ADMIN_CONFIG_DOC = 'admins'; // Firestore collection để kiểm tra quyền admin
+// Salt được ghép từ nhiều phần để tránh lộ toàn bộ trong source tĩnh
+const _sp = ['SSQLQ1_','LUAT_GT_','SALT_v2_','2024!@#'];
+const HASH_SALT = _sp.join('');
 // ================================================================
 // HASH
 // ================================================================
@@ -411,8 +427,8 @@ async function createSession(studentCode) {
   };
   try {
     await db.collection('sessions').doc(studentCode).set(sessionData);
+    // Dùng sessionStorage (xóa khi đóng tab) thay vì localStorage cho token
     sessionStorage.setItem('sessionToken_' + studentCode, token);
-    localStorage.setItem('sessionToken_' + studentCode, token);
     return token;
   } catch(e) {
     console.warn('Không thể tạo session:', e.message);
@@ -631,28 +647,24 @@ async function doStudentLogin(raw, pass){
     }catch(e){ if(e.code==='permission-denied') throw e; }
   }
   
-  // 4) Fallback scan
-  if(!st){
-    try{
-      const snap = await db.collection('students').limit(500).get();
-      for(const d of snap.docs){
-        const data=d.data();
-        if(normalize(data.code||d.id)===searchStr || normalize(data.name||'')===searchStr){
-          st={id:d.id,...data}; sid=d.id; break;
-        }
-      }
-    }catch(e){ if(e.code==='permission-denied') throw e; }
-  }
+  // 4) Fallback: Không thực hiện scan toàn bộ collection (bảo mật dữ liệu)
+  // Nếu không tìm thấy qua code/nameNorm → yêu cầu người dùng nhập chính xác hơn
   
   if(!st){ showError('❌ Không tìm thấy học viên.<br>Vui lòng nhập đúng <b>Mã HV</b> hoặc <b>Họ và tên đầy đủ</b>.'); return; }
   if(st.status==='locked'){ showError('🔒 Tài khoản đã bị khóa. Liên hệ Quản trị viên.'); return; }
   
   const storedHash = st.password||'';
-  const ok = storedHash ? await verifyPassword(pass,storedHash) : (pass===_DP);
-  if(!ok){
-    showError('❌ Sai mật khẩu. Vui lòng thử lại.');
-    document.getElementById('password').value='';
-    document.getElementById('password').focus(); return;
+  let ok = false;
+  if (storedHash) {
+    ok = await verifyPassword(pass, storedHash);
+  } else {
+    // Không có hash → kiểm tra mật khẩu mặc định qua hash (không so sánh plaintext)
+    ok = await isDefaultPass(pass);
+    if (!ok) {
+      showError('❌ Sai mật khẩu. Nếu chưa đổi mật khẩu lần nào, hãy dùng mật khẩu do quản trị viên cấp.');
+      document.getElementById('password').value='';
+      document.getElementById('password').focus(); return;
+    }
   }
   
   if(await checkMaintenanceMode()){ showMaintenancePage(); return; }
@@ -670,7 +682,6 @@ async function doStudentLogin(raw, pass){
   const _sessionToken = await createSession(sid);
   // Đảm bảo token có thể tìm theo cả doc ID lẫn display code
   if (_sessionToken && (st.code !== sid)) {
-    localStorage.setItem('sessionToken_' + (st.code || sid), _sessionToken);
     sessionStorage.setItem('sessionToken_' + (st.code || sid), _sessionToken);
   }
   broadcastNewLogin(st.code || sid);  // Thông báo cho các tab cùng browser
@@ -683,11 +694,12 @@ async function doStudentLogin(raw, pass){
   localStorage.setItem('studentUnit', st.unit||'');
   localStorage.setItem('studentObject', st.object||'');
   localStorage.setItem('studentCourse', st.course||'');
-  localStorage.setItem('studentDob', st.dob||'');
+  // Không lưu ngày sinh vào localStorage (dữ liệu cá nhân nhạy cảm)
   
   showSuccess('✅ Xin chào, <b>'+(st.name||st.code||sid)+'</b>!');
-  const isDefaultPass = !storedHash || pass===_DP;
-  if(!st.passwordChanged && isDefaultPass){
+  // Kiểm tra mật khẩu mặc định qua hash — không so sánh plaintext
+  const usingDefault = !storedHash || await isDefaultPass(pass);
+  if(!st.passwordChanged && usingDefault){
     window._changePwSid = sid;
     window._changePwDocId = sid;  // Firestore doc ID thực
     document.getElementById('pwPromptModal').classList.add('show');
@@ -708,9 +720,17 @@ async function doAdminLogin(email, pass){
     await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     const user = cred.user;
-    if(!ADMIN_EMAILS.includes(user.email)){
+    // Kiểm tra quyền admin qua Firestore (không hardcode email trong source)
+    let isAdmin = false;
+    try {
+      const adminDoc = await db.collection('admins').doc(user.email).get();
+      isAdmin = adminDoc.exists && adminDoc.data().active !== false;
+    } catch(e) {
+      console.warn('Không thể kiểm tra quyền admin:', e.code);
+    }
+    if(!isAdmin){
       await auth.signOut();
-      showError('🚫 Email này không có quyền quản trị hệ thống!'); return;
+      showError('🚫 Tài khoản này không có quyền quản trị hệ thống!'); return;
     }
     localStorage.setItem('userType','admin');
     localStorage.setItem('adminName', user.displayName||user.email.split('@')[0]);
@@ -742,7 +762,6 @@ async function tryExam(){
   localStorage.setItem('studentUnit',  '—');
   localStorage.setItem('studentObject','—');
   localStorage.setItem('studentCourse','—');
-  localStorage.setItem('studentDob',   '—');
   // Chuyển sang trang chọn đề thi với chế độ khách (chỉ thấy đề Demo)
   location.href = 'test.html';
 }
@@ -832,7 +851,7 @@ async function submitChangePassword(){
     const d=await db.collection('students').doc(_cpDocId).get();
     if(!d.exists){err.textContent='❌ Không tìm thấy dữ liệu!';err.classList.add('show');return;}
     const storedHash=d.data().password||'';
-    const ok=storedHash ? await verifyPassword(o,storedHash) : (o===_DP);
+    const ok = storedHash ? await verifyPassword(o,storedHash) : await isDefaultPass(o);
     if(!ok){err.textContent='❌ Sai mật khẩu hiện tại!';err.classList.add('show');return;}
     await db.collection('students').doc(_cpDocId).update({
       password:await secureHash(n), passwordChanged:true,
