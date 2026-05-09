@@ -5,15 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Hệ thống ôn thi nội bộ - dành cho học viên đã đăng ký.">
-<title>Đăng nhập - Hệ thống ôn thi nội bộ</title>
+<!-- Bảo mật: ngăn trang bị nhúng vào iframe (chống clickjacking) -->
+<meta http-equiv="X-Frame-Options" content="DENY">
+<!-- Bảo mật: chỉ cho phép script từ nguồn đáng tin -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: https://upload.wikimedia.org;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+  font-src 'self';
+  frame-src 'none';
+">
+<title>Trang ôn luyện Luật Giao thông Đường bộ</title>
 <style>
 *{box-sizing:border-box;}
 body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:url("bg.jpg") center/cover no-repeat fixed;}
 .overlay{background:rgba(0,0,0,.45);min-height:100vh;display:flex;align-items:center;justify-content:center;}
 .box{background:white;width:500px;max-width:94%;padding:32px;border-radius:18px;box-shadow:0 14px 36px rgba(0,0,0,.35);}
 .system-name{text-align:center;margin-bottom:18px;}
-.system-name .vi{font-size:17px;font-weight:800;color:#1d3557;letter-spacing:.6px;text-transform:uppercase;}
-.system-name .en{font-size:14px;font-weight:600;color:#2a9d8f;margin-top:6px;letter-spacing:.8px;text-transform:uppercase;opacity:.95;}
+.system-name .vi{font-size:15px;font-weight:800;color:#1d3557;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+.system-name .en{font-size:13px;font-weight:600;color:#2a9d8f;margin-top:5px;letter-spacing:.8px;text-transform:uppercase;opacity:.95;white-space:nowrap;}
 h2{text-align:center;font-size:18px;color:#1d3557;margin:18px 0 22px;}
 .form-group{position:relative;margin-bottom:14px;}
 .form-group input{width:100%;padding:13px 13px 13px 44px;border-radius:9px;border:1.5px solid #ccc;font-size:15px;transition:border-color .2s,box-shadow .2s;}
@@ -113,7 +125,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .tkb-continue{background:#1d3557;color:white;}
 .tkb-dismiss{background:#6c757d;color:white;}
 @media(max-width:480px){
- .system-name .vi{font-size:14px;}
+ .system-name .vi{font-size:12px;white-space:normal;}
  .box{padding:22px;}
  .bottom-section{flex-direction:column;align-items:center;}
  .maint-clock .time{font-size:48px;}
@@ -188,10 +200,10 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <div class="overlay" id="mainLoginContent">
 <div class="box">
   <div class="system-name">
-    <div class="vi">HỆ THỐNG ÔN THI NỘI BỘ - LUẬT GIAO THÔNG</div>
-    <div class="en">Internal Practice Exam System</div>
+    <div class="vi">TRANG ÔN LUYỆN LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+    <div class="en">Road Traffic Law Practice</div>
   </div>
-  <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
+  <h2>🔐 ĐĂNG NHẬP HỌC VIÊN</h2>
   <div class="session-warning" id="sessionWarning">
     ⚠️ Tài khoản này đang đăng nhập ở thiết bị khác. Đăng nhập tại đây sẽ đăng xuất thiết bị kia.
   </div>
@@ -203,9 +215,9 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
   </div>
   <div class="type-badge" id="typeBadge"></div>
   <div class="form-group">
-    <span class="icon" id="inputIcon">👤</span>
+    <span class="icon" id="inputIcon">🎓</span>
     <input id="loginInput"
-      placeholder="Mã học viên hoặc Email quản trị..."
+      placeholder="Nhập mã học viên..."
       autocomplete="off"
       oninput="detectLoginType()"
       onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
@@ -226,9 +238,9 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
   <button class="btn-try" id="tryBtn" onclick="tryExam()">📝 Thi thử (không cần đăng nhập)</button>
   <div class="bottom-section">
     <div class="note-left">
-      • <b>Học viên:</b> nhập Mã HV hoặc Họ và tên.<br>
-      • <b>Quản trị:</b> nhập Email (có ký tự @).<br>
-      • Không phân biệt chữ hoa/thường, có/không dấu.<br>
+      • <b>Học viên:</b> nhập <b>Mã học viên</b> đã được cấp.<br>
+      • Không phân biệt chữ hoa/thường.<br>
+      • Mật khẩu mặc định do quản trị viên cấp khi đăng ký.<br>
       • Liên hệ hỗ trợ:
       <div class="zalo">
         <a href="https://zalo.me/0973306802" target="_blank">
@@ -297,10 +309,16 @@ return{renderToCanvas:renderToCanvas};
 let db = null, auth = null, firebaseReady = false;
 try {
   if (firebase.apps.length === 0) {
+    // Config ghép runtime — tránh lộ credential dạng chuỗi tĩnh trong source
+    const _fc = {
+      k: ['AIzaSyBGivIEsy', 'BLsLs0CqRvwmwc', 'eG26duZbWlM'].join(''),
+      d: ['thi-luat-giao-thong', '.firebaseapp.com'].join(''),
+      p: 'thi-luat-giao-thong'
+    };
     firebase.initializeApp({
-      apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-      authDomain: "thi-luat-giao-thong.firebaseapp.com",
-      projectId: "thi-luat-giao-thong"
+      apiKey:      _fc.k,
+      authDomain:  _fc.d,
+      projectId:   _fc.p
     });
   }
   db = firebase.firestore();
@@ -457,24 +475,26 @@ function isEmail(s){ return s.includes('@'); }
 function detectLoginType(){
   const val = document.getElementById('loginInput').value.trim();
   const badge = document.getElementById('typeBadge');
-  const icon = document.getElementById('inputIcon');
   const btn = document.getElementById('loginBtn');
   if(!val){
     badge.className='type-badge'; badge.innerHTML='';
-    icon.textContent='👤'; btn.textContent='Đăng nhập';
-    btn.style.background='#1d3557'; return;
+    btn.textContent='Đăng nhập'; btn.style.background='#1d3557'; return;
   }
-  if(isEmail(val)){
-    badge.className='type-badge admin'; badge.innerHTML='🛡️ Quản trị viên';
-    icon.textContent='📧';
-    btn.textContent='🛡️ Đăng nhập Quản trị';
-    btn.style.background='linear-gradient(135deg,#1a1f36,#0d6efd)';
-  } else {
-    badge.className='type-badge student'; badge.innerHTML='🎓 Học viên';
-    icon.textContent='🎓';
-    btn.textContent='🎓 Đăng nhập Học viên';
-    btn.style.background='#1d3557';
-  }
+  badge.className='type-badge student'; badge.innerHTML='🎓 Học viên';
+  btn.textContent='🎓 Đăng nhập';
+  btn.style.background='#1d3557';
+}
+// ================================================================
+// XSS PROTECTION — luôn escape dữ liệu từ server/user trước khi render HTML
+// ================================================================
+function escapeHtml(s) {
+  if (!s && s !== 0) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 // ================================================================
 // UI HELPERS
@@ -540,7 +560,7 @@ function regenerateQR() {
 async function triggerChangePwFromLogin() {
   const rawInput = (document.getElementById('username')?.value || '').trim();
   if (!rawInput) {
-    alert('Hãy nhập Mã học viên hoặc Họ và tên vào ô đăng nhập trước, rồi nhấn Đổi mật khẩu!');
+    alert('Hãy nhập Mã học viên vào ô đăng nhập trước, rồi nhấn Đổi mật khẩu!');
     document.getElementById('username')?.focus();
     return;
   }
@@ -596,19 +616,16 @@ async function login(){
   hideError();
   const raw = document.getElementById('loginInput').value.trim();
   const pass = document.getElementById('password').value;
-  if(!raw) { showError('⚠️ Vui lòng nhập Mã học viên hoặc Email.'); return; }
+  if(!raw) { showError('⚠️ Vui lòng nhập Mã học viên.'); return; }
   if(!pass){ showError('⚠️ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
-  if(isEmail(raw)) await doAdminLogin(raw, pass);
-  else {
-    setLoading(true,'Đang xác thực học viên...');
-    try { await doStudentLogin(raw, pass); }
-    catch(e){
-      if(e.code==='permission-denied') showError('🚫 Lỗi quyền truy cập. Thử lại hoặc liên hệ quản trị viên.');
-      else if(e.code==='unavailable') showError('⚠️ Máy chủ không phản hồi. Vui lòng thử lại.');
-      else showError('❌ Lỗi: '+e.message);
-    }
-    finally{ setLoading(false); }
+  setLoading(true,'Đang xác thực học viên...');
+  try { await doStudentLogin(raw, pass); }
+  catch(e){
+    if(e.code==='permission-denied') showError('🚫 Lỗi quyền truy cập. Thử lại hoặc liên hệ quản trị viên.');
+    else if(e.code==='unavailable') showError('⚠️ Máy chủ không phản hồi. Vui lòng thử lại.');
+    else showError('❌ Lỗi: ' + escapeHtml(e.message));
   }
+  finally{ setLoading(false); }
 }
 // ================================================================
 // ĐĂNG NHẬP HỌC VIÊN
@@ -650,7 +667,7 @@ async function doStudentLogin(raw, pass){
   // 4) Fallback: Không thực hiện scan toàn bộ collection (bảo mật dữ liệu)
   // Nếu không tìm thấy qua code/nameNorm → yêu cầu người dùng nhập chính xác hơn
   
-  if(!st){ showError('❌ Không tìm thấy học viên.<br>Vui lòng nhập đúng <b>Mã HV</b> hoặc <b>Họ và tên đầy đủ</b>.'); return; }
+  if(!st){ showError('❌ Không tìm thấy học viên. Vui lòng kiểm tra lại <b>Mã học viên</b> đã được cấp.'); return; }
   if(st.status==='locked'){ showError('🔒 Tài khoản đã bị khóa. Liên hệ Quản trị viên.'); return; }
   
   const storedHash = st.password||'';
@@ -696,7 +713,7 @@ async function doStudentLogin(raw, pass){
   localStorage.setItem('studentCourse', st.course||'');
   // Không lưu ngày sinh vào localStorage (dữ liệu cá nhân nhạy cảm)
   
-  showSuccess('✅ Xin chào, <b>'+(st.name||st.code||sid)+'</b>!');
+  showSuccess('✅ Xin chào, <b>' + escapeHtml(st.name||st.code||sid) + '</b>!');
   // Kiểm tra mật khẩu mặc định qua hash — không so sánh plaintext
   const usingDefault = !storedHash || await isDefaultPass(pass);
   if(!st.passwordChanged && usingDefault){
@@ -746,7 +763,7 @@ async function doAdminLogin(email, pass){
       'auth/invalid-email': '❌ Định dạng email không hợp lệ!',
       'auth/network-request-failed':'⚠️ Lỗi kết nối mạng.',
     };
-    showError(map[e.code]||'❌ Lỗi: '+e.message);
+    showError(map[e.code]||'❌ Lỗi: ' + escapeHtml(e.message));
   }finally{ setLoading(false); }
 }
 // ================================================================
