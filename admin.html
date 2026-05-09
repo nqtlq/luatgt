@@ -6251,6 +6251,7 @@ async function loadStudentsFromDB() {
     let snap;
     try {
         snap = await db.collection('students').orderBy('createdAt', 'desc').get({ source: 'cache' });
+        if (snap.empty) throw new Error('cache_empty');
     } catch(_) {
         snap = await db.collection('students').orderBy('createdAt', 'desc').get();
     }
@@ -6275,8 +6276,13 @@ async function loadQuestionSetsFromDB() {
 
     // Chạy guestExamConfig song song với questionSets query
     let _qsetSnap;
-    try { _qsetSnap = await db.collection('questionSets').orderBy('createdAt', 'desc').get({ source: 'cache' }); }
-    catch(_) { _qsetSnap = await db.collection('questionSets').orderBy('createdAt', 'desc').get(); }
+    try {
+        _qsetSnap = await db.collection('questionSets').orderBy('createdAt', 'desc').get({ source: 'cache' });
+        // Cache hit nhưng rỗng → không tin cậy, fallback server
+        if (_qsetSnap.empty) throw new Error('cache_empty');
+    } catch(_) {
+        _qsetSnap = await db.collection('questionSets').orderBy('createdAt', 'desc').get();
+    }
 
     const [snap] = await Promise.all([
         Promise.resolve(_qsetSnap),
@@ -6413,7 +6419,22 @@ let rtExamUnsub = null;      // today's exams
 
 let _rtTodayChartTimer = null; // debounce for today chart rebuild
 
-let rtAllExamUnsub = null;   // all-time stats
+let rtAllExamUnsub   = null;   // all-time stats
+
+let _totalExamCount  = 0;      // true total (từ count() query)
+
+// Lấy tổng số lượt thi thực tế bằng count() — không bị giới hạn bởi limit
+async function fetchTotalExamCount() {
+    try {
+        const snap = await db.collection('examResults').count().get();
+        _totalExamCount = snap.data().count;
+        safeSet('totalExamsD', _totalExamCount);
+    } catch(e) {
+        // count() không khả dụng → fallback: dùng allResults.length
+        console.warn('count() không hỗ trợ, dùng fallback:', e.message);
+        safeSet('totalExamsD', allResults.length + (allResults.length >= 500 ? '+' : ''));
+    }
+}
 
 let liveFeedItems = [];      // circular buffer for live feed
 
@@ -6491,6 +6512,9 @@ function startRealtimeTodayExams() {
 
                 if (change.type === 'added') {
 
+                    // Cập nhật tổng count khi có bài thi mới
+                    fetchTotalExamCount();
+
                     const d2 = change.doc.data();
 
                     const st = allStudents.find(s => s.code === d2.studentCode);
@@ -6564,12 +6588,14 @@ function startRealtimeAllExams() {
             // Giới hạn buffer 500
             if (allResults.length > 500) allResults = allResults.slice(0, 500);
 
-            const total = allResults.length, passed = allResults.filter(r => r.passed).length;
+            const passed = allResults.filter(r => r.passed).length;
+            const total  = allResults.length;
 
-            safeSet('totalExamsD', total);
+            // totalExamsD: dùng count() riêng để hiển thị số thực tế (không bị cap 500)
+            fetchTotalExamCount();
 
+            // passRateD dùng allResults (500 mẫu gần nhất — đủ đại diện)
             const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
-
             safeSet('passRateD', rate);
 
             buildDashboardSeriesFromResults();
@@ -11474,8 +11500,12 @@ async function loadNotificationsFromDB() {
     try {
 
         let snap;
-        try { snap = await db.collection('notifications').orderBy('createdAt', 'desc').get({ source: 'cache' }); }
-        catch(_) { snap = await db.collection('notifications').orderBy('createdAt', 'desc').get(); }
+        try {
+            snap = await db.collection('notifications').orderBy('createdAt', 'desc').get({ source: 'cache' });
+            if (snap.empty) throw new Error('cache_empty');
+        } catch(_) {
+            snap = await db.collection('notifications').orderBy('createdAt', 'desc').get();
+        }
 
         allNotifications = snap.docs.map(d => ({
 
@@ -13506,6 +13536,7 @@ async function initializeSystem() {
         //    được thay thế hoàn toàn bởi listeners bên dưới
         startPresenceListener();
         startRealtimeDashboard();   // 🔴 Real-time: today exams, all exams, students
+        fetchTotalExamCount();       // Lấy tổng số lượt thi thực tế ngay lập tức
 
         // ── Bước C: Render UI ngay sau khi có dữ liệu ────────────────
         loadDashboard();
