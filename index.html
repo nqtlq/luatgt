@@ -618,14 +618,20 @@ async function login(){
   const pass = document.getElementById('password').value;
   if(!raw) { showError('⚠️ Vui lòng nhập Mã học viên.'); return; }
   if(!pass){ showError('⚠️ Vui lòng nhập mật khẩu.'); document.getElementById('password').focus(); return; }
-  setLoading(true,'Đang xác thực học viên...');
-  try { await doStudentLogin(raw, pass); }
-  catch(e){
-    if(e.code==='permission-denied') showError('🚫 Lỗi quyền truy cập. Thử lại hoặc liên hệ quản trị viên.');
-    else if(e.code==='unavailable') showError('⚠️ Máy chủ không phản hồi. Vui lòng thử lại.');
-    else showError('❌ Lỗi: ' + escapeHtml(e.message));
+  if(isEmail(raw)){
+    // Nhánh admin: email có ký tự @ → doAdminLogin
+    await doAdminLogin(raw, pass);
+  } else {
+    // Nhánh học viên: mã HV → doStudentLogin
+    setLoading(true,'Đang xác thực học viên...');
+    try { await doStudentLogin(raw, pass); }
+    catch(e){
+      if(e.code==='permission-denied') showError('🚫 Lỗi quyền truy cập. Thử lại hoặc liên hệ quản trị viên.');
+      else if(e.code==='unavailable') showError('⚠️ Máy chủ không phản hồi. Vui lòng thử lại.');
+      else showError('❌ Lỗi: ' + escapeHtml(e.message));
+    }
+    finally{ setLoading(false); }
   }
-  finally{ setLoading(false); }
 }
 // ================================================================
 // ĐĂNG NHẬP HỌC VIÊN
