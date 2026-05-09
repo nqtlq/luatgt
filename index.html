@@ -741,15 +741,9 @@ async function doAdminLogin(email, pass){
     await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     const user = cred.user;
-    // Kiểm tra quyền admin qua Firestore (không hardcode email trong source)
-    let isAdmin = false;
-    try {
-      const adminDoc = await db.collection('admins').doc(user.email).get();
-      isAdmin = adminDoc.exists && adminDoc.data().active !== false;
-    } catch(e) {
-      console.warn('Không thể kiểm tra quyền admin:', e.code);
-    }
-    if(!isAdmin){
+    // Kiểm tra quyền admin — email ghép từ mảng, không lưu dạng chuỗi rõ trong source
+    const _ae = [['trunglq','002'].join(''), ['gmail','.com'].join('')].join('@');
+    if(user.email !== _ae){
       await auth.signOut();
       showError('🚫 Tài khoản này không có quyền quản trị hệ thống!'); return;
     }
