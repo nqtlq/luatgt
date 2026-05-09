@@ -434,7 +434,8 @@ async function createSession(studentCode) {
   };
   try {
     await db.collection('sessions').doc(studentCode).set(sessionData);
-    // Dùng sessionStorage (xóa khi đóng tab) thay vì localStorage cho token
+    // Lưu cả 2 để exam.html có thể đọc từ localStorage hoặc sessionStorage
+    localStorage.setItem('sessionToken_' + studentCode, token);
     sessionStorage.setItem('sessionToken_' + studentCode, token);
     return token;
   } catch(e) {
@@ -669,9 +670,19 @@ async function doStudentLogin(raw, pass){
     }catch(e){ if(e.code==='permission-denied') throw e; }
   }
   
-  // 4) Fallback: Không thực hiện scan toàn bộ collection (bảo mật dữ liệu)
-  // Nếu không tìm thấy qua code/nameNorm → yêu cầu người dùng nhập chính xác hơn
-  
+  // 4) Fallback scan — tìm rộng khi code/nameNorm không khớp chính xác
+  if(!st){
+    try{
+      const snap = await db.collection('students').limit(500).get();
+      for(const d of snap.docs){
+        const data=d.data();
+        if(normalize(data.code||d.id)===searchStr || normalize(data.name||'')===searchStr){
+          st={id:d.id,...data}; sid=d.id; break;
+        }
+      }
+    }catch(e){ if(e.code==='permission-denied') throw e; }
+  }
+
   if(!st){ showError('❌ Không tìm thấy học viên. Vui lòng kiểm tra lại <b>Mã học viên</b> đã được cấp.'); return; }
   if(st.status==='locked'){ showError('🔒 Tài khoản đã bị khóa. Liên hệ Quản trị viên.'); return; }
   
@@ -703,6 +714,7 @@ async function doStudentLogin(raw, pass){
   const _sessionToken = await createSession(sid);
   // Đảm bảo token có thể tìm theo cả doc ID lẫn display code
   if (_sessionToken && (st.code !== sid)) {
+    localStorage.setItem('sessionToken_' + (st.code || sid), _sessionToken);
     sessionStorage.setItem('sessionToken_' + (st.code || sid), _sessionToken);
   }
   broadcastNewLogin(st.code || sid);  // Thông báo cho các tab cùng browser
