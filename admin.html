@@ -6512,9 +6512,6 @@ function startRealtimeTodayExams() {
 
                 if (change.type === 'added') {
 
-                    // Cập nhật tổng count khi có bài thi mới
-                    fetchTotalExamCount();
-
                     const d2 = change.doc.data();
 
                     const st = allStudents.find(s => s.code === d2.studentCode);
@@ -6591,14 +6588,17 @@ function startRealtimeAllExams() {
             const passed = allResults.filter(r => r.passed).length;
             const total  = allResults.length;
 
-            // totalExamsD: dùng count() riêng để hiển thị số thực tế (không bị cap 500)
-            fetchTotalExamCount();
-
-            // passRateD dùng allResults (500 mẫu gần nhất — đủ đại diện)
-            const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
-            safeSet('passRateD', rate);
+            // totalExamsD + passRateD được cập nhật bởi loadStats() — cùng logic Thống kê
+            // (safeSet ở đây chỉ là fallback khi loadStats chưa chạy)
+            if (!document.getElementById('stats')?.classList.contains('active')) {
+                const rate = total > 0 ? Math.round(passed/total*100) + '%' : '—';
+                safeSet('passRateD', rate);
+            }
 
             buildDashboardSeriesFromResults();
+
+            // Cập nhật Tổng lượt thi + Tỷ lệ đạt theo cùng logic với Thống kê
+            loadStats();
 
         }, err => console.warn('RT All Exams error:', err));
 
@@ -12351,6 +12351,10 @@ function loadStats() {
 
     document.getElementById('statPassRate').textContent = passRate + '%';
 
+    // Đồng bộ lên Dashboard — dùng cùng logic tính với Thống kê
+    safeSet('totalExamsD', totalExams);
+    safeSet('passRateD', passRate + '%');
+
     document.getElementById('statAvgScore').textContent = avg;
 
     document.getElementById('statActiveStudents').textContent = studentsWithExams.length;
@@ -13536,7 +13540,6 @@ async function initializeSystem() {
         //    được thay thế hoàn toàn bởi listeners bên dưới
         startPresenceListener();
         startRealtimeDashboard();   // 🔴 Real-time: today exams, all exams, students
-        fetchTotalExamCount();       // Lấy tổng số lượt thi thực tế ngay lập tức
 
         // ── Bước C: Render UI ngay sau khi có dữ liệu ────────────────
         loadDashboard();
